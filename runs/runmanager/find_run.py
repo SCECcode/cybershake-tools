@@ -17,7 +17,7 @@ RLS_HOST = "rls://shock.usc.edu"
 # Globals
 class info:
     pass
-SEARCH_LIST = ["SGT Generated", "PP Started", "Curves Generated",]
+SEARCH_LIST = ["SGT Generated", "PP Started", "PP Error", "Curves Generated",]
 
 
 def init():
@@ -199,8 +199,8 @@ def main():
                     # Found an acceptable match
                     break
                 else:
-                    # Keep checking if state = "PP Started" because we want to find latest
-                    # run of all the PP Started and Curves Generated
+                    # Keep checking if state = PP Started/PP Error because we want to find latest
+                    # run of all the PP Started/PP Error/Curves Generated
                     pass
             else:
                 pass

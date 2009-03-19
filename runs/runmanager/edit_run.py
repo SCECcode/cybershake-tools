@@ -68,6 +68,9 @@ def init():
 
 def updateFields(oldrun):
 
+    # Unless overridden later, set last_user to be the current user_id
+    oldrun.setLastUserCurrent()
+
     oldrun.setStatusTimeCurrent()
     for k,v in updates.items():
         if (k == "Status"):
@@ -143,7 +146,11 @@ def main():
     run.dumpToScreen()
 
     # Perform update
-    if (rm.updateRun(run, orig_run=saverun) != 0):
+    if (override):
+        retval = rm.updateRun(run)
+    else:
+        retval = rm.updateRun(run, orig_run=saverun)
+    if (retval != 0):
         rm.rollbackTransaction()
         print "Run update failed for run_id %d (site %s)." % (run.getRunID(), run.getSiteName())
         return 1
