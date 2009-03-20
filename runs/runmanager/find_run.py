@@ -9,9 +9,9 @@ sys.path.append('/home/scec-00/patrices/code/trunk/RunManager/')
 
 # General imports
 from RunManager import *
+from RLS import *
 
 # Constants
-RLS_HOST = "rls://shock.usc.edu"
 
 
 # Globals
@@ -52,103 +52,30 @@ def init():
     return 0
 
 
-def runCommand(cmd):
-    try:
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, \
-                                 stderr=subprocess.STDOUT)
-        output = p.communicate()[0]
-        retcode = p.returncode
-        if retcode != 0:
-            #print output
-            #print "Non-zero exit code"
-            return None
-    except:
-        #print sys.exc_info()
-        #print "Failed to run cmd: " + str(cmd)
-        return None
-
-    output = output.splitlines()
-    return output
-
-
-def getPFN(lfn):
-    cmd = ['globus-rls-cli',  'query',  'lrc', 'lfn',  lfn, RLS_HOST,]
-    output = runCommand(cmd)
-    if (output == None):
-        print "LFN %s not found" % (lfn)
-        return None
-    else:
-        pfn_list = []
-        for l in output:
-            tokens = l.split(":", 1)
-            if (len(tokens) != 2):
-                print "Unexpected result: %s" % (str(output))
-                return None
-            pfn = tokens[1]
-            pfn = pfn.strip()
-            pfn_list.append(pfn)
-        return pfn_list
-
-
-def getPool(pfn):
-    cmd = ['globus-rls-cli', 'attribute', 'query', pfn, 'pool', 'pfn', RLS_HOST,]
-    output = runCommand(cmd)
-    if (output == None):
-        print "PFN %s not found" % (pfn)
-        return None
-    else:
-        pool_list = []
-        for l in output:
-            tokens = l.split(":", 2)
-            if (len(tokens) != 3):
-                print "Unexpected result: %s" % (str(output))
-                return None
-            pool = tokens[2]
-            pool = pool.strip()
-            pool_list.append(pool)
-        return pool_list
-
-
-def createLFN(lfn, pfn, pool):
-    cmd = ['globus-rls-cli', 'create', lfn, pfn, RLS_HOST]
-    output = runCommand(cmd)
-    if (output == None):
-        print "Failed to create LFN %s" % (lfn)
-        return 1
-
-    # Pool attribute for pfn should already exist
-    #else:
-        #cmd = ['globus-rls-cli', 'attribute', 'add', pfn, 'pool', 'pfn', 'string', pool, RLS_HOST]
-        #print cmd
-        #output = runCommand(cmd)
-        #if (output == None):
-            #print "Failed to create pool attribute %s for PFN" % (pool)
-            #return 1
-
-    return 0
-
-
 def cloneLFNs(match, clone):
     
-    lfns = ["%s_%d_fx.sgt", \
-                "%s_%d_fy.sgt", \
-                "%s_%d_fx.sgt.md5", \
-                "%s_%d_fy.sgt.md5", ]
+    lfns = ["%s_fx_%d.sgt", \
+                "%s_fy_%d.sgt", \
+                "%s_fx_%d.sgt.md5", \
+                "%s_fy_%d.sgt.md5", ]
+
+    rls = RLS()
 
     for lfn in lfns:
         old_lfn = lfn % (match.getSiteName(), match.getRunID())
         new_lfn = lfn % (clone.getSiteName(), clone.getRunID())
 
         # Get PFN associated with this LFN
-        pfn_list = getPFN(old_lfn)
-        if (pfn_list == None):
+        pfn_list = rls.getPFNs(old_lfn)
+        if ((pfn_list == None) or (len(pfn_list) == 0)):
+            print "Old LFN %s not found." % (old_lfn)
             return 1
 
         # Take the first pfn in the list
         pfn = pfn_list[0]
 
         # Get this PFNs pool attributes
-        pool_list = getPool(pfn)
+        pool_list = rls.getPools(pfn)
         if ((pool_list == None) or (len(pool_list) == 0)):
             # Not the end of the world if no pool attribute
             pool = None
@@ -158,8 +85,9 @@ def cloneLFNs(match, clone):
 
         #print "pfn=%s, pool=%s" % (pfn, str(pool))
 
-        # Create new LFN for cloned run
-        if (createLFN(new_lfn, pfn, pool) != 0):
+        # Create new LFN for cloned run, do not assign a pool since pfn has one
+        if (rls.createLFN(new_lfn, pfn) != 0):
+            print "Failed to create new LFN %s." % (new_lfn)
             return 1
 
     return 0
@@ -230,8 +158,9 @@ def main():
             print "Failed inserting cloned run."
             return 1
         else:
-            # Clone the RLS entries for SGTs
+            # Clone the RLS entries for the SGTs
             if (cloneLFNs(pref_match, clone) != 0):
+                rm.rollbackTransaction()
                 print "Failed cloning LFNs for run %d." % (pref_match.getRunID())
                 return 1
             else:
