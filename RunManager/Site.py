@@ -29,6 +29,19 @@ class Site:
         self.lat = obj.lat
         self.lon = obj.lon
 
+    @staticmethod
+    def formatHeader():
+        headers = ["Site ID", "Site Name", "Lat", "Lon", "Desc"]
+        return headers
+
+    def formatData(self):
+        data = [str(self.site_id), \
+                    str(self.site_short), \
+                    str(self.lat), \
+                    str(self.lon), \
+                    str(self.site_long),]
+        return data
+
     def getSiteID(self):
         return self.site_id
 
