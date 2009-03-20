@@ -40,9 +40,9 @@ def dispNewSites():
         print "Unable to display new sites<p>"
         return 1
 
-    t = HTMLTableSites()
+    t = HTMLTable()
     t.addCaption("New Sites (%s)" % (DB_HOST))
-    t.showAdd("doadd.py")
+    t.addActions({"Add":"doadd.py"})
     t.display(site_list)
 
     print "<p>"
@@ -101,13 +101,12 @@ def main():
         if ((run_list != None) and (len(run_list) > 0)):
             master_run_list = master_run_list + run_list
 
-    t = HTMLTableRuns()
+    t = HTMLTable()
     t.addCaption(caption)
     if (filter == FILTERS[0]):
-        t.showEdit("doedit.py")
-        t.showDelete("dodelete.py")
+        t.addActions({"Edit":"doedit.py", "Delete":"dodelete.py",})
     elif (filter == FILTERS[1]):
-        t.showCurves("dispcurves.py")
+        t.addActions({"Curves":"dispcurves.py",})
     t.display(master_run_list)
 
     print "<p>"
