@@ -5,6 +5,7 @@ import sys
 from Database import *
 from Config import *
 from Run import *
+from RunStats import *
 from Site import *
 
 
@@ -284,6 +285,49 @@ class RunManager:
                     runs.append(newrun)
 
                 return runs
+
+
+    def __getRunStats(self, run):
+
+        # Count the number of peak amps
+        sqlcmd = "select count(*) from PeakAmplitudes p where p.Run_ID=%d" % \
+            (run.getRunID())
+
+        if (self.database.execsql(sqlcmd) != 0):
+            self._printError("Unable to count PSAs for run %s." % \
+                                 (run.getRunID()))
+            return None
+
+        psa_data = self.database.getResultsNext()
+        if (psa_data == None):
+            self._printError("Matching PSAs not found in DB.")
+            return None
+
+        # Count the number of hazard curves
+        sqlcmd = "select count(*) from Hazard_Curves c where c.Run_ID=%d" % \
+            (run.getRunID())
+
+        if (self.database.execsql(sqlcmd) != 0):
+            self._printError("Unable to count curves for run %s." % \
+                                 (run.getRunID()))
+            return None
+
+        curve_data = self.database.getResultsNext()
+        if (curve_data == None):
+            self._printError("Matching curves not found in DB.")
+            return None
+            
+        # Populate runstats object
+        newrun = RunStats()
+        newrun.setRunID(run.getRunID())
+        newrun.setSiteID(run.getSiteID())
+        newrun.setSiteName(run.getSiteName())
+        newrun.setERFID(run.getERFID())
+        newrun.setSGTVarID(run.getSGTVarID())
+        newrun.setRupVarID(run.getRupVarID())
+        newrun.setNumPSAs(psa_data[0])
+        newrun.setNumCurves(curve_data[0])        
+        return newrun
 
 
     def __getNewSites(self):
@@ -632,3 +676,20 @@ class RunManager:
         return self.updateRun(run)
 
 
+    def getRunStatsByID(self, run_id):
+
+        if (run_id == None):
+            self._printError("Requires a run_id to be specified.")
+            return None
+
+        run = Run()
+        run.setRunID(run_id)
+
+        # Query existing data for this run_id
+        runs = self.getRuns(run, lock=False)
+        if (runs == None):
+            return None
+
+        # Collect statistics
+        runstat = self.__getRunStats(runs[0])
+        return runstat
