@@ -65,6 +65,26 @@ class Run:
         self.submit_dir = obj.submit_dir
 
 
+    @staticmethod
+    def formatHeader():
+        headers = ["Run ID", "Site", "Status", "Status Time", "SGT Host", \
+                       "PP Host", "Comment", "Last User", "Job ID", \
+                       "Submit Dir", ]
+        return headers
+
+    def formatData(self):
+        data = [str(self.run_id), \
+                    "%s (%s)" % (str(self.site), str(self.site_id)), \
+                    str(self.status), \
+                    str(self.status_time), \
+                    str(self.sgt_host), \
+                    str(self.pp_host), \
+                    str(self.comment), \
+                    str(self.last_user), \
+                    str(self.job_id), \
+                    str(self.submit_dir),]
+        return data
+
     def getRunID(self):
         return self.run_id
 
