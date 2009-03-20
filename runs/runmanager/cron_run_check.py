@@ -6,6 +6,7 @@ sys.path.append('/home/scec-00/patrices/code/trunk/RunManager/')
 
 
 # General imports
+import time
 import socket
 from RunManager import *
 from Condor import *
@@ -32,6 +33,8 @@ def init():
 def main():
     global info
 
+    print "-- Starting up at %s --" % (time.strftime("%Y-%m-%d %H:%M:%S"))
+
     rm = RunManager(readonly=False)
     rm.useHTML(False)
 
@@ -39,6 +42,7 @@ def main():
     condor = Condor()
     if (condor.cacheAllJobs() != 0):
         # No work is possible
+        print "-- Shutting down at %s --" % (time.strftime("%Y-%m-%d %H:%M:%S"))
         return 0
 
     searchrun = Run()
@@ -92,6 +96,7 @@ def main():
         else:
             print "No runs found in state '%s'" % (s)
 
+    print "-- Shutting down at %s --" % (time.strftime("%Y-%m-%d %H:%M:%S"))
     return 0
 
 
