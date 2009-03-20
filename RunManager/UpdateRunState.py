@@ -104,15 +104,10 @@ def main():
     run.setStatus(new_run_state)
     run.setStatusTimeCurrent()
 
-    # Done by update method
-    #if (new_run_state in SGT_STATES):
-    #    run.setSGTTimeCurrent()
-    #if (new_run_state in PP_STATES):
-    #    run.setPPTimeCurrent()
-
     if ((info.new_state == "SGT_END") or (info.new_state == "PP_END")):
-        # Clear the Job_ID at end of workflow
+        # Clear the Job_ID at end of workflow, update the comment
         run.setJobID("")
+        run.setComment("Workflow completed successfully")
 
     print "Updated Record:"
     run.dumpToScreen()
