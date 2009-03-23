@@ -60,20 +60,14 @@ class HTMLPage:
 
 class HTMLTable:
     caption = None
-    edit = None
-    delete = None
-    add = None
-    curves = None
     action_map = None
+    selection = False
     
     def __init__(self):
-        self.edit = None
-        self.delete = None
-        self.add = None
-        self.curves = None
         self.caption = None
         self.action_map = None
-        
+        self.selection = False
+
         
     def addCaption(self, caption):
         self.caption = caption
@@ -84,7 +78,11 @@ class HTMLTable:
         self.action_map = action_map
         return 0
 
-    
+
+    def setSelection(self, flag):
+        self.selection = flag
+
+        
     def display(self, data_list):
         print "<table width=\"1400\" border=\"1\">"
 
@@ -93,8 +91,11 @@ class HTMLTable:
 
         if (len(data_list) >= 0):
 
-            headers = data_list[0].formatHeader() 
-        
+            headers = []
+            if (self.selection == True):
+                headers.append("Select")
+            headers = headers + data_list[0].formatHeader()
+            
             # Display column headers
             print "<tr bgcolor=\"DarkSalmon\" bordercolor=\"Black\">"
             for h in headers:
@@ -112,6 +113,10 @@ class HTMLTable:
                     print "<tr style=\"font-size:80%\">"
 
                 row = datum.formatData()
+
+                if (self.selection == True):
+                    print "<td><center><input type=checkbox name=\"key\" value=\"%s\"></center></td>" % (row[0])
+                    
                 for c in row:
                     if (c == ""):
                         print "<td>None</td>"

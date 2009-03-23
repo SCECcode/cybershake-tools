@@ -60,14 +60,16 @@ def main():
         run.setSGTHost(form["sgt_host"].value)
     if form.has_key("pp_host") and form["pp_host"].value != "":
         run.setPPHost(form["pp_host"].value)
-    if form.has_key("comment") and form["comment"].value != "":
+    if form.has_key("comment"):
         run.setComment(form["comment"].value)
     if form.has_key("last_user") and form["last_user"].value != "":
         run.setLastUser(form["last_user"].value)
-    if form.has_key("job_id") and form["job_id"].value != "":
+    if form.has_key("job_id"):
         run.setJobID(form["job_id"].value)
-    if form.has_key("submit_dir") and form["submit_dir"].value != "":
+    if form.has_key("submit_dir"):
         run.setSubmitDir(form["submit_dir"].value)
+    if form.has_key("notify_user"):
+        run.setNotifyUser(form["notify_user"].value)
 
     # Update status time
     run.setStatusTimeCurrent()

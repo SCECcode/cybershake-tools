@@ -165,7 +165,10 @@ def dispModifyForm(run):
     print "<tr>"
     print "<td>Job ID:</td>"
     print "<td>"
-    print "<input type=\"text\" name=\"job_id\" size=\"16\" value=\"%s\">" % (run.getJobID())
+    if (run.getJobID() == None):
+        print "<input type=\"text\" name=\"job_id\" size=\"16\" value=\"\">"
+    else:
+        print "<input type=\"text\" name=\"job_id\" size=\"16\" value=\"%s\">" % (run.getJobID())
     print "</td>"
     print "</tr>"                        
 
@@ -173,7 +176,21 @@ def dispModifyForm(run):
     print "<tr>"
     print "<td>Submit Dir:</td>"
     print "<td>"
-    print "<textarea cols=32 rows=2 name=\"submit_dir\">%s</textarea>" % (run.getSubmitDir())
+    if (run.getSubmitDir() == None):
+        print "<textarea cols=32 rows=2 name=\"submit_dir\"></textarea>"
+    else:
+        print "<textarea cols=32 rows=2 name=\"submit_dir\">%s</textarea>" % (run.getSubmitDir())
+    print "</td>"
+    print "</tr>"
+
+    # Notify_User
+    print "<tr>"
+    print "<td>Notify User:</td>"
+    print "<td>"
+    if (run.getNotifyUser() == None):
+        print "<input type=\"text\" name=\"notify_user\" size=\"32\" value=\"\">"
+    else:
+        print "<input type=\"text\" name=\"notify_user\" size=\"32\" value=\"%s\">" % (run.getNotifyUser())
     print "</td>"
     print "</tr>"
     

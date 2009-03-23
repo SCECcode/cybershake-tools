@@ -42,11 +42,8 @@ def main():
 
     form = cgi.FieldStorage() # instantiate only once!
 
+    # Populate run object with common values
     run = Run()
-    if form.has_key("site_id") and form["site_id"].value != "":
-        run.setSiteID(int(form["site_id"].value))
-    if form.has_key("site") and form["site"].value != "":
-        run.setSiteName(form["site"].value)
     if form.has_key("erf_id") and form["erf_id"].value != "":
         run.setERFID(int(form["erf_id"].value))
     if form.has_key("sgt_var_id") and form["sgt_var_id"].value != "":
@@ -69,16 +66,47 @@ def main():
         run.setJobID(form["job_id"].value)
     if form.has_key("submit_dir") and form["submit_dir"].value != "":
         run.setSubmitDir(form["submit_dir"].value)
+    if form.has_key("notify_user") and form["notify_user"].value != "":
+        run.setNotifyUser(form["notify_user"].value)
 
-    # Create the run
-    run_id = rm.createRun(run)
-    if (run_id == None):
-        print "Run insert failed for site %s.<p>" % (run.getSiteName())
-    else:
-        # Commit change
-        rm.commitTransaction()
-        print "Run successfully added for site %s.<p>" % (run.getSiteName())
+    # Determine which sites to create run
+    site_id_list = []
+    site_name_list = []
+    if form.has_key("site_id"):
+        if  (type(form["site_id"]) != type([])):
+            if (form["site_id"].value != ""):
+                site_id_list = [form["site_id"].value,]
+        else:
+            site_id_list = form.getlist("site_id")
+    if form.has_key("site"):
+        if  (type(form["site"]) != type([])):
+            if (form["site"].value != ""):
+                site_name_list = [form["site"].value,]
+        else:
+            site_name_list = form.getlist("site")
+
+    i = 0
+    site_map = {}
+    for site in site_id_list:
+        site_map[site] = site_name_list[i]
+        i = i + 1
+    
+    for id, name in site_map.items():
+        run.setSiteID(int(id))
+        run.setSiteName(name)
+
+        # Create the run
+        run_id = rm.createRun(run)
+        if (run_id == None):
+            print "Run insert failed for site %s. Performing rollback.<p>" % (run.getSiteName())
+            rm.rollbackTransaction()
+            break
+        else:
+            print "Run successfully added for site %s.<p>" % (run.getSiteName())
             
+    # Commit change
+    rm.commitTransaction()
+        
     print "If page does not redirect in a few seconds, please click the link above.<p>"
     print "Please wait...<p>"
     
