@@ -11,7 +11,7 @@ from Config import *
 from RunManager import *
 
 # Constants
-VALID_FIELDS = ["Status", "SGT_Host", "PP_Host", "Comment", "Last_User", "Job_ID", "Submit_Dir",]
+VALID_FIELDS = ["Status", "SGT_Host", "PP_Host", "Comment", "Last_User", "Job_ID", "Submit_Dir", "Notify_User", ]
 
 
 # Globals
@@ -108,9 +108,20 @@ def updateFields(oldrun):
                 return None
             oldrun.setLastUser(v)
         elif (k == "Job_ID"):
-            oldrun.setJobID(v)
+            if (v == 'NULL'):
+                oldrun.setJobID("")
+            else:
+                oldrun.setJobID(v)
         elif (k == "Submit_Dir"):
-            oldrun.setSubmitDir(v)
+            if (v == 'NULL'):
+                oldrun.setSubmitDir("")
+            else:
+                oldrun.setSubmitDir(v)
+        elif (k == "Notify_User"):
+            if (v == 'NULL'):
+                oldrun.setNotifyUser("")
+            else:
+                oldrun.setNotifyUser(v)
 
     return oldrun
 
