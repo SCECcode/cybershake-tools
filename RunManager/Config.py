@@ -40,3 +40,5 @@ STATUS_STD = {"Initial": ["Initial", "SGT Started", "Deleted",], \
 # Directory containing hazard curve images
 CURVE_DIR = "/home/scec-00/cybershk/opensha/curves/"
 
+# Website URL
+WEB_URL = "http://intensity.usc.edu/cybershake/status/"
