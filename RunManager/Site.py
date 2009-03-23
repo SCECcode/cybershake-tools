@@ -29,8 +29,8 @@ class Site:
         self.lat = obj.lat
         self.lon = obj.lon
 
-    @staticmethod
-    def formatHeader():
+    #@staticmethod
+    def formatHeader(self):
         headers = ["Site ID", "Site Name", "Lat", "Lon", "Desc"]
         return headers
 
