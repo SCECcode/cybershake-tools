@@ -5,6 +5,13 @@ import socket
 import os
 import pwd
 import smtplib
+from Config import *
+
+
+# Constants
+FOOTER = "\r\n------------------------------------------------------------" + \
+    "\r\nAutomated msg from CyberShake RunManager" + \
+    "\r\n" + WEB_URL + "\r\n"
 
 
 class Mailer:
@@ -40,13 +47,9 @@ class Mailer:
         else:
             to_str = str(to_user)
 
-        msg_str = "From: " + self.from_user + \
-            "\r\nTo: " + to_str + \
-            "\r\nSubject: " + subject + \
-            "\r\n" + msg + \
-            "\r\n-------------------------------------------------------" + \
-            "\r\nAutomated msg from CyberShake Mailer\r\n"
-    
+        msg_str = "From: %s\r\nTo: %s\r\nSubject: %s\r\n%s%s" % \
+            (self.from_user, to_str, subject, msg, FOOTER)
+
         for h in self.smtphosts:
             try:
                 print "Connecting to SMTP host " + h
