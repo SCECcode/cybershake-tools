@@ -25,6 +25,7 @@ class Run:
     last_user = None
     job_id = None
     submit_dir = None
+    notify_user = None
 
 
     def __init__(self):
@@ -44,6 +45,7 @@ class Run:
         self.last_user = None
         self.job_id = None
         self.submit_dir = None
+        self.notify_user = None
 
 
     def copy(self, obj):
@@ -63,10 +65,11 @@ class Run:
         self.last_user = obj.last_user
         self.job_id = obj.job_id
         self.submit_dir = obj.submit_dir
+        self.notify_user = obj.notify_user
 
 
-    @staticmethod
-    def formatHeader():
+    #@staticmethod
+    def formatHeader(self):
         headers = ["Run ID", "Site", "Status", "Status Time", "SGT Host", \
                        "PP Host", "Comment", "Last User", "Job ID", \
                        "Submit Dir", ]
@@ -89,7 +92,6 @@ class Run:
         return self.run_id
 
     def setRunID(self, run_id):
-        # Allow None as a valid run_id
         if (run_id == None):
             self.run_id = run_id
         else:
@@ -225,6 +227,8 @@ class Run:
         self.last_user = pwd.getpwuid(os.getuid())[0]
                     
     def getJobID(self):
+        #if (self.job_id == ""):
+        #    return None
         return self.job_id
 
     def setJobID(self, job_id):
@@ -234,6 +238,8 @@ class Run:
             self.job_id = str(job_id)
 
     def getSubmitDir(self):
+        #if (self.submit_dir == ""):
+        #    return None
         return self.submit_dir
 
     def setSubmitDir(self, submit_dir):
@@ -241,18 +247,49 @@ class Run:
             self.submit_dir = submit_dir
         else:
             self.submit_dir = str(submit_dir)
-            
+
+    def getNotifyUser(self):
+        #if (self.notify_user == ""):
+        #    return None
+        return self.notify_user
+
+    def getNotifyUserAsList(self):
+        if ((self.notify_user == None) or (self.notify_user == "")):
+            return None
+        else:
+            return self.notify_user.split(",")
+
+    def setNotifyUser(self, notify_user):
+        if (notify_user == None):
+            self.notify_user = notify_user
+        elif (type(notify_user) == type([])):
+            self.notify_user = ""
+            for n in notify_user:
+                if (self.notify_user == ""):
+                    self.notify_user = n
+                else:
+                    self.notify_user = self.notify_user + "," + n
+        else:
+            self.notify_user = str(notify_user)
+
+
     def dumpToScreen(self):
         print "Run ID:\t\t %s" % (str(self.run_id))
         print "Site:\t\t %s (id=%s)" % (str(self.site), str(self.site_id))
-        print "Params:\t\t erf=%s sgt_var=%s rup_var=%s" % (str(self.erf_id), \
-                                                                str(self.sgt_var_id), \
-                                                                str(self.rup_var_id))
-        print "State:\t\t state='%s' time='%s'" % (str(self.status), str(self.status_time))
-        print "SGT Info:\t host=%s time='%s'" % (str(self.sgt_host), str(self.sgt_time))
-        print "PP Info:\t host=%s time='%s'" % (str(self.pp_host), str(self.pp_time))
+        print "Params:\t\t erf=%s sgt_var=%s rup_var=%s" % \
+            (str(self.erf_id), \
+                 str(self.sgt_var_id), \
+                 str(self.rup_var_id))
+        print "State:\t\t state='%s' time='%s'" % \
+            (str(self.status), str(self.status_time))
+        print "SGT Info:\t host=%s time='%s'" % \
+            (str(self.sgt_host), str(self.sgt_time))
+        print "PP Info:\t host=%s time='%s'" % \
+            (str(self.pp_host), str(self.pp_time))
         print "Comment:\t '%s'" % (str(self.comment))
-        print "Tracking:\t user='%s' job_id='%s'" % (str(self.last_user), str(self.job_id))
+        print "Tracking:\t user='%s' job_id='%s'" % \
+            (str(self.last_user), str(self.job_id))
         print "Submit Dir:\t %s" % (str(self.submit_dir))
+        print "Notify User:\t %s" % (str(self.notify_user))
         return 0
                                                                             

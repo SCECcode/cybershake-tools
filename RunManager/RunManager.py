@@ -184,6 +184,8 @@ class RunManager:
             fields["Job_ID"] = run.getJobID()
         if (run.getSubmitDir() != None):
             fields["Submit_Dir"] = run.getSubmitDir()
+        if (run.getNotifyUser() != None):
+            fields["Notify_User"] = run.getNotifyUser()
             
         return fields
 
@@ -252,7 +254,7 @@ class RunManager:
             lock_str = ""
 
         # Retrieve these runs and lock the rows for update
-        sqlcmd = "select Run_ID, Site_ID, CS_Short_Name, ERF_ID, SGT_Variation_ID, Rup_Var_Scenario_ID, Status, Status_Time, SGT_Host, SGT_Time, PP_Host, PP_Time, Comment, Last_User, Job_ID, Submit_Dir from %s t, CyberShake_Sites s where s.CS_Site_ID = t.Site_ID %s order by t.Run_ID asc %s" % (RUN_TABLE_NAME, where_str, lock_str)
+        sqlcmd = "select Run_ID, Site_ID, CS_Short_Name, ERF_ID, SGT_Variation_ID, Rup_Var_Scenario_ID, Status, Status_Time, SGT_Host, SGT_Time, PP_Host, PP_Time, Comment, Last_User, Job_ID, Submit_Dir, Notify_User from %s t, CyberShake_Sites s where s.CS_Site_ID = t.Site_ID %s order by t.Run_ID asc %s" % (RUN_TABLE_NAME, where_str, lock_str)
         if (self.database.execsql(sqlcmd) != 0):
             self._printError("Unable to retrieve run %s." % (run.getRunID()))
             return None
@@ -282,6 +284,7 @@ class RunManager:
                     newrun.setLastUser(r[13])
                     newrun.setJobID(r[14])
                     newrun.setSubmitDir(r[15])
+                    newrun.setNotifyUser(r[16])
                     runs.append(newrun)
 
                 return runs
@@ -509,6 +512,9 @@ class RunManager:
 
         if (run.getSubmitDir() == None):
             run.setSubmitDir("")
+
+        if (run.getNotifyUser() == None):
+            run.setNotifyUser("")
         
         return run
 
