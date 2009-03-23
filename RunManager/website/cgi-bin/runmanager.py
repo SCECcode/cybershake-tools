@@ -43,7 +43,16 @@ def dispNewSites():
     t = HTMLTable()
     t.addCaption("New Sites (%s)" % (DB_HOST))
     t.addActions({"Add":"doadd.py"})
+    t.setSelection(True)
+
+    # Wrap a form around this table that allows multiple sites to be selected
+    print "<form action=\"doadd.py\" method=\"POST\" enctype=\"multipart/form-data\" name=\"multiaddform\">"
+    print "<p>"
+    print "Click the appropriate link to add a run for that site, or select a group then click "
+    print "<input type=\"submit\" value=\"Group Add\">"
+    print "<p>"
     t.display(site_list)
+    print "</form>"
 
     print "<p>"
     
@@ -106,7 +115,7 @@ def main():
     if (filter == FILTERS[0]):
         t.addActions({"Edit":"doedit.py", "Delete":"dodelete.py",})
     elif (filter == FILTERS[1]):
-        t.addActions({"Curves":"dispcurves.py",})
+        t.addActions({"Details":"dispcurves.py",})
     t.display(master_run_list)
 
     print "<p>"

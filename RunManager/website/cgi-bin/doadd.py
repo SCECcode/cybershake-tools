@@ -33,11 +33,12 @@ def init():
     return 0
 
 
-def dispAddForm(run):
+def dispAddForm(site_map, run):
     
     print "<form action=\"addrun.py\" method=\"POST\" enctype=\"multipart/form-data\" name=\"addform\">"
-    print "<input type=\"hidden\" name=\"site_id\" value=\"%d\">" % (run.getSiteID())
-    print "<input type=\"hidden\" name=\"site\" value=\"%s\">" % (run.getSiteName())
+    for id,name in site_map.items():
+        print "<input type=\"hidden\" name=\"site_id\" value=\"%s\">" % (id)
+        print "<input type=\"hidden\" name=\"site\" value=\"%s\">" % (name)
 
     print "<div style=\"background: %s\">" % ("Beige")
 
@@ -45,8 +46,16 @@ def dispAddForm(run):
 
     # Site
     print "<tr>"
-    print "<td>Site:</td>"
-    print "<td>%s</td>" % (run.getSiteName())
+    print "<td>Site(s):</td>"
+    print "<td>"
+    disp_str = ""
+    for id,name in site_map.items():
+        if (disp_str == ""):
+            disp_str = "%s (%s)" % (name, id)
+        else:
+            disp_str = disp_str + ", %s (%s)" % (name, id)
+    print disp_str
+    print "</td>"
     print "</tr>"
 
     # ERF_ID
@@ -159,6 +168,14 @@ def dispAddForm(run):
     print "</td>"
     print "</tr>"
 
+    # Notify_User
+    print "<tr>"
+    print "<td>Notify User:</td>"
+    print "<td>"
+    print "<input type=\"text\" name=\"notify_user\" size=\"32\" value=\"\">"
+    print "</td>"
+    print "</tr>"
+
     print "</table>"
 
     print "</div>"
@@ -184,14 +201,26 @@ def main():
     page.header()
     page.pageTitle()
     page.menu([["%s?filter=New Sites" % (MAIN_PAGE), "Main"], ])
-    page.sectionTitle("Add Run")
+    page.sectionTitle("Add Run(s)")
 
     form = cgi.FieldStorage() # instantiate only once!
-    if form.has_key("key") and form["key"].value != "":
-        site_id = int(form["key"].value)
-        
+
+    site_id_list = []
+    if form.has_key("key"):
+        if  (type(form["key"]) != type([])):
+            if (form["key"].value != ""):
+                site_id_list = [form["key"].value,]
+        else:
+            site_id_list = form.getlist("key")
+            #site_id = form.getfirst("key")
+
+    if (len(site_id_list) > 0):
+
         # Retrieve this site
-        site = rm.getSiteByID(site_id);
+        site_map = {}
+        for site_id in site_id_list:
+            site = rm.getSiteByID(int(site_id));
+            site_map[site_id] = site
             
         # Retrieve ERF_IDs
         erf_list = rm.getParamIDs("ERF");
@@ -205,10 +234,10 @@ def main():
         if ((site == None) or (len(erf_list) == 0) or (len(sgt_var_list) == 0) or (len(rup_var_list) == 0)):
             print "Unable to retrieve reference info from DB.<p>"
         else:
-            # Populate run object
+            # Populate default run object
             run = Run()
-            run.setSiteID(site_id)
-            run.setSiteName(site)
+            run.setSiteID(int(site_id_list[0]))
+            run.setSiteName(site_map[site_id_list[0]])
             run.setERFID(erf_list[0][0])
             run.setSGTVarID(sgt_var_list[0][0])
             run.setRupVarID(rup_var_list[0][0])
@@ -216,15 +245,18 @@ def main():
             run.setStatusTimeCurrent()
             
             # Present form to allow user modification
-            dispAddForm(run);
+            dispAddForm(site_map, run);
             
             page.footer()
             return 0
 
     else:
-        print "No status ID supplied.<p>"
+        print "No run ID supplied.<p>"
 
-    page.addRedirect(MAIN_PAGE)
+    print "If page does not redirect in a few seconds, please click the link above.<p>"
+    print "Please wait...<p>"    
+
+    page.addRedirect("%s?filter=New Stes" % (MAIN_PAGE))
     page.footer()
 
     return 0
