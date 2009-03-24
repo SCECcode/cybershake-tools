@@ -40,8 +40,8 @@ class RunStats:
         self.num_curves = obj.num_curves
 
 
-    @staticmethod
-    def formatHeader():
+    #@staticmethod
+    def formatHeader(self):
         headers = ["Run ID", "Site", "ERF ID", "SGT Var ID", "Rup Var ID", \
                        "Num PSA", "Num Curves",]
         return headers
