@@ -7,6 +7,7 @@ from Config import *
 from Run import *
 from RunStats import *
 from Site import *
+from Curve import *
 
 
 # Constants
@@ -124,7 +125,6 @@ class RunManager:
             return id_list[0][0]
 
 
-
     def __isValidID(self, id_str, id):
         if (id_str == "ERF"):
             sqlcmd = "select count(*) from ERF_IDs where ERF_ID=%d" % (id)
@@ -153,11 +153,12 @@ class RunManager:
     def __getFieldDict(self, run, key=False):
         fields = {}
 
+        site = run.getSite()
         if (key):
             if (run.getRunID() != None):
                 fields["Run_ID"] = run.getRunID()
-        if (run.getSiteID() != None):
-            fields["Site_ID"] = run.getSiteID()
+        if (site.getSiteID() != None):
+            fields["Site_ID"] = site.getSiteID()
         if (run.getERFID() != None):
             fields["ERF_ID"] = run.getERFID()
         if (run.getSGTVarID() != None):
@@ -228,12 +229,56 @@ class RunManager:
             (RUN_TABLE_NAME, column_str, data_str)
         if (self.database.execsql(sqlcmd) != 0):
             self._printError("Unable to add run for site %s." % \
-                                 (run.getSiteName()))
+                                 (run.getSite().getShortName()))
             return 0
 
         # Get the run_id auto-increment value
         run_id = self.__getLastRunID()
         return run_id
+
+
+    def __getRunsSQL(self, where_str, order_str, lock_str):
+
+        # Retrieve these runs and lock the rows for update if needed
+        sqlcmd = "select Run_ID, CS_Site_ID, CS_Short_Name, CS_Site_Lat, CS_Site_Lon, CS_Site_Name, ERF_ID, SGT_Variation_ID, Rup_Var_Scenario_ID, Status, Status_Time, SGT_Host, SGT_Time, PP_Host, PP_Time, Comment, Last_User, Job_ID, Submit_Dir, Notify_User from %s t, CyberShake_Sites s where s.CS_Site_ID = t.Site_ID %s %s %s" % (RUN_TABLE_NAME, where_str, order_str, lock_str)
+        if (self.database.execsql(sqlcmd) != 0):
+            self._printError("Unable to retrieve run.")
+            return None
+        else:
+            run_data = self.database.getResultsAll()
+            if ((run_data == None) or (len(run_data) == 0)):
+                #self._printError("Matching runs not found in DB.")
+                return None
+            else:
+                runs = []
+                for r in run_data:
+                    # Populate run object
+                    newrun = Run()
+                    newsite = Site()
+                    newrun.setRunID(r[0])
+                    newsite.setSiteID(r[1])
+                    newsite.setShortName(r[2])
+                    newsite.setLatitude(r[3])
+                    newsite.setLongitude(r[4])
+                    newsite.setLongName(r[5])
+                    newrun.setSite(newsite)
+                    newrun.setERFID(r[6])
+                    newrun.setSGTVarID(r[7])
+                    newrun.setRupVarID(r[8])
+                    newrun.setStatus(r[9])
+                    newrun.setStatusTime(r[10])
+                    newrun.setSGTHost(r[11])
+                    newrun.setSGTTime(r[12])
+                    newrun.setPPHost(r[13])
+                    newrun.setPPTime(r[14])
+                    newrun.setComment(r[15])
+                    newrun.setLastUser(r[16])
+                    newrun.setJobID(r[17])
+                    newrun.setSubmitDir(r[18])
+                    newrun.setNotifyUser(r[19])
+                    runs.append(newrun)
+
+                return runs
 
         
     def __getRuns(self, run, lock):
@@ -253,41 +298,51 @@ class RunManager:
         else:
             lock_str = ""
 
-        # Retrieve these runs and lock the rows for update
-        sqlcmd = "select Run_ID, Site_ID, CS_Short_Name, ERF_ID, SGT_Variation_ID, Rup_Var_Scenario_ID, Status, Status_Time, SGT_Host, SGT_Time, PP_Host, PP_Time, Comment, Last_User, Job_ID, Submit_Dir, Notify_User from %s t, CyberShake_Sites s where s.CS_Site_ID = t.Site_ID %s order by t.Run_ID asc %s" % (RUN_TABLE_NAME, where_str, lock_str)
+        order_str = "order by t.Run_ID asc"
+        return self.__getRunsSQL(where_str, order_str, lock_str)
+
+
+    def __getRunsByState(self, state_list, lock):
+        # Construct column and data strings for SQL command
+        where_str = ' and ('
+        for state in state_list:
+            if (where_str != ' and ('):
+                where_str = where_str + ' or '
+            where_str = where_str + "t.Status='%s'" % (state)
+        where_str = where_str + ")"
+
+        if (lock == True):
+            lock_str = "for update"
+        else:
+            lock_str = ""
+
+        order_str = "order by t.Status_Time desc"
+        return self.__getRunsSQL(where_str, order_str, lock_str)
+
+
+    def __getCurves(self, run):
+        # Get the curves associated with this run
+        sqlcmd = "select t.IM_Type_ID, t.IM_Type_Measure, t.IM_Type_Value, t.Units from Hazard_Curves c, IM_Types t where c.IM_Type_ID = t.IM_Type_ID and c.Run_ID=%d order by t.IM_Type_Value asc" % (run.getRunID())
         if (self.database.execsql(sqlcmd) != 0):
-            self._printError("Unable to retrieve run %s." % (run.getRunID()))
+            self._printError("Unable to retrieve hazard curves.")
             return None
         else:
-            run_data = self.database.getResultsAll()
-            if ((len(run_data) == 0) or (run_data == None)):
+            curve_data = self.database.getResultsAll()
+            if ((curve_data == None) or (len(curve_data) == 0)):
                 #self._printError("Matching runs not found in DB.")
                 return None
             else:
-                runs = []
-                for r in run_data:
-                    # Populate run object
-                    newrun = Run()
-                    newrun.setRunID(r[0])
-                    newrun.setSiteID(r[1])
-                    newrun.setSiteName(r[2])
-                    newrun.setERFID(r[3])
-                    newrun.setSGTVarID(r[4])
-                    newrun.setRupVarID(r[5])
-                    newrun.setStatus(r[6])
-                    newrun.setStatusTime(r[7])
-                    newrun.setSGTHost(r[8])
-                    newrun.setSGTTime(r[9])
-                    newrun.setPPHost(r[10])
-                    newrun.setPPTime(r[11])
-                    newrun.setComment(r[12])
-                    newrun.setLastUser(r[13])
-                    newrun.setJobID(r[14])
-                    newrun.setSubmitDir(r[15])
-                    newrun.setNotifyUser(r[16])
-                    runs.append(newrun)
+                curves = []
+                for c in curve_data:
+                    # Populate curve object
+                    newcurve = Curve()
+                    newcurve.setIMID(c[0])
+                    newcurve.setIMMeasure(c[1])
+                    newcurve.setIMValue(c[2])
+                    newcurve.setIMUnits(c[3])
+                    curves.append(newcurve)
 
-                return runs
+                return curves
 
 
     def __getRunStats(self, run):
@@ -295,7 +350,6 @@ class RunManager:
         # Count the number of peak amps
         sqlcmd = "select count(*) from PeakAmplitudes p where p.Run_ID=%d" % \
             (run.getRunID())
-
         if (self.database.execsql(sqlcmd) != 0):
             self._printError("Unable to count PSAs for run %s." % \
                                  (run.getRunID()))
@@ -306,30 +360,20 @@ class RunManager:
             self._printError("Matching PSAs not found in DB.")
             return None
 
-        # Count the number of hazard curves
-        sqlcmd = "select count(*) from Hazard_Curves c where c.Run_ID=%d" % \
-            (run.getRunID())
-
-        if (self.database.execsql(sqlcmd) != 0):
-            self._printError("Unable to count curves for run %s." % \
-                                 (run.getRunID()))
+        # Get the hazard curves
+        curves = self.__getCurves(run)
+        if ((curves == None) or (len(curves) == 0)):
             return None
 
-        curve_data = self.database.getResultsNext()
-        if (curve_data == None):
-            self._printError("Matching curves not found in DB.")
-            return None
-            
         # Populate runstats object
         newrun = RunStats()
+        newrun.setSite(run.getSite())
         newrun.setRunID(run.getRunID())
-        newrun.setSiteID(run.getSiteID())
-        newrun.setSiteName(run.getSiteName())
         newrun.setERFID(run.getERFID())
         newrun.setSGTVarID(run.getSGTVarID())
         newrun.setRupVarID(run.getRupVarID())
         newrun.setNumPSAs(psa_data[0])
-        newrun.setNumCurves(curve_data[0])        
+        newrun.setCurveList(curves)
         return newrun
 
 
@@ -359,6 +403,29 @@ class RunManager:
                     sites.append(newsite)
 
                 return sites
+
+
+    def __getSiteByID(self, site_id):
+        # Get site info
+        sqlcmd = "select CS_Site_ID, CS_Short_Name, CS_Site_Lat, CS_Site_Lon, CS_Site_Name from CyberShake_Sites s where s.CS_Site_ID=%d" % (site_id)
+        if (self.database.execsql(sqlcmd) != 0):
+            self._printError("Unable to retrieve site info for %d" % (site_id))
+            return None
+        else:
+            site_data = self.database.getResultsNext()
+            if (site_data == None):
+                #self._printError("Matching sites not found in DB.")
+                return None
+            else:
+                # Populate site object
+                newsite = Site()
+                newsite.setSiteID(site_data[0])
+                newsite.setShortName(site_data[1])
+                newsite.setLatitude(float(site_data[2]))
+                newsite.setLongitude(float(site_data[3]))
+                newsite.setLongName(site_data[4])
+
+                return newsite
 
 
     def __updateRun(self, run):
@@ -427,15 +494,19 @@ class RunManager:
 
 
     def __performCheckAndFill(self, run):
+
+        site = run.getSite()
+
         # Get Site ID if needed
-        if (run.getSiteID() == None):
-            if (run.getSiteName() != None):
-                site_id = self.__getSiteID(run.getSiteName())
+        if (site.getSiteID() == None):
+            if (site.getShortName() != None):
+                site_id = self.__getSiteID(site.getShortName())
                 if (site_id == 0):
                     self._printError("Unable to find id of site %s" % \
-                                         (run.getSiteName()))
+                                         (site.getShortName()))
                     return None
-                run.setSiteID(site_id)
+                site.setSiteID(site_id)
+                run.setSite(site)
             else:
                 self._printError("No site information provided in run!")
                 return None
@@ -545,7 +616,9 @@ class RunManager:
             return None
         
         run = Run()
-        run.setSiteName(site)
+        site = Site()
+        site.setShortName(site)
+        run.setSite(site)
         return (self.createRun(run))
     
 
@@ -555,7 +628,9 @@ class RunManager:
             return None
         
         run = Run()
-        run.setSiteName(site)
+        site = Site()
+        site.setShortName(site)
+        run.setSite(site)
         run.setERFID(erf_id)
         run.setSGTVarID(sgt_var_id)
         run.setRupVarID(rup_var_id)
@@ -564,18 +639,22 @@ class RunManager:
 
     def getRuns(self, run, lock=False):
 
+        site = run.getSite()
         # Get Site ID if needed
-        if (run.getSiteID() == None):
-            if (run.getSiteName() != None):
-                site_id = self.__getSiteID(run.getSiteName())
+        if (site.getSiteID() == None):
+            if (site.getShortName() != None):
+                site_id = self.__getSiteID(site.getShortName())
                 if (site_id == 0):
                     self._printError("Unable to find id of site %s" % \
-                                         (run.getSiteName()))
+                                         (site.getShortName()))
                     return None
-                run.setSiteID(site_id)
+                site.setSiteID(site_id)
+                run.setSite(site)
 
         # Query existing data for this run query
         runs = self.__getRuns(run, lock)
+        if ((runs == None) or (len(runs) == 0)):
+            return None
 
         return runs
 
@@ -604,7 +683,9 @@ class RunManager:
             return None
 
         run = Run()
-        run.setSiteName(site)
+        site = Site()
+        site.setShortName(site)
+        run.setSite(site)
         run.setERFID(erf_id)
         run.setSGTVarID(sgt_var_id)
         run.setRupVarID(rup_var_id)
@@ -613,12 +694,40 @@ class RunManager:
         runs = self.getRuns(run, lock)
         if (runs == None):
             return None
-        
+
         return runs[0]
 
 
-    def getSiteByID(self, site_id):
+    def getRunsByState(self, state_list, lock=False):
+
+        if ((state_list == None) or (type(state_list) != type([]))):
+            self._printError("State list must be a list.")
+            return None
+
+        # Verify that the search states are valid
+        for state in state_list:
+            if (not state in STATUS_STD.keys()):
+                self._printError("State '%s' is not a valid." % (state))
+                return None
+
+        # Query runs in these states
+        runs = self.__getRunsByState(state_list, lock)
+
+        return runs
+
+
+    def getSiteNameByID(self, site_id):
+        if (site_id == None):
+            return 1
+
         return (self.__getSiteName(site_id))
+
+
+    def getSiteByID(self, site_id):
+        if (site_id == None):
+            return None
+
+        return (self.__getSiteByID(site_id))
 
 
     def getNewSites(self):
@@ -652,6 +761,9 @@ class RunManager:
             run.setSGTTimeCurrent()
         elif (run.getStatus() in PP_STATES):
             run.setPPTimeCurrent()
+
+        # Update last user
+        run.setLastUserCurrent()
 
         # Execute update
         retval = self.__updateRun(run)
@@ -698,4 +810,5 @@ class RunManager:
 
         # Collect statistics
         runstat = self.__getRunStats(runs[0])
+
         return runstat

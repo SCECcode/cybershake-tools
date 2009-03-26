@@ -6,38 +6,42 @@ import os
 import pwd
 import time
 from Config import *
+from Site import *
+from Curve import *
 
 
 class RunStats:
     run_id = None
-    site_id = None
-    site = None
+    #site_id = None
+    #site = None
+    site_obj = None
     erf_id = None
     sgt_var_id = None
     rup_var_id = None
     num_psa = None
     num_curves = None
+    curve_list = None
 
 
     def __init__(self):
         self.run_id = None
-        self.site_id = None
-        self.site = None
+        self.site_obj = Site()
         self.erf_id = None
         self.sgt_var_id = None
         self.rup_var_id = None
         self.num_psa = None
         self.num_curves = None
+        self.curve_list = None
 
     def copy(self, obj):
         self.run_id = obj.run_id
-        self.site_id = obj.site_id
-        self.site = obj.site
+        self.site_obj = obj.site_obj
         self.erf_id = obj.erf_id
         self.sgt_var_id = obj.sgt_var_id
         self.rup_var_id = obj.rup_var_id
         self.num_psa = obj.num_psa
         self.num_curves = obj.num_curves
+        self.curve_list = obj.curve_list
 
 
     #@staticmethod
@@ -47,8 +51,15 @@ class RunStats:
         return headers
 
     def formatData(self):
+        if (self.site_obj != None):
+            site_name = self.site_obj.getShortName()
+            site_id = self.site_obj.getSiteID()
+        else:
+            site_name = None
+            site_id = None
+
         data = [str(self.run_id), \
-                    "%s (%s)" % (str(self.site), str(self.site_id)), \
+                    "%s (%s)" % (str(site_name), str(site_id)), \
                     str(self.erf_id), \
                     str(self.sgt_var_id), \
                     str(self.rup_var_id), \
@@ -60,29 +71,16 @@ class RunStats:
         return self.run_id
 
     def setRunID(self, run_id):
-        # Allow None as a valid run_id
         if (run_id == None):
             self.run_id = run_id
         else:
             self.run_id = int(run_id)
 
-    def getSiteID(self):
-        return self.site_id
+    def getSite(self):
+        return self.site_obj
 
-    def setSiteID(self, site_id):
-        if (site_id == None):
-            self.site_id = site_id
-        else:
-            self.site_id = int(site_id)
-
-    def getSiteName(self):
-        return self.site
-
-    def setSiteName(self, site):
-        if (site == None):
-            self.site = site
-        else:
-            self.site = str(site)
+    def setSite(self, site_obj):
+        self.site_obj = site_obj
 
     def getERFID(self):
         return self.erf_id
@@ -112,24 +110,42 @@ class RunStats:
             self.rup_var_id = int(rup_var_id)
 
     def getNumPSAs(self):
-        return self.num_psa
+        if (self.num_psa == None):
+            return 0
+        else:
+            return self.num_psa
 
     def setNumPSAs(self, num_psa):
-        self.num_psa = num_psa
+        self.num_psa = int(num_psa)
 
     def getNumCurves(self):
-        return self.num_curves
+        if (self.curve_list == None):
+            return 0
+        else:
+            return len(self.curve_list)
 
-    def setNumCurves(self, num_curves):
-        self.num_curves = num_curves
+    #def setNumCurves(self, num_curves):
+    #    self.num_curves = int(num_curves)
 
+    def getCurveList(self):
+        return self.curve_list
+
+    def setCurveList(self, curve_list):
+        self.curve_list = curve_list
             
     def dumpToScreen(self):
+        if (self.site_obj != None):
+            site_name = self.site_obj.getShortName()
+            site_id = self.site_obj.getSiteID()
+        else:
+            site_name = None
+            site_id = None
+
         print "Run ID:\t\t %s" % (str(self.run_id))
-        print "Site:\t\t %s (id=%s)" % (str(self.site), str(self.site_id))
+        print "Site:\t\t %s (id=%s)" % (str(site_name), str(site_id))
         print "Params:\t\t erf=%s sgt_var=%s rup_var=%s" % \
             (str(self.erf_id), str(self.sgt_var_id), str(self.rup_var_id))
         print "Stats:\t\t num_psa=%s num_curves=%s" % \
-            (str(self.num_psa), str(self.num_curves))
+            (str(self.num_psa), str(self.getNumCurves()))
         return 0
-                                                                            
+                                   
