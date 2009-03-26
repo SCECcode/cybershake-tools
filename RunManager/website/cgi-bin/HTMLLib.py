@@ -62,12 +62,15 @@ class HTMLTable:
     caption = None
     action_map = None
     selection = False
+    allow_wrap = True
+    width = None
     
     def __init__(self):
         self.caption = None
         self.action_map = None
         self.selection = False
-
+        self.allow_wrap = True
+        self.width = 1400
         
     def addCaption(self, caption):
         self.caption = caption
@@ -82,9 +85,20 @@ class HTMLTable:
     def setSelection(self, flag):
         self.selection = flag
 
+
+    def allowWrap(self, flag):
+        self.allow_wrap = flag
+        
+
+    def setWidth(self, width):
+        self.width = width
+
         
     def display(self, data_list):
-        print "<table width=\"1400\" border=\"1\">"
+        if (self.width != None):
+            print "<table width=\"1400\" border=\"1\">"
+        else:
+            print "<table border=\"1\">"
 
         if (self.caption != None):
             print "<center><caption>%s</caption></center>" % (self.caption)
@@ -120,7 +134,7 @@ class HTMLTable:
                 for c in row:
                     if (c == ""):
                         print "<td>None</td>"
-                    elif (len(c) > 40):
+                    elif ((self.allow_wrap == True) and (len(c) > 40) and (c[0] != '<')):
                         print "<td style=\"font-size:65%\">"
                         longstr = c
                         while (len(longstr) > 0):

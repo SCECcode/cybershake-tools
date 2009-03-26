@@ -90,22 +90,27 @@ def main():
     for site in site_id_list:
         site_map[site] = site_name_list[i]
         i = i + 1
-    
+
     for id, name in site_map.items():
-        run.setSiteID(int(id))
-        run.setSiteName(name)
+        site = Site()
+        site.setSiteID(int(id))
+        site.setShortName(name)
+        run.setSite(site)
 
         # Create the run
         run_id = rm.createRun(run)
         if (run_id == None):
-            print "Run insert failed for site %s. Performing rollback.<p>" % (run.getSiteName())
+            print "Run insert failed for site %s. Performing rollback.<p>" % (run.getSite().getShortName())
             rm.rollbackTransaction()
             break
         else:
-            print "Run successfully added for site %s.<p>" % (run.getSiteName())
+            print "Run successfully added for site %s.<p>" % (run.getSite().getShortName())
             
     # Commit change
     rm.commitTransaction()
+
+    if (len(site_map.keys()) == 0):
+        print "No sites specified.<p>"
         
     print "If page does not redirect in a few seconds, please click the link above.<p>"
     print "Please wait...<p>"

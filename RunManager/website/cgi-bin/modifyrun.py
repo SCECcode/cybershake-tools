@@ -40,12 +40,13 @@ def main():
 
     form = cgi.FieldStorage() # instantiate only once!
     run = Run()
+    site = Site()
     if form.has_key("run_id") and form["run_id"].value != "":
         run.setRunID(int(form["run_id"].value))
     if form.has_key("site_id") and form["site_id"].value != "":
-        run.setSiteID(int(form["site_id"].value))
+        site.setSiteID(int(form["site_id"].value))
     if form.has_key("site") and form["site"].value != "":
-        run.setSiteName(form["site"].value)
+        site.setShortName(form["site"].value)
     if form.has_key("erf_id") and form["erf_id"].value != "":
         run.setERFID(int(form["erf_id"].value))
     if form.has_key("sgt_var_id") and form["sgt_var_id"].value != "":
@@ -71,6 +72,8 @@ def main():
     if form.has_key("notify_user"):
         run.setNotifyUser(form["notify_user"].value)
 
+    run.setSite(site)
+    
     # Update status time
     run.setStatusTimeCurrent()
     if (run.getStatus() in SGT_STATES):
@@ -88,11 +91,11 @@ def main():
 
     # Perform update
     if (rm.updateRun(run) != 0):
-        print "Run update failed for site %s.<p>" % (run.getSiteName())
+        print "Run update failed for site %s.<p>" % (run.getSite().getShortName())
     else:
         # Commit changes
         rm.commitTransaction()
-        print "Run successfully updated for site %s.<p>" % (run.getSiteName())
+        print "Run successfully updated for site %s.<p>" % (run.getSite().getShortName())
 
     print "If page does not redirect in a few seconds, please click the link above.<p>"
     print "Please wait...<p>"

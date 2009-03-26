@@ -102,7 +102,7 @@ def dispAddForm(site_map, run):
     # Status Time
     print "<tr>"
     print "<td>Status Time:</td>"
-    print "<td><input type=\"hidden\" name=\"status_time\" value=\"%s\">%s</td>" % \
+    print "<td><input type=\"hidden\" name=\"status_time\" value=\"%s\">%s GMT</td>" % \
           (run.getStatusTime(), run.getStatusTime())
     print "</tr>"
     
@@ -219,7 +219,7 @@ def main():
         # Retrieve this site
         site_map = {}
         for site_id in site_id_list:
-            site = rm.getSiteByID(int(site_id));
+            site = rm.getSiteNameByID(int(site_id));
             site_map[site_id] = site
             
         # Retrieve ERF_IDs
@@ -236,8 +236,10 @@ def main():
         else:
             # Populate default run object
             run = Run()
-            run.setSiteID(int(site_id_list[0]))
-            run.setSiteName(site_map[site_id_list[0]])
+            site = Site()
+            site.setSiteID(int(site_id_list[0]))
+            site.setShortName(site_map[site_id_list[0]])
+            run.setSite(site)
             run.setERFID(erf_list[0][0])
             run.setSGTVarID(sgt_var_list[0][0])
             run.setRupVarID(rup_var_list[0][0])
