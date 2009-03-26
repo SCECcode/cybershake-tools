@@ -6,12 +6,12 @@ import os
 import pwd
 import time
 from Config import *
+from Site import *
 
 
 class Run:
     run_id = None
-    site_id = None
-    site = None
+    site_obj = None
     erf_id = None
     sgt_var_id = None
     rup_var_id = None
@@ -30,8 +30,7 @@ class Run:
 
     def __init__(self):
         self.run_id = None
-        self.site_id = None
-        self.site = None
+        self.site_obj = Site()
         self.erf_id = None
         self.sgt_var_id = None
         self.rup_var_id = None
@@ -50,8 +49,7 @@ class Run:
 
     def copy(self, obj):
         self.run_id = obj.run_id
-        self.site_id = obj.site_id
-        self.site = obj.site
+        self.site_obj = obj.site_obj
         self.erf_id = obj.erf_id
         self.sgt_var_id = obj.sgt_var_id
         self.rup_var_id = obj.rup_var_id
@@ -70,14 +68,20 @@ class Run:
 
     #@staticmethod
     def formatHeader(self):
-        headers = ["Run ID", "Site", "Status", "Status Time", "SGT Host", \
-                       "PP Host", "Comment", "Last User", "Job ID", \
-                       "Submit Dir", ]
+        headers = ["Run ID", "Site", "Status", "Status Time (GMT)", \
+                       "SGT Host", "PP Host", "Comment", "Last User", \
+                       "Job ID", "Submit Dir", ]
         return headers
 
     def formatData(self):
+        if (self.site_obj != None):
+            site_name = self.site_obj.getShortName()
+            site_id = self.site_obj.getSiteID()
+        else:
+            site_name = None
+            site_id = None
         data = [str(self.run_id), \
-                    "%s (%s)" % (str(self.site), str(self.site_id)), \
+                    "%s (%s)" % (str(site_name), str(site_id)), \
                     str(self.status), \
                     str(self.status_time), \
                     str(self.sgt_host), \
@@ -97,23 +101,11 @@ class Run:
         else:
             self.run_id = int(run_id)
 
-    def getSiteID(self):
-        return self.site_id
+    def getSite(self):
+        return self.site_obj
 
-    def setSiteID(self, site_id):
-        if (site_id == None):
-            self.site_id = site_id
-        else:
-            self.site_id = int(site_id)
-
-    def getSiteName(self):
-        return self.site
-
-    def setSiteName(self, site):
-        if (site == None):
-            self.site = site
-        else:
-            self.site = str(site)
+    def setSite(self, site_obj):
+        self.site_obj = site_obj
 
     def getERFID(self):
         return self.erf_id
@@ -161,7 +153,8 @@ class Run:
             self.status_time = str(status_time)
 
     def setStatusTimeCurrent(self):
-        self.status_time = time.strftime("%Y-%m-%d %H:%M:%S")
+        self.status_time = time.strftime("%Y-%m-%d %H:%M:%S", \
+                                             time.gmtime(time.time()))
 
     def getSGTHost(self):
         return self.sgt_host
@@ -182,7 +175,8 @@ class Run:
             self.sgt_time = str(sgt_time)
 
     def setSGTTimeCurrent(self):
-        self.sgt_time = time.strftime("%Y-%m-%d %H:%M:%S")
+        self.sgt_time = time.strftime("%Y-%m-%d %H:%M:%S", \
+                                          time.gmtime(time.time()))
 
     def getPPHost(self):
         return self.pp_host
@@ -203,7 +197,8 @@ class Run:
             self.pp_time = str(pp_time)
 
     def setPPTimeCurrent(self):
-        self.pp_time = time.strftime("%Y-%m-%d %H:%M:%S")
+        self.pp_time = time.strftime("%Y-%m-%d %H:%M:%S", \
+                                         time.gmtime(time.time()))
 
     def getComment(self):
         return self.comment
@@ -274,8 +269,15 @@ class Run:
 
 
     def dumpToScreen(self):
+        if (self.site_obj != None):
+            site_name = self.site_obj.getShortName()
+            site_id = self.site_obj.getSiteID()
+        else:
+            site_name = None
+            site_id = None
+
         print "Run ID:\t\t %s" % (str(self.run_id))
-        print "Site:\t\t %s (id=%s)" % (str(self.site), str(self.site_id))
+        print "Site:\t\t %s (id=%s)" % (str(site_name), str(site_id))
         print "Params:\t\t erf=%s sgt_var=%s rup_var=%s" % \
             (str(self.erf_id), \
                  str(self.sgt_var_id), \

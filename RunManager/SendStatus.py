@@ -142,7 +142,7 @@ def init():
                 print " " + n
 
     # Save site name
-    info.site = run.getSiteName()
+    info.site = run.getSite().getShortName()
 
     return 0
 

@@ -116,13 +116,13 @@ def main():
     if (rm.updateRun(run, orig_run=saverun) != 0):
         rm.rollbackTransaction()
         print "Run update failed for run_id %d (site %s)." % \
-            (run.getRunID(), run.getSiteName())
+            (run.getRunID(), run.getSite().getShortName())
         return 1
     else:
         rm.commitTransaction()
         print ""
         print "Run successfully updated for run_id %d (site %s)." % \
-            (run.getRunID(), run.getSiteName())
+            (run.getRunID(), run.getSite().getShortName())
 
     return 0
 

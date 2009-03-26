@@ -46,7 +46,6 @@ class Site:
         return self.site_id
 
     def setSiteID(self, site_id):
-        # Allow None as a valid site_id
         if (site_id == None):
             self.site_id = site_id
         else:
@@ -56,23 +55,35 @@ class Site:
         return self.site_long
 
     def setLongName(self, site_long):
-        self.site_long = str(site_long)
+        if (site_long == None):
+            self.site_long = site_long
+        else:
+            self.site_long = str(site_long)
 
     def getShortName(self):
         return self.site_short
 
     def setShortName(self, site_short):
-        self.site_short = str(site_short)
+        if (site_short == None):
+            self.site_short = site_short
+        else:
+            self.site_short = str(site_short)
 
     def getLatitude(self):
         return self.lat
 
     def setLatitude(self, lat):
-        self.lat = float(lat)
+        if (lat == None):
+            self.lat = lat
+        else:
+            self.lat = float(lat)
 
     def getLongitude(self):
         return self.lon
 
     def setLongitude(self, lon):
-        self.lon = float(lon)
+        if (lon == None):
+            self.lon = lon
+        else:
+            self.lon = float(lon)
 
