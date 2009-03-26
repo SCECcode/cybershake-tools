@@ -16,6 +16,8 @@ from Mailer import *
 # Globals
 class info:
     host = None
+    update_scatter_plot = None
+    #plot_list = None
 
 # Format for out-going email msgs
 MSG_SUBJECT = "Run %d (site %s) experienced an error"
@@ -38,19 +40,42 @@ def init():
     info.host = socket.gethostname()
     info.host = info.host.split(".")[0]
 
+    info.update_scatter_plot = False
+    #info.plot_list = []
+
     return 0
+
+
+def runCommand(cmd):
+    try:
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        output = p.communicate()[0]
+        retcode = p.returncode
+        if retcode != 0:
+            print output
+            print "Non-zero exit code"
+            return None
+    except:
+        print sys.exc_info()
+        print "Failed to run cmd: " + str(cmd)
+        return None
+
+    output = output.splitlines()
+    return output
+
 
 
 def sendMessage(run, m, msgstr):
     notify_list = run.getNotifyUserAsList()
 
-    subject = str(MSG_SUBJECT % (run.getRunID(), run.getSiteName()))
-    msg = str(MSG_FORMAT % (run.getRunID(), run.getSiteName(), msgstr))
+    subject = str(MSG_SUBJECT % (run.getRunID(), run.getSite().getShortName()))
+    msg = str(MSG_FORMAT % (run.getRunID(), run.getSite().getShortName(), msgstr))
 
     if (notify_list != None):
         m.send(notify_list, subject, msg)
 
     return 0
+
 
 
 def checkExecErrors(rm, m):
@@ -73,10 +98,12 @@ def checkExecErrors(rm, m):
         if (matches != None):
             print "Found %d run(s)" % (len(matches))
             for run in matches:
-                print "Examining run %d (site %s)" % (run.getRunID(), run.getSiteName())
+                print "Examining run %d (site %s)" % (run.getRunID(), run.getSite().getShortName())
                 if ((run.getJobID() == None) or (run.getJobID() == "")):
                     if (not run.getStatus() in ["Initial", "SGT Generated",]):
-                        sendMessage(run, m, "In the execution state '%s' with no Job ID assigned. Moved to state '%s'." % (run.getStatus(), e))
+                        sendMessage(run, m, \
+                                        "In the execution state '%s' with no Job ID assigned. Moved to state '%s'." % \
+                                        (run.getStatus(), e))
                         print "Run %d is in an execution state with no JobID assigned" % (run.getRunID())
                         run.setStatus(e)
                         run.setComment("Inconsistent state detected")
@@ -104,10 +131,10 @@ def checkExecErrors(rm, m):
                     if (rm.updateRun(run) != 0):
                         # Abort updating this batch by performing a rollback
                         print "Failed to update run %d (site %s). Performing rollback." % \
-                            (run.getRunID(), run.getSiteName())
+                            (run.getRunID(), run.getSite().getShortName())
                         rm.rollbackTransaction()
                         break
-                    print "Successfully updated run %d (site %s)." % (run.getRunID(), run.getSiteName())      
+                    print "Successfully updated run %d (site %s)." % (run.getRunID(), run.getSite().getShortName())      
 
                 # Commmit these updates
                 print "Committing changes"
@@ -123,7 +150,13 @@ def checkExecErrors(rm, m):
     return 0
 
 
+def hasCompCurves(run):
+    return True
+
+
 def checkVerifyErrors(rm, m):
+    global info
+
     # Check for ready-to-verify runs
     searchrun = Run()
     searchrun.setStatus(CHECK_VERIFY_STATE)
@@ -137,12 +170,21 @@ def checkVerifyErrors(rm, m):
                 print "Failed to collect stats for run %d" % (run.getRunID())
             else:
                 if ((stats.getNumPSAs() > 0) and (stats.getNumCurves() > 0)):
-                    sendMessage(run, m, "Database passed verification checks. Moved to state '%s'." % (DONE_STATE))
-                    run.setStatus(DONE_STATE)
-                    run.setComment("Passed verification checks")
+                    # Check for comparison curves
+                    if (hasCompCurves(run) == True):
+                        new_state = DONE_STATE
+                        sendMessage(run, m, "Run passed verification checks. Moved to state '%s'." % (new_state))
+                        run.setComment("Passed verification checks")
+                    else:
+                        new_state = PLOT_STATE
+                        sendMessage(run, m, "Site needs comparison curves. Moved to state '%s'." % (new_state))
+                        run.setComment("Generating comparison curves")
+                    run.setStatus(new_state)
                     update_list.append(run)
+                    info.update_scatter_plot = True
+                    #info.plot_list.append(run)
                 else:
-                    sendMessage(run, m, "Database failed verification checks (num_psa == 0 or num_curves == 0). Moved to state '%s'." % (CHECK_ERROR_STATE))
+                    sendMessage(run, m, "Run failed verification checks (num_psa == 0 or num_curves == 0). Moved to state '%s'." % (CHECK_ERROR_STATE))
                     print "Run %d failed verification" % (run.getRunID())
                     run.setStatus(CHECK_ERROR_STATE)
                     run.setComment("Failed verification checks")
@@ -155,10 +197,10 @@ def checkVerifyErrors(rm, m):
                 if (rm.updateRun(run) != 0):
                     # Abort updating this batch by performing a rollback
                     print "Failed to update run %d (site %s). Performing rollback." % \
-                        (run.getRunID(), run.getSiteName())
+                        (run.getRunID(), run.getSite().getShortName())
                     rm.rollbackTransaction()
                     break
-                print "Successfully updated run %d (site %s)." % (run.getRunID(), run.getSiteName())      
+                print "Successfully updated run %d (site %s)." % (run.getRunID(), run.getSite().getShortName())      
 
             # Commmit these updates
             print "Committing changes"
@@ -174,6 +216,75 @@ def checkVerifyErrors(rm, m):
     return 0
 
 
+def createScatterPlot():
+
+    print "Generating new scatter plot"
+
+    plot_cmd = ['ssh', OPENSHA_LOGIN, OPENSHA_SCATTER_SCRIPT,]
+    retval = runCommand(plot_cmd)
+    if (retval == None):
+        print "Failed to create new scatter plot"
+    else:
+        print "Successfully created new scatter plot"
+
+    return 0
+
+
+def createCompCurves(rm):
+
+    print "Generating comparison curves."
+
+    # Query for list of runs in plotting state
+    run_list = rm.getRunsByState([PLOT_STATE], lock=True)
+    if ((run_list == None) or (len(run_list) == 0)):
+        print "No runs in state '%s'. No work to do." % (PLOT_STATE)
+        return 0
+
+    for run in run_list:
+        print "Generating comparison curves for run %d (site %s)" % \
+            (run.getRunID(), run.getSite().getShortName())
+
+        # NOTE: For each run, should query DB for curves and generate for each PSA value
+        # rather than use hard-coded list
+
+        # Construct paths
+        output_dir = '%s%s' % (CURVE_DIR, run.getSite().getShortName())
+
+        # Generate comparison curves
+        plot_cmd = [OPENSHA_CURVE_SCRIPT, \
+                        '-R', '%d' % (run.getRunID()), \
+                        '-s', '%s' % (run.getSite().getShortName()), \
+                        '-n', \
+                        '-o', output_dir, \
+                        '-ef', OPENSHA_ERF_XML, \
+                        '-af', OPENSHA_AF_XML, \
+                        '-t', 'png,pdf', \
+                        '-pf', OPENSHA_DBPASS_FILE, \
+                        '-p', '3,5,10',]
+        retval = runCommand(plot_cmd)
+        if (retval == None):
+            print "Failed to create new comparison curves"
+            run.setState(CHECK_ERROR_STATE)
+            run.setComment("Failed verification checks")
+            sendMessage(run, m, "Run failed verification checks (num_psa == 0 or num_curves == 0). Moved to state '%s'." % (CHECK_ERROR_STATE))
+        else:
+            print "Successfully created new comparison curves"
+            run.setState(DONE_STATE)
+            run.setComment("Passed verification checks")
+            sendMessage(run, m, "Run passed verification checks. Moved to state '%s'." % (DONE_STATE))
+
+        # Perform db update
+        if (rm.updateRun(run) != 0):
+            print "Failed to update run %d (site %s)." % \
+                (run.getRunID(), run.getSite().getShortName())
+            # Keep going and try to update as many runs as possible
+        
+        # Commmit these updates
+        rm.commitTransaction()
+        
+    return 0
+
+
 def main():
 
     print "-- Starting up at %s --" % (time.strftime("%Y-%m-%d %H:%M:%S"))
@@ -185,6 +296,14 @@ def main():
 
     checkExecErrors(rm, m)
     checkVerifyErrors(rm, m)
+
+    # Generate a new scatter plot if needed
+    if (info.update_scatter_plot == True):
+        if (createScatterPlot() != 0):
+            print "Warning: Failed to produce scatter plot."
+
+    # Generate comparison curves if needed
+    createCompCurves(rm)
 
     print "-- Shutting down at %s --" % (time.strftime("%Y-%m-%d %H:%M:%S"))
     return 0

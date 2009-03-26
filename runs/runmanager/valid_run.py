@@ -58,8 +58,9 @@ def main():
         print "No record for run_id %d found in DB." % (info.run_id)
         return 1
 
-    if (run.getSiteName() != info.site):
-            print "Found site %s in run %d, expected site %s" % (run.getSiteName(), run.getRunID(), info.site)
+    if (run.getSite().getShortName() != info.site):
+            print "Found site %s in run %d, expected site %s" % \
+                (run.getSite().getShortName(), run.getRunID(), info.site)
             return 1
         
     if (info.stage == "SGT_PLAN"):
