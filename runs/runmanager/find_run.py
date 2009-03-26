@@ -62,8 +62,8 @@ def cloneLFNs(match, clone):
     rls = RLS()
 
     for lfn in lfns:
-        old_lfn = lfn % (match.getSiteName(), match.getRunID())
-        new_lfn = lfn % (clone.getSiteName(), clone.getRunID())
+        old_lfn = lfn % (match.getSite().getShortName(), match.getRunID())
+        new_lfn = lfn % (clone.getSite().getShortName(), clone.getRunID())
 
         # Get PFN associated with this LFN
         pfn_list = rls.getPFNs(old_lfn)
@@ -100,7 +100,9 @@ def main():
     rm.useHTML(False)
 
     searchrun = Run()
-    searchrun.setSiteName(info.site)
+    searchsite = Site()
+    searchsite.setShortName(info.site)
+    searchrun.setSite(searchsite)
     if (info.erf != None):
         searchrun.setERFID(info.erf)
         searchrun.setSGTVarID(info.sgt_var)
@@ -152,6 +154,7 @@ def main():
         clone.setLastUserCurrent()
         clone.setJobID("")
         clone.setSubmitDir("")
+        clone.setNotifyUser("")
         clone = rm.createRun(clone)
         if (clone == None):
             rm.rollbackTransaction()
