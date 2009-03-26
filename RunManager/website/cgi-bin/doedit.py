@@ -38,8 +38,8 @@ def dispModifyForm(run):
     
     print "<form action=\"modifyrun.py\" method=\"POST\" enctype=\"multipart/form-data\" name=\"modifyform\">"
     print "<input type=\"hidden\" name=\"run_id\" value=\"%d\">" % (run.getRunID())
-    print "<input type=\"hidden\" name=\"site_id\" value=\"%d\">" % (run.getSiteID())
-    print "<input type=\"hidden\" name=\"site\" value=\"%s\">" % (run.getSiteName())
+    print "<input type=\"hidden\" name=\"site_id\" value=\"%d\">" % (run.getSite().getSiteID())
+    print "<input type=\"hidden\" name=\"site\" value=\"%s\">" % (run.getSite().getShortName())
 
     print "<div style=\"background: %s\">" % ("Beige")    
 
@@ -48,7 +48,7 @@ def dispModifyForm(run):
     # Site
     print "<tr>"
     print "<td>Site:</td>"
-    print "<td>%s</td>" % (run.getSiteName())
+    print "<td>%s (%d)</td>" % (run.getSite().getShortName(), run.getSite().getSiteID())
     print "</tr>"
 
     # ERF_ID
@@ -105,7 +105,7 @@ def dispModifyForm(run):
     # Status Time
     print "<tr>"
     print "<td>Status Time:</td>"
-    print "<td><input type=\"hidden\" name=\"status_time\" value=\"%s\">%s</td>" % \
+    print "<td><input type=\"hidden\" name=\"status_time\" value=\"%s\">%s GMT</td>" % \
           (run.getStatusTime(), run.getStatusTime())
     print "</tr>"
     

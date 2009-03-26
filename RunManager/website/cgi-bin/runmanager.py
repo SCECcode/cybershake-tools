@@ -12,7 +12,7 @@ from RunManager import *
 import cgitb; cgitb.enable() 
 
 # Constants
-FILTERS = ["Active", "Completed", "Deleted", "New Sites", ]
+FILTERS = ["Active", "Completed", "Deleted", "New Sites", "Scatter Plot",]
 
 
 # Globals
@@ -65,8 +65,8 @@ def main():
     page = HTMLPage()
     page.header()
     page.pageTitle()
-    page.menu([[MAIN_PAGE, "Main"],])
-    page.sectionTitle("View Runs")
+    page.menu([[MAIN_PAGE, "Main"],["../notes.html","Notes"]])
+    page.sectionTitle("View")
             
     form = cgi.FieldStorage() # instantiate only once!
     if form.has_key("filter") and form["filter"].value != "":
@@ -97,18 +97,25 @@ def main():
     elif (filter == FILTERS[2]):
         target_states = [DELETED_STATE,]
         caption = "Deleted Runs (%s)" % (DB_HOST)
-    else:
+    elif (filter == FILTERS[3]):
         dispNewSites()
+        page.footer(True)
+        return 0
+    else:
+        escaped = cgi.escape(SCATTER_IMG, True)
+        file_time = time.strftime("%Y-%m-%d %H:%M:%S GMT", time.gmtime(os.path.getmtime(SCATTER_IMG)))
+        #file_time = "TBD"
+        print "<table>"
+        print "<tr><td><center>Scatter Plot (%s)</center></td></tr>" % (str(file_time))
+        print "<tr><td><img src=\"loadpng.py?img=%s\" border=\"1\"></td></tr>" % (escaped)
+        print "</table><p>"
         page.footer(True)
         return 0
     
     # Show the selected runs
-    for s in target_states:
-        run = Run()
-        run.setStatus(s)
-        run_list = rm.getRuns(run)
-        if ((run_list != None) and (len(run_list) > 0)):
-            master_run_list = master_run_list + run_list
+    run_list = rm.getRunsByState(target_states)
+    if ((run_list != None) and (len(run_list) > 0)):
+        master_run_list = run_list
 
     t = HTMLTable()
     t.addCaption(caption)

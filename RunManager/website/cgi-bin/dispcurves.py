@@ -12,11 +12,29 @@ from RunManager import *
 # Enable python stack trace output to HTML
 import cgitb; cgitb.enable() 
 
+# Constants
+NO_IMG_TXT = "<table width=600><tr><td><center>[Image not found]</center></td></tr></table>"
+NO_FILE_TXT = "<center>Unknown</center>"
+
 
 # Globals
 rm = None
 
+class Data:
+    headers = []
+    vals = []
+    
+    def __init__(self, headers, vals):
+        self.headers = headers
+        self.vals = vals
 
+    def formatHeader(self):
+        return self.headers
+
+    def formatData(self):
+        return self.vals
+
+    
 def init():
     global rm
 
@@ -33,12 +51,20 @@ def init():
 def displayDetails(stats):
     print "<div style=\"background: %s\">" % ("Beige")
 
-    print "<table width=\"400\" border=\"0\">"
+    print "<table width=\"800\" border=\"0\">"
 
+    site = stats.getSite()
+    
     # Site
     print "<tr>"
     print "<td>Site:</td>"
-    print "<td>%s</td>" % (stats.getSiteName())
+    print "<td>%s (%d), %s</td>" % (site.getShortName(), site.getSiteID(), site.getLongName())
+    print "</tr>"
+
+    # Location
+    print "<tr>"
+    print "<td>Location:</td>"
+    print "<td>lat=%f, lon=%f</td>" % (site.getLatitude(), site.getLongitude())
     print "</tr>"
     
     # ERF_ID
@@ -77,7 +103,10 @@ def displayDetails(stats):
     return 0
 
 
-def displayCurves(site):
+def displayCurves(stats):
+
+    site = stats.getSite().getShortName()
+    
     # Construct paths
     src_dir = "%s%s/" % (CURVE_DIR, site)
     
@@ -99,29 +128,39 @@ def displayCurves(site):
                 escaped = cgi.escape(srcname, True)
                 curves[srcname] = escaped
 
-    if (len(curves.keys()) == 0):
-        print "No curve images found for site %s.<p>" % (site)
-    else:
-        # Display table of curves
-        print "<table class=\"image\" border=\"0\">"
-        print "<center><caption>Comparison Curve Images</caption></center>"
-        # Display images
-        print "<tr>"
-        for k in curves.keys():
-            print "<td>"
-            print "<img src=\"loadpng.py?img=%s\" width=512 height=512><p>" % (curves[k])
-            print "</td>"
-        print "</tr>"
+    # Construct data for table
 
-        # Print captions
-        print "<tr>"
-        for k in curves.keys():
-            print "<td style=\"font-size:60%\">"
-            print "<center>%s</center>" % (curves[k])
-            print "</td>"
-        print "</tr>"
-        print "</table>"
-        print "<p>"
+    header_list = []
+    img_list = []
+    file_list = []
+    for c in stats.getCurveList():
+        per_str = "%dsec" % (int(round(c.getIMValue())))
+        header_list.append(per_str)
+        found = False
+        for fname,escname in curves.items():
+            html_str = "<img src=\"loadpng.py?img=%s\" width=600 height=600>" % (escname)
+            file_str = "<center>%s</center>" % (fname)
+            if (fname.find("SA_%s" % (per_str)) != -1):
+                img_list.append(html_str)
+                file_list.append(file_str)
+                found = True
+                break;
+        if (not found):
+            img_list.append(NO_IMG_TXT)
+            file_list.append(NO_FILE_TXT)
+
+    data_list = []
+    data_list.append(Data(header_list, img_list))
+    data_list.append(Data(header_list, file_list))
+
+    # Display the table
+    t = HTMLTable()
+    t.setWidth(None)
+    t.addCaption("Comparison Curves")
+    t.allowWrap(False)
+    t.display(data_list)
+
+    print "<p>"
 
     return 0
 
@@ -148,7 +187,7 @@ def main():
         else:
             displayDetails(stats)
             print "<p>"
-            displayCurves(stats.getSiteName())
+            displayCurves(stats)
 
     page.footer()
     
