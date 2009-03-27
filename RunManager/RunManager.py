@@ -763,7 +763,8 @@ class RunManager:
             run.setPPTimeCurrent()
 
         # Update last user
-        run.setLastUserCurrent()
+        # Disabled because web-access sets user to 'apache'
+        #run.setLastUserCurrent()
 
         # Execute update
         retval = self.__updateRun(run)
