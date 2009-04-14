@@ -8,6 +8,7 @@ import os
 import cgi
 from HTMLLib import *
 from RunManager import *
+from CompCurveFile import *
 
 # Enable python stack trace output to HTML
 import cgitb; cgitb.enable() 
@@ -34,7 +35,7 @@ class Data:
     def formatData(self):
         return self.vals
 
-    
+
 def init():
     global rm
 
@@ -117,7 +118,7 @@ def displayCurves(stats):
         files = []
 
     # Isolate the .png files
-    curves = {}
+    curves = []
     if (len(files) > 0):
         # Display all .png files
         i = 0
@@ -125,27 +126,29 @@ def displayCurves(stats):
             if (f.find('.png') != -1):
                 i = i + 1
                 srcname = "%s%s" % (src_dir, f)
-                escaped = cgi.escape(srcname, True)
-                curves[srcname] = escaped
+                curvepic = CompCurveFile(srcname)
+                curves.append(curvepic)
 
     # Construct data for table
-
     header_list = []
     img_list = []
     file_list = []
     for c in stats.getCurveList():
-        per_str = "%dsec" % (int(round(c.getIMValue())))
+        per_str = "SA_%dsec" % (int(round(c.getIMValue())))
         header_list.append(per_str)
         found = False
-        for fname,escname in curves.items():
-            html_str = "<img src=\"loadpng.py?img=%s\" width=600 height=600>" % (escname)
-            file_str = "<center>%s</center>" % (fname)
-            if (fname.find("SA_%s" % (per_str)) != -1):
-                img_list.append(html_str)
-                file_list.append(file_str)
-                found = True
-                break;
-        if (not found):
+        match = None
+        for curvepic in curves:
+            if ((per_str == curvepic.getPeriod()) and (curvepic.getRunID() == stats.getRunID())):
+                if ((match == None) or (match.getDate() < curvepic.getDate())):
+                    match = curvepic
+
+        if (match != None):
+            html_str = "<img src=\"loadpng.py?img=%s\">" % (match.getEscaped())
+            file_str = "<center>%s</center>" % (match.getFilename())
+            img_list.append(html_str)
+            file_list.append(file_str)
+        else:
             img_list.append(NO_IMG_TXT)
             file_list.append(NO_FILE_TXT)
 
