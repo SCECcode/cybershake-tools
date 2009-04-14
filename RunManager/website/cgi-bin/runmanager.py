@@ -104,7 +104,6 @@ def main():
     else:
         escaped = cgi.escape(SCATTER_IMG, True)
         file_time = time.strftime("%Y-%m-%d %H:%M:%S GMT", time.gmtime(os.path.getmtime(SCATTER_IMG)))
-        #file_time = "TBD"
         print "<table>"
         print "<tr><td><center>Scatter Plot (%s)</center></td></tr>" % (str(file_time))
         print "<tr><td><img src=\"loadpng.py?img=%s\" border=\"1\"></td></tr>" % (escaped)
@@ -121,9 +120,21 @@ def main():
     t.addCaption(caption)
     if (filter == FILTERS[0]):
         t.addActions({"Edit":"doedit.py", "Delete":"dodelete.py",})
+        t.display(master_run_list)
     elif (filter == FILTERS[1]):
         t.addActions({"Details":"dispcurves.py",})
-    t.display(master_run_list)
+        t.setSelection(True)
+
+        # Wrap a form around this table that allows multiple sites to be selected
+        print "<form action=\"compcurves.py\" method=\"POST\" enctype=\"multipart/form-data\" name=\"multicompform\">"
+        print "<p>"
+        print "Click the appropriate link to view the site's curves, or select a group then click "
+        print "<input type=\"submit\" value=\"Group Compare\"> to perform a comparison."
+        print "<p>"
+        t.display(master_run_list)
+        print "</form>"
+    elif (filter == FILTERS[2]):
+        t.display(master_run_list)
 
     print "<p>"
     
