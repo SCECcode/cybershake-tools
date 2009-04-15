@@ -17,10 +17,13 @@ FILTERS = ["Active", "Completed", "Deleted", "New Sites", "Scatter Plot",]
 
 # Globals
 rm = None
-
+write_access = False
+remote_user = None
 
 def init():
     global rm
+    global remote_user
+    global write_access
 
     rm = RunManager(readonly=True)
     if (not rm.isValid()):
@@ -29,6 +32,12 @@ def init():
     
     rm.useHTML(True)
 
+    # Get remote user id
+    remote_user = os.environ.get("REMOTE_USER")
+    if (remote_user in USER_LIST):
+        write_access = True
+    else:
+        write_access = False
     return 0
 
 
@@ -41,18 +50,24 @@ def dispNewSites():
         return 1
 
     t = HTMLTable()
-    t.addCaption("New Sites (%s)" % (DB_HOST))
-    t.addActions({"Add":"doadd.py"})
-    t.setSelection(True)
+    t.addCaption("New Sites")
+    if (write_access == True):
+        action_list = []
+        action_list.append(HTMLAction("Add", "doadd.py", None))
+        t.addActionList(action_list)
+        t.setSelection(True)
 
-    # Wrap a form around this table that allows multiple sites to be selected
-    print "<form action=\"doadd.py\" method=\"POST\" enctype=\"multipart/form-data\" name=\"multiaddform\">"
-    print "<p>"
-    print "Click the appropriate link to add a run for that site, or select a group then click "
-    print "<input type=\"submit\" value=\"Group Add\">"
-    print "<p>"
-    t.display(site_list)
-    print "</form>"
+        # Wrap a form around this table that allows multiple sites to be selected
+        print "<form action=\"doadd.py\" method=\"POST\" enctype=\"multipart/form-data\" name=\"multiaddform\">"
+        print "<p>"
+        print "Click the appropriate link to add a run for that site, or select a group then click "
+        print "<input type=\"submit\" value=\"Group Add\">"
+        print "<p>"
+        t.display(site_list)
+        print "</form>"
+
+    else:
+        t.display(site_list)
 
     print "<p>"
     
@@ -61,12 +76,13 @@ def dispNewSites():
 
 def main():
     global rm
+    global write_access
 
     page = HTMLPage()
     page.header()
     page.pageTitle()
-    page.menu([[MAIN_PAGE, "Main"],["../notes.html","Notes"]])
-    page.sectionTitle("View")
+    page.menu([[MAIN_PAGE, "Main"],[WIKI_PAGE, "Wiki"],["../notes.html","Notes"]])
+    page.sectionTitle("Viewer")
             
     form = cgi.FieldStorage() # instantiate only once!
     if form.has_key("filter") and form["filter"].value != "":
@@ -77,6 +93,12 @@ def main():
     # Display selection form
     print "<form action=\"%s\" method=\"POST\" enctype=\"multipart/form-data\" name=\"selectform\">" % \
           (MAIN_PAGE)
+
+    print "<div style=\"background: %s\">" % ("Beige")
+    print "<table width=\"800\" border=\"0\">"
+    print "<tr>"
+    print "<td>View:</td>"
+    print "<td>"
     print "<select name=\"filter\">"
     print "<option value=\"%s\">%s</option>" % (filter, filter)
     for f in FILTERS:
@@ -84,19 +106,38 @@ def main():
             print "<option value=\"%s\">%s</option>" % (f, f)
     print "</select>"
     print "<input type=\"submit\" value=\"Refresh\">"
+    print "</td>"
+    print "</tr>"
+
+    print "<tr>"
+    print "<td>Database:</td>"
+    print "<td>%s : %d</td>" % (DB_HOST, DB_PORT)
+    print "</tr>"
+
+    print "<tr>"
+    print "<td>Access Permissions:</td>"
+    if (write_access == True):
+        print "<td>View/Add/Modify/Delete (%s)</td>" % (remote_user)
+    else:
+        print "<td>View Only (%s)</td>" % (remote_user)
+    print "</tr>"
+    
+    print "</table>"
+    print "</div>"
+    
     print "</form><p>"
 
     master_run_list = []
 
     if (filter == FILTERS[0]):
         target_states = ACTIVE_STATES
-        caption = "Active Runs (%s)" % (DB_HOST)
+        caption = "Active Runs"
     elif (filter == FILTERS[1]):
         target_states = [DONE_STATE,]
-        caption = "Completed Runs (%s)" % (DB_HOST)
+        caption = "Completed Runs"
     elif (filter == FILTERS[2]):
         target_states = [DELETED_STATE,]
-        caption = "Deleted Runs (%s)" % (DB_HOST)
+        caption = "Deleted Runs"
     elif (filter == FILTERS[3]):
         dispNewSites()
         page.footer(True)
@@ -118,13 +159,19 @@ def main():
 
     t = HTMLTable()
     t.addCaption(caption)
+    action_list = []
     if (filter == FILTERS[0]):
-        t.addActions({"Edit":"doedit.py", "Delete":"dodelete.py",})
+        action_list.append(HTMLAction("Details", "details.py", "filter=%s" % (FILTERS[0])))
+        if (write_access == True):
+            action_list.append(HTMLAction("Edit", "doedit.py", None))
+            action_list.append(HTMLAction("Delete", "dodelete.py", None))
+        t.addActionList(action_list)
         t.display(master_run_list)
     elif (filter == FILTERS[1]):
-        t.addActions({"Details":"dispcurves.py",})
+        action_list.append(HTMLAction("Details", "details.py", "filter=%s" % (FILTERS[1])))
+        action_list.append(HTMLAction("Stats", "dispstats.py", None))
+        t.addActionList(action_list)
         t.setSelection(True)
-
         # Wrap a form around this table that allows multiple sites to be selected
         print "<form action=\"compcurves.py\" method=\"POST\" enctype=\"multipart/form-data\" name=\"multicompform\">"
         print "<p>"
@@ -134,6 +181,8 @@ def main():
         t.display(master_run_list)
         print "</form>"
     elif (filter == FILTERS[2]):
+        action_list.append(HTMLAction("Details", "details.py", "filter=%s" % (FILTERS[2])))
+        t.addActionList(action_list)
         t.display(master_run_list)
 
     print "<p>"

@@ -43,7 +43,7 @@ def dispModifyForm(run):
 
     print "<div style=\"background: %s\">" % ("Beige")    
 
-    print "<table width=\"800\" border=\"0\">"
+    print "<table width=\"1400\" border=\"0\">"
 
     # Site
     print "<tr>"
@@ -139,7 +139,10 @@ def dispModifyForm(run):
     print "<tr>"
     print "<td>Comment:</td>"
     print "<td>"
-    print "<textarea cols=32 rows=2 name=\"comment\">%s</textarea>" % (run.getComment())
+    if (run.getComment() == None):
+        print "<textarea cols=80 rows=3 name=\"comment\"></textarea>"
+    else:
+        print "<textarea cols=80 rows=3 name=\"comment\">%s</textarea>" % (run.getComment())
     print "</td>"
     print "</tr>"
 
@@ -177,9 +180,10 @@ def dispModifyForm(run):
     print "<td>Submit Dir:</td>"
     print "<td>"
     if (run.getSubmitDir() == None):
-        print "<textarea cols=32 rows=2 name=\"submit_dir\"></textarea>"
+        print "<textarea cols=80 rows=3 name=\"submit_dir\"></textarea>"
     else:
-        print "<textarea cols=32 rows=2 name=\"submit_dir\">%s</textarea>" % (run.getSubmitDir())
+        print "<textarea cols=80 rows=3 name=\"submit_dir\">%s</textarea>" % \
+              (run.getSubmitDir())
     print "</td>"
     print "</tr>"
 
