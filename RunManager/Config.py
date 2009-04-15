@@ -52,8 +52,9 @@ STATUS_STD = {"Initial": ["Initial", "SGT Started", "SGT Error", "Deleted",], \
 
 # OpenSHA scripts and config
 OPENSHA_LOGIN = 'cybershk@opensha.usc.edu'
-OPENSHA_SCATTER_SCRIPT = '/home/scec-00/cybershk/opensha/make_scatter_map.sh'
-OPENSHA_CURVE_SCRIPT = '/home/scec-00/cybershk/opensha/plot_curves.sh'
+OPENSHA_DIR = '/home/scec-00/cybershk/opensha'
+OPENSHA_SCATTER_SCRIPT = '%s/make_scatter_map.sh' % (OPENSHA_DIR)
+OPENSHA_CURVE_SCRIPT = '%s/curve_plot_wrapper.sh' % (OPENSHA_DIR)
 OPENSHA_XML_DIR = '/home/scec-00/cybershk/opensha/OpenSHA/org/opensha/cybershake/conf'
 OPENSHA_ERF_XML = '%s/%s' % (OPENSHA_XML_DIR, 'MeanUCERF.xml')
 OPENSHA_AF_XML = '%s/%s,%s/%s' % \
@@ -71,3 +72,9 @@ SCATTER_IMG = "/home/scec-00/cybershk/opensha/scatter/map_cb.png"
 
 # Website URL
 WEB_URL = "http://intensity.usc.edu/cybershake/status/"
+
+
+# Maximum column lengths
+MAX_RUN_SUBMIT_DIR = 256
+MAX_RUN_COMMENT = 128
+MAX_RUN_NOTIFY_USER = 128
