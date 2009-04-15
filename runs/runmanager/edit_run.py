@@ -101,7 +101,13 @@ def updateFields(oldrun):
             oldrun.setPPHost(v)
             oldrun.setPPTimeCurrent()
         elif (k == "Comment"):
-            oldrun.comment = v
+            if (v == 'NULL'):
+                oldrun.setComment("")
+            else:
+                comment = v
+                if (len(comment) > MAX_RUN_COMMENT):
+                    comment = comment[0:MAX_RUN_COMMENT]
+                oldrun.setComment(comment)
         elif (k == "Last_User"):
             if (not v in USER_LIST):
                 print "Invalid user %s provided, expecting one of %s." % (v, str(USER_LIST))
@@ -116,12 +122,18 @@ def updateFields(oldrun):
             if (v == 'NULL'):
                 oldrun.setSubmitDir("")
             else:
-                oldrun.setSubmitDir(v)
+                submit_dir = v
+                if (len(submit_dir) > MAX_RUN_SUBMIT_DIR):
+                    submit_dir = submit_dir[0:MAX_RUN_SUBMIT_DIR]
+                oldrun.setSubmitDir(submit_dir)
         elif (k == "Notify_User"):
             if (v == 'NULL'):
                 oldrun.setNotifyUser("")
             else:
-                oldrun.setNotifyUser(v)
+                notify_user = v
+                if (len(notify_user) > MAX_RUN_NOTIFY_USER):
+                    notify_user = notify_user[0:MAX_RUN_NOTIFY_USER]
+                oldrun.setNotifyUser(notify_user)
 
     return oldrun
 
