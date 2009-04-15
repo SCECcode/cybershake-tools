@@ -55,6 +55,12 @@ def displayDetails(stats):
     print "<table width=\"800\" border=\"0\">"
 
     site = stats.getSite()
+
+    # Run
+    print "<tr>"
+    print "<td>Run:</td>"
+    print "<td>%d</td>" % (stats.getRunID())
+    print "</tr>"
     
     # Site
     print "<tr>"
@@ -66,6 +72,12 @@ def displayDetails(stats):
     print "<tr>"
     print "<td>Location:</td>"
     print "<td>lat=%f, lon=%f</td>" % (site.getLatitude(), site.getLongitude())
+    print "</tr>"
+
+    # Site Type
+    print "<tr>"
+    print "<td>Type:</td>"
+    print "<td>%s</td>" % (site.getSiteType())
     print "</tr>"
     
     # ERF_ID
@@ -175,7 +187,7 @@ def main():
     page.header()
     page.pageTitle()
     page.menu([["%s?filter=Completed" % MAIN_PAGE, "Main"],])
-    page.sectionTitle("Details")
+    page.sectionTitle("Run Stats/Curves")
 
     form = cgi.FieldStorage() # instantiate only once!
     run_id = None

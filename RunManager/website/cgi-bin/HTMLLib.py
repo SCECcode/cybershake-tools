@@ -9,6 +9,7 @@ import cgitb; cgitb.enable()
 
 # Main web page
 MAIN_PAGE = "runmanager.py"
+WIKI_PAGE = "http://scecdata.usc.edu/wiki/index.php?title=CyberShake_2009_Production_Runs"
 
 
 class HTMLPage:
@@ -57,28 +58,92 @@ class HTMLPage:
         return 0
 
 
+class HTMLAction:
+    label = None
+    url = None
+    arg_list = None
+
+    def __init__(self, label, url, arg_list):
+        self.label = label
+        self.url = url
+        self.arg_list = arg_list
+
+    def getLabel(self):
+        return self.label
+    
+    def getURL(self):
+        return self.url
+
+    def getArgList(self):
+        return self.arg_list
+    
 
 class HTMLTable:
     caption = None
-    action_map = None
+    action_list = None
     selection = False
     allow_wrap = True
     width = None
     
     def __init__(self):
         self.caption = None
-        self.action_map = None
+        self.action_list = None
         self.selection = False
         self.allow_wrap = True
         self.width = 1400
+        self.max_col_width = 60
+
+
+    def __splitString(self, str):
+        string_list = []
+
+        has_space = str.find(" ")
+        has_slash = str.find("/")
+
+        if (has_space != -1):
+            sep = " "
+        elif (has_slash != -1):
+            sep = "/"
+        else:
+            longstr = str
+            while (len(longstr) > self.max_col_width):
+                string_list.append(longstr[0:self.max_col_width])
+                longstr = longstr[self.max_col_width:]
+            if (len(longstr) > 0):
+                string_list.append(longstr)
+            return string_list
+        
+        line = ""
+        tokens = str.split(sep)
+        i = 0
+        for t in tokens:
+            # If line will be excessively long, write out current line
+            if (len(line) + len(t) > self.max_col_width + 5):
+                string_list.append(line)
+                line = ""
+            # Only write separator for tokens 2-N
+            if ((i == 0) and (len(t) == 0)):
+                pass
+            else:
+                line = line + sep + t
+            # If line exceeds max size, write out current line
+            if (len(line) > self.max_col_width):
+                string_list.append(line)
+                line = ""
+            i = i + 1
+
+        if (line != ""):
+            string_list.append(line)
+        return string_list
+    
         
     def addCaption(self, caption):
         self.caption = caption
         return 0
 
 
-    def addActions(self, action_map):
-        self.action_map = action_map
+    def addActionList(self, action_list):
+        self.action_list = action_list
         return 0
 
 
@@ -114,7 +179,7 @@ class HTMLTable:
             print "<tr bgcolor=\"DarkSalmon\" bordercolor=\"Black\">"
             for h in headers:
                 print "<th scope=\"col\">%s</th>" % (h)
-            if (self.action_map != None):
+            if (self.action_list != None):
                 print "<th scope=\"col\">%s</th>" % ("Actions")           
             print "</tr>"
 
@@ -134,23 +199,26 @@ class HTMLTable:
                 for c in row:
                     if (c == ""):
                         print "<td>None</td>"
-                    elif ((self.allow_wrap == True) and (len(c) > 40) and (c[0] != '<')):
-                        print "<td style=\"font-size:65%\">"
-                        longstr = c
-                        while (len(longstr) > 0):
-                            substr = longstr[0:40]
+                    elif ((self.allow_wrap == True) and (len(c) > self.max_col_width) and (c[0] != '<')):
+                        print "<td style=\"font-size:100%\">"
+                        string_list = self.__splitString(c)
+                        for substr in string_list:
                             print "%s<br>" % (substr)
-                            longstr = longstr[40:]
                         print "</td>"
                     else:
                         print "<td>%s</td>" % (c)
 
-                if (self.action_map != None):
+                if (self.action_list != None):
                     print "<td><center>"
-                    for label,url in self.action_map.items():
-                        print "<a href=\"%s?key=%s\">%s</a>" % (url, row[0], label)
+                    for action in self.action_list:
+                        if (action.getArgList() == None):
+                            argstr = ""
+                        else:
+                            argstr = "&" + action.getArgList()
+                        print "<a href=\"%s?key=%s%s\">%s</a>" % \
+                              (action.getURL(), row[0], argstr, action.getLabel())
                     print "</center></td>"
-                        
+
                 print "</tr>"
                 rownum = rownum + 1                
 
