@@ -240,7 +240,7 @@ class RunManager:
     def __getRunsSQL(self, where_str, order_str, lock_str):
 
         # Retrieve these runs and lock the rows for update if needed
-        sqlcmd = "select Run_ID, CS_Site_ID, CS_Short_Name, CS_Site_Lat, CS_Site_Lon, CS_Site_Name, ERF_ID, SGT_Variation_ID, Rup_Var_Scenario_ID, Status, Status_Time, SGT_Host, SGT_Time, PP_Host, PP_Time, Comment, Last_User, Job_ID, Submit_Dir, Notify_User from %s t, CyberShake_Sites s where s.CS_Site_ID = t.Site_ID %s %s %s" % (RUN_TABLE_NAME, where_str, order_str, lock_str)
+        sqlcmd = "select Run_ID, CS_Site_ID, CS_Short_Name, CS_Site_Lat, CS_Site_Lon, CS_Site_Name, CS_Site_Type_Name, ERF_ID, SGT_Variation_ID, Rup_Var_Scenario_ID, Status, Status_Time, SGT_Host, SGT_Time, PP_Host, PP_Time, Comment, Last_User, Job_ID, Submit_Dir, Notify_User from %s r, CyberShake_Sites s, CyberShake_Site_Types t where s.CS_Site_ID = r.Site_ID and s.CS_Site_Type_ID = t.CS_Site_Type_ID %s %s %s" % (RUN_TABLE_NAME, where_str, order_str, lock_str)
         if (self.database.execsql(sqlcmd) != 0):
             self._printError("Unable to retrieve run.")
             return None
@@ -261,21 +261,22 @@ class RunManager:
                     newsite.setLatitude(r[3])
                     newsite.setLongitude(r[4])
                     newsite.setLongName(r[5])
+                    newsite.setSiteType(r[6])
                     newrun.setSite(newsite)
-                    newrun.setERFID(r[6])
-                    newrun.setSGTVarID(r[7])
-                    newrun.setRupVarID(r[8])
-                    newrun.setStatus(r[9])
-                    newrun.setStatusTime(r[10])
-                    newrun.setSGTHost(r[11])
-                    newrun.setSGTTime(r[12])
-                    newrun.setPPHost(r[13])
-                    newrun.setPPTime(r[14])
-                    newrun.setComment(r[15])
-                    newrun.setLastUser(r[16])
-                    newrun.setJobID(r[17])
-                    newrun.setSubmitDir(r[18])
-                    newrun.setNotifyUser(r[19])
+                    newrun.setERFID(r[7])
+                    newrun.setSGTVarID(r[8])
+                    newrun.setRupVarID(r[9])
+                    newrun.setStatus(r[10])
+                    newrun.setStatusTime(r[11])
+                    newrun.setSGTHost(r[12])
+                    newrun.setSGTTime(r[13])
+                    newrun.setPPHost(r[14])
+                    newrun.setPPTime(r[15])
+                    newrun.setComment(r[16])
+                    newrun.setLastUser(r[17])
+                    newrun.setJobID(r[18])
+                    newrun.setSubmitDir(r[19])
+                    newrun.setNotifyUser(r[20])
                     runs.append(newrun)
 
                 return runs
@@ -289,16 +290,16 @@ class RunManager:
             if (where_str != ' and '):
                 where_str = where_str + ' and '
             if (type(v) == str):
-                where_str = where_str + "t.%s='%s'" % (f, str(v))
+                where_str = where_str + "r.%s='%s'" % (f, str(v))
             else:
-                where_str = where_str + "t.%s=%s"  % (f, str(v))
+                where_str = where_str + "r.%s=%s"  % (f, str(v))
 
         if (lock == True):
             lock_str = "for update"
         else:
             lock_str = ""
 
-        order_str = "order by t.Run_ID asc"
+        order_str = "order by r.Run_ID asc"
         return self.__getRunsSQL(where_str, order_str, lock_str)
 
 
@@ -308,7 +309,7 @@ class RunManager:
         for state in state_list:
             if (where_str != ' and ('):
                 where_str = where_str + ' or '
-            where_str = where_str + "t.Status='%s'" % (state)
+            where_str = where_str + "r.Status='%s'" % (state)
         where_str = where_str + ")"
 
         if (lock == True):
@@ -316,7 +317,7 @@ class RunManager:
         else:
             lock_str = ""
 
-        order_str = "order by t.Status_Time desc"
+        order_str = "order by r.Status_Time desc"
         return self.__getRunsSQL(where_str, order_str, lock_str)
 
 
@@ -379,7 +380,7 @@ class RunManager:
 
     def __getNewSites(self):
         # Get new sites
-        deleted_runs = "select Site_ID from %s t where t.Site_ID = s.CS_Site_ID and not t.Status='%s'" % (RUN_TABLE_NAME, DELETED_STATE)
+        deleted_runs = "select Site_ID from %s r where r.Site_ID = s.CS_Site_ID and not r.Status='%s'" % (RUN_TABLE_NAME, DELETED_STATE)
         complete_runs = "select Site_ID from %s r where r.Site_ID = s.CS_Site_ID and r.Status = '%s'" % (RUN_TABLE_NAME, DONE_STATE)
         sqlcmd = "select CS_Site_ID, CS_Short_Name, CS_Site_Lat, CS_Site_Lon, CS_Site_Name from CyberShake_Sites s where not exists (%s) and not exists (%s) order by s.CS_Site_ID" % (deleted_runs, complete_runs)
         if (self.database.execsql(sqlcmd) != 0):
@@ -407,7 +408,7 @@ class RunManager:
 
     def __getSiteByID(self, site_id):
         # Get site info
-        sqlcmd = "select CS_Site_ID, CS_Short_Name, CS_Site_Lat, CS_Site_Lon, CS_Site_Name from CyberShake_Sites s where s.CS_Site_ID=%d" % (site_id)
+        sqlcmd = "select CS_Site_ID, CS_Short_Name, CS_Site_Lat, CS_Site_Lon, CS_Site_Name, CS_Site_Type_Name from CyberShake_Sites s, CyberShake_Site_Types t where s.CS_Site_ID=%d and s.CS_Site_Type_ID=t.CS_Site_Type_ID" % (site_id)
         if (self.database.execsql(sqlcmd) != 0):
             self._printError("Unable to retrieve site info for %d" % (site_id))
             return None
@@ -424,6 +425,7 @@ class RunManager:
                 newsite.setLatitude(float(site_data[2]))
                 newsite.setLongitude(float(site_data[3]))
                 newsite.setLongName(site_data[4])
+                newsite.setSiteType(site_data[5])
 
                 return newsite
 
@@ -610,26 +612,26 @@ class RunManager:
         return run
 
 
-    def createRunBySite(self, site):
+    def createRunBySite(self, site_name):
 
-        if (site == None):
+        if (site_name == None):
             return None
         
         run = Run()
         site = Site()
-        site.setShortName(site)
+        site.setShortName(site_name)
         run.setSite(site)
         return (self.createRun(run))
     
 
-    def createRunByParam(self, site, erf_id, sgt_var_id, rup_var_id):
-        if ((site == None) or (erf_id == None) or \
+    def createRunByParam(self, site_name, erf_id, sgt_var_id, rup_var_id):
+        if ((site_name == None) or (erf_id == None) or \
                 (sgt_var_id == None) or (rup_var_id == None)):
             return None
         
         run = Run()
         site = Site()
-        site.setShortName(site)
+        site.setShortName(site_name)
         run.setSite(site)
         run.setERFID(erf_id)
         run.setSGTVarID(sgt_var_id)
