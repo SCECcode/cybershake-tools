@@ -14,6 +14,7 @@ class Site:
     site_long = None
     lat = None
     lon = None
+    site_type = None
 
     def __init__(self):
         self.site_id = None
@@ -21,6 +22,7 @@ class Site:
         self.site_long = None
         self.lat = None
         self.lon = None
+        self.site_type = None
 
     def copy(self, obj):
         self.site_id = obj.site_id
@@ -28,6 +30,7 @@ class Site:
         self.site_long = obj.site_long
         self.lat = obj.lat
         self.lon = obj.lon
+        self.site_type = obj.site_type
 
     #@staticmethod
     def formatHeader(self):
@@ -87,3 +90,11 @@ class Site:
         else:
             self.lon = float(lon)
 
+    def getSiteType(self):
+        return self.site_type
+
+    def setSiteType(self, site_type):
+        if (site_type == None):
+            self.site_type = site_type
+        else:
+            self.site_type = str(site_type)
