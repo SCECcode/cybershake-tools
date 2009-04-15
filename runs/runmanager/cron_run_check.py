@@ -11,13 +11,13 @@ import socket
 from RunManager import *
 from Condor import *
 from Mailer import *
-
+from Config import *
 
 # Globals
 class info:
     host = None
     update_scatter_plot = None
-    #plot_list = None
+    master = None
 
 # Format for out-going email msgs
 MSG_SUBJECT = "Run %d (site %s) experienced an error"
@@ -36,12 +36,26 @@ CHECK_ERROR_STATE = "Verify Error"
 def init():
     global info
 
+    # Get number of command-line arguments
+    argc = len(sys.argv)
+    
+    # Check command line arguments
+    if (argc < 2):
+        print "Usage: " + sys.argv[0] + " <mode>"
+        print "Example: " + sys.argv[0] + " MASTER/SECONDARY"
+        return 1
+
+    # Parse command line args and options
+    if (sys.argv[1] == 'MASTER'):
+        info.master = True
+    else:
+        info.master = False
+
     # Retrieve local host name
     info.host = socket.gethostname()
     info.host = info.host.split(".")[0]
 
     info.update_scatter_plot = False
-    #info.plot_list = []
 
     return 0
 
@@ -129,20 +143,14 @@ def checkExecErrors(rm, m):
                     # Perform update
                     print "Changing state of run %d to '%s'" % (run.getRunID(), run.getStatus())
                     if (rm.updateRun(run) != 0):
-                        # Abort updating this batch by performing a rollback
                         print "Failed to update run %d (site %s). Performing rollback." % \
                             (run.getRunID(), run.getSite().getShortName())
-                        rm.rollbackTransaction()
-                        break
-                    print "Successfully updated run %d (site %s)." % (run.getRunID(), run.getSite().getShortName())      
-
-                # Commmit these updates
-                print "Committing changes"
-                rm.commitTransaction()
-
-            else:
-                print "Releasing records"
-                rm.rollbackTransaction()
+                        # Keep trying to update
+                    else:
+                        print "Successfully updated run %d (site %s)." % (run.getRunID(), run.getSite().getShortName())      
+            # Commmit the successful updates
+            print "Committing changes"
+            rm.commitTransaction()
 
         else:
             print "No runs found in state '%s'" % (s)
@@ -150,7 +158,40 @@ def checkExecErrors(rm, m):
     return 0
 
 
-def hasCompCurves(run):
+def hasCompCurves(run, stats):
+
+    # Construct path
+    output_dir = '%s%s' % (CURVE_DIR, run.getSite().getShortName())
+
+    # Get list of curves from src dir
+    try:
+        files = os.listdir(src_dir)
+    except:
+        files = []
+
+    # Isolate the .png files
+    curves = {}
+    if (len(files) > 0):
+        # Display all .png files
+        i = 0
+        for f in files:
+            if (f.find('.png') != -1):
+                i = i + 1
+                srcname = "%s%s" % (src_dir, f)
+                escaped = cgi.escape(srcname, True)
+                curves[srcname] = escaped
+
+    # Identify missing comparison curves
+    for c in stats.getCurveList():
+        per_str = "%dsec" % (int(round(c.getIMValue())))
+        found = False
+        for fname,escname in curves.items():
+            if (fname.find("SA_%s" % (per_str)) != -1):
+                found = True
+                break;
+        if (not found):
+            return False
+
     return True
 
 
@@ -171,7 +212,7 @@ def checkVerifyErrors(rm, m):
             else:
                 if ((stats.getNumPSAs() > 0) and (stats.getNumCurves() > 0)):
                     # Check for comparison curves
-                    if (hasCompCurves(run) == True):
+                    if (hasCompCurves(run, stats) == True):
                         new_state = DONE_STATE
                         sendMessage(run, m, "Run passed verification checks. Moved to state '%s'." % (new_state))
                         run.setComment("Passed verification checks")
@@ -195,20 +236,15 @@ def checkVerifyErrors(rm, m):
                 # Perform update
                 print "Changing state of run %d to '%s'" % (run.getRunID(), run.getStatus())
                 if (rm.updateRun(run) != 0):
-                    # Abort updating this batch by performing a rollback
-                    print "Failed to update run %d (site %s). Performing rollback." % \
+                    print "Failed to update run %d (site %s)" % \
                         (run.getRunID(), run.getSite().getShortName())
-                    rm.rollbackTransaction()
-                    break
-                print "Successfully updated run %d (site %s)." % (run.getRunID(), run.getSite().getShortName())      
+                    # Keep trying to update
+                else:
+                    print "Successfully updated run %d (site %s)." % (run.getRunID(), run.getSite().getShortName())
 
-            # Commmit these updates
-            print "Committing changes"
-            rm.commitTransaction()
-
-        else:
-            print "Releasing records"
-            rm.rollbackTransaction()
+        # Commmit the successful updates
+        print "Committing changes"
+        rm.commitTransaction()
 
     else:
         print "No runs found in state '%s'" % (CHECK_VERIFY_STATE)
@@ -230,7 +266,12 @@ def createScatterPlot():
     return 0
 
 
-def createCompCurves(rm):
+def createCompCurves(rm, m):
+
+    # Save current working dir and move to opensha
+    cwd = os.getcwd()
+    print "Changing dir to %s" % (OPENSHA_DIR)
+    os.chdir(OPENSHA_DIR)
 
     print "Generating comparison curves."
 
@@ -241,47 +282,63 @@ def createCompCurves(rm):
         return 0
 
     for run in run_list:
-        print "Generating comparison curves for run %d (site %s)" % \
-            (run.getRunID(), run.getSite().getShortName())
 
-        # NOTE: For each run, should query DB for curves and generate for each PSA value
-        # rather than use hard-coded list
-
-        # Construct paths
-        output_dir = '%s%s' % (CURVE_DIR, run.getSite().getShortName())
-
-        # Generate comparison curves
-        plot_cmd = [OPENSHA_CURVE_SCRIPT, \
-                        '-R', '%d' % (run.getRunID()), \
-                        '-s', '%s' % (run.getSite().getShortName()), \
-                        '-n', \
-                        '-o', output_dir, \
-                        '-ef', OPENSHA_ERF_XML, \
-                        '-af', OPENSHA_AF_XML, \
-                        '-t', 'png,pdf', \
-                        '-pf', OPENSHA_DBPASS_FILE, \
-                        '-p', '3,5,10',]
-        retval = runCommand(plot_cmd)
-        if (retval == None):
-            print "Failed to create new comparison curves"
-            run.setState(CHECK_ERROR_STATE)
-            run.setComment("Failed verification checks")
-            sendMessage(run, m, "Run failed verification checks (num_psa == 0 or num_curves == 0). Moved to state '%s'." % (CHECK_ERROR_STATE))
+        stats = rm.getRunStatsByID(run.getRunID())
+        if (stats == None):
+            print "Failed to collect stats for run %d" % (run.getRunID())
         else:
-            print "Successfully created new comparison curves"
-            run.setState(DONE_STATE)
-            run.setComment("Passed verification checks")
-            sendMessage(run, m, "Run passed verification checks. Moved to state '%s'." % (DONE_STATE))
-
-        # Perform db update
-        if (rm.updateRun(run) != 0):
-            print "Failed to update run %d (site %s)." % \
+            print "Generating comparison curves for run %d (site %s)" % \
                 (run.getRunID(), run.getSite().getShortName())
-            # Keep going and try to update as many runs as possible
-        
-        # Commmit these updates
-        rm.commitTransaction()
-        
+
+            # Construct list of periods to compute comparison curves
+            period_list = ''
+            for c in stats.getCurveList():
+                if (period_list == ''):
+                    period_list = str(int(round(c.getIMValue())))
+                else:
+                    period_list = '%s,%s' % (period_list, str(int(round(c.getIMValue()))))
+
+            # Construct path
+            output_dir = '%s%s' % (CURVE_DIR, run.getSite().getShortName())
+
+            # Generate comparison curves
+            plot_cmd = [OPENSHA_CURVE_SCRIPT, \
+                            '-R', '%d' % (run.getRunID()), \
+                            '-s', '%s' % (run.getSite().getShortName()), \
+                            '-n', \
+                            '-o', output_dir, \
+                            '-ef', OPENSHA_ERF_XML, \
+                            '-af', OPENSHA_AF_XML, \
+                            '-t', 'png,pdf', \
+                            '-pf', OPENSHA_DBPASS_FILE, \
+                            '-p', period_list,]
+            print str(plot_cmd)
+            retval = runCommand(plot_cmd)
+            if (retval == None):
+                print "Failed to create new comparison curves"
+                run.setStatus(CHECK_ERROR_STATE)
+                run.setComment("Failed to create comparison curves")
+                sendMessage(run, m, "Failed to generate comparison curves. Moved to state '%s'." % (CHECK_ERROR_STATE))
+            else:
+                print "Successfully created new comparison curves"
+                run.setStatus(DONE_STATE)
+                run.setComment("Passed verification checks")
+                sendMessage(run, m, "Run passed verification checks. Moved to state '%s'." % (DONE_STATE))
+
+            # Perform db update
+            if (rm.updateRun(run) != 0):
+                print "Failed to update run %d (site %s)." % \
+                    (run.getRunID(), run.getSite().getShortName())
+                # Keep going and try to update as many runs as possible
+            else:
+                print "Successfully updated run %d (site %s)." % (run.getRunID(), run.getSite().getShortName())
+
+    # Commmit the successful updates
+    rm.commitTransaction()
+
+    # Return to original dir
+    os.chdir(cwd)
+
     return 0
 
 
@@ -294,16 +351,22 @@ def main():
 
     m = Mailer()
 
+    # Look for workflow execution errors
     checkExecErrors(rm, m)
-    checkVerifyErrors(rm, m)
 
-    # Generate a new scatter plot if needed
-    if (info.update_scatter_plot == True):
-        if (createScatterPlot() != 0):
-            print "Warning: Failed to produce scatter plot."
+    # Checks to perform only on the master RunManager host
+    if (info.master == True):
+        # Perform verification checks on completed runs
+        checkVerifyErrors(rm, m)
 
-    # Generate comparison curves if needed
-    createCompCurves(rm)
+        # Generate a new scatter plot if needed
+        if (info.update_scatter_plot == True):
+            if (createScatterPlot() != 0):
+                print "Warning: Failed to produce scatter plot."
+
+        # Generate comparison curves if needed
+        createCompCurves(rm, m)
+
 
     print "-- Shutting down at %s --" % (time.strftime("%Y-%m-%d %H:%M:%S"))
     return 0
