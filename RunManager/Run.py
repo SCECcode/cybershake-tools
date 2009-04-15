@@ -69,8 +69,7 @@ class Run:
     #@staticmethod
     def formatHeader(self):
         headers = ["Run ID", "Site", "Status", "Status Time (GMT)", \
-                       "SGT Host", "PP Host", "Comment", "Last User", \
-                       "Job ID", "Submit Dir", ]
+                       "SGT Host", "PP Host", "Comment", "Job ID", ]
         return headers
 
     def formatData(self):
@@ -87,9 +86,7 @@ class Run:
                     str(self.sgt_host), \
                     str(self.pp_host), \
                     str(self.comment), \
-                    str(self.last_user), \
-                    str(self.job_id), \
-                    str(self.submit_dir),]
+                    str(self.job_id),]
         return data
 
     def getRunID(self):
