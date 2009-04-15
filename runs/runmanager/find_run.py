@@ -17,7 +17,15 @@ from RLS import *
 # Globals
 class info:
     pass
-SEARCH_LIST = ["SGT Generated", "PP Started", "PP Error", "Curves Generated",]
+
+# Constants
+
+# Search for matching runs in one of these states, in descending order of desirability:
+#
+# 1) most recent run in SGT Generated state
+# 2) clone of most recent run in PP Started/PP Error/Curves Generated
+MATCH_STATE_DICT = {"USE":["SGT Generated",], \
+                        "CLONE":["PP Started", "PP Error", "Curves Generated", "Plotting", "Verified",]}
 
 
 def init():
@@ -93,6 +101,26 @@ def cloneLFNs(match, clone):
     return 0
 
 
+def findMatch(rm, run, match_states):
+
+    pref_match = None
+
+    for s in match_states:
+        run.setStatus(s)
+        matches = rm.getRuns(run, lock=False)
+        if (matches != None):
+            for run in matches:
+                sgt_time = int(time.mktime(time.strptime(run.getSGTTime(), '%Y-%m-%d %H:%M:%S')))
+                if (pref_match == None):
+                    pref_match = run
+                else:
+                    pref_time = int(time.mktime(time.strptime(pref_match.getSGTTime(), '%Y-%m-%d %H:%M:%S')))
+                    if (sgt_time > pref_time):
+                        pref_match = run
+  
+    return pref_match
+
+
 def main():
     global info
 
@@ -108,41 +136,18 @@ def main():
         searchrun.setSGTVarID(info.sgt_var)
         searchrun.setRupVarID(info.rup_var)
 
-    pref_match = None
-
-    for s in SEARCH_LIST:
-        searchrun.setStatus(s)
-        matches = rm.getRuns(searchrun, lock=False)
-
-        if (matches != None):
-            for run in matches:
-                sgt_time = int(time.mktime(time.strptime(run.getSGTTime(), '%Y-%m-%d %H:%M:%S')))
-                if (pref_match == None):
-                    pref_match = run
-                else:
-                    pref_time = int(time.mktime(time.strptime(pref_match.getSGTTime(), '%Y-%m-%d %H:%M:%S')))
-                    if (sgt_time > pref_time):
-                        pref_match = run
-                        
-            if (pref_match != None):
-                if ((s == "SGT Generated") or (s == "Curves Generated")):
-                    # Found an acceptable match
-                    break
-                else:
-                    # Keep checking if state = PP Started/PP Error because we want to find latest
-                    # run of all the PP Started/PP Error/Curves Generated
-                    pass
-            else:
-                pass
+    # Find preferred runids, if any
+    need_clone = False
+    pref_match = findMatch(rm, searchrun, MATCH_STATE_DICT["USE"])
+    if (pref_match == None):
+        need_clone = True
+        pref_match = findMatch(rm, searchrun, MATCH_STATE_DICT["CLONE"])
 
     if (pref_match == None):
         print "No matching runs found."
         return 1
     
-    #print "Preferred match:"
-    #pref_match.dumpToScreen()
-        
-    if (pref_match.getStatus() != "SGT Generated"):
+    if (need_clone == True):
         # Clone the run and return new run_id
         clone = Run()
         clone.copy(pref_match)
