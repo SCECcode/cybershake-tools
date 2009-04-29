@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="WINDOWS-1252" standalone="no"?>
+<jardesc>
+    <jar path="C:/workspace/scec/CyberShake2007/HazardCurveGeneration/opensha_CS.jar"/>
+    <options buildIfNeeded="true" compress="true" descriptionLocation="/CyberShake2007/HazardCurveGeneration/opensha_CS.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
+    <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
+    <selectedProjects/>
+    <manifest generateManifest="false" manifestLocation="/CyberShake2007/HazardCurveGeneration/opensha_CS.mf" manifestVersion="1.0" reuseManifest="true" saveManifest="true" usesManifest="true">
+        <sealing sealJar="false">
+            <packagesToSeal/>
+            <packagesToUnSeal/>
+        </sealing>
+    </manifest>
+    <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.refFaultParamDb.gui.event"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.refFaultParamDb.dao"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.sha.earthquake.rupForecastImpl.WGCEP_UCERF_2_3.gui"/>
+        <javaElement handleIdentifier="=CyberShake2007/HazardCurveGeneration"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.refFaultParamDb.dao.exception"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.refFaultParamDb.excelToDatabase"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.sha.earthquake"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.refFaultParamDb.gui.infotools"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.refFaultParamDb.gui.addEdit.faultSection"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.refFaultParamDb.dao.db"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.calc.magScalingRelations"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.refFaultParamDb.gui.login"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.sha.earthquake.rupForecastImpl.WGCEP_UCERF_2_3.data"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.refFaultParamDb.data"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.exceptions"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.param.event"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.sha.earthquake.rupForecastImpl.WGCEP_UCERF_2_3.analysis"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.sha.imr.attenRelImpl"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.calc"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.calc.magScalingRelations.magScalingRelImpl"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.data.region"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.data"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.param"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.refFaultParamDb.vo"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.sha.imr"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.sha.gui.infoTools"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.cybershake.db"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.sha.magdist"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.refFaultParamDb.gui.view"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.refFaultParamDb.gui.addEdit.paleoSite"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.util"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.cybershake"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.refFaultParamDb.gui.addEdit.deformationModel"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.sha.earthquake.rupForecastImpl.WGCEP_UCERF_2_3.A_Faults"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.sha.calc"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.sha.earthquake.rupForecastImpl.WGCEP_UCERF_2_3.data.NearCA_NSHMP"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.sha.earthquake.rupForecastImpl.WGCEP_UCERF_2_3.MeanUCERF2"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.sha.earthquake.rupForecastImpl.WGCEP_UCERF_2_3.griddedSeis"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.sha.earthquake.rupForecastImpl"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.sha.earthquake.rupForecastImpl.WGCEP_UCERF_2_3"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.data.function"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.sha.earthquake.rupForecastImpl.WGCEP_UCERF_2_3.rupCalc"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.refFaultParamDb.gui.addEdit.faultModel"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.refFaultParamDb.servlets"/>
+        <javaElement handleIdentifier="=jQuake/&lt;org.opensha.refFaultParamDb.gui"/>
+    </selectedElements>
+</jardesc>
