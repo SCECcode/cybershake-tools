@@ -12,7 +12,7 @@ from RunManager import *
 import cgitb; cgitb.enable() 
 
 # Constants
-FILTERS = ["Active", "Completed", "Deleted", "New Sites", "Scatter Plot",]
+FILTERS = ["Active", "Completed", "Deleted", "New Sites", "Maps and Plots",]
 
 
 # Globals
@@ -143,12 +143,27 @@ def main():
         page.footer(True)
         return 0
     else:
-        escaped = cgi.escape(SCATTER_IMG, True)
         file_time = time.strftime("%Y-%m-%d %H:%M:%S GMT", time.gmtime(os.path.getmtime(SCATTER_IMG)))
         print "<table>"
-        print "<tr><td><center>Scatter Plot (%s)</center></td></tr>" % (str(file_time))
-        print "<tr><td><img src=\"loadpng.py?img=%s\" border=\"1\"></td></tr>" % (escaped)
+        print "<tr><td><center>Scatter Map (%s)</center></td></tr>" % (str(file_time))
+        print "<tr><td><img src=\"loadpng.py?img=%s\" border=\"1\" width=\"1275\" height=\"1188\"></td></tr>" % \
+              (cgi.escape(SCATTER_IMG, True))
         print "</table><p>"
+
+        file_time = time.strftime("%Y-%m-%d %H:%M:%S GMT", time.gmtime(os.path.getmtime(INTERPOLATED_ALL_IMG)))
+        print "<table>"
+        print "<tr><td><center>Interpolated Map, All Sites (%s)</center></td></tr>" % (str(file_time))
+        print "<tr><td><img src=\"loadpng.py?img=%s\" border=\"1\" width=\"1275\" height=\"1188\"></td></tr>" % \
+              (cgi.escape(INTERPOLATED_ALL_IMG, True))
+        print "</table><p>"
+
+        file_time = time.strftime("%Y-%m-%d %H:%M:%S GMT", time.gmtime(os.path.getmtime(INTERPOLATED_GRID_IMG)))
+        print "<table>"
+        print "<tr><td><center>Interpolated Map, Gridded Sites (%s)</center></td></tr>" % (str(file_time))
+        print "<tr><td><img src=\"loadpng.py?img=%s\" border=\"1\" width=\"1275\" height=\"1188\"></td></tr>" % \
+              (cgi.escape(INTERPOLATED_GRID_IMG, True))
+        print "</table><p>"
+        
         page.footer(True)
         return 0
     
