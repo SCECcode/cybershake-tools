@@ -85,8 +85,12 @@ class Condor:
 
 
     def getJob(self, job_id):
-        # Method returns tuple (job object, error code) in order to allow apps to distinguish between
-        # condor_q errors and non-existance of a job
+        # Method returns tuple (job object, error code) in order to allow 
+        # apps to distinguish between condor_q errors and 
+        # non-existance of a job
+
+        if ((job_id == None) or (str(job_id) == "")):
+            return (None, 0)
 
         # Query condor_q for this job's classad
         condorcmd = [CONDOR_Q, '-long', str(job_id)]
@@ -138,6 +142,9 @@ class Condor:
 
 
     def getJobFromCache(self, job_id):
+        if ((job_id == None) or (str(job_id) == "")):
+            return None
+
         if (str(job_id) in self.job_cache.keys()):
             job = self.job_cache[str(job_id)]
             return job
