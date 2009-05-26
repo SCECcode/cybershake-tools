@@ -16,12 +16,12 @@ from Config import *
 # Globals
 class info:
     host = None
-    update_scatter_plot = None
+    update_maps = None
     master = None
 
 # Format for out-going email msgs
-MSG_SUBJECT = "Run %d (site %s) experienced an error"
-MSG_FORMAT = "Run %d (site %s) encountered the following problem:\r\n\r\n%s\r\n"
+MSG_SUBJECT = "Run %d (site %s) status update"
+MSG_FORMAT = "Run %d (site %s) encountered the following issue:\r\n\r\n%s\r\n"
 
 # Specifies how to map a run state to its corresponding error state for those runs
 # with a job_id assigned that cannot be found in condor_q
@@ -55,7 +55,7 @@ def init():
     info.host = socket.gethostname()
     info.host = info.host.split(".")[0]
 
-    info.update_scatter_plot = False
+    info.update_maps = False
 
     return 0
 
@@ -78,7 +78,6 @@ def runCommand(cmd):
     return output
 
 
-
 def sendMessage(run, m, msgstr):
     notify_list = run.getNotifyUserAsList()
 
@@ -89,7 +88,6 @@ def sendMessage(run, m, msgstr):
         m.send(notify_list, subject, msg)
 
     return 0
-
 
 
 def checkExecErrors(rm, m):
@@ -103,9 +101,9 @@ def checkExecErrors(rm, m):
         return 1
 
     # Check for runs in an error state
-    searchrun = Run()
     for s,e in ERROR_STATE_MAP.items():
         update_list = []
+        searchrun = Run()
         searchrun.setStatus(s)
         print "Querying DB for runs in '%s' state" % (s)
         matches = rm.getRuns(searchrun, lock=True)
@@ -130,8 +128,8 @@ def checkExecErrors(rm, m):
                     else:
                         job = condor.getJobFromCache(job_id)
                         if (job == None):
-                            sendMessage(run, m, "No job '%s' found in condor. Moved to state '%s'." % (job_id, e))
-                            print "No running condor job '%s' found for run %d" % (job_id, run.getRunID())
+                            sendMessage(run, m, "No job '%s' found in condor. Moved to state '%s'." % (run.getJobID(), e))
+                            print "No running condor job '%s' found for run %d" % (run.getJobID(), run.getRunID())
                             run.setStatus(e)
                             run.setComment("Workflow terminated unexpectedly")
                             update_list.append(run)
@@ -149,11 +147,15 @@ def checkExecErrors(rm, m):
                     else:
                         print "Successfully updated run %d (site %s)." % (run.getRunID(), run.getSite().getShortName())      
             # Commmit the successful updates
-            print "Committing changes"
-            rm.commitTransaction()
+            #print "Committing changes"
+            #rm.commitTransaction()
 
         else:
             print "No runs found in state '%s'" % (s)
+
+        # Commmit the successful updates
+        print "Committing changes"
+        rm.commitTransaction()
 
     return 0
 
@@ -222,8 +224,7 @@ def checkVerifyErrors(rm, m):
                         run.setComment("Generating comparison curves")
                     run.setStatus(new_state)
                     update_list.append(run)
-                    info.update_scatter_plot = True
-                    #info.plot_list.append(run)
+                    info.update_maps = True
                 else:
                     sendMessage(run, m, "Run failed verification checks (num_psa == 0 or num_curves == 0). Moved to state '%s'." % (CHECK_ERROR_STATE))
                     print "Run %d failed verification" % (run.getRunID())
@@ -252,16 +253,31 @@ def checkVerifyErrors(rm, m):
     return 0
 
 
-def createScatterPlot():
+def createMaps():
 
-    print "Generating new scatter plot"
-
+    print "Generating new scatter map"
     plot_cmd = ['ssh', OPENSHA_LOGIN, OPENSHA_SCATTER_SCRIPT,]
     retval = runCommand(plot_cmd)
     if (retval == None):
-        print "Failed to create new scatter plot"
+        print "Failed to create new scatter map"
     else:
-        print "Successfully created new scatter plot"
+        print "Successfully created new scatter map"
+
+    print "Generating new interpolated map for all sites"
+    plot_cmd = ['ssh', OPENSHA_LOGIN, OPENSHA_INTERPOLATED_SCRIPT,]
+    retval = runCommand(plot_cmd)
+    if (retval == None):
+        print "Failed to create new interpolated map for all sites"
+    else:
+        print "Successfully created new interpolated map for all sites"
+
+    print "Generating new interpolated map for gridded sites"
+    plot_cmd = ['ssh', OPENSHA_LOGIN, OPENSHA_INTERPOLATED_SCRIPT, '4',]
+    retval = runCommand(plot_cmd)
+    if (retval == None):
+        print "Failed to create new interpolated map for gridded sites"
+    else:
+        print "Successfully created new interpolated map for gridded sites"
 
     return 0
 
@@ -273,13 +289,17 @@ def createCompCurves(rm, m):
     print "Changing dir to %s" % (OPENSHA_DIR)
     os.chdir(OPENSHA_DIR)
 
-    print "Generating comparison curves."
+    print "Querying for runs needing comparison curves."
 
     # Query for list of runs in plotting state
     run_list = rm.getRunsByState([PLOT_STATE], lock=True)
     if ((run_list == None) or (len(run_list) == 0)):
         print "No runs in state '%s'. No work to do." % (PLOT_STATE)
+        # Perform release just in case
+        rm.rollbackTransaction()
         return 0
+
+    print "Found %d runs needing curves." % (len(run_list))
 
     for run in run_list:
 
@@ -359,10 +379,10 @@ def main():
         # Perform verification checks on completed runs
         checkVerifyErrors(rm, m)
 
-        # Generate a new scatter plot if needed
-        if (info.update_scatter_plot == True):
-            if (createScatterPlot() != 0):
-                print "Warning: Failed to produce scatter plot."
+        # Generate new maps if needed
+        if (info.update_maps == True):
+            if (createMaps() != 0):
+                print "Warning: Failed to produce maps."
 
         # Generate comparison curves if needed
         createCompCurves(rm, m)
