@@ -54,6 +54,7 @@ STATUS_STD = {"Initial": ["Initial", "SGT Started", "SGT Error", "Deleted",], \
 OPENSHA_LOGIN = 'cybershk@opensha.usc.edu'
 OPENSHA_DIR = '/home/scec-00/cybershk/opensha'
 OPENSHA_SCATTER_SCRIPT = '%s/make_scatter_map.sh' % (OPENSHA_DIR)
+OPENSHA_INTERPOLATED_SCRIPT = '%s/make_interpolated_map.sh' % (OPENSHA_DIR)
 OPENSHA_CURVE_SCRIPT = '%s/curve_plot_wrapper.sh' % (OPENSHA_DIR)
 OPENSHA_XML_DIR = '/home/scec-00/cybershk/opensha/OpenSHA/org/opensha/cybershake/conf'
 OPENSHA_ERF_XML = '%s/%s' % (OPENSHA_XML_DIR, 'MeanUCERF.xml')
@@ -68,6 +69,11 @@ CURVE_DIR = "/home/scec-00/cybershk/opensha/curves/"
 
 # Path to the most recent scatter plot
 SCATTER_IMG = "/home/scec-00/cybershk/opensha/scatter/map_cb.png"
+
+
+# Path to the most recent interpolated maps
+INTERPOLATED_ALL_IMG = "/home/scec-00/cybershk/opensha/interpolatedMap/map.png"
+INTERPOLATED_GRID_IMG = "/home/scec-00/cybershk/opensha/interpolatedMap/allGrid.png"
 
 
 # Website URL
