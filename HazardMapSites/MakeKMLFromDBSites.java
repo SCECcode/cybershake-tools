@@ -111,7 +111,7 @@ public class MakeKMLFromDBSites {
 				iconStyle.appendChild(scale);
 				Element icon = doc.createElement("Icon");
 					Element url = doc.createElement("href");
-						Text urlText = doc.createTextNode("http://maps.google.com/mapfiles/ms/icons/red-dot.png");
+						Text urlText = doc.createTextNode("http://maps.google.com/mapfiles/ms/icons/blue-dot.png");
 						url.appendChild(urlText);
 					icon.appendChild(url);
 				iconStyle.appendChild(icon);
@@ -136,14 +136,17 @@ public class MakeKMLFromDBSites {
 	private static void populateSites(Connection conn) {
 		try {
 			Statement stat = conn.createStatement();
-			String query = "SELECT CS_Short_Name, CS_Site_Lat, CS_Site_Lon FROM CyberShake_Sites";
+			String query = "select distinct S.CS_Short_Name, S.CS_Site_Lat, S.CS_Site_Lon " +
+				"from CyberShake_Site_Types T, CyberShake_Sites S, CyberShake_Runs R, Hazard_Curves C " +
+				"where C.Run_ID=R.Run_ID and R.SGT_Variation_ID=5 and R.Rup_Var_Scenario_ID=3 " +
+				"and S.CS_Site_ID=R.Site_ID and S.CS_Site_Type_ID=T.CS_Site_Type_ID and T.CS_Site_Type_Short_Name!=\"TEST\"";
 			ResultSet rs = stat.executeQuery(query);
 			rs.first();
 			while (!rs.isAfterLast()) {
 				Site s = new Site();
-				s.name = rs.getString("CS_Short_Name");
-				s.lat = rs.getDouble("CS_Site_Lat");
-				s.lon = rs.getDouble("CS_Site_Lon");
+				s.name = rs.getString("S.CS_Short_Name");
+				s.lat = rs.getDouble("S.CS_Site_Lat");
+				s.lon = rs.getDouble("S.CS_Site_Lon");
 				sites.add(s);
 				rs.next();
 			}
