@@ -1,9 +1,14 @@
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Formatter;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -34,31 +39,60 @@ public class GenerateMapSites {
 	public static final int SPHEROID = 20;
 	public static final int UTM_ZONE = 11;
 	
+	public static final int ERF_ID = 35;
+	public static final int CUTOFF = 200;
+	
+	private static double[][] caOutline = null;
+	
 	public static double SPACING = 5000.0; //m
 	
-	public static String FILENAME = "CyberShake_map_sites.kml";
+	public static String FILENAME = "CyberShake_map_sites";
 	
 	public static void main(String[] args) {
-		Document xmlOut = null;
+		Document[] xmlOuts = {null, null, null};
 		try {
-			xmlOut = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+			for(int i=0; i<3; i++) {
+				xmlOuts[i] = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+			}
 		} catch (ParserConfigurationException e) {
 			e.printStackTrace();
 			System.exit(1);
 		}
 		
-		Element root = xmlOut.createElementNS("http://earth.google.com/kml/2.2", "kml");
-		Element doc = xmlOut.createElement("Document");
+		Element[] roots = new Element[3];
+		Element[] docs = new Element[3];
 		
-		printHeader(xmlOut, doc);
+		for (int i=0; i<3; i++) {
+			roots[i] = xmlOuts[i].createElementNS("http://earth.google.com/kml/2.2", "kml");
+			docs[i] = xmlOuts[i].createElement("Document");
+			printHeader(xmlOuts[i], docs[i]);
+		}
 		
-		double[] westCornerUTM = ConversionServices.getUTMwithZone(westCorner[0], westCorner[1], SPHEROID, UTM_ZONE);
-		double[] eastCornerUTM = ConversionServices.getUTMwithZone(eastCorner[0], eastCorner[1], SPHEROID, UTM_ZONE);
-		double[] northCornerUTM = ConversionServices.getUTMwithZone(northCorner[0], northCorner[1], SPHEROID, UTM_ZONE);
-		double[] southCornerUTM = ConversionServices.getUTMwithZone(southCorner[0], southCorner[1], SPHEROID, UTM_ZONE);
+		double[] westCornerUTM = new double[3];
+		double[] eastCornerUTM = new double[3];
+		double[] northCornerUTM = new double[3];
+		double[] southCornerUTM = new double[3];
+		
+		double[] tmp = ConversionServices.getUTMwithZone(westCorner[0], westCorner[1], SPHEROID, UTM_ZONE);
+		for (int i=0; i<tmp.length; i++) {
+			westCornerUTM[i] = tmp[i];
+		}
+		tmp = ConversionServices.getUTMwithZone(eastCorner[0], eastCorner[1], SPHEROID, UTM_ZONE);
+		for (int i=0; i<tmp.length; i++) {
+			eastCornerUTM[i] = tmp[i];
+		}
+		tmp = ConversionServices.getUTMwithZone(northCorner[0], northCorner[1], SPHEROID, UTM_ZONE);
+		for (int i=0; i<tmp.length; i++) {
+			northCornerUTM[i] = tmp[i];
+		}
+		tmp = ConversionServices.getUTMwithZone(southCorner[0], southCorner[1], SPHEROID, UTM_ZONE);
+		for (int i=0; i<tmp.length; i++) {
+			southCornerUTM[i] = tmp[i];
+		}
 
 		System.out.println(westCornerUTM[0] + " " + westCornerUTM[1]);
 		System.out.println(northCornerUTM[0] + " " + northCornerUTM[1]);
+		System.out.println(eastCornerUTM[0] + " " + eastCornerUTM[1]);
 		
 		double xDist = computeDistance(westCornerUTM, southCornerUTM);
 		double yDist = computeDistance(westCornerUTM, northCornerUTM);
@@ -75,34 +109,63 @@ public class GenerateMapSites {
 		Element placemark, name, styleUrl, point, coordinates;
 		Text nameText, styleUrlText, coordinatesText;
 		
+		
+		ArrayList<String> lines = new ArrayList<String>();
+		
+		int count = 0;
+		int index = -1;
+		
+		int[] dist = {5, 10, 20};
+		
+		String[] styles = {"#Gridpoints20", "#Gridpoints10", "#Gridpoints5"};
+		
 		for(int i=1; i<xSteps; i++) {
 			start[0] += deltaN;
 			start[1] -= deltaE;
 			for(int j=1; j<ySteps; j++) {
 //				System.out.println("east: " + (start[0]+j*deltaE) + " north: " + (start[1]+j*deltaN));
 				double[] ll = ConversionServices.getLatLong(start[0]+j*deltaE, start[1]+j*deltaN, SPHEROID, UTM_ZONE, ConversionServices.NORTHERN_HEMISPHERE);
-//				System.out.println("lat: " + ll[0] + " lon: " + ll[1]);
-				placemark = xmlOut.createElement("Placemark");
-					name = xmlOut.createElement("name");
-						nameText = xmlOut.createTextNode(String.format("s%03d", ((i-1)*ySteps+(j-1))));
+				
+				if (!insideBoundary(ll)) continue;
+				
+				if (i%4==0 && j%4==0) {
+					index = 2;
+				} else if (i%2==0 && j%2==0) {
+					index = 1;						
+				} else {
+					index = 0;
+				}
+					
+				for (int k=index; k>=0; k--) {
+					
+				placemark = xmlOuts[k].createElement("Placemark");
+					name = xmlOuts[k].createElement("name");
+						nameText = xmlOuts[k].createTextNode(String.format("s%03d", count));
 						name.appendChild(nameText);
 					placemark.appendChild(name);
-					styleUrl = xmlOut.createElement("styleUrl");
-						styleUrlText = xmlOut.createTextNode("#Gridpoints");
+					styleUrl = xmlOuts[k].createElement("styleUrl");
+						styleUrlText = xmlOuts[k].createTextNode(styles[k]);
 						styleUrl.appendChild(styleUrlText);
 					placemark.appendChild(styleUrl);
-					point = xmlOut.createElement("Point");
-						coordinates = xmlOut.createElement("coordinates");
-							coordinatesText = xmlOut.createTextNode(String.format("%.5f, %.5f, 0", ll[1], ll[0]));
+					point = xmlOuts[k].createElement("Point");
+						coordinates = xmlOuts[k].createElement("coordinates");
+							coordinatesText = xmlOuts[k].createTextNode(String.format("%.5f, %.5f, 0", ll[1], ll[0]));
 							coordinates.appendChild(coordinatesText);
 						point.appendChild(coordinates);
 					placemark.appendChild(point);
-				doc.appendChild(placemark);
+					docs[k].appendChild(placemark);
+					
+				}
+
+				lines.add(String.format("s%03d", count) + " \"" + String.format("s%03d", count) + "\" " + String.format("%.5f", ll[0]) + " " + String.format("%.5f", ll[1]) + " " + CUTOFF + " " + ERF_ID + " " + dist[index]);
+				
+				count++;
 			}
 		}
 		
-		root.appendChild(doc);
-		xmlOut.appendChild(root);
+		for (int i=0; i<3; i++) {
+			roots[i].appendChild(docs[i]);
+			xmlOuts[i].appendChild(roots[i]);
 		
 		try {
 			TransformerFactory factory = TransformerFactory.newInstance();
@@ -110,8 +173,8 @@ public class GenerateMapSites {
 			Transformer t = factory.newTransformer();
 			t.setOutputProperty(OutputKeys.INDENT, "yes");
 			
-			Source src = new DOMSource(xmlOut);
-			StreamResult out = new StreamResult(new FileWriter(FILENAME));
+			Source src = new DOMSource(xmlOuts[i]);
+			StreamResult out = new StreamResult(new FileWriter(FILENAME + "_" + dist[i] + ".kml"));
 			t.transform(src, out);
 			
 		} catch (TransformerConfigurationException e) {
@@ -124,19 +187,106 @@ public class GenerateMapSites {
 			e.printStackTrace();
 		}
 		
+		} //close for loop
+		
+		Collections.sort(lines, new LineComparator());
+		BufferedWriter bw = null;
+		try {
+			bw = new BufferedWriter(new FileWriter(FILENAME + ".txt"));
+			for (String s: lines) {
+				bw.write(s + "\n");
+			}
+			bw.flush();
+			bw.close();
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		
+	}
+
+	private static boolean insideBoundary(double[] ll) {
+		if (caOutline==null) {
+			ArrayList<double[]> edge = new ArrayList<double[]>();
+			try {
+				BufferedReader in = new BufferedReader(new FileReader("HazardMapSites/California.txt"));
+				String line = in.readLine();
+				while (line!=null) {
+					String[] pieces = line.split(" ");
+					double[] points = new double[2];
+					points[0] = Double.parseDouble(pieces[0]);
+					points[1] = Double.parseDouble(pieces[1]);
+					edge.add(points);
+					line = in.readLine();
+				}
+				in.close();
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+			caOutline = edge.toArray(new double[][]{});
+		}
+	
+		int compareIndex = 0;
+		int flag = 0;
+		for (int i=0; i<caOutline.length; i++) {
+			if (caOutline[i][0]>ll[0] && flag==0) {
+				flag = 1;
+				compareIndex = i;
+			} else if (caOutline[i][0]<ll[0] && flag==1 && caOutline[i][1]>ll[1]) {
+				flag = 0;
+			}
+		}
+		//try midpoint
+		double midLat = (caOutline[compareIndex][0] + caOutline[compareIndex-1][0]) * .5;
+		double midLon = (caOutline[compareIndex][1] + caOutline[compareIndex-1][1]) * .5;
+		if (ll[1]<midLon) {
+			return false;
+		}
+		return true;
 	}
 
 	private static void printHeader(Document doc, Element root) {
 		Element gridpointsStyle = doc.createElement("Style");
-		gridpointsStyle.setAttribute("id", "Gridpoints");
+		gridpointsStyle.setAttribute("id", "Gridpoints20");
 			Element iconStyle = doc.createElement("IconStyle");
 				Element scale = doc.createElement("Scale");
-					Text scaleText = doc.createTextNode("0.4");
+					Text scaleText = doc.createTextNode("1.0");
 					scale.appendChild(scaleText);
 				iconStyle.appendChild(scale);
 				Element icon = doc.createElement("Icon");
 					Element url = doc.createElement("href");
 						Text urlText = doc.createTextNode("http://maps.google.com/mapfiles/ms/icons/red-dot.png");
+						url.appendChild(urlText);
+					icon.appendChild(url);
+				iconStyle.appendChild(icon);
+				gridpointsStyle.appendChild(iconStyle);
+		root.appendChild(gridpointsStyle);
+		
+		gridpointsStyle = doc.createElement("Style");
+		gridpointsStyle.setAttribute("id", "Gridpoints10");
+			iconStyle = doc.createElement("IconStyle");
+				scale = doc.createElement("Scale");
+					scaleText = doc.createTextNode("0.7");
+					scale.appendChild(scaleText);
+				iconStyle.appendChild(scale);
+				icon = doc.createElement("Icon");
+					url = doc.createElement("href");
+						urlText = doc.createTextNode("http://maps.google.com/mapfiles/ms/icons/yellow-dot.png");
+						url.appendChild(urlText);
+					icon.appendChild(url);
+				iconStyle.appendChild(icon);
+				gridpointsStyle.appendChild(iconStyle);
+		root.appendChild(gridpointsStyle);
+		
+		gridpointsStyle = doc.createElement("Style");
+		gridpointsStyle.setAttribute("id", "Gridpoints5");
+			iconStyle = doc.createElement("IconStyle");
+				scale = doc.createElement("Scale");
+					scaleText = doc.createTextNode("0.4");
+					scale.appendChild(scaleText);
+				iconStyle.appendChild(scale);
+				icon = doc.createElement("Icon");
+					url = doc.createElement("href");
+						urlText = doc.createTextNode("http://maps.google.com/mapfiles/ms/icons/green-dot.png");
 						url.appendChild(urlText);
 					icon.appendChild(url);
 				iconStyle.appendChild(icon);
@@ -201,5 +351,28 @@ public class GenerateMapSites {
 		double eDiff = corner1[0]-corner2[0];
 		double nDiff = corner1[1]-corner2[1];
 		return Math.sqrt(eDiff*eDiff+nDiff*nDiff);
+	}
+	
+	private static class LineComparator implements Comparator {
+
+		public int compare(Object o1, Object o2) {
+			String s1 = (String)o1;
+			String s2 = (String)o2;
+			
+			String[] p1 = s1.split(" ");
+			String[] p2 = s2.split(" ");
+			
+			int res1 = Integer.parseInt(p1[p1.length-1]);
+			int res2 = Integer.parseInt(p2[p2.length-1]);
+			
+			if (res1>res2) {
+				return res2-res1;
+			} else if (res2>res1) {
+				return res2-res1;
+			} else {
+				return p1[0].compareTo(p2[0]); 
+			}
+		}
+		
 	}
 }
