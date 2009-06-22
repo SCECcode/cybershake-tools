@@ -56,10 +56,13 @@ OPENSHA_DIR = '/home/scec-00/cybershk/opensha'
 OPENSHA_SCATTER_SCRIPT = '%s/make_scatter_map.sh' % (OPENSHA_DIR)
 OPENSHA_INTERPOLATED_SCRIPT = '%s/make_interpolated_map.sh' % (OPENSHA_DIR)
 OPENSHA_CURVE_SCRIPT = '%s/curve_plot_wrapper.sh' % (OPENSHA_DIR)
-OPENSHA_XML_DIR = '/home/scec-00/cybershk/opensha/OpenSHA/org/opensha/cybershake/conf'
+OPENSHA_XML_DIR = '/home/scec-00/cybershk/opensha/OpenSHA/org/opensha/sha/cybershake/conf'
 OPENSHA_ERF_XML = '%s/%s' % (OPENSHA_XML_DIR, 'MeanUCERF.xml')
-OPENSHA_AF_XML = '%s/%s,%s/%s' % \
-    (OPENSHA_XML_DIR, 'cb2008.xml', OPENSHA_XML_DIR, 'ba2008.xml')
+OPENSHA_AF_XML = '%s/%s,%s/%s,%s/%s,%s/%s' % \
+    (OPENSHA_XML_DIR, 'cb2008.xml', \
+         OPENSHA_XML_DIR, 'ba2008.xml', \
+         OPENSHA_XML_DIR, 'cy2008.xml', \
+         OPENSHA_XML_DIR, 'as2008.xml')
 OPENSHA_DBPASS_FILE = '/home/scec-00/cybershk/config/db_pass.txt'
 
 
