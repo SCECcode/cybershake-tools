@@ -74,6 +74,54 @@ def dispNewSites():
     return 0
 
 
+def dispMaps():
+    global rm
+
+    img_files = [SCATTER_IMG, INTERPOLATED_ALL_IMG, INTERPOLATED_GRID_IMG,]
+    img_names = ["Scatter Map", "Interpolated, All Sites", \
+                 "Interpolated, Gridded",]
+
+    img_links = []
+    for img in img_files:
+        link_str = "loadpng.py?img=%s" % (cgi.escape(img, True))
+        # Original img size: width=1275 height=1188
+        src_str = "<img src=\"loadpng.py?img=%s\" border=\"1\" width=\"638\" height=\"594\">" % (cgi.escape(img, True))
+        img_links.append("<a href=\"%s\">%s</a>" % (link_str, src_str))
+        
+    img_times = []
+    for img in img_files:
+        img_times.append(time.strftime("%Y-%m-%d %H:%M:%S GMT", \
+                                       time.gmtime(os.path.getmtime(img))))
+
+    print "<h4>Static Maps</h4>"
+    print "Combined CyberShake/Base Maps for various SA and percentile thresholds can be viewed at the <a href=\"http://scecdata.usc.edu/wiki/index.php?title=CyberShake_2009_Map_Table#Interpolated_Map_Combined_with_Base_Maps_.28each_map_requires_manual_update.29\">Wiki Static Maps</a> (login required)."
+
+    print "<h4>Dynamic Maps (Continuously Updated)</h4>"
+    print "<p>"
+    print "Click the image for a larger view."
+    print "<p>"
+    print "<table>"
+
+    print "<tr>"
+    for i in range(0, len(img_files)):
+        print "<th>%s</th>" % (img_names[i])
+    print "</tr>"
+    
+    print "<tr>"
+    for i in range(0, len(img_files)):
+        print "<td>%s</td>" % (img_links[i])
+    print "</tr>"
+
+    print "<tr>"
+    for i in range(0, len(img_files)):
+        print "<td><center>%s</center></td>" % (img_times[i])
+    print "</tr>"
+
+    print "</table>"
+    print "<p>"
+    return 0
+
+
 def main():
     global rm
     global write_access
@@ -143,27 +191,7 @@ def main():
         page.footer(True)
         return 0
     else:
-        file_time = time.strftime("%Y-%m-%d %H:%M:%S GMT", time.gmtime(os.path.getmtime(SCATTER_IMG)))
-        print "<table>"
-        print "<tr><td><center>Scatter Map (%s)</center></td></tr>" % (str(file_time))
-        print "<tr><td><img src=\"loadpng.py?img=%s\" border=\"1\" width=\"1275\" height=\"1188\"></td></tr>" % \
-              (cgi.escape(SCATTER_IMG, True))
-        print "</table><p>"
-
-        file_time = time.strftime("%Y-%m-%d %H:%M:%S GMT", time.gmtime(os.path.getmtime(INTERPOLATED_ALL_IMG)))
-        print "<table>"
-        print "<tr><td><center>Interpolated Map, All Sites (%s)</center></td></tr>" % (str(file_time))
-        print "<tr><td><img src=\"loadpng.py?img=%s\" border=\"1\" width=\"1275\" height=\"1188\"></td></tr>" % \
-              (cgi.escape(INTERPOLATED_ALL_IMG, True))
-        print "</table><p>"
-
-        file_time = time.strftime("%Y-%m-%d %H:%M:%S GMT", time.gmtime(os.path.getmtime(INTERPOLATED_GRID_IMG)))
-        print "<table>"
-        print "<tr><td><center>Interpolated Map, Gridded Sites (%s)</center></td></tr>" % (str(file_time))
-        print "<tr><td><img src=\"loadpng.py?img=%s\" border=\"1\" width=\"1275\" height=\"1188\"></td></tr>" % \
-              (cgi.escape(INTERPOLATED_GRID_IMG, True))
-        print "</table><p>"
-        
+        dispMaps()
         page.footer(True)
         return 0
     
