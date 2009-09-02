@@ -168,7 +168,7 @@ class HTMLTable:
         if (self.caption != None):
             print "<center><caption>%s</caption></center>" % (self.caption)
 
-        if (len(data_list) >= 0):
+        if (len(data_list) > 0):
 
             headers = []
             if (self.selection == True):
@@ -221,6 +221,9 @@ class HTMLTable:
 
                 print "</tr>"
                 rownum = rownum + 1                
+
+        else:
+            print "<tr><td><center>No data</center></td></tr>"
 
         print "</table>"
         return 0

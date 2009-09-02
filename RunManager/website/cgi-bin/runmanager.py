@@ -200,6 +200,11 @@ def main():
     if ((run_list != None) and (len(run_list) > 0)):
         master_run_list = run_list
 
+    if (len(master_run_list) == 0):
+        print "<p>No runs found in this state.</p>"
+        page.footer(True)
+        return 0
+
     t = HTMLTable()
     t.addCaption(caption)
     action_list = []
@@ -231,7 +236,6 @@ def main():
     print "<p>"
     
     page.footer(True)
-
     return 0
 
 
