@@ -12,6 +12,10 @@ import subprocess
 from Config import *
 from RunManager import *
 
+# Constants
+#PERIOD_LIST = '3' # Required for older sites
+PERIOD_LIST = '2,3,5,10'
+
 
 # Globals
 class info:
@@ -26,7 +30,8 @@ def init():
 
 def runCommand(cmd):
     try:
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, \
+                                 stderr=subprocess.STDOUT)
         output = p.communicate()[0]
         retcode = p.returncode
         if retcode != 0:
@@ -54,11 +59,18 @@ def getCompletedRuns(rm):
     # Uncomment to generate plots for specific run ids
     #filter_list = [205, 210, 211, 209, 208, 207, 212, 213, 214, 206]
     #return_runs = []
+    ##i = 0
+    ##start_i = 0
     #for run in runs:
+    #    #    if (run.getRunID() == 222):
+    #    #        start_i = i
+    #    #    if ((start_i > 0) and (i > start_i)):
+    #    #        return_runs.append(run)
     #    if (run.getRunID() in filter_list):
     #        return_runs.append(run)
     #if (len(return_runs) == 0):
     #    return None
+    #runs = return_runs
 
     return runs
 
@@ -68,29 +80,33 @@ def createPlots(runs):
 
     for run in runs:
 
-            # Construct paths
-            src_dir = '%s%s' % (CURVE_DIR, run.getSite().getShortName())
+        # Flush stdout/stderr
+        sys.stdout.flush()
+        sys.stderr.flush()
 
-            # Run the plotter
-            print "Running plotter for site %s" % (run.getSite().getShortName())
-            os.chdir(OPENSHA_DIR)
-            plot_cmd = [OPENSHA_CURVE_SCRIPT, \
-                            '-R', '%d' % (run.getRunID()), \
-                            '-s', '%s' % (run.getSite().getShortName()), \
-                            '-n', \
-                            '-o', src_dir, \
-                            '-ef', OPENSHA_ERF_XML, \
-                            '-af', OPENSHA_AF_XML, \
-                            '-t', 'png,pdf', \
-                            '-pf', OPENSHA_DBPASS_FILE, \
-                            '-p', '2,3,5,10',]
+        # Construct paths
+        src_dir = '%s%s' % (CURVE_DIR, run.getSite().getShortName())
 
-            print plot_cmd
-            results = runCommand(plot_cmd)
-            if (results == None):
-                print "Failed to run plotter."
-            else:
-                print "Plotting successful"
+        # Run the plotter
+        print "Running plotter for site %s" % (run.getSite().getShortName())
+        os.chdir(OPENSHA_DIR)
+        plot_cmd = [OPENSHA_CURVE_SCRIPT, \
+                        '-R', '%d' % (run.getRunID()), \
+                        '-s', '%s' % (run.getSite().getShortName()), \
+                        '-n', \
+                        '-o', src_dir, \
+                        '-ef', OPENSHA_ERF_XML, \
+                        '-af', OPENSHA_AF_XML, \
+                        '-t', 'png,pdf', \
+                        '-pf', OPENSHA_DBPASS_FILE, \
+                        '-p', PERIOD_LIST,]
+
+        print plot_cmd
+        results = runCommand(plot_cmd)
+        if (results == None):
+            print "Failed to run plotter."
+        else:
+            print "Plotting successful"
 
     return 0
 
