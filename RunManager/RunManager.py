@@ -101,6 +101,8 @@ class RunManager:
             sqlcmd = "select SGT_Variation_ID from SGT_Variation_IDs order by SGT_Variation_ID desc"
         elif (id_str == "RUP_VAR"):
             sqlcmd = "select Rup_Var_Scenario_ID from Rupture_Variation_Scenario_IDs order by Rup_Var_Scenario_ID desc"
+	elif (id_str == "VEL_MOD"):
+	    sqlcmd = "select Velocity_Model_ID from Velocity_Models order by Velocity_Model_ID desc"
         else:
             self._printError("Unrecognized option %s" % (id_str))
             return None
@@ -132,6 +134,8 @@ class RunManager:
             sqlcmd = "select count(*) from SGT_Variation_IDs where SGT_Variation_ID=%d" % (id)
         elif (id_str == "RUP_VAR"):
             sqlcmd = "select count(*) from Rupture_Variation_Scenario_IDs where Rup_Var_Scenario_ID=%d" % (id)
+	elif (id_str == "VEL_MOD"):
+	    sqlcmd = "select count(*) from Velocity_Models where Velocity_Model_ID=%d" % (id)
         else:
             self._printError("Unrecognized option %s" % (id_str))
             return False
@@ -187,6 +191,8 @@ class RunManager:
             fields["Submit_Dir"] = run.getSubmitDir()
         if (run.getNotifyUser() != None):
             fields["Notify_User"] = run.getNotifyUser()
+	if (run.getVelID() != None):
+	    fields["Velocity_Model_ID"] = run.getVelID()
             
         return fields
 
@@ -534,7 +540,20 @@ class RunManager:
         else:
             if (not self.__isValidID("SGT_VAR", run.getSGTVarID())):
                 return None
-                
+               
+	#set vel_id to the default if not specified
+	if (run.getVelID() == None):
+            id = self.__getLatestID("VEL_MOD")
+            if (id == 0):
+                return None
+            else:
+                run.setVelID(id)
+        else:
+            if (not self.__isValidID("VEL_MOD", run.getVelID())):
+                return None
+
+
+ 
         # Set rup_var_id to the default if not specified
         if (run.getRupVarID() == None):
             id = self.__getLatestID("RUP_VAR")
