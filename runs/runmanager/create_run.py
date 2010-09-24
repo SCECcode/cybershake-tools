@@ -2,7 +2,7 @@
 
 # Add RunManager modules to PYTHONPATH
 import sys
-sys.path.append('/home/scec-00/patrices/code/trunk/RunManager/')
+sys.path.append('/home/scec-00/cybershk/runs/RunManager')
 
 
 # General imports
@@ -21,20 +21,23 @@ def init():
     argc = len(sys.argv)
     
     # Check command line arguments
-    if ((argc != 2) and (argc != 5)):
-        print "Usage: " + sys.argv[0] + " <site> [erf id] [sgt var id] [rup var id]"
-        print "Example: " + sys.argv[0] + " USC 34 5 3"
+    if ((argc != 2) and (argc != 6)):
+        print "Usage: " + sys.argv[0] + " <site> [erf id] [sgt var id] [vel mod id] [rup var id]"
+        print "Example: " + sys.argv[0] + " USC 34 5 1 3"
         return 1
 
     # Parse command line args
     info.site = sys.argv[1]
-    if (argc == 5):
+    if (argc == 6):
         info.erf = int(sys.argv[2])
         info.sgt_var = int(sys.argv[3])
-        info.rup_var = int(sys.argv[4])
+	info.vel_mod = int(sys.argv[4])
+        info.rup_var = int(sys.argv[5])
+	
     else:
         info.erf = None
         info.sgt_var = None
+	info.vel_mod = None
         info.rup_var = None
     
     #print "Configuration:"
@@ -60,7 +63,7 @@ def main():
     if (info.erf == None):
         run = rm.createRunBySite(info.site)
     else:
-        run = rm.createRunByParam(info.site, info.erf, info.sgt_var, info.rup_var)
+        run = rm.createRunByParam(info.site, info.erf, info.sgt_var, info.vel_mod, info.rup_var)
 
     if (run == None):
         print "Run insert failed."
