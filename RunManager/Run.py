@@ -14,6 +14,7 @@ class Run:
     site_obj = None
     erf_id = None
     sgt_var_id = None
+    vel_id = None
     rup_var_id = None
     status = None
     status_time = None
@@ -33,6 +34,7 @@ class Run:
         self.site_obj = Site()
         self.erf_id = None
         self.sgt_var_id = None
+        self.vel_id = None
         self.rup_var_id = None
         self.status = None
         self.status_time = None
@@ -52,6 +54,7 @@ class Run:
         self.site_obj = obj.site_obj
         self.erf_id = obj.erf_id
         self.sgt_var_id = obj.sgt_var_id
+        self.vel_id = obj.vel_id
         self.rup_var_id = obj.rup_var_id
         self.status = obj.status
         self.status_time = obj.status_time
@@ -112,6 +115,12 @@ class Run:
             self.erf_id = erf_id
         else:
             self.erf_id = int(erf_id)
+
+    def setVelID(self, vel_id):
+        self.vel_id = vel_id
+
+    def getVelID(self):
+        return(self.vel_id)
 
     def getSGTVarID(self):
         return self.sgt_var_id

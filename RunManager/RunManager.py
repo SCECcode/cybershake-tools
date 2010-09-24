@@ -624,7 +624,8 @@ class RunManager:
         return (self.createRun(run))
     
 
-    def createRunByParam(self, site_name, erf_id, sgt_var_id, rup_var_id):
+    def createRunByParam(self, site_name, erf_id, sgt_var_id, vel_id, 
+                         rup_var_id):
         if ((site_name == None) or (erf_id == None) or \
                 (sgt_var_id == None) or (rup_var_id == None)):
             return None
@@ -636,6 +637,7 @@ class RunManager:
         run.setERFID(erf_id)
         run.setSGTVarID(sgt_var_id)
         run.setRupVarID(rup_var_id)
+        run.setVelID(vel_id)
         return (self.createRun(run))
 
 
