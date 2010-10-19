@@ -1,3 +1,4 @@
+import java.awt.Polygon;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -31,10 +32,18 @@ import org.w3c.dom.Text;
 
 
 public class GenerateMapSites {
-	public static double[] westCorner = {34.13, -119.38};
+	//Southern California settings
+	/*public static double[] westCorner = {34.13, -119.38};
 	public static double[] eastCorner = {34.19, -116.85};
 	public static double[] northCorner = {35.08, -118.75};
-	public static double[] southCorner = {33.25, -117.5};
+	public static double[] southCorner = {33.25, -117.5};*/
+	
+	//All-california settings
+	public static double[] westCorner = {40.5, -128.00};
+	public static double[] eastCorner = {34.3, -112.1};
+	public static double[] northCorner = {44.05, -122.00};
+	public static double[] southCorner = {30.53, -118.125};
+
 	
 	public static final int SPHEROID = 20;
 	public static final int UTM_ZONE = 11;
@@ -46,7 +55,9 @@ public class GenerateMapSites {
 	
 	public static double SPACING = 5000.0; //m
 	
-	public static String FILENAME = "CyberShake_map_sites";
+	public static String FILENAME = "CyberShake_CA_map_sites";
+	
+	public static Polygon caPoly = null;
 	
 	public static void main(String[] args) {
 		Document[] xmlOuts = {null, null, null};
@@ -116,8 +127,9 @@ public class GenerateMapSites {
 		int index = -1;
 		
 		int[] dist = {5, 10, 20};
+		int[] counts = {0, 0, 0};
 		
-		String[] styles = {"#Gridpoints20", "#Gridpoints10", "#Gridpoints5"};
+		String[] styles = {"#Gridpoints5", "#Gridpoints10", "#Gridpoints20"};
 		
 		for(int i=1; i<xSteps; i++) {
 			start[0] += deltaN;
@@ -138,11 +150,12 @@ public class GenerateMapSites {
 					
 				for (int k=index; k>=0; k--) {
 					
+				counts[k]++;
 				placemark = xmlOuts[k].createElement("Placemark");
-					name = xmlOuts[k].createElement("name");
-						nameText = xmlOuts[k].createTextNode(String.format("s%03d", count));
-						name.appendChild(nameText);
-					placemark.appendChild(name);
+//					name = xmlOuts[k].createElement("name");
+//						nameText = xmlOuts[k].createTextNode(String.format("s%05d", count));
+//						name.appendChild(nameText);
+//					placemark.appendChild(name);
 					styleUrl = xmlOuts[k].createElement("styleUrl");
 						styleUrlText = xmlOuts[k].createTextNode(styles[k]);
 						styleUrl.appendChild(styleUrlText);
@@ -157,7 +170,7 @@ public class GenerateMapSites {
 					
 				}
 
-				lines.add(String.format("s%03d", count) + " \"" + String.format("s%03d", count) + "\" " + String.format("%.5f", ll[0]) + " " + String.format("%.5f", ll[1]) + " " + CUTOFF + " " + ERF_ID + " " + dist[index]);
+				lines.add(String.format("s%05d", count) + " \"" + String.format("s%05d", count) + "\" " + String.format("%.5f", ll[0]) + " " + String.format("%.5f", ll[1]) + " " + CUTOFF + " " + ERF_ID + " " + dist[index]);
 				
 				count++;
 			}
@@ -202,13 +215,15 @@ public class GenerateMapSites {
 			e1.printStackTrace();
 		}
 		
+		System.out.println("20 km: " + counts[2] + " sites\n10 km: " + counts[1] + " sites\n5 km: " + counts[0] + " sites");
 	}
 
 	private static boolean insideBoundary(double[] ll) {
-		if (caOutline==null) {
+//		if (caOutline==null) {
+		if (caPoly==null) {
 			ArrayList<double[]> edge = new ArrayList<double[]>();
 			try {
-				BufferedReader in = new BufferedReader(new FileReader("HazardMapSites/California.txt"));
+				BufferedReader in = new BufferedReader(new FileReader("HazardMapSites/allCalifornia.txt"));
 				String line = in.readLine();
 				while (line!=null) {
 					String[] pieces = line.split(" ");
@@ -222,39 +237,49 @@ public class GenerateMapSites {
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
-			caOutline = edge.toArray(new double[][]{});
-		}
-	
-		int compareIndex = 0;
-		int flag = 0;
-		for (int i=0; i<caOutline.length; i++) {
-			if (caOutline[i][0]>ll[0] && flag==0) {
-				flag = 1;
-				compareIndex = i;
-			} else if (caOutline[i][0]<ll[0] && flag==1 && caOutline[i][1]>ll[1]) {
-				flag = 0;
+//			caOutline = edge.toArray(new double[][]{});
+			caPoly = new Polygon();
+			for (double[] point: edge) {
+				caPoly.addPoint((int)(point[0]*100), (int)(point[1]*100));
 			}
 		}
-		//try midpoint
-		double midLat = (caOutline[compareIndex][0] + caOutline[compareIndex-1][0]) * .5;
-		double midLon = (caOutline[compareIndex][1] + caOutline[compareIndex-1][1]) * .5;
-		if (ll[1]<midLon) {
-			return false;
+	
+		if (caPoly.contains((int)(ll[0]*100), (int)(ll[1]*100))) {
+			return true;
 		}
-		return true;
+		return false;
+		
+//		int compareIndex = 0;
+//		int flag = 0;
+//		for (int i=0; i<caOutline.length; i++) {
+//			if (caOutline[i][0]>ll[0] && flag==0) {
+//				flag = 1;
+//				compareIndex = i;
+//			} else if (caOutline[i][0]<ll[0] && flag==1 && caOutline[i][1]>ll[1]) {
+//				flag = 0;
+//			}
+//		}
+//		//try midpoint
+//		double midLat = (caOutline[compareIndex][0] + caOutline[compareIndex-1][0]) * .5;
+//		double midLon = (caOutline[compareIndex][1] + caOutline[compareIndex-1][1]) * .5;
+//		if (ll[1]<midLon) {
+//			return false;
+//		}
+//		return true;
 	}
 
 	private static void printHeader(Document doc, Element root) {
 		Element gridpointsStyle = doc.createElement("Style");
 		gridpointsStyle.setAttribute("id", "Gridpoints20");
 			Element iconStyle = doc.createElement("IconStyle");
-				Element scale = doc.createElement("Scale");
-					Text scaleText = doc.createTextNode("1.0");
+				Element scale = doc.createElement("scale");
+					Text scaleText = doc.createTextNode("0.1");
 					scale.appendChild(scaleText);
 				iconStyle.appendChild(scale);
 				Element icon = doc.createElement("Icon");
 					Element url = doc.createElement("href");
 						Text urlText = doc.createTextNode("http://maps.google.com/mapfiles/ms/icons/red-dot.png");
+//						Text urlText = doc.createTextNode("HazardMapSites/red_dot.png");
 						url.appendChild(urlText);
 					icon.appendChild(url);
 				iconStyle.appendChild(icon);
@@ -264,8 +289,8 @@ public class GenerateMapSites {
 		gridpointsStyle = doc.createElement("Style");
 		gridpointsStyle.setAttribute("id", "Gridpoints10");
 			iconStyle = doc.createElement("IconStyle");
-				scale = doc.createElement("Scale");
-					scaleText = doc.createTextNode("0.7");
+				scale = doc.createElement("scale");
+					scaleText = doc.createTextNode("0.07");
 					scale.appendChild(scaleText);
 				iconStyle.appendChild(scale);
 				icon = doc.createElement("Icon");
@@ -280,8 +305,8 @@ public class GenerateMapSites {
 		gridpointsStyle = doc.createElement("Style");
 		gridpointsStyle.setAttribute("id", "Gridpoints5");
 			iconStyle = doc.createElement("IconStyle");
-				scale = doc.createElement("Scale");
-					scaleText = doc.createTextNode("0.4");
+				scale = doc.createElement("scale");
+					scaleText = doc.createTextNode("0.04");
 					scale.appendChild(scaleText);
 				iconStyle.appendChild(scale);
 				icon = doc.createElement("Icon");
