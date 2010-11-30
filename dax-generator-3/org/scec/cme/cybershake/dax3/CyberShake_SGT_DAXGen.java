@@ -61,10 +61,16 @@ public class CyberShake_SGT_DAXGen {
 		//Create a DAX for each site
 		for (int i=0; i<runIDQueries.size(); i++) {
 			CyberShake_SGT_DAXGen sd = new CyberShake_SGT_DAXGen(runIDQueries.get(i));
-			String sgtDaxName = sd.makeDAX();
+			ADAG sgtDax = sd.makeDAX();
+			
 			if (twoLevel) {
-				DAX sgtDax = new DAX("SGT_" + runIDQueries.get(i).getSiteName(), sgtDaxName);
-				topLevelDAX.addDAX(sgtDax);
+				String daxFileName = DAX_FILENAME_PREFIX + "_" + runIDQueries.get(i).getSiteName() + ".dax";
+				sgtDax.writeToFile(daxFileName);
+				DAX sgtDaxJob = new DAX("SGT_" + runIDQueries.get(i).getSiteName(), daxFileName);
+				topLevelDAX.addDAX(sgtDaxJob);
+			} else {
+				//Only 1 site to do, use supplied filename
+				sgtDax.writeToFile(outputFilename);
 			}
 		}
 		
@@ -77,7 +83,7 @@ public class CyberShake_SGT_DAXGen {
 		riq = r;
 	}
 	
-	public String makeDAX() {
+	public ADAG makeDAX() {
 		ADAG workflowDAX = new ADAG(DAX_FILENAME_PREFIX + "_" + riq.getSiteName() + DAX_FILENAME_EXTENSION);
 		// Workflow jobs
 		Job updateStart = addUpdate("SGT_INIT", "SGT_START");
@@ -149,10 +155,7 @@ public class CyberShake_SGT_DAXGen {
 		workflowDAX.addDependency(sgtMerge, notifysgtGenXY);
 		workflowDAX.addDependency(nanTest, notifysgtGenXY);
 		
-		String daxFileName = DAX_FILENAME_PREFIX + "_" + riq.getSiteName() + ".dax";
-		workflowDAX.writeToFile(daxFileName);
-		
-		return DAX_FILENAME_PREFIX + "_" + riq.getSiteName();
+		return workflowDAX;
 	}
 	
    private Job addUpdate(String from_state, String to_state) {
