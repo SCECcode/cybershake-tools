@@ -222,7 +222,9 @@ public class DBConnect
   public void closeConnection() {
 	  try {
 		  if (conn!=null && !conn.isClosed()) {
-			  conn.commit();
+			  if (conn.getAutoCommit()==false) {
+				  conn.commit();
+			  }
 			  conn.close();
 		  }
 	  } catch (SQLException ex) {
