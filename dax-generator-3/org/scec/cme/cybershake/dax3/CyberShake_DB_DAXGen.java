@@ -3,11 +3,6 @@ package org.scec.cme.cybershake.dax3;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import org.griphyn.vdl.classes.LFN;
-import org.griphyn.vdl.dax.Filename;
-import org.griphyn.vdl.dax.Profile;
-import org.griphyn.vdl.dax.PseudoText;
-
 import edu.isi.pegasus.planner.dax.ADAG;
 import edu.isi.pegasus.planner.dax.File;
 import edu.isi.pegasus.planner.dax.Job;
