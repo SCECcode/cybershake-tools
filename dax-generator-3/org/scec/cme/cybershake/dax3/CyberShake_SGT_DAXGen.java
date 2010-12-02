@@ -130,8 +130,12 @@ public class CyberShake_SGT_DAXGen {
 		workflowDAX.addDependency(updateStart, preCVM);
 		workflowDAX.addDependency(preCVM, vMeshGen);
 		workflowDAX.addDependency(vMeshGen, vMeshMerge);
+		workflowDAX.addDependency(preCVM, vMeshMerge);
 		workflowDAX.addDependency(preCVM, preSGT);
 		workflowDAX.addDependency(preSGT, sgtGenX);
+		workflowDAX.addDependency(preCVM, sgtGenX);
+		workflowDAX.addDependency(preSGT, sgtGenY);
+		workflowDAX.addDependency(preCVM, sgtGenY);
 		workflowDAX.addDependency(vMeshMerge, sgtGenX);
 		workflowDAX.addDependency(vMeshMerge, sgtGenY);
 		
