@@ -217,8 +217,6 @@ public class CyberShake_SGT_DAXGen {
 		preCVMJob.uses(paramFile, File.LINK.OUTPUT);
 		preCVMJob.uses(boundsFile, File.LINK.OUTPUT);
 		
-		preCVMJob.addProfile("globus", "maxWallTime", "30");
-		
 		return preCVMJob;
 	}
 	
@@ -235,10 +233,6 @@ public class CyberShake_SGT_DAXGen {
 		
 		vMeshGenJob.uses(gridoutFile, File.LINK.INPUT);
 		vMeshGenJob.uses(coordFile, File.LINK.INPUT);
-		
-		vMeshGenJob.addProfile("globus", "maxWallTime", "240");
-		vMeshGenJob.addProfile("globus", "host_count","20");
-		vMeshGenJob.addProfile("globus", "count", "160");
 		
 		return vMeshGenJob;
 	}
@@ -318,10 +312,6 @@ public class CyberShake_SGT_DAXGen {
 		preSGTJob.uses(radiusFile, File.LINK.OUTPUT);
 		preSGTJob.uses(sgtcordFile, File.LINK.OUTPUT);
 		
-		preSGTJob.addProfile("globus", "maxWallTime", "30");
-		preSGTJob.addProfile("globus", "host_count", "8");
-		preSGTJob.addProfile("globus", "count", "16");
-		
 		return preSGTJob;
 	}
 	
@@ -352,7 +342,7 @@ public class CyberShake_SGT_DAXGen {
 			sgtGenJob.addProfile("globus", "host_count", "60");
 			sgtGenJob.addProfile("globus", "count", "240");
 		} else {
-			sgtGenJob.addProfile("globus", "maxWallTime", "960");
+			sgtGenJob.addProfile("globus", "maxWallTime", "1020");
 			sgtGenJob.addProfile("globus", "host_count", "50");
 			sgtGenJob.addProfile("globus", "count", "400");
 		}
@@ -372,8 +362,6 @@ public class CyberShake_SGT_DAXGen {
 		nanTestJob.addArgument(yPrefix);
 		nanTestJob.addArgument(numProcessors + "");
 		
-		nanTestJob.addProfile("globus", "maxWallTime", "20");
-		
 		return nanTestJob;
 	}
 	
@@ -386,8 +374,6 @@ public class CyberShake_SGT_DAXGen {
 		
 		nanTestJob.addArgument(prefix);
 		nanTestJob.addArgument(numProcessors + "");
-		
-		nanTestJob.addProfile("globus", "maxWallTime", "20");
 		
 		return nanTestJob;
 	}

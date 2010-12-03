@@ -70,7 +70,7 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(sort_ruptures);
         CyberShake_PP_DAXGen daxGen = new CyberShake_PP_DAXGen();
         PP_DAXParameters pp_params = new PP_DAXParameters();
-        String usageString = "Usage: CyberShakeRob <runID> [-p num_subDAXes] [-r] [-rs num_repl]";
+        String usageString = "Usage: CyberShakeRob <runID> [-p num_subDAXes] [-r] [-rs num_repl] [-s]";
         CommandLineParser parser = new GnuParser();
         if (args.length<1) {
             System.out.println(usageString);
@@ -407,8 +407,6 @@ public class CyberShake_PP_DAXGen {
 		sgtFile.setRegister(true);
 		sgtmd5File.setRegister(true);
 		
-		checkJob.addProfile("globus", "maxWallTime", "15");
-		
 		// Force a local copy to be inserted in RLS
 		/*Filename sgtout = new Filename(sgt, LFN.OUTPUT);
 		Filename sgtmd5out = new Filename(sgtmd5, LFN.OUTPUT);
@@ -434,8 +432,6 @@ public class CyberShake_PP_DAXGen {
     	notifyJob.addArgument(daxnum + "");
     	notifyJob.addArgument(maxdax + "");
     		
-    	notifyJob.addProfile("globus", "maxWallTime", "5");
-    	
     	dax.addJob(notifyJob);
     	return notifyJob;
     }
@@ -482,7 +478,6 @@ public class CyberShake_PP_DAXGen {
     private Job[] addZipJobs(ADAG dax, int daxValue) {
     	String id4 = "ZipSeis_" + daxValue;
     	Job zipSeisJob = new Job(id4, NAMESPACE, ZIP_SEIS_NAME, VERSION);
-    	zipSeisJob.addProfile("globus", "maxWallTime", "15");
     	dax.addJob(zipSeisJob);
     	File zipSeisFile = new File("CyberShake_" + riq.getSiteName() + "_" + riq.getRunID() + "_" + daxValue + "_seismograms.zip");
     	zipSeisFile.setTransfer(File.TRANSFER.TRUE);
@@ -494,7 +489,6 @@ public class CyberShake_PP_DAXGen {
     	
     	String id5 = "ZipPSA_" + daxValue;
     	Job zipPSAJob = new Job(id5, NAMESPACE, ZIP_PSA_NAME, VERSION);
-    	zipPSAJob.addProfile("globus", "maxWallTime", "15");
     	dax.addJob(zipPSAJob);
     	File zipPSAFile = new File("CyberShake_" + riq.getSiteName() + "_" + riq.getRunID() + "_" + daxValue + "_PSA.zip");
     	zipPSAFile.setTransfer(File.TRANSFER.TRUE);
