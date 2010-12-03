@@ -57,8 +57,8 @@ public class CyberShake_PP_DAXGen {
     private PP_DAXParameters params;
     private RunIDQuery riq;
 	
-	public static void main(String[] args) {
-		//Command-line options
+    public static void main(String[] args) {
+	//Command-line options
         Options cmd_opts = new Options();
         Option partition = OptionBuilder.withArgName("num_partitions").hasArg().withDescription("Number of partitions to create.").create("p");
         Option priorities = new Option("r", "use priorities");
@@ -194,6 +194,7 @@ public class CyberShake_PP_DAXGen {
 			   		rupvarcount++;
 			    	variationsSet.next();
 				}
+				ruptureSet.next();
 			}
 			//write leftover jobs to dax
 			System.out.println(numVarsInDAX + " vars in dax " + currDax);
@@ -257,15 +258,15 @@ public class CyberShake_PP_DAXGen {
 
 	private ResultSet getParameters(int runID) {
 		//Populate RunID object
-    	riq = new RunIDQuery(runID);
+    		riq = new RunIDQuery(runID);
 		dbc = new DBConnect(DB_SERVER, DB, USER, PASS);
 
 		String stationName = riq.getSiteName();
-      	ResultSet ruptureSet = getRuptures(stationName);
-      	int numOfVariations = getNumOfVariations(ruptureSet);
-      	params.setNumVarsPerDAX(numOfVariations/params.getNumOfDAXes());
+      		ResultSet ruptureSet = getRuptures(stationName);
+      		int numOfVariations = getNumOfVariations(ruptureSet);
+      		params.setNumVarsPerDAX(numOfVariations/params.getNumOfDAXes());
       	
-      	return ruptureSet;
+      		return ruptureSet;
 	}
 	
 	private ResultSet getRuptures(String stationName) {
@@ -286,7 +287,7 @@ public class CyberShake_PP_DAXGen {
 			"and SR.Rupture_ID=R.Rupture_ID " +
 			"order by R.Num_Points desc";
 		}
-		
+
 		ResultSet rs = dbc.selectData(query);
 		try {
 			rs.first();
