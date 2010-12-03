@@ -212,7 +212,7 @@ public class CyberShake_PP_DAXGen {
 			DAX dbDax = new DAX("dbDax", dbDAXFile);
 			topLevelDax.addDAX(dbDax);
 			for (int i=0; i<=currDax; i++) {
-				topLevelDax.addDependency("dax_" + currDax, "dbDax");
+				topLevelDax.addDependency("dax_" + i, "dbDax");
 			}
 			
             // Final notifications
