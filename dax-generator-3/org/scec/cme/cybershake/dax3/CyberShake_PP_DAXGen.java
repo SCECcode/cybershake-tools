@@ -217,7 +217,7 @@ public class CyberShake_PP_DAXGen {
 			
             // Final notifications
             ADAG postDAX = makePostDAX();
-			String postDAXFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_DB_Products" + DAX_FILENAME_EXTENSION;
+			String postDAXFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_post" + DAX_FILENAME_EXTENSION;
 			postDAX.writeToFile(postDAXFile);
 			DAX postD = new DAX("postDax", postDAXFile);
 			topLevelDax.addDAX(postD);
