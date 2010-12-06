@@ -161,7 +161,7 @@ public class CyberShake_PP_DAXGen {
 					DAX jDax = new DAX("dax_" + currDax, daxFile);
 					topLevelDax.addDAX(jDax);
 					topLevelDax.addDependency(preD, jDax);
-					File jDaxFile = new File("dax_" + currDax);
+					File jDaxFile = new File(daxFile);
 					jDaxFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + daxFile, "local");
 					topLevelDax.addFile(jDaxFile);
 
@@ -213,7 +213,7 @@ public class CyberShake_PP_DAXGen {
 			DAX jDax = new DAX("dax_" + currDax, daxFile);
 			topLevelDax.addDAX(jDax);
 			topLevelDax.addDependency(preD, jDax);
-			File jDaxFile = new File("dax_" + currDax);
+			File jDaxFile = new File(daxFile);
 			jDaxFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + daxFile, "local");
 			topLevelDax.addFile(jDaxFile);
 
@@ -227,7 +227,7 @@ public class CyberShake_PP_DAXGen {
 			for (int i=0; i<=currDax; i++) {
 				topLevelDax.addDependency("dax_" + i, "dbDax");
 			}
-			File dbDaxFile = new File("dbDax");
+			File dbDaxFile = new File(dbDAXFile);
 			dbDaxFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + dbDAXFile, "local");
 			topLevelDax.addFile(dbDaxFile);
 
@@ -239,7 +239,7 @@ public class CyberShake_PP_DAXGen {
 			DAX postD = new DAX("postDax", postDAXFile);
 			topLevelDax.addDAX(postD);
 			topLevelDax.addDependency(dbDax, postD);
-			File postDFile = new File("postDax");
+			File postDFile = new File(postDAXFile);
 			postDFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + postDAXFile, "local");
 			topLevelDax.addFile(postDFile);
 
