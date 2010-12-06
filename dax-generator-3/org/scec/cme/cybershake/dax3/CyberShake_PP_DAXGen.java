@@ -117,7 +117,7 @@ public class CyberShake_PP_DAXGen {
 			//Add to top level job
 			DAX preD = new DAX("preDAX", preDAXFile);
 			topLevelDax.addDAX(preD);
-			File preDFile = new File("preDAX");
+			File preDFile = new File(preDAXFile);
 			preDFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + preDAXFile, "local");
 			topLevelDax.addFile(preDFile);
 			
