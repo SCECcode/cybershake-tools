@@ -70,7 +70,7 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(sort_ruptures);
         CyberShake_PP_DAXGen daxGen = new CyberShake_PP_DAXGen();
         PP_DAXParameters pp_params = new PP_DAXParameters();
-        String usageString = "Usage: CyberShakeRob <runID> [-p num_subDAXes] [-r] [-rs num_repl] [-s]";
+        String usageString = "Usage: CyberShakeRob <runID> <PP directory> [-p num_subDAXes] [-r] [-rs num_repl] [-s]";
         CommandLineParser parser = new GnuParser();
         if (args.length<1) {
             System.out.println(usageString);
@@ -84,6 +84,8 @@ public class CyberShake_PP_DAXGen {
             System.exit(2);
         }
         int runID = Integer.parseInt(args[0]);
+        String directory = args[1];
+        pp_params.setPPDirectory(directory);
         if (line.hasOption("p")) {
             pp_params.setNumOfDAXes(Integer.parseInt(line.getOptionValue("p")));
         }
@@ -108,6 +110,9 @@ public class CyberShake_PP_DAXGen {
 		
 			ADAG topLevelDax = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName(), 0, 1);
 			
+			//Create dynamic Replica Catalog to store entries for subDAXes
+			File rcFile = new File(riq.getSiteName() + "_PP.rc");
+			
 			// Add DAX for checking SGT files
 			ADAG preDAX = makePreDAX(riq.getRunID(), riq.getSiteName());
 			String preDAXFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_pre" + DAX_FILENAME_EXTENSION;
@@ -115,6 +120,7 @@ public class CyberShake_PP_DAXGen {
 			//Add to top level job
 			DAX preD = new DAX("preDAX", preDAXFile);
 			topLevelDax.addDAX(preD);
+			rcFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + preDAXFile, "local");
 			
 			ruptureSet.first();
 		
@@ -156,6 +162,8 @@ public class CyberShake_PP_DAXGen {
 					DAX jDax = new DAX("dax_" + currDax, daxFile);
 					topLevelDax.addDAX(jDax);
 					topLevelDax.addDependency(preD, jDax);
+					rcFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + daxFile, "local");
+
 					
 					currDax++;
 					dax = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + currDax, currDax, params.getNumOfDAXes());
@@ -204,6 +212,8 @@ public class CyberShake_PP_DAXGen {
 			DAX jDax = new DAX("dax_" + currDax, daxFile);
 			topLevelDax.addDAX(jDax);
 			topLevelDax.addDependency(preD, jDax);
+			rcFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + daxFile, "local");
+
 			
 			// Add DAX for DB insertion/curve generation
             ADAG dbProductsDAX = genDBProductsDAX();
@@ -214,6 +224,8 @@ public class CyberShake_PP_DAXGen {
 			for (int i=0; i<=currDax; i++) {
 				topLevelDax.addDependency("dax_" + i, "dbDax");
 			}
+			rcFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + dbDAXFile, "local");
+
 			
             // Final notifications
             ADAG postDAX = makePostDAX();
@@ -222,7 +234,9 @@ public class CyberShake_PP_DAXGen {
 			DAX postD = new DAX("postDax", postDAXFile);
 			topLevelDax.addDAX(postD);
 			topLevelDax.addDependency(dbDax, postD);
-            
+			rcFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + postDAXFile, "local");
+
+            topLevelDax.addFile(rcFile);
 			String topLevelDaxName = DAX_FILENAME_PREFIX + riq.getSiteName() + DAX_FILENAME_EXTENSION;
 			topLevelDax.writeToFile(topLevelDaxName);
 			

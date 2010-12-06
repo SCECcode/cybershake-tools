@@ -16,12 +16,15 @@ public class PP_DAXParameters {
 	
 	private int notifyGroupSize;
 	
+	private String ppDirectory;
+	
 	public PP_DAXParameters() {
 		numOfDAXes = 1;
 		usePriorities = false;
 		sgtReplication = 1;
 		notifyGroupSize = 1;
 		sortRuptures = false;
+		ppDirectory = ".";
 	}
 
 	public int getNumOfDAXes() {
@@ -105,6 +108,14 @@ public class PP_DAXParameters {
 
 	public void setSortRuptures(boolean sortRuptures) {
 		this.sortRuptures = sortRuptures;
+	}
+
+	public String getPPDirectory() {
+		return ppDirectory;
+	}
+
+	public void setPPDirectory(String ppDirectory) {
+		this.ppDirectory = ppDirectory;
 	}
 
 }
