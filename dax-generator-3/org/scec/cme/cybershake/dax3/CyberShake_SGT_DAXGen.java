@@ -22,15 +22,16 @@ public class CyberShake_SGT_DAXGen {
 	private RunIDQuery riq;
 	
 	public static void main(String[] args) {
-		if (args.length<2) {
-			System.out.println("Usage: CyberShakeSGT_PDAXWorkflow <output filename> [-f <runID file, one per line> | <runID1> <runID2> ... ]");
+		if (args.length<3) {
+			System.out.println("Usage: CyberShakeSGT_PDAXWorkflow <output filename> <destination directory> [-f <runID file, one per line> | <runID1> <runID2> ... ]");
 			System.exit(-1);
 		}
 		String outputFilename = args[0]; 
+		String directory = args[1];
 		String inputFile = "";
 		ArrayList<RunIDQuery> runIDQueries = new ArrayList<RunIDQuery>();
-		if (args[1]=="-f") {
-			inputFile = args[2];
+		if (args[2]=="-f") {
+			inputFile = args[3];
 			try {
 				BufferedReader br = new BufferedReader(new FileReader(inputFile));
 				String line = br.readLine();
@@ -43,7 +44,7 @@ public class CyberShake_SGT_DAXGen {
 				System.exit(1);
 			}
 		} else {
-			for (int i=1; i<args.length; i++) {
+			for (int i=2; i<args.length; i++) {
 				runIDQueries.add(new RunIDQuery(Integer.parseInt(args[i])));
 			}
 		}
@@ -68,6 +69,10 @@ public class CyberShake_SGT_DAXGen {
 				sgtDax.writeToFile(daxFileName);
 				DAX sgtDaxJob = new DAX("SGT_" + runIDQueries.get(i).getSiteName(), daxFileName);
 				topLevelDAX.addDAX(sgtDaxJob);
+				
+				File sgtDaxFile = new File(daxFileName);
+				sgtDaxFile.addPhysicalFile("file://" + directory + "/" + daxFileName, "local");
+				topLevelDAX.addFile(sgtDaxFile);
 			} else {
 				//Only 1 site to do, use supplied filename
 				sgtDax.writeToFile(outputFilename);
