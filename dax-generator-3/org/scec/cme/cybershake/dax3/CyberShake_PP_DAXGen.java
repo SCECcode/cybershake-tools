@@ -159,6 +159,7 @@ public class CyberShake_PP_DAXGen {
 					dax.writeToFile(daxFile);
 					//Add to topLevelDax
 					DAX jDax = new DAX("dax_" + currDax, daxFile);
+					jDax.addArgument("--cluster horizontal");
 					topLevelDax.addDAX(jDax);
 					topLevelDax.addDependency(preD, jDax);
 					File jDaxFile = new File(daxFile);
@@ -211,6 +212,7 @@ public class CyberShake_PP_DAXGen {
 			dax.writeToFile(daxFile);
 			//Add to topLevelDax
 			DAX jDax = new DAX("dax_" + currDax, daxFile);
+			jDax.addArgument("--cluster horizontal");
 			topLevelDax.addDAX(jDax);
 			topLevelDax.addDependency(preD, jDax);
 			File jDaxFile = new File(daxFile);
