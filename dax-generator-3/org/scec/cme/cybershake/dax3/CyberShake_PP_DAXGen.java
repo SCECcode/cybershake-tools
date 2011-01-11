@@ -114,9 +114,14 @@ public class CyberShake_PP_DAXGen {
 			ADAG preDAX = makePreDAX(riq.getRunID(), riq.getSiteName());
 			String preDAXFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_pre" + DAX_FILENAME_EXTENSION;
 			preDAX.writeToFile(preDAXFile);
-			//Add to top level job
+
+			//The arguments here are daxname, the file that the DAX was written to.
+			//This file is also the LFN of the daxfile.  We need to create an LFN, PFN association
+			//so that the topLevelDax can find it when we plan.
 			DAX preD = new DAX("preDAX", preDAXFile);
+			//Add the dax to the top-level dax like a job
 			topLevelDax.addDAX(preD);
+			//Create a file object.
 			File preDFile = new File(preDAXFile);
 			preDFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + preDAXFile, "local");
 			topLevelDax.addFile(preDFile);
@@ -583,11 +588,11 @@ public class CyberShake_PP_DAXGen {
          
          File rupVarFile = new File(rupVarLFN);
          
-         job1.addArgument("rupmodfile=").addArgument(rupVarFile);
-         job1.addArgument("sgt_xfile=").addArgument(sgtxFile);
-         job1.addArgument("sgt_yfile=").addArgument(sgtyFile);
-         job1.addArgument("extract_sgt_xfile=").addArgument(rupsgtxFile);
-         job1.addArgument("extract_sgt_yfile=").addArgument(rupsgtyFile);
+         job1.addArgument("rupmodfile=" + rupVarFile);
+         job1.addArgument("sgt_xfile="+ sgtxFile);
+         job1.addArgument("sgt_yfile=" + sgtyFile);
+         job1.addArgument("extract_sgt_xfile=" + rupsgtxFile);
+         job1.addArgument("extract_sgt_yfile=" + rupsgtyFile);
 
          job1.uses(rupVarFile,File.LINK.INPUT);
          job1.uses(sgtxFile,File.LINK.INPUT);
@@ -630,10 +635,10 @@ public class CyberShake_PP_DAXGen {
 		File rupsgtx = new File(riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfx.sgt");
 		File rupsgty = new File(riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfy.sgt");
 		
-		job2.addArgument("rupmodfile=").addArgument(rupVarFile);
-		job2.addArgument("sgt_xfile=").addArgument(rupsgtx);
-		job2.addArgument("sgt_yfile=").addArgument(rupsgty);
-     	job2.addArgument("seis_file=").addArgument(seisFile);
+		job2.addArgument("rupmodfile=" + rupVarFile);
+		job2.addArgument("sgt_xfile=" + rupsgtx);
+		job2.addArgument("sgt_yfile=" + rupsgty);
+     	job2.addArgument("seis_file=" + seisFile);
 
      	job2.uses(rupVarFile,File.LINK.INPUT);     
      	job2.uses(rupsgtx,File.LINK.INPUT);
@@ -678,8 +683,8 @@ public class CyberShake_PP_DAXGen {
     	job3.addArgument("surfseis_rspectra_period=" + SPECTRA_PERIOD1);
     	job3.addArgument("surfseis_rspectra_apply_filter_highHZ="+FILTER_HIGHHZ);
     	job3.addArgument("surfseis_rspectra_apply_byteswap=no");
-    	job3.addArgument("in=" + seisFile.getName() + "\n");
-    	job3.addArgument("out=" + peakValsFile.getName() + "\n");
+    	job3.addArgument("in=" + seisFile.getName());
+    	job3.addArgument("out=" + peakValsFile.getName());
 
         seisFile.setRegister(false);
         seisFile.setTransfer(File.TRANSFER.FALSE);
