@@ -594,11 +594,11 @@ public class CyberShake_PP_DAXGen {
          
          File rupVarFile = new File(rupVarLFN);
          
-         job1.addArgument("rupmodfile=" + rupVarFile);
-         job1.addArgument("sgt_xfile="+ sgtxFile);
-         job1.addArgument("sgt_yfile=" + sgtyFile);
-         job1.addArgument("extract_sgt_xfile=" + rupsgtxFile);
-         job1.addArgument("extract_sgt_yfile=" + rupsgtyFile);
+         job1.addArgument("rupmodfile=" + rupVarFile.getName());
+         job1.addArgument("sgt_xfile="+ sgtxFile.getName());
+         job1.addArgument("sgt_yfile=" + sgtyFile.getName());
+         job1.addArgument("extract_sgt_xfile=" + rupsgtxFile.getName());
+         job1.addArgument("extract_sgt_yfile=" + rupsgtyFile.getName());
 
          job1.uses(rupVarFile,File.LINK.INPUT);
          job1.uses(sgtxFile,File.LINK.INPUT);
@@ -641,10 +641,10 @@ public class CyberShake_PP_DAXGen {
 		File rupsgtx = new File(riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfx.sgt");
 		File rupsgty = new File(riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfy.sgt");
 		
-		job2.addArgument("rupmodfile=" + rupVarFile);
-		job2.addArgument("sgt_xfile=" + rupsgtx);
-		job2.addArgument("sgt_yfile=" + rupsgty);
-     	job2.addArgument("seis_file=" + seisFile);
+		job2.addArgument("rupmodfile=" + rupVarFile.getName());
+		job2.addArgument("sgt_xfile=" + rupsgtx.getName());
+		job2.addArgument("sgt_yfile=" + rupsgty.getName());
+     	job2.addArgument("seis_file=" + seisFile.getName());
 
      	job2.uses(rupVarFile,File.LINK.INPUT);     
      	job2.uses(rupsgtx,File.LINK.INPUT);
