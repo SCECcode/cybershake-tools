@@ -123,7 +123,7 @@ public class CyberShake_DB_DAXGen {
 	
 	private Job createNotify(String stage) {
         String id = DB_PREFIX + CYBERSHAKE_NOTIFY + "_" + riq.getSiteName() + "_" + stage;
-    	Job notifyJob = new Job(CyberShake_PP_DAXGen.NAMESPACE, CYBERSHAKE_NOTIFY, CyberShake_PP_DAXGen.VERSION, id);
+    	Job notifyJob = new Job(id, CyberShake_PP_DAXGen.NAMESPACE, CYBERSHAKE_NOTIFY, CyberShake_PP_DAXGen.VERSION);
     	
         notifyJob.addArgument(riq.getRunID() + "");
         notifyJob.addArgument("PP");
