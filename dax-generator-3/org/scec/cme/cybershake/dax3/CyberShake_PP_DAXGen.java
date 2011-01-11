@@ -119,6 +119,7 @@ public class CyberShake_PP_DAXGen {
 			//This file is also the LFN of the daxfile.  We need to create an LFN, PFN association
 			//so that the topLevelDax can find it when we plan.
 			DAX preD = new DAX("preDAX", preDAXFile);
+			preD.addArgument("--force");
 			//Add the dax to the top-level dax like a job
 			topLevelDax.addDAX(preD);
 			//Create a file object.
@@ -165,6 +166,8 @@ public class CyberShake_PP_DAXGen {
 					//Add to topLevelDax
 					DAX jDax = new DAX("dax_" + currDax, daxFile);
 					jDax.addArgument("--cluster horizontal");
+					//Makes sure it doesn't prune workflow elements
+					jDax.addArgument("--force");
 					topLevelDax.addDAX(jDax);
 					topLevelDax.addDependency(preD, jDax);
 					File jDaxFile = new File(daxFile);
@@ -218,6 +221,7 @@ public class CyberShake_PP_DAXGen {
 			//Add to topLevelDax
 			DAX jDax = new DAX("dax_" + currDax, daxFile);
 			jDax.addArgument("--cluster horizontal");
+			jDax.addArgument("--force");
 			topLevelDax.addDAX(jDax);
 			topLevelDax.addDependency(preD, jDax);
 			File jDaxFile = new File(daxFile);
@@ -230,6 +234,7 @@ public class CyberShake_PP_DAXGen {
 			String dbDAXFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_DB_Products" + DAX_FILENAME_EXTENSION;
 			dbProductsDAX.writeToFile(dbDAXFile);
 			DAX dbDax = new DAX("dbDax", dbDAXFile);
+			dbDax.addArgument("--force");
 			topLevelDax.addDAX(dbDax);
 			for (int i=0; i<=currDax; i++) {
 				topLevelDax.addDependency("dax_" + i, "dbDax");
@@ -244,6 +249,7 @@ public class CyberShake_PP_DAXGen {
 			String postDAXFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_post" + DAX_FILENAME_EXTENSION;
 			postDAX.writeToFile(postDAXFile);
 			DAX postD = new DAX("postDax", postDAXFile);
+			postD.addArgument("--force");
 			topLevelDax.addDAX(postD);
 			topLevelDax.addDependency(dbDax, postD);
 			File postDFile = new File(postDAXFile);
