@@ -65,7 +65,7 @@ public class CyberShake_SGT_DAXGen {
 			ADAG sgtDax = sd.makeDAX();
 			
 			if (twoLevel) {
-				String daxFileName = DAX_FILENAME_PREFIX + "_" + runIDQueries.get(i).getSiteName() + ".dax";
+				String daxFileName = DAX_FILENAME_PREFIX + "_" + runIDQueries.get(i).getSiteName() + "_" + i + ".dax";
 				sgtDax.writeToFile(daxFileName);
 				DAX sgtDaxJob = new DAX("SGT_" + runIDQueries.get(i).getSiteName(), daxFileName);
 				//Avoid pruning of jobs
