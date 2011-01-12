@@ -169,7 +169,7 @@ public class CyberShake_PP_DAXGen {
 					//Makes sure it doesn't prune workflow elements
 					jDax.addArgument("--force");
 					//Force stage-out of zip files
-					jDax.addArgument("--output");
+					jDax.addArgument("--output shock");
 					topLevelDax.addDAX(jDax);
 					topLevelDax.addDependency(preD, jDax);
 					File jDaxFile = new File(daxFile);
@@ -224,7 +224,7 @@ public class CyberShake_PP_DAXGen {
 			DAX jDax = new DAX("dax_" + currDax, daxFile);
 			jDax.addArgument("--cluster horizontal");
 			jDax.addArgument("--force");
-			jDax.addArgument("--output");
+			jDax.addArgument("--output shock");
 			topLevelDax.addDAX(jDax);
 			topLevelDax.addDependency(preD, jDax);
 			File jDaxFile = new File(daxFile);
