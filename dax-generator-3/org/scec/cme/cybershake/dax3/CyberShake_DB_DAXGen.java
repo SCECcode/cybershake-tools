@@ -214,6 +214,7 @@ public class CyberShake_DB_DAXGen {
 		if (transferZipFiles) {
 			for (int i=0; i<numDAXes; i++) {
 				File zipFile = new File("CyberShake_" + riq.getSiteName() + "_" + riq.getRunID() + "_" + i + "_PSA.zip");
+				zipFile.setRegister(false);
 				job.uses(zipFile, File.LINK.INPUT);
 			}
 		}
