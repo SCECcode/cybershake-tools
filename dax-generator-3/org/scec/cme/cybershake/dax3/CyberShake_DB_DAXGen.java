@@ -62,7 +62,7 @@ public class CyberShake_DB_DAXGen {
 	public CyberShake_DB_DAXGen(RunIDQuery r, String zipFilesDir, int numDAXes) {
 		this(r);
 		this.zipFilesDir = zipFilesDir;
-		transferZipFiles = false;
+		transferZipFiles = true;
 		this.numDAXes = numDAXes;
 	}
 	
