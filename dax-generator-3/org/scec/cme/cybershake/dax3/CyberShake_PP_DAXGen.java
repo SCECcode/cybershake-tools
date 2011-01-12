@@ -233,7 +233,7 @@ public class CyberShake_PP_DAXGen {
 
 			
 			// Add DAX for DB insertion/curve generation
-            ADAG dbProductsDAX = genDBProductsDAX();
+            ADAG dbProductsDAX = genDBProductsDAX(currDax);
 			String dbDAXFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_DB_Products" + DAX_FILENAME_EXTENSION;
 			dbProductsDAX.writeToFile(dbDAXFile);
 			DAX dbDax = new DAX("dbDax", dbDAXFile);
@@ -284,8 +284,8 @@ public class CyberShake_PP_DAXGen {
     	return null;
 	}
 
-	private ADAG genDBProductsDAX() {
-		CyberShake_DB_DAXGen gen = new CyberShake_DB_DAXGen(riq);
+	private ADAG genDBProductsDAX(int numSubDAXes) {
+		CyberShake_DB_DAXGen gen = new CyberShake_DB_DAXGen(riq, ".", numSubDAXes);
 		ADAG dax = gen.makeDAX();
 			
 		return dax;		

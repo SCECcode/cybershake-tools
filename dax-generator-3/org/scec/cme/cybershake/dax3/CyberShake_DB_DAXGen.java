@@ -212,7 +212,7 @@ public class CyberShake_DB_DAXGen {
 		Job job = new Job(id, CyberShake_PP_DAXGen.NAMESPACE, DB_INSERT_NAME, CyberShake_PP_DAXGen.VERSION);
 		
 		if (transferZipFiles) {
-			for (int i=1; i<numDAXes; i++) {
+			for (int i=0; i<numDAXes; i++) {
 				File zipFile = new File("CyberShake_" + riq.getSiteName() + "_" + riq.getRunID() + "_" + i + "_PSA.zip");
 				job.uses(zipFile, File.LINK.INPUT);
 			}
