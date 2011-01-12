@@ -68,6 +68,8 @@ public class CyberShake_SGT_DAXGen {
 				String daxFileName = DAX_FILENAME_PREFIX + "_" + runIDQueries.get(i).getSiteName() + ".dax";
 				sgtDax.writeToFile(daxFileName);
 				DAX sgtDaxJob = new DAX("SGT_" + runIDQueries.get(i).getSiteName(), daxFileName);
+				//Avoid pruning of jobs
+				sgtDaxJob.addArgument("--force");
 				topLevelDAX.addDAX(sgtDaxJob);
 				
 				File sgtDaxFile = new File(daxFileName);
