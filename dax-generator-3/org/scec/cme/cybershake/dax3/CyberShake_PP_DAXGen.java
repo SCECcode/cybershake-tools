@@ -649,13 +649,14 @@ public class CyberShake_PP_DAXGen {
 		job2.addArgument("sgt_yfile=" + rupsgty.getName());
      	job2.addArgument("seis_file=" + seisFile.getName());
 
+     	//Must set flags BEFORE 'uses' call, because uses makes a clone
+		seisFile.setRegister(false);
+		seisFile.setTransfer(File.TRANSFER.FALSE);
+     	
      	job2.uses(rupVarFile,File.LINK.INPUT);     
      	job2.uses(rupsgtx,File.LINK.INPUT);
 		job2.uses(rupsgty,File.LINK.INPUT);
 		job2.uses(seisFile, File.LINK.OUTPUT);
-		
-		seisFile.setRegister(false);
-		seisFile.setTransfer(File.TRANSFER.FALSE);
 
 		job2.addProfile("globus", "maxWallTime", "2");
      	job2.addProfile("pegasus", "group", "" + count);
