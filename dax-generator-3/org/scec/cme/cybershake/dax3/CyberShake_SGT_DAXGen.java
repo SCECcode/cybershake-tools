@@ -23,7 +23,7 @@ public class CyberShake_SGT_DAXGen {
 	
 	public static void main(String[] args) {
 		if (args.length<3) {
-			System.out.println("Usage: CyberShakeSGT_PDAXWorkflow <output filename> <destination directory> [-f <runID file, one per line> | <runID1> <runID2> ... ]");
+			System.out.println("Usage: CyberShake_SGT_DAXGen <output filename> <destination directory> [-f <runID file, one per line> | <runID1> <runID2> ... ]");
 			System.exit(-1);
 		}
 		String outputFilename = args[0]; 
