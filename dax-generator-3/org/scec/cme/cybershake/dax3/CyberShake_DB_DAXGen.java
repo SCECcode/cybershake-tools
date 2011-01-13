@@ -156,7 +156,7 @@ public class CyberShake_DB_DAXGen {
 		job.addArgument(riq.getSiteName());
 		
 		job.addProfile("globus", "maxWallTime", "15");
-		job.addProfile("hints","executionPool", "local");
+		job.addProfile("hints","executionPool", "shock");
 		
 		return job;
 	}
@@ -225,7 +225,7 @@ public class CyberShake_DB_DAXGen {
 		job.addArgument("-run " + riq.getRunID());
 		
 		job.addProfile("globus", "maxWallTime","90");
-		job.addProfile("hints","executionPool", "local");
+		job.addProfile("hints","executionPool", "shock");
 		
 		return job;
 	}
