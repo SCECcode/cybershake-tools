@@ -238,6 +238,7 @@ public class CyberShake_PP_DAXGen {
 			dbProductsDAX.writeToFile(dbDAXFile);
 			DAX dbDax = new DAX("dbDax", dbDAXFile);
 			dbDax.addArgument("--force");
+			dbDax.addArgument("--sites shock,opensha");
 			topLevelDax.addDAX(dbDax);
 			for (int i=0; i<=currDax; i++) {
 				topLevelDax.addDependency("dax_" + i, "dbDax");
