@@ -50,9 +50,9 @@ public class CyberShake_DB_DAXGen {
 	// boolean to enable/disable scatter map plotting
 	private static final boolean DO_SCATTER_MAP = false;
 	// boolean to enable/disable curve generation
-	private static final boolean DO_CURVE_GEN = false;
+	private static final boolean DO_CURVE_GEN = true;
 	// boolean to enable/disable curve plotting. if DO_CURVE_GEN is false, then this is ignored.
-	private static final boolean DO_CURVE_PLOT = false;
+	private static final boolean DO_CURVE_PLOT = true;
 	
 	public CyberShake_DB_DAXGen(RunIDQuery r) {
 		riq = r;
