@@ -83,7 +83,7 @@ public class PP_DAXParameters {
 
 	public void setNumVarsPerDAX(int numVarsPerDAX) {
 		this.numVarsPerDAX = numVarsPerDAX;
-		this.maxVarsPerDAX = (int)Math.round(1.2*numVarsPerDAX);
+		this.maxVarsPerDAX = (int)Math.round(1.15*numVarsPerDAX);
 	}
 	
 	public int getMaxVarsPerDAX() {

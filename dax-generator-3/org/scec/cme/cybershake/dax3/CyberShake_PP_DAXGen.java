@@ -214,6 +214,30 @@ public class CyberShake_PP_DAXGen {
 			   		rupvarcount++;
 			    	variationsSet.next();
 				}
+				if (numVarsInDAX > params.getNumVarsPerDAX()) {
+					//Create new dax
+					System.out.println(numVarsInDAX + " vars in dax " + currDax);
+					numVarsInDAX = 0;
+					String daxFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + currDax + DAX_FILENAME_EXTENSION;
+					dax.writeToFile(daxFile);
+					//Add to topLevelDax
+					DAX jDax = new DAX("dax_" + currDax, daxFile);
+					jDax.addArgument("--cluster horizontal");
+					//Makes sure it doesn't prune workflow elements
+					jDax.addArgument("--force");
+					//Force stage-out of zip files
+					jDax.addArgument("--output shock");
+					topLevelDax.addDAX(jDax);
+					topLevelDax.addDependency(preD, jDax);
+					File jDaxFile = new File(daxFile);
+					jDaxFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + daxFile, "local");
+					topLevelDax.addFile(jDaxFile);
+					currDax++;
+					dax = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + currDax, currDax, params.getNumOfDAXes());
+					//create new set of zip jobs
+					zipJobs = addZipJobs(dax, currDax);
+				}
+				
 				ruptureSet.next();
 			}
 			//write leftover jobs to dax
