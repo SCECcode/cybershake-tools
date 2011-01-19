@@ -11,7 +11,7 @@ public class CyberShake_DB_DAXGen {
 	//Paths
 	public static final String DB_CHECK_OUTFILE_DIR = "/home/scec-02/tera3d/CyberShake2007/cybershk/pegasus/db_check_outfiles/";
 	public static final String CURVE_OUTPUT_DIR_PREFIX = "/home/scec-00/cybershk/opensha/curves/";
-	public static final String OPENSHA_CONF_DIR = "/home/scec-00/cybershk/opensha/OpenSHA/org/opensha/sha/cybershake/conf/";
+	public static final String OPENSHA_CONF_DIR = "/home/scec-00/cybershk/opensha/OpenSHA/src/org/opensha/sha/cybershake/conf/";
 	public static final String CURVE_ATTEN_REL_XML_FILES = OPENSHA_CONF_DIR + "cb2008.xml"
 			+ "," + OPENSHA_CONF_DIR + "ba2008.xml"
 			+ "," + OPENSHA_CONF_DIR + "cy2008.xml"
