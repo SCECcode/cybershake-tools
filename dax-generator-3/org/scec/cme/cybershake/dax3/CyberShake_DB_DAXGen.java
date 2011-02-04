@@ -16,7 +16,7 @@ public class CyberShake_DB_DAXGen {
 			+ "," + OPENSHA_CONF_DIR + "ba2008.xml"
 			+ "," + OPENSHA_CONF_DIR + "cy2008.xml"
 			+ "," + OPENSHA_CONF_DIR + "as2008.xml";
-	public static final String DB_PASS_FILE = "/home/scec-00/cybershk/config/db_pass.txt";
+	public static final String DB_PASS_FILE = "~/config/db_pass.txt";
 	public static final String DB_REPORT_OUTPUT_DIR = "/home/scec-00/cybershk/db_reports/";
 
 	//Constants
