@@ -120,6 +120,7 @@ public class CyberShake_PP_DAXGen {
 			//so that the topLevelDax can find it when we plan.
 			DAX preD = new DAX("preDAX", preDAXFile);
 			preD.addArgument("--force");
+			preD.addArgument("--nodatabase");
 			//Add the dax to the top-level dax like a job
 			topLevelDax.addDAX(preD);
 			//Create a file object.
@@ -170,6 +171,7 @@ public class CyberShake_PP_DAXGen {
 					jDax.addArgument("--force");
 					//Force stage-out of zip files
 					jDax.addArgument("--output shock");
+					jDax.addArgument("--nodatabase");
 					topLevelDax.addDAX(jDax);
 					topLevelDax.addDependency(preD, jDax);
 					File jDaxFile = new File(daxFile);
@@ -227,6 +229,7 @@ public class CyberShake_PP_DAXGen {
 					jDax.addArgument("--force");
 					//Force stage-out of zip files
 					jDax.addArgument("--output shock");
+					jDax.addArgument("--nodatabase");
 					topLevelDax.addDAX(jDax);
 					topLevelDax.addDependency(preD, jDax);
 					File jDaxFile = new File(daxFile);
@@ -249,6 +252,7 @@ public class CyberShake_PP_DAXGen {
 			jDax.addArgument("--cluster horizontal");
 			jDax.addArgument("--force");
 			jDax.addArgument("--output shock");
+			jDax.addArgument("--nodatabase");
 			topLevelDax.addDAX(jDax);
 			topLevelDax.addDependency(preD, jDax);
 			File jDaxFile = new File(daxFile);
@@ -262,6 +266,7 @@ public class CyberShake_PP_DAXGen {
 			dbProductsDAX.writeToFile(dbDAXFile);
 			DAX dbDax = new DAX("dbDax", dbDAXFile);
 			dbDax.addArgument("--force");
+			dbDax.addArgument("--nodatabase");
 			topLevelDax.addDAX(dbDax);
 			for (int i=0; i<=currDax; i++) {
 				topLevelDax.addDependency("dax_" + i, "dbDax");
@@ -277,6 +282,7 @@ public class CyberShake_PP_DAXGen {
 			postDAX.writeToFile(postDAXFile);
 			DAX postD = new DAX("postDax", postDAXFile);
 			postD.addArgument("--force");
+			postD.addArgument("--nodatabase");
 			topLevelDax.addDAX(postD);
 			topLevelDax.addDependency(dbDax, postD);
 			File postDFile = new File(postDAXFile);
