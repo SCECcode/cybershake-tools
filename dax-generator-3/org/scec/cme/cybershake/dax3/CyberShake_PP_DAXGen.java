@@ -170,6 +170,7 @@ public class CyberShake_PP_DAXGen {
 					jDax.addArgument("--force");
 					//Force stage-out of zip files
 					jDax.addArgument("--output shock");
+					jDax.addProfile("dagman", "category", "subwf");
 					topLevelDax.addDAX(jDax);
 					topLevelDax.addDependency(preD, jDax);
 					File jDaxFile = new File(daxFile);
@@ -227,6 +228,7 @@ public class CyberShake_PP_DAXGen {
 					jDax.addArgument("--force");
 					//Force stage-out of zip files
 					jDax.addArgument("--output shock");
+					jDax.addProfile("dagman", "category", "subwf");
 					topLevelDax.addDAX(jDax);
 					topLevelDax.addDependency(preD, jDax);
 					File jDaxFile = new File(daxFile);
