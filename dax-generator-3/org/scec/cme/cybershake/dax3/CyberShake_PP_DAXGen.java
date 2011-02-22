@@ -638,7 +638,7 @@ public class CyberShake_PP_DAXGen {
          job1.addProfile("globus", "maxWallTime", "2");
          job1.addProfile("pegasus", "group", "" + rupCount);
          job1.addProfile("pegasus", "label", "" + currDax);
-         job1.addProfile("dagman", "CATEGORY", "extract-jobs");
+         job1.addProfile("dagman", "category", "extract-jobs");
          
          if (params.isUsePriorities()) {
          	job1.addProfile("condor", "priority", params.getNumOfDAXes()-currDax + "");
