@@ -10,6 +10,7 @@ public class PP_DAXParameters {
 	private int sgtReplication;
 	private int currentSGTRep;
 	private boolean sortRuptures;
+	private boolean databaseInsert;
 	
 	private int numVarsPerDAX;
 	private int maxVarsPerDAX;
@@ -25,6 +26,7 @@ public class PP_DAXParameters {
 		notifyGroupSize = 1;
 		sortRuptures = false;
 		ppDirectory = ".";
+		databaseInsert = true;
 	}
 
 	public int getNumOfDAXes() {
@@ -116,6 +118,14 @@ public class PP_DAXParameters {
 
 	public void setPPDirectory(String ppDirectory) {
 		this.ppDirectory = ppDirectory;
+	}
+	
+	public void setInsert(boolean insert) {
+		this.databaseInsert = insert;
+	}
+	
+	public boolean getInsert() {
+		return databaseInsert;
 	}
 
 }

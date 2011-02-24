@@ -64,10 +64,12 @@ public class CyberShake_PP_DAXGen {
         Option priorities = new Option("r", "use priorities");
         Option replicate_sgts = OptionBuilder.withArgName("num_sgts").hasArg().withDescription("Number of times to replicated SGT files, >=1, <=50").create("rs");
         Option sort_ruptures = new Option("s", "sort ruptures by descending size");
+        Option no_insert = new Option("no-insert", "Don't insert ruptures into database (used for testing)");
         cmd_opts.addOption(partition);
         cmd_opts.addOption(priorities);
         cmd_opts.addOption(replicate_sgts);
         cmd_opts.addOption(sort_ruptures);
+        cmd_opts.addOption(no_insert);
         CyberShake_PP_DAXGen daxGen = new CyberShake_PP_DAXGen();
         PP_DAXParameters pp_params = new PP_DAXParameters();
         String usageString = "Usage: CyberShakeRob <runID> <PP directory> [-p num_subDAXes] [-r] [-rs num_repl] [-s]";
@@ -97,6 +99,9 @@ public class CyberShake_PP_DAXGen {
         }
         if (line.hasOption("s")) {
         	pp_params.setSortRuptures(true);
+        }
+        if (line.hasOption("no-insert")) {
+        	pp_params.setInsert(false);
         }
         daxGen.makeDAX(runID, pp_params);
 	}
@@ -259,19 +264,21 @@ public class CyberShake_PP_DAXGen {
 
 			
 			// Add DAX for DB insertion/curve generation
-            ADAG dbProductsDAX = genDBProductsDAX(currDax+1);
-			String dbDAXFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_DB_Products" + DAX_FILENAME_EXTENSION;
-			dbProductsDAX.writeToFile(dbDAXFile);
-			DAX dbDax = new DAX("dbDax", dbDAXFile);
-			dbDax.addArgument("--force");
-			topLevelDax.addDAX(dbDax);
-			for (int i=0; i<=currDax; i++) {
-				topLevelDax.addDependency("dax_" + i, "dbDax");
+			DAX dbDax = null;
+			if (params.getInsert()) {
+				ADAG dbProductsDAX = genDBProductsDAX(currDax+1);
+				String dbDAXFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_DB_Products" + DAX_FILENAME_EXTENSION;
+				dbProductsDAX.writeToFile(dbDAXFile);
+				dbDax = new DAX("dbDax", dbDAXFile);
+				dbDax.addArgument("--force");
+				topLevelDax.addDAX(dbDax);
+				for (int i=0; i<=currDax; i++) {
+					topLevelDax.addDependency("dax_" + i, "dbDax");
+				}	
+				File dbDaxFile = new File(dbDAXFile);
+				dbDaxFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + dbDAXFile, "local");
+				topLevelDax.addFile(dbDaxFile);
 			}
-			File dbDaxFile = new File(dbDAXFile);
-			dbDaxFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + dbDAXFile, "local");
-			topLevelDax.addFile(dbDaxFile);
-
 			
             // Final notifications
             ADAG postDAX = makePostDAX();
@@ -280,7 +287,13 @@ public class CyberShake_PP_DAXGen {
 			DAX postD = new DAX("postDax", postDAXFile);
 			postD.addArgument("--force");
 			topLevelDax.addDAX(postD);
-			topLevelDax.addDependency(dbDax, postD);
+			if (params.getInsert()) {
+				topLevelDax.addDependency(dbDax, postD);
+			} else {
+				for (int i=0; i<=currDax; i++) {
+					topLevelDax.addDependency("dax_" + i, "postDax");
+				}	
+			}
 			File postDFile = new File(postDAXFile);
 			postDFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + postDAXFile, "local");
 			topLevelDax.addFile(postDFile);
