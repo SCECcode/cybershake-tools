@@ -64,7 +64,7 @@ public class CyberShake_PP_DAXGen {
         Option priorities = new Option("r", "use priorities");
         Option replicate_sgts = OptionBuilder.withArgName("num_sgts").hasArg().withDescription("Number of times to replicated SGT files, >=1, <=50").create("rs");
         Option sort_ruptures = new Option("s", "sort ruptures by descending size");
-        Option no_insert = new Option("no-insert", "Don't insert ruptures into database (used for testing)");
+        Option no_insert = new Option("noinsert", "Don't insert ruptures into database (used for testing)");
         cmd_opts.addOption(partition);
         cmd_opts.addOption(priorities);
         cmd_opts.addOption(replicate_sgts);
