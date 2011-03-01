@@ -22,12 +22,13 @@ public class CyberShake_SGT_DAXGen {
 	private RunIDQuery riq;
 	
 	public static void main(String[] args) {
-		if (args.length<3) {
-			System.out.println("Usage: CyberShake_SGT_DAXGen <output filename> <destination directory> [-f <runID file, one per line> | <runID1> <runID2> ... ]");
+		if (args.length<4) {
+			System.out.println("Usage: CyberShake_SGT_DAXGen [-v4 | -vh ] <output filename> <destination directory> [-f <runID file, one per line> | <runID1> <runID2> ... ]");
 			System.exit(-1);
 		}
-		String outputFilename = args[0]; 
-		String directory = args[1];
+		String velocityModel = args[0];
+		String outputFilename = args[1]; 
+		String directory = args[2];
 		String inputFile = "";
 		ArrayList<RunIDQuery> runIDQueries = new ArrayList<RunIDQuery>();
 		if (args[2]=="-f") {
@@ -62,7 +63,7 @@ public class CyberShake_SGT_DAXGen {
 		//Create a DAX for each site
 		for (int i=0; i<runIDQueries.size(); i++) {
 			CyberShake_SGT_DAXGen sd = new CyberShake_SGT_DAXGen(runIDQueries.get(i));
-			ADAG sgtDax = sd.makeDAX();
+			ADAG sgtDax = sd.makeDAX(velocityModel);
 			
 			if (twoLevel) {
 				String daxFileName = DAX_FILENAME_PREFIX + "_" + runIDQueries.get(i).getSiteName() + "_" + i + ".dax";
@@ -90,14 +91,14 @@ public class CyberShake_SGT_DAXGen {
 		riq = r;
 	}
 	
-	public ADAG makeDAX() {
+	public ADAG makeDAX(String velModel) {
 		ADAG workflowDAX = new ADAG(DAX_FILENAME_PREFIX + "_" + riq.getSiteName() + DAX_FILENAME_EXTENSION);
 		// Workflow jobs
 		Job updateStart = addUpdate("SGT_INIT", "SGT_START");
 		workflowDAX.addJob(updateStart);
 		Job preCVM = addPreCVM();
 		workflowDAX.addJob(preCVM);
-		Job vMeshGen = addVMeshGen();
+		Job vMeshGen = addVMeshGen(velModel);
 		workflowDAX.addJob(vMeshGen);
 		Job vMeshMerge = addVMeshMerge();
 		workflowDAX.addJob(vMeshMerge);
@@ -227,9 +228,17 @@ public class CyberShake_SGT_DAXGen {
 		return preCVMJob;
 	}
 	
-	private Job addVMeshGen() {
+	private Job addVMeshGen(String velModel) {
 		String id = "VMeshGen_" + riq.getSiteName();
-		Job vMeshGenJob = new Job(id, NAMESPACE, "VMeshGen", VERSION);
+		Job vMeshGenJob = null;
+		if (velModel.equals("-v4")) {
+			vMeshGenJob = new Job(id, NAMESPACE, "V4MeshGen", VERSION);
+		} else if (velModel.equals("-vh")) {
+			vMeshGenJob = new Job(id, NAMESPACE, "VHMeshGen", VERSION);
+		} else {
+			System.out.println(velModel + " is an invalid velocity model option, exiting.");
+			System.exit(2);
+		}
 		
 		File gridoutFile = new File("gridout_" + riq.getSiteName());
 		File coordFile = new File("model_coords_GC_" + riq.getSiteName());
