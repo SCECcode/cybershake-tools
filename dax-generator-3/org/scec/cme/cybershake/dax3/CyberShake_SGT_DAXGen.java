@@ -100,7 +100,7 @@ public class CyberShake_SGT_DAXGen {
 		workflowDAX.addJob(preCVM);
 		Job vMeshGen = addVMeshGen(velModel);
 		workflowDAX.addJob(vMeshGen);
-		Job vMeshMerge = addVMeshMerge();
+		Job vMeshMerge = addVMeshMerge(velModel);
 		workflowDAX.addJob(vMeshMerge);
 		Job preSGT = addPreSGT();
 		workflowDAX.addJob(preSGT);
@@ -253,14 +253,22 @@ public class CyberShake_SGT_DAXGen {
 		return vMeshGenJob;
 	}
 	
-	private Job addVMeshMerge() {
+	private Job addVMeshMerge(String velModel) {
 		String id = "VMeshMerge_" + riq.getSiteName();
-		Job vMeshMergeJob = new Job(id, NAMESPACE, "VMeshMerge", VERSION);
-
-		File gridfileFile = new File("gridfile_" + riq.getSiteName());
-		File pFile = new File("v4_sgt-" + riq.getSiteName() + ".p");
-		File sFile = new File("v4_sgt-" + riq.getSiteName() + ".s");
-		File dFile = new File("v4_sgt-" + riq.getSiteName() + ".d");
+		Job vMeshMergeJob = null;
+		if (velModel.equals("-v4")) {
+			vMeshMergeJob = new Job(id, NAMESPACE, "V4MeshMerge", VERSION);
+		} else if (velModel.equals("-vh")) {
+			vMeshMergeJob = new Job(id, NAMESPACE, "VHMeshMerge", VERSION);
+		} else {
+			System.out.println(velModel + " is an invalid velocity model option, exiting.");
+			System.exit(2);
+		}
+		
+		File gridfileFile = new File("gridfile_" + riq.getSiteName());		
+		File pFile = new File("v_sgt-" + riq.getSiteName() + ".p");
+		File sFile = new File("v_sgt-" + riq.getSiteName() + ".s");
+		File dFile = new File("v_sgt-" + riq.getSiteName() + ".p");
 		
 		pFile.setTransfer(File.TRANSFER.FALSE);
 		sFile.setTransfer(File.TRANSFER.FALSE);
