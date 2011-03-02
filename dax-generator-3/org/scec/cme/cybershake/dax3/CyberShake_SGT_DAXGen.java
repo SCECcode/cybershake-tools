@@ -45,7 +45,7 @@ public class CyberShake_SGT_DAXGen {
 				System.exit(1);
 			}
 		} else {
-			for (int i=2; i<args.length; i++) {
+			for (int i=3; i<args.length; i++) {
 				runIDQueries.add(new RunIDQuery(Integer.parseInt(args[i])));
 			}
 		}
