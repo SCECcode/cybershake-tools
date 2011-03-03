@@ -52,7 +52,7 @@ public class CyberShake_PP_DAXGen {
     private final static String USER = "cybershk_ro";
     private final static String PASS = "CyberShake2007";
     private static DBConnect dbc;
-    
+     
     //Instance variables
     private PP_DAXParameters params;
     private RunIDQuery riq;
@@ -64,12 +64,14 @@ public class CyberShake_PP_DAXGen {
         Option priorities = new Option("r", "use priorities");
         Option replicate_sgts = OptionBuilder.withArgName("num_sgts").hasArg().withDescription("Number of times to replicated SGT files, >=1, <=50").create("rs");
         Option sort_ruptures = new Option("s", "sort ruptures by descending size");
+        Option memcached = new Option("m", "use memcached implementation of jbsim3d");
         Option no_insert = new Option("noinsert", "Don't insert ruptures into database (used for testing)");
         cmd_opts.addOption(partition);
         cmd_opts.addOption(priorities);
         cmd_opts.addOption(replicate_sgts);
         cmd_opts.addOption(sort_ruptures);
         cmd_opts.addOption(no_insert);
+        cmd_opts.addOption(memcached);
         CyberShake_PP_DAXGen daxGen = new CyberShake_PP_DAXGen();
         PP_DAXParameters pp_params = new PP_DAXParameters();
         String usageString = "Usage: CyberShakeRob <runID> <PP directory> [-p num_subDAXes] [-r] [-rs num_repl] [-s]";
@@ -100,10 +102,14 @@ public class CyberShake_PP_DAXGen {
         if (line.hasOption("s")) {
         	pp_params.setSortRuptures(true);
         }
-        if (line.hasOption("no-insert")) {
+        if (line.hasOption("noinsert")) {
         	pp_params.setInsert(false);
         }
+        if (line.hasOption("m")) {
+        	pp_params.setUseMemcached(true);
+        }
         daxGen.makeDAX(runID, pp_params);
+        
 	}
 
 
@@ -608,7 +614,11 @@ public class CyberShake_PP_DAXGen {
      	*
      	*/
         String id1 = "ID1_" + sourceIndex+"_"+rupIndex;
-        Job job1 = new Job(id1, NAMESPACE, EXTRACT_SGT_NAME, VERSION);
+        String name = EXTRACT_SGT_NAME;
+        if (params.isUseMemcached()) {
+        	name = EXTRACT_SGT_NAME + "_memcached";
+        }
+        Job job1 = new Job(id1, NAMESPACE, name, VERSION);
 
         job1.addArgument("stat="+riq.getSiteName());
         job1.addArgument("slon="+riq.getLon());
@@ -664,7 +674,12 @@ public class CyberShake_PP_DAXGen {
 
 	private Job createSeismogramJob(int sourceIndex, int rupIndex, int rupvarcount, String rupVarLFN, int count, int currDax) {
 		String id2 = "ID2_" + sourceIndex+"_"+rupIndex+"_"+rupvarcount;
-		Job job2= new Job(id2, NAMESPACE, SEISMOGRAM_SYNTHESIS_NAME,VERSION);
+		String name = SEISMOGRAM_SYNTHESIS_NAME;
+        if (params.isUseMemcached()) {
+        	name = SEISMOGRAM_SYNTHESIS_NAME + "_memcached";
+        }
+		
+		Job job2= new Job(id2, NAMESPACE, name, VERSION);
                  
 		File seisFile = new File(SEISMOGRAM_FILENAME_PREFIX + 
 			riq.getSiteName() + "_" + sourceIndex + "_" + rupIndex +
