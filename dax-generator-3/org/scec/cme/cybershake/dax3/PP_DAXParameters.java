@@ -11,6 +11,7 @@ public class PP_DAXParameters {
 	private int currentSGTRep;
 	private boolean sortRuptures;
 	private boolean databaseInsert;
+	private boolean useMemcached = false;
 	
 	private int numVarsPerDAX;
 	private int maxVarsPerDAX;
@@ -126,6 +127,14 @@ public class PP_DAXParameters {
 	
 	public boolean getInsert() {
 		return databaseInsert;
+	}
+
+	public boolean isUseMemcached() {
+		return useMemcached;
+	}
+
+	public void setUseMemcached(boolean useMemcached) {
+		this.useMemcached = useMemcached;
 	}
 
 }
