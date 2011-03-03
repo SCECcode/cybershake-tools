@@ -268,7 +268,7 @@ public class CyberShake_SGT_DAXGen {
 		File gridfileFile = new File("gridfile_" + riq.getSiteName());		
 		File pFile = new File("v_sgt-" + riq.getSiteName() + ".p");
 		File sFile = new File("v_sgt-" + riq.getSiteName() + ".s");
-		File dFile = new File("v_sgt-" + riq.getSiteName() + ".p");
+		File dFile = new File("v_sgt-" + riq.getSiteName() + ".d");
 		
 		pFile.setTransfer(File.TRANSFER.FALSE);
 		sFile.setTransfer(File.TRANSFER.FALSE);
