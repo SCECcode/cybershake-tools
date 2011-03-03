@@ -349,6 +349,7 @@ public class CyberShake_SGT_DAXGen {
 		File cordFile = new File(riq.getSiteName() + ".cordfile");
 		
 		sgtGenJob.addArgument(riq.getSiteName());
+		
 		sgtGenJob.addArgument(gridoutFile);
 		sgtGenJob.addArgument(modelboxFile);
 		sgtGenJob.addArgument(fdlocFile);
@@ -360,6 +361,10 @@ public class CyberShake_SGT_DAXGen {
 		sgtGenJob.uses(fdlocFile, File.LINK.INPUT);
 		sgtGenJob.uses(cordFile, File.LINK.INPUT);
 		
+		if (riq.getSiteName()=="TEST") {
+			CUTOFF_DISTANCE = 20;
+		}
+		
 		if (CUTOFF_DISTANCE <= 20) {
 			System.out.println("NOTE: Using cutoff distance=20 SGT params");
 			sgtGenJob.addProfile("globus", "maxWallTime", "360");
@@ -367,7 +372,7 @@ public class CyberShake_SGT_DAXGen {
 			sgtGenJob.addProfile("globus", "count", "240");
 		} else {
 			sgtGenJob.addProfile("globus", "maxWallTime", "1020");
-			sgtGenJob.addProfile("globus", "host_count", "50");
+			sgtGenJob.addProfile("globus", "host_count", "25");
 			sgtGenJob.addProfile("globus", "count", "400");
 		}
 		
@@ -380,7 +385,12 @@ public class CyberShake_SGT_DAXGen {
 		
 		String xPrefix = riq.getSiteName() + "-fx_sgt-";
 		String yPrefix = riq.getSiteName() + "-fy_sgt-";
+
 		int numProcessors = 400;
+		
+		if (CUTOFF_DISTANCE==20) {
+			numProcessors = 240;
+		}
 		
 		nanTestJob.addArgument(xPrefix);
 		nanTestJob.addArgument(yPrefix);
@@ -395,6 +405,10 @@ public class CyberShake_SGT_DAXGen {
 		
 		String prefix = riq.getSiteName() + "-f" + component + "_sgt-";
 		int numProcessors = 400;
+		
+		if (CUTOFF_DISTANCE==20) {
+			numProcessors = 240;
+		}
 		
 		nanTestJob.addArgument(prefix);
 		nanTestJob.addArgument(numProcessors + "");
