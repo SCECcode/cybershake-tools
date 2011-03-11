@@ -63,7 +63,7 @@ public class CyberShake_PP_DAXGen {
         Option partition = OptionBuilder.withArgName("num_partitions").hasArg().withDescription("Number of partitions to create.").create("p");
         Option priorities = new Option("r", "use priorities");
         Option replicate_sgts = OptionBuilder.withArgName("num_sgts").hasArg().withDescription("Number of times to replicated SGT files, >=1, <=50").create("rs");
-        Option sort_ruptures = new Option("s", "sort ruptures by descending size");
+        Option sort_ruptures = new Option("s", "sort ruptures by descending size;  will include priorities");
         Option memcached = new Option("m", "use memcached implementation of jbsim3d");
         Option no_insert = new Option("noinsert", "Don't insert ruptures into database (used for testing)");
         cmd_opts.addOption(partition);
@@ -101,6 +101,7 @@ public class CyberShake_PP_DAXGen {
         }
         if (line.hasOption("s")) {
         	pp_params.setSortRuptures(true);
+        	pp_params.setUsePriorities(true);
         }
         if (line.hasOption("noinsert")) {
         	pp_params.setInsert(false);
