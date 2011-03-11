@@ -24,7 +24,7 @@ public class CyberShake_DB_DAXGen {
 	public static final String DB_PREFIX = "CS_Products_";
 	public static final String DB_CHECK_OUTFILE_PREFIX = "DB_Check_Out_";
 	public static final String CURVE_ERF_XML_FILE = OPENSHA_CONF_DIR + "MeanUCERF.xml"; 
-	public static final String CURVE_CALC_PERIODS = "2,3,5,10";
+	public static final String CURVE_CALC_PERIODS = "3,5,10";
 	public static final String CURVE_OUTPUT_TYPES = "pdf,png";
 	public static final double CURVE_DEFAULT_VS30 = 760;
 	
