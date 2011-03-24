@@ -71,6 +71,8 @@ public class CyberShake_SGT_DAXGen {
 				DAX sgtDaxJob = new DAX("SGT_" + runIDQueries.get(i).getSiteName(), daxFileName);
 				//Avoid pruning of jobs
 				sgtDaxJob.addArgument("--force");
+				//Copy results to ranger unpurged directory
+				sgtDaxJob.addArgument("-o ranger");
 				topLevelDAX.addDAX(sgtDaxJob);
 				
 				File sgtDaxFile = new File(daxFileName);
@@ -361,7 +363,7 @@ public class CyberShake_SGT_DAXGen {
 		sgtGenJob.uses(fdlocFile, File.LINK.INPUT);
 		sgtGenJob.uses(cordFile, File.LINK.INPUT);
 		
-		if (riq.getSiteName()=="TEST") {
+		if (riq.getSiteName().equals("TEST")) {
 			CUTOFF_DISTANCE = 20;
 		}
 		
