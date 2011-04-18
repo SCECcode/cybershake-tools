@@ -72,6 +72,14 @@ def dispDetails(run):
     print "</td>"
     print "</tr>"
 
+    # Velocity_Model_ID
+    print "<tr>"
+    print "<td>Velocity Model ID:</td>"
+    print "<td>"
+    print "%d" % (run.getVelID())
+    print "</td>"
+    print "</tr>"
+
     # Status
     print "<tr>"
     print "<td>Status:</td>"
