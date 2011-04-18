@@ -4,7 +4,7 @@
 import sys
 import time
 import subprocess
-sys.path.append('/home/scec-00/patrices/code/trunk/RunManager/')
+sys.path.append('/home/scec-00/cybershk/runs/RunManager')
 
 
 # General imports
@@ -108,9 +108,9 @@ def findMatch(rm, run, match_states):
     for s in match_states:
         run.setStatus(s)
         matches = rm.getRuns(run, lock=False)
-        if (matches != None):
+	if (matches != None):
             for run in matches:
-                sgt_time = int(time.mktime(time.strptime(run.getSGTTime(), '%Y-%m-%d %H:%M:%S')))
+		sgt_time = int(time.mktime(time.strptime(run.getSGTTime(), '%Y-%m-%d %H:%M:%S')))
                 if (pref_match == None):
                     pref_match = run
                 else:
@@ -141,7 +141,7 @@ def main():
     pref_match = findMatch(rm, searchrun, MATCH_STATE_DICT["USE"])
     if (pref_match == None):
         need_clone = True
-        pref_match = findMatch(rm, searchrun, MATCH_STATE_DICT["CLONE"])
+	pref_match = findMatch(rm, searchrun, MATCH_STATE_DICT["CLONE"])
 
     if (pref_match == None):
         print "No matching runs found."
