@@ -2,7 +2,7 @@
 
 # Add RunManager modules to PYTHONPATH
 import sys
-sys.path.append('/home/scec-00/cybershk/runs/RunManager')
+sys.path.append('/home/scec-02/cybershk/runs/runmanager/RunManager')
 
 
 # General imports
