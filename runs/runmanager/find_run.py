@@ -4,7 +4,11 @@
 import sys
 import time
 import subprocess
+<<<<<<< .mine
+sys.path.append('/home/scec-02/cybershk/runs/runmanager/RunManager/')
+=======
 sys.path.append('/home/scec-00/cybershk/runs/RunManager')
+>>>>>>> .r866
 
 
 # General imports
@@ -35,21 +39,23 @@ def init():
     argc = len(sys.argv)
     
     # Check command line arguments
-    if ((argc != 2) and (argc != 5)):
-        print "Usage: " + sys.argv[0] + " <site> [erf id] [sgt var id] [rup var id]"
-        print "Example: " + sys.argv[0] + " USC 35 5 3"
+    if ((argc != 2) and (argc != 6)):
+        print "Usage: " + sys.argv[0] + " <site> [erf id] [sgt var id] [rup var id] [vel id]"
+        print "Example: " + sys.argv[0] + " USC 35 5 3 1"
         return 1
 
     # Parse command line args
     info.site = sys.argv[1]
-    if (argc == 5):
+    if (argc == 6):
         info.erf = int(sys.argv[2])
         info.sgt_var = int(sys.argv[3])
         info.rup_var = int(sys.argv[4])
+	info.vel_id = int(sys.argv[5])
     else:
         info.erf = None
         info.sgt_var = None
         info.rup_var = None
+	info.vel_id = None
     
     #print "Configuration:"
     #print "Site:\t\t" + info.site
@@ -110,7 +116,7 @@ def findMatch(rm, run, match_states):
         matches = rm.getRuns(run, lock=False)
 	if (matches != None):
             for run in matches:
-		sgt_time = int(time.mktime(time.strptime(run.getSGTTime(), '%Y-%m-%d %H:%M:%S')))
+                sgt_time = int(time.mktime(time.strptime(run.getSGTTime(), '%Y-%m-%d %H:%M:%S')))
                 if (pref_match == None):
                     pref_match = run
                 else:
@@ -135,6 +141,7 @@ def main():
         searchrun.setERFID(info.erf)
         searchrun.setSGTVarID(info.sgt_var)
         searchrun.setRupVarID(info.rup_var)
+	searchrun.setVelID(info.vel_id)
 
     # Find preferred runids, if any
     need_clone = False
@@ -177,7 +184,8 @@ def main():
 
     # Print the RunID to STDOUT
     print pref_match.getRunID()
-    
+    sys.exit(1)   
+ 
     return 0
 
 
