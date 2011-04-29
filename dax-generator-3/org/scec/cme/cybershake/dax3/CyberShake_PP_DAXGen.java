@@ -39,6 +39,7 @@ public class CyberShake_PP_DAXGen {
     private final static String EXTRACT_SGT_NAME = "extract_sgt";
     private final static String SEISMOGRAM_SYNTHESIS_NAME = "seismogram_synthesis";
     private final static String PEAK_VAL_CALC_NAME = "PeakValCalc_Okaya";
+    private final static String SEIS_PSA_NAME = "Seis_PSA";
 	
     //Simulation parameters
     private final static String NUMTIMESTEPS = "3000";
@@ -66,12 +67,14 @@ public class CyberShake_PP_DAXGen {
         Option sort_ruptures = new Option("s", "sort ruptures by descending size;  will include priorities");
         Option memcached = new Option("m", "use memcached implementation of jbsim3d");
         Option no_insert = new Option("noinsert", "Don't insert ruptures into database (used for testing)");
+        Option merged_executable = new Option("me", "Use a single executable for both synthesis and PSA");
         cmd_opts.addOption(partition);
         cmd_opts.addOption(priorities);
         cmd_opts.addOption(replicate_sgts);
         cmd_opts.addOption(sort_ruptures);
         cmd_opts.addOption(no_insert);
         cmd_opts.addOption(memcached);
+        cmd_opts.addOption(merged_executable);
         CyberShake_PP_DAXGen daxGen = new CyberShake_PP_DAXGen();
         PP_DAXParameters pp_params = new PP_DAXParameters();
         String usageString = "Usage: CyberShakeRob <runID> <PP directory> [-p num_subDAXes] [-r] [-rs num_repl] [-s]";
@@ -108,6 +111,13 @@ public class CyberShake_PP_DAXGen {
         }
         if (line.hasOption("m")) {
         	pp_params.setUseMemcached(true);
+        }
+        if (line.hasOption("me")) {
+        	if (pp_params.isUseMemcached()) {
+        		System.out.println("Only 1 of -me, -m option is supported at this time.");
+        		System.exit(2);
+        	}
+        	pp_params.setMergedExe(true);
         }
         daxGen.makeDAX(runID, pp_params);
         
@@ -205,18 +215,29 @@ public class CyberShake_PP_DAXGen {
 				int rupvarcount = 0;
 				//Iterate over variations
 				while (!variationsSet.isAfterLast()) {
-					//create and add seismogram synthesis
-					Job seismoJob = createSeismogramJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
-					dax.addJob(seismoJob);
-					//create and add PSA
-					Job psaJob = createPSAJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
-					dax.addJob(psaJob);
-					//set up dependencies
-			    	dax.addDependency(extractJob, seismoJob);
-			    	dax.addDependency(seismoJob, psaJob);
-			    	//make the zip jobs appropriate children
-			    	dax.addDependency(seismoJob, zipJobs[0]);
-			    	dax.addDependency(psaJob, zipJobs[1]);
+					if (params.isMergedExe()) {
+						//add 1 job for seis and PSA
+						Job seisPSAJob = createSeisPSAJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
+						dax.addJob(seisPSAJob);
+						//set up dependencies
+						dax.addDependency(extractJob, seisPSAJob);
+						//make the zip jobs appropriate children
+						dax.addDependency(seisPSAJob, zipJobs[0]);
+						dax.addDependency(seisPSAJob, zipJobs[1]);
+					} else {
+						//create and add seismogram synthesis
+						Job seismoJob = createSeismogramJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
+						dax.addJob(seismoJob);
+						//create and add PSA
+						Job psaJob = createPSAJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
+						dax.addJob(psaJob);
+						//set up dependencies
+						dax.addDependency(extractJob, seismoJob);
+						dax.addDependency(seismoJob, psaJob);
+						//make the zip jobs appropriate children
+						dax.addDependency(seismoJob, zipJobs[0]);
+						dax.addDependency(psaJob, zipJobs[1]);
+					}
 				    	
 			    	// Attach notification job to end of workflow after zip jobs
 			    	if (currDax % params.getNotifyGroupSize()== 0) {
@@ -768,5 +789,74 @@ public class CyberShake_PP_DAXGen {
         }
         
         return job3;
+	}
+	
+	
+	private Job createSeisPSAJob(int sourceIndex, int rupIndex, int rupvarcount, String rupVarLFN, int count, int currDax) {
+		String id2 = "ID2_" + sourceIndex+"_"+rupIndex+"_"+rupvarcount;
+		
+		Job job2= new Job(id2, NAMESPACE, SEIS_PSA_NAME, VERSION);
+                 
+		File seisFile = new File(SEISMOGRAM_FILENAME_PREFIX + 
+			riq.getSiteName() + "_" + sourceIndex + "_" + rupIndex +
+			"_"+ rupvarcount + SEISMOGRAM_FILENAME_EXTENSION);                            
+		
+		File peakValsFile = new File(PEAKVALS_FILENAME_PREFIX +
+    			riq.getSiteName() + "_" + sourceIndex + "_" + rupIndex +
+    			"_"+rupvarcount+ PEAKVALS_FILENAME_EXTENSION);
+		
+		File rupVarFile = new File(rupVarLFN);
+		
+		//synth args
+		job2.addArgument("stat="+riq.getSiteName());
+		job2.addArgument("slon="+riq.getLon());
+		job2.addArgument("slat="+riq.getLat());
+		job2.addArgument("extract_sgt=0");
+		job2.addArgument("outputBinary=1");
+		job2.addArgument("mergeOutput=1");
+		job2.addArgument("ntout="+NUMTIMESTEPS);
+         
+		File rupsgtx = new File(riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfx.sgt");
+		File rupsgty = new File(riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfy.sgt");
+		
+		job2.addArgument("rupmodfile=" + rupVarFile.getName());
+		job2.addArgument("sgt_xfile=" + rupsgtx.getName());
+		job2.addArgument("sgt_yfile=" + rupsgty.getName());
+     	job2.addArgument("seis_file=" + seisFile.getName());
+
+     	//PSA args
+       	job2.addArgument("simulation_out_pointsX=2"); //2 b/c 2 components
+    	job2.addArgument("simulation_out_pointsY=1"); //# of variations per seismogram
+    	job2.addArgument("simulation_out_timesamples="+NUMTIMESTEPS);// numTimeSteps
+    	job2.addArgument("simulation_out_timeskip="+ SIMULATION_TIMESKIP); //dt
+    	job2.addArgument("surfseis_rspectra_seismogram_units=cmpersec");
+    	job2.addArgument("surfseis_rspectra_output_units=cmpersec2");
+    	job2.addArgument("surfseis_rspectra_output_type=aa");
+    	job2.addArgument("surfseis_rspectra_period=" + SPECTRA_PERIOD1);
+    	job2.addArgument("surfseis_rspectra_apply_filter_highHZ="+FILTER_HIGHHZ);
+    	job2.addArgument("surfseis_rspectra_apply_byteswap=no");
+    	job2.addArgument("out=" + peakValsFile.getName());
+     	
+     	//Must set flags BEFORE 'uses' call, because uses makes a clone
+		seisFile.setRegister(false);
+		seisFile.setTransfer(File.TRANSFER.FALSE);
+    	
+        peakValsFile.setRegister(false);
+        peakValsFile.setTransfer(File.TRANSFER.FALSE);
+     	
+     	job2.uses(rupVarFile,File.LINK.INPUT);     
+     	job2.uses(rupsgtx,File.LINK.INPUT);
+		job2.uses(rupsgty,File.LINK.INPUT);
+		job2.uses(seisFile, File.LINK.OUTPUT);
+    	job2.uses(peakValsFile, File.LINK.OUTPUT);
+
+		job2.addProfile("globus", "maxWallTime", "2");
+     	job2.addProfile("pegasus", "group", "" + count);
+        job2.addProfile("pegasus", "label", "" + currDax);
+     
+        if (params.isUsePriorities()) {
+         	job2.addProfile("condor", "priority", params.getNumOfDAXes()-currDax + "");
+        }
+		return job2;
 	}
 }

@@ -12,6 +12,7 @@ public class PP_DAXParameters {
 	private boolean sortRuptures;
 	private boolean databaseInsert;
 	private boolean useMemcached = false;
+	private boolean mergedExe = false;
 	
 	private int numVarsPerDAX;
 	private int maxVarsPerDAX;
@@ -135,6 +136,14 @@ public class PP_DAXParameters {
 
 	public void setUseMemcached(boolean useMemcached) {
 		this.useMemcached = useMemcached;
+	}
+
+	public void setMergedExe(boolean b) {
+		this.mergedExe = b;
+	}
+	
+	public boolean isMergedExe() {
+		return this.mergedExe;
 	}
 
 }
