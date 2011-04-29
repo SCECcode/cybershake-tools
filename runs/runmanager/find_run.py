@@ -4,11 +4,7 @@
 import sys
 import time
 import subprocess
-<<<<<<< .mine
 sys.path.append('/home/scec-02/cybershk/runs/runmanager/RunManager/')
-=======
-sys.path.append('/home/scec-00/cybershk/runs/RunManager')
->>>>>>> .r866
 
 
 # General imports
