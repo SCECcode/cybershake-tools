@@ -11,6 +11,7 @@ public class CyberShake_DB_DAXGen {
 	//Paths
 	public static final String DB_CHECK_OUTFILE_DIR = "/home/scec-02/tera3d/CyberShake2007/cybershk/pegasus/db_check_outfiles/";
 	public static final String CURVE_OUTPUT_DIR_PREFIX = "/home/scec-00/cybershk/opensha/curves/";
+	public static final String DISAGG_OUTPUT_DIR_PREFIX = "/home/scec-00/cybershk/opensha/disagg/";
 	public static final String OPENSHA_CONF_DIR = "/home/scec-00/cybershk/opensha/OpenSHA/src/org/opensha/sha/cybershake/conf/";
 	public static final String CURVE_ATTEN_REL_XML_FILES = OPENSHA_CONF_DIR + "cb2008.xml"
 			+ "," + OPENSHA_CONF_DIR + "ba2008.xml"
@@ -39,6 +40,7 @@ public class CyberShake_DB_DAXGen {
 	public static final String SCATTER_MAP_NAME = "Scatter_Map";
     private final static String CYBERSHAKE_NOTIFY = "CyberShakeNotify";	
     private final static String DBWRITE_STAGE = "DBWrite";
+    private final static String DISAGG_NAME = "Disaggregate";
 	
 	//Instance variables
 	private RunIDQuery riq;
@@ -90,6 +92,9 @@ public class CyberShake_DB_DAXGen {
 			dax.addJob(scatterMapJob);
 		}
 
+		Job disaggJob = createDisaggJob();
+		dax.addJob(disaggJob);
+		
 		// Add notification job
 		Job notifyJob = createNotify(DBWRITE_STAGE);
 		dax.addJob(notifyJob);
@@ -103,7 +108,9 @@ public class CyberShake_DB_DAXGen {
 		if (DO_CURVE_GEN) {
 			dax.addDependency(dbCheckJob, curveCalcJob);
 		}
-
+		
+		dax.addDependency(dbCheckJob, disaggJob);
+		
 		// report is a child of check
 		dax.addDependency(dbCheckJob, reportJob);
 
@@ -121,6 +128,20 @@ public class CyberShake_DB_DAXGen {
 	}
 	
 	
+	private Job createDisaggJob() {
+		//./disagg_plot_wrapper.sh --run-id 247 --period 3 --probs 4.0e-4 --imls 0.2,0.5 --output-dir /tmp
+		String id = DISAGG_NAME + "_" + riq.getSiteName();
+		Job disaggJob = new Job(id, CyberShake_PP_DAXGen.NAMESPACE, DISAGG_NAME, CyberShake_PP_DAXGen.VERSION);
+		disaggJob.addArgument("--run-id " + riq.getRunID());
+		disaggJob.addArgument("--period 3");
+		disaggJob.addArgument("--probs 4.0e-4");
+		disaggJob.addArgument("--output-dir " + DISAGG_OUTPUT_DIR_PREFIX);
+		
+		disaggJob.addProfile("globus", "maxWallTime", "5");
+		
+		return disaggJob;
+	}
+
 	private Job createNotify(String stage) {
         String id = DB_PREFIX + CYBERSHAKE_NOTIFY + "_" + riq.getSiteName() + "_" + stage;
     	Job notifyJob = new Job(id, CyberShake_PP_DAXGen.NAMESPACE, CYBERSHAKE_NOTIFY, CyberShake_PP_DAXGen.VERSION);
