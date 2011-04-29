@@ -119,7 +119,8 @@ def findMatch(rm, run, match_states):
                     pref_time = int(time.mktime(time.strptime(pref_match.getSGTTime(), '%Y-%m-%d %H:%M:%S')))
                     if (sgt_time > pref_time):
                         pref_match = run
-  
+ 
+     
     return pref_match
 
 
@@ -142,6 +143,7 @@ def main():
     # Find preferred runids, if any
     need_clone = False
     pref_match = findMatch(rm, searchrun, MATCH_STATE_DICT["USE"])
+    print pref_match
     if (pref_match == None):
         need_clone = True
 	pref_match = findMatch(rm, searchrun, MATCH_STATE_DICT["CLONE"])
@@ -180,8 +182,6 @@ def main():
 
     # Print the RunID to STDOUT
     print pref_match.getRunID()
-    sys.exit(1)   
- 
     return 0
 
 
