@@ -80,9 +80,12 @@ public class CyberShake_DB_DAXGen {
 		dax.addJob(dbCheckJob);
 		
 		Job curveCalcJob = null;
+		Job disaggJob = null;
 		if (DO_CURVE_GEN) {
 			curveCalcJob = createCurveCalcJob();
 			dax.addJob(curveCalcJob);
+			disaggJob = createDisaggJob();
+			dax.addJob(disaggJob);
 		}
 		Job reportJob = createDBReportJob();
 		dax.addJob(reportJob);
@@ -92,8 +95,6 @@ public class CyberShake_DB_DAXGen {
 			dax.addJob(scatterMapJob);
 		}
 
-		Job disaggJob = createDisaggJob();
-		dax.addJob(disaggJob);
 		
 		// Add notification job
 		Job notifyJob = createNotify(DBWRITE_STAGE);
@@ -107,9 +108,10 @@ public class CyberShake_DB_DAXGen {
 		// curve calc is a child of check
 		if (DO_CURVE_GEN) {
 			dax.addDependency(dbCheckJob, curveCalcJob);
+			dax.addDependency(curveCalcJob, disaggJob);
 		}
 		
-		dax.addDependency(dbCheckJob, disaggJob);
+
 		
 		// report is a child of check
 		dax.addDependency(dbCheckJob, reportJob);
