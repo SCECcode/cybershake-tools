@@ -279,16 +279,8 @@ public class CyberShake_SGT_DAXGen {
 	
 	private Job addVMeshMerge(String velModel) {
 		String id = "VMeshMerge_" + riq.getSiteName();
-		Job vMeshMergeJob = null;
-		if (velModel.equals("-v4")) {
-			vMeshMergeJob = new Job(id, NAMESPACE, "V4MeshMerge", VERSION);
-		} else if (velModel.equals("-vh")) {
-			vMeshMergeJob = new Job(id, NAMESPACE, "VHMeshMerge", VERSION);
-		} else {
-			System.out.println(velModel + " is an invalid velocity model option, exiting.");
-			System.exit(2);
-		}
-		
+		Job vMeshMergeJob = new Job(id, NAMESPACE, "UCVMMeshMerge", VERSION);
+				
 		File gridfileFile = new File("gridfile_" + riq.getSiteName());		
 		File pFile = new File("v_sgt-" + riq.getSiteName() + ".p");
 		File sFile = new File("v_sgt-" + riq.getSiteName() + ".s");
