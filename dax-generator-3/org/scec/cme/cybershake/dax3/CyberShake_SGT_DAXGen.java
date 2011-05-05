@@ -231,7 +231,29 @@ public class CyberShake_SGT_DAXGen {
 	}
 	
 	private Job addVMeshGen(String velModel) {
-		String id = "VMeshGen_" + riq.getSiteName();
+		String id = "UCVMMeshGen_" + riq.getSiteName();
+		Job vMeshGenJob = new Job(id, NAMESPACE, "UCVMMeshGen", VERSION);
+		
+		File gridoutFile = new File("gridout_" + riq.getSiteName());
+		File coordFile = new File("model_coords_GC_" + riq.getSiteName());
+		
+		vMeshGenJob.addArgument(riq.getSiteName());
+		vMeshGenJob.addArgument(gridoutFile);		
+		vMeshGenJob.addArgument(coordFile);
+		
+		if (velModel.equals("-v4")) {
+			vMeshGenJob.addArgument("cvms");
+		} else if (velModel.equals("-vh")) {
+			vMeshGenJob.addArgument("cvmh");			
+		} else {
+			System.out.println(velModel + " is an invalid velocity model option, exiting.");
+			System.exit(2);
+		}
+		
+		vMeshGenJob.uses(gridoutFile, File.LINK.INPUT);
+		vMeshGenJob.uses(coordFile, File.LINK.INPUT);
+		
+		/*String id = "VMeshGen_" + riq.getSiteName();
 		Job vMeshGenJob = null;
 		if (velModel.equals("-v4")) {
 			vMeshGenJob = new Job(id, NAMESPACE, "V4MeshGen", VERSION);
@@ -250,7 +272,7 @@ public class CyberShake_SGT_DAXGen {
 		vMeshGenJob.addArgument(coordFile);
 		
 		vMeshGenJob.uses(gridoutFile, File.LINK.INPUT);
-		vMeshGenJob.uses(coordFile, File.LINK.INPUT);
+		vMeshGenJob.uses(coordFile, File.LINK.INPUT);*/
 		
 		return vMeshGenJob;
 	}
