@@ -138,6 +138,8 @@ public class CyberShake_DB_DAXGen {
 		disaggJob.addArgument("--period 3");
 		disaggJob.addArgument("--probs 4.0e-4");
 		disaggJob.addArgument("--output-dir " + DISAGG_OUTPUT_DIR_PREFIX);
+		disaggJob.addArgument("--type pdf,png,txt");
+		
 		
 		disaggJob.addProfile("globus", "maxWallTime", "5");
 		
