@@ -37,7 +37,7 @@ public class CyberShake_SGT_DAXGen {
 				BufferedReader br = new BufferedReader(new FileReader(inputFile));
 				String line = br.readLine();
 				while (line!=null) {
-					runIDQueries.add(new RunIDQuery(Integer.parseInt(line)));
+					runIDQueries.add(new RunIDQuery(Integer.parseInt(line), false));
 				}
 				br.close();
 			} catch (IOException iex) {
@@ -46,7 +46,7 @@ public class CyberShake_SGT_DAXGen {
 			}
 		} else {
 			for (int i=3; i<args.length; i++) {
-				runIDQueries.add(new RunIDQuery(Integer.parseInt(args[i])));
+				runIDQueries.add(new RunIDQuery(Integer.parseInt(args[i]), false));
 			}
 		}
 		boolean twoLevel = false;

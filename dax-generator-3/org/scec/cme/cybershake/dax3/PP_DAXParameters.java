@@ -13,6 +13,8 @@ public class PP_DAXParameters {
 	private boolean databaseInsert;
 	private boolean useMemcached = false;
 	private boolean mergedExe = false;
+	private boolean highFrequency = false;
+	private double highFrequencyCutoff = 0.0;
 	
 	private int numVarsPerDAX;
 	private int maxVarsPerDAX;
@@ -144,6 +146,22 @@ public class PP_DAXParameters {
 	
 	public boolean isMergedExe() {
 		return this.mergedExe;
+	}
+
+	public boolean isHighFrequency() {
+		return highFrequency;
+	}
+
+	public void setHighFrequency(boolean highFrequency) {
+		this.highFrequency = highFrequency;
+	}
+
+	public double getHighFrequencyCutoff() {
+		return highFrequencyCutoff;
+	}
+
+	public void setHighFrequencyCutoff(double highFrequencyCutoff) {
+		this.highFrequencyCutoff = highFrequencyCutoff;
 	}
 
 }
