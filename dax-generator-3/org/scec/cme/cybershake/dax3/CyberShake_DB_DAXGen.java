@@ -262,7 +262,7 @@ public class CyberShake_DB_DAXGen {
 		}
 		int runID = Integer.parseInt(args[0]);
 		CyberShake_DB_DAXGen gen;
-		RunIDQuery rid = new RunIDQuery(runID);
+		RunIDQuery rid = new RunIDQuery(runID, false);
 		
 		if (args.length == 3)
 			gen = new CyberShake_DB_DAXGen(rid, args[1], Integer.parseInt(args[2]));

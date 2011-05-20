@@ -1,10 +1,14 @@
 package org.scec.cme.cybershake.dax3;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+
+import org.opensha.commons.data.siteData.impl.WillsMap2006;
+import org.opensha.commons.geo.Location;
 
 public class RunIDQuery {
 	private int runID;
@@ -16,7 +20,8 @@ public class RunIDQuery {
 	private double cutoffDist;
 	private double lat;
 	private double lon;
-	
+	private double vs30 = -1.0;
+
 	private DBConnect dbc;
 	
 	private final String HOSTNAME = "focal.usc.edu";
@@ -24,12 +29,27 @@ public class RunIDQuery {
 	private final String USER = "cybershk_ro";
 	private final String PASS = "CyberShake2007";
 	
-	public RunIDQuery(int runID) {
+	public RunIDQuery(int runID, boolean hf) {
 		this.runID = runID;
 		dbc = new DBConnect(HOSTNAME, DB_NAME, USER, PASS);
 		populateRunIDInfo();
 		populateSiteInfo();
+		if (hf) {
+			retrieveVs30();
+		}
 		dbc.closeConnection();
+	}
+
+	private void retrieveVs30() {
+		try {
+			WillsMap2006 wills = new WillsMap2006("/home/scec-02/cybershk/runs/dax-generator/wills2006.bin"); // you'll use the data file constructor here
+			Location loc = new Location(lat, lon);
+			vs30 = wills.getValue(loc);
+		} catch (IOException ex) {
+			System.err.println("Unable to retrieve Vs30 for site " + this.siteName + ".");
+			ex.printStackTrace();
+			System.exit(-1);
+		}
 	}
 
 	private void populateSiteInfo() {
@@ -131,5 +151,9 @@ public class RunIDQuery {
 	public double getLon() {
 		return lon;
 	}
-	
+
+	public double getVs30() {
+		return vs30;
+	}
+
 }
