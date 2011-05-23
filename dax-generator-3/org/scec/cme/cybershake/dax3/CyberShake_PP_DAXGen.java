@@ -80,7 +80,7 @@ public class CyberShake_PP_DAXGen {
         Option memcached = new Option("m", "use memcached implementation of jbsim3d");
         Option no_insert = new Option("noinsert", "Don't insert ruptures into database (used for testing)");
         Option merged_executable = new Option("me", "Use a single executable for both synthesis and PSA");
-        Option high_frequency = OptionBuilder.withArgName("frequency_cutoff").hasOptionalArg().withDescription("Lower cutoff in Hz for stochastic high-frequency seismograms (default 1.0)").create("h");
+        Option high_frequency = OptionBuilder.withArgName("frequency_cutoff").hasOptionalArg().withDescription("Lower cutoff in Hz for stochastic high-frequency seismograms (default 1.0)").create("hf");
         cmd_opts.addOption(partition);
         cmd_opts.addOption(priorities);
         cmd_opts.addOption(replicate_sgts);
@@ -91,7 +91,7 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(high_frequency);
         CyberShake_PP_DAXGen daxGen = new CyberShake_PP_DAXGen();
         PP_DAXParameters pp_params = new PP_DAXParameters();
-        String usageString = "Usage: CyberShakeRob <runID> <PP directory> [-p num_subDAXes] [-r] [-rs num_repl] [-s] [-me] [-h]";
+        String usageString = "Usage: CyberShakeRob <runID> <PP directory> [-p num_subDAXes] [-r] [-rs num_repl] [-s] [-m] [-me] [-hf [hf_cutoff]]";
         CommandLineParser parser = new GnuParser();
         if (args.length<1) {
             System.out.println(usageString);
