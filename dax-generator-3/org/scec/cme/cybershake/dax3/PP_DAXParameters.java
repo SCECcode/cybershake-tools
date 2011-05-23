@@ -15,6 +15,7 @@ public class PP_DAXParameters {
 	private boolean mergedExe = false;
 	private boolean highFrequency = false;
 	private double highFrequencyCutoff = 0.0;
+	private double maxHighFrequency = 10.0;
 	
 	private int numVarsPerDAX;
 	private int maxVarsPerDAX;
@@ -162,6 +163,14 @@ public class PP_DAXParameters {
 
 	public void setHighFrequencyCutoff(double highFrequencyCutoff) {
 		this.highFrequencyCutoff = highFrequencyCutoff;
+	}
+
+	public double getMaxHighFrequency() {
+		return maxHighFrequency;
+	}
+
+	public void setMaxHighFrequency(double maxHighFrequency) {
+		this.maxHighFrequency = maxHighFrequency;
 	}
 
 }

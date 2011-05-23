@@ -1,5 +1,8 @@
 package org.scec.cme.cybershake.dax3;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -58,6 +61,7 @@ public class CyberShake_PP_DAXGen {
     private final static String DB = "CyberShake";
     private final static String USER = "cybershk_ro";
     private final static String PASS = "CyberShake2007";
+    private final static String pass_file = "focal.txt";
     private static DBConnect dbc;
      
     //Instance variables
@@ -153,6 +157,9 @@ public class CyberShake_PP_DAXGen {
 			//Get parameters from DB and calculate number of variations
 			ResultSet ruptureSet = getParameters(runID);
 		
+			//populate DB with frequency info
+			putFreqInDB();
+			
 			ADAG topLevelDax = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName(), 0, 1);
 			
 			// Add DAX for checking SGT files
@@ -389,6 +396,33 @@ public class CyberShake_PP_DAXGen {
 		}
 	}
 
+
+
+	private void putFreqInDB() {
+		//read info from passwd file
+		String pass = null;
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(pass_file));
+			pass = br.readLine().trim();
+			br.close();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+		if (pass==null) {
+			System.err.println("Couldn't find a write password for db " + DB);
+			System.exit(3);
+		}
+		DBConnect dbc = new DBConnect(DB_SERVER, DB, "cybershk", pass);
+		String update = "update CyberShake_Runs set (Max_Frequency, Low_Frequency_Cutoff)";
+		if (params.isHighFrequency()) {
+			update += " values (" + params.getMaxHighFrequency() + ", " + params.getHighFrequencyCutoff() + ")";
+		} else {
+			update += " values (0.5, 0.5)";
+		}
+		update += " where Run_ID=" + riq.getRunID();
+		dbc.insertData(update);
+		dbc.closeConnection();
+	}
 
 
 	private ADAG makePostDAX() {

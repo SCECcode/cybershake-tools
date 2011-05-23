@@ -1,5 +1,7 @@
 package org.scec.cme.cybershake.dax3;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -45,6 +47,23 @@ public class RunIDQuery {
 			WillsMap2006 wills = new WillsMap2006("/home/scec-02/cybershk/runs/dax-generator/wills2006.bin"); // you'll use the data file constructor here
 			Location loc = new Location(lat, lon);
 			vs30 = wills.getValue(loc);
+			//write to DB
+			String pass = null;
+			try {
+				BufferedReader br = new BufferedReader(new FileReader("focal.txt"));
+				pass = br.readLine().trim();
+				br.close();
+			} catch (IOException ex) {
+				ex.printStackTrace();
+			}
+			if (pass==null) {
+				System.err.println("Couldn't find a write password for db " + DB_NAME);
+				System.exit(3);
+			}
+			DBConnect dbc = new DBConnect(HOSTNAME, DB_NAME, "cybershk", pass);
+			String update = "update CyberShake_Runs set (Vs30, Vs30_Source) values (" + vs30 + ", \"CGS/Wills Site Classification Map (2006)\") where Run_ID=" + runID;
+			dbc.insertData(update);
+			dbc.closeConnection();
 		} catch (IOException ex) {
 			System.err.println("Unable to retrieve Vs30 for site " + this.siteName + ".");
 			ex.printStackTrace();
