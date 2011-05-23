@@ -407,7 +407,7 @@ public class CyberShake_PP_DAXGen {
 	}
 
 	private ADAG genDBProductsDAX(int numSubDAXes) {
-		CyberShake_DB_DAXGen gen = new CyberShake_DB_DAXGen(riq, ".", numSubDAXes);
+		CyberShake_DB_DAXGen gen = new CyberShake_DB_DAXGen(riq, params, ".", numSubDAXes);
 		ADAG dax = gen.makeDAX();
 			
 		return dax;		
