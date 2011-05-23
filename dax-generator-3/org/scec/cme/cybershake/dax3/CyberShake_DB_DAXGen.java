@@ -47,6 +47,7 @@ public class CyberShake_DB_DAXGen {
 	private String zipFilesDir;
 	private boolean transferZipFiles = true;
 	private int numDAXes;
+	private PP_DAXParameters params;
 	
 	//Job selection
 	// boolean to enable/disable scatter map plotting
@@ -61,12 +62,24 @@ public class CyberShake_DB_DAXGen {
 		zipFilesDir = ".";
 	}
 	
-	public CyberShake_DB_DAXGen(RunIDQuery r, String zipFilesDir, int numDAXes) {
+	public CyberShake_DB_DAXGen(RunIDQuery r, PP_DAXParameters params, String zipFilesDir, int numDAXes) {
 		this(r);
 		this.zipFilesDir = zipFilesDir;
 		transferZipFiles = true;
 		this.numDAXes = numDAXes;
+		this.params = params;
 	}
+	
+	public CyberShake_DB_DAXGen(RunIDQuery r, String zipFilesDir, int numDAXes, boolean highFreq, double highFreqCutoff) {
+		this(r);
+		this.zipFilesDir = zipFilesDir;
+		transferZipFiles = true;
+		this.numDAXes = numDAXes;
+		params = new PP_DAXParameters();
+		params.setHighFrequency(highFreq);
+		params.setHighFrequencyCutoff(highFreqCutoff);
+	}
+	
 	
 	public ADAG makeDAX() {
 		String daxName = CyberShake_PP_DAXGen.DAX_FILENAME_PREFIX + riq.getSiteName() + DAX_FILENAME_POST;
@@ -248,6 +261,11 @@ public class CyberShake_DB_DAXGen {
 		job.addArgument("-z");
 		job.addArgument("-p " + zipFilesDir);
 		job.addArgument("-run " + riq.getRunID());
+		String periods = "10,5,3";
+		if (params.isHighFrequency()) {
+			periods = periods + ",2,1,0.5,0.2,0.1";
+		}
+		job.addArgument("periods " + periods);
 		
 		job.addProfile("globus", "maxWallTime","90");
 		job.addProfile("hints","executionPool", "shock");
@@ -265,7 +283,7 @@ public class CyberShake_DB_DAXGen {
 		RunIDQuery rid = new RunIDQuery(runID, false);
 		
 		if (args.length == 3)
-			gen = new CyberShake_DB_DAXGen(rid, args[1], Integer.parseInt(args[2]));
+			gen = new CyberShake_DB_DAXGen(rid, args[1], Integer.parseInt(args[2]), false, 0.5);
 		else
 			gen = new CyberShake_DB_DAXGen(rid);
 		
