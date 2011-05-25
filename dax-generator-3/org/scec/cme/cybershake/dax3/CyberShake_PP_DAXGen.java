@@ -413,11 +413,11 @@ public class CyberShake_PP_DAXGen {
 			System.exit(3);
 		}
 		DBConnect dbc = new DBConnect(DB_SERVER, DB, "cybershk", pass);
-		String update = "update CyberShake_Runs set (Max_Frequency, Low_Frequency_Cutoff)";
+		String update = "update CyberShake_Runs set Max_Frequency=";
 		if (params.isHighFrequency()) {
-			update += " values (" + params.getMaxHighFrequency() + ", " + params.getHighFrequencyCutoff() + ")";
+			update += params.getMaxHighFrequency() + ", Low_Frequency_Cutoff=" + params.getHighFrequencyCutoff();
 		} else {
-			update += " values (0.5, 0.5)";
+			update += "0.5, Low_Frequency_Cutoff=0.5";
 		}
 		update += " where Run_ID=" + riq.getRunID();
 		dbc.insertData(update);
