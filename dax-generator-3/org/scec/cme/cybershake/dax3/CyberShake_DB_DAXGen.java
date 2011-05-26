@@ -265,7 +265,7 @@ public class CyberShake_DB_DAXGen {
 		if (params.isHighFrequency()) {
 			periods = periods + ",2,1,0.5,0.2,0.1";
 		}
-		job.addArgument("periods " + periods);
+		job.addArgument("-periods " + periods);
 		
 		job.addProfile("globus", "maxWallTime","90");
 		job.addProfile("hints","executionPool", "shock");
