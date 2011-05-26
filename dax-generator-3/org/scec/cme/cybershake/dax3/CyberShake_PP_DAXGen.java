@@ -1027,9 +1027,11 @@ public class CyberShake_PP_DAXGen {
 		
 		Job job = new Job(id, NAMESPACE, HIGH_FREQ_NAME, VERSION);
 		
+		//Leave off the filename extension so it doesn't get included in the zip job
 		File seisFile = new File(SEISMOGRAM_FILENAME_PREFIX + 
 				riq.getSiteName() + "_" + sourceIndex + "_" + rupIndex +
-				"_"+ rupvarcount + "_hf" + SEISMOGRAM_FILENAME_EXTENSION); 
+				"_"+ rupvarcount + "_hf");
+		
 		
 		File slipFile = new File(rupVarLFN + ".slip");
 		
@@ -1069,7 +1071,7 @@ public class CyberShake_PP_DAXGen {
 		File lfSeisFile = new File(SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + sourceIndex + "_" + 
 				rupIndex + "_"+ rupvarcount + "_lf" + SEISMOGRAM_FILENAME_EXTENSION);
 		File hfSeisFile = new File(SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + sourceIndex + "_" + 
-				rupIndex + "_"+ rupvarcount + "_hf" + SEISMOGRAM_FILENAME_EXTENSION);
+				rupIndex + "_"+ rupvarcount + "_hf");
 		File mergedFile = new File(SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + sourceIndex + "_" + 
 				rupIndex + "_"+ rupvarcount + SEISMOGRAM_FILENAME_EXTENSION);
 		
