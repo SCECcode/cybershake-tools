@@ -133,13 +133,13 @@ public class CyberShake_PP_DAXGen {
         	}
         	pp_params.setMergedExe(true);
         }
-        if (line.hasOption("h")) {
+        if (line.hasOption("hf")) {
         	if (pp_params.isMergedExe()) {
         		System.out.println("Only 1 of -me, -h option is supported at this time.");
         		System.exit(3);
         	}
         	pp_params.setHighFrequency(true);
-        	if (line.getOptionValue("h")!=null) {
+        	if (line.getOptionValue("hf")!=null) {
         		pp_params.setHighFrequencyCutoff(Double.parseDouble(line.getOptionValue("h")));
         	} else {
         		//use 1.0 as default
