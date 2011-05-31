@@ -140,7 +140,7 @@ public class CyberShake_PP_DAXGen {
         	}
         	pp_params.setHighFrequency(true);
         	if (line.getOptionValue("hf")!=null) {
-        		pp_params.setHighFrequencyCutoff(Double.parseDouble(line.getOptionValue("h")));
+        		pp_params.setHighFrequencyCutoff(Double.parseDouble(line.getOptionValue("hf")));
         	} else {
         		//use 1.0 as default
         		pp_params.setHighFrequencyCutoff(1.0);
