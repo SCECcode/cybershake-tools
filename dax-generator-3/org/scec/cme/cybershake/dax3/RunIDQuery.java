@@ -61,7 +61,7 @@ public class RunIDQuery {
 				System.exit(3);
 			}
 			DBConnect dbc = new DBConnect(HOSTNAME, DB_NAME, "cybershk", pass);
-			String update = "update CyberShake_Runs set Vs30=" + vs30 + ", Vs30_Source=\"CGS/Wills Site Classification Map (2006)\") where Run_ID=" + runID;
+			String update = "update CyberShake_Runs set Vs30=" + vs30 + ", Vs30_Source=\"CGS/Wills Site Classification Map (2006)\" where Run_ID=" + runID;
 			dbc.insertData(update);
 			dbc.closeConnection();
 		} catch (IOException ex) {
