@@ -47,6 +47,7 @@ public class CyberShake_PP_DAXGen {
     private final static String LOCAL_VM_NAME = "Local_VM";
     private final static String STOCH_NAME = "srf2stoch";
     private final static String HIGH_FREQ_NAME = "HighFrequency";
+    private final static String MERGE_NAME = "MergeFrequency"; 
 	
     //Simulation parameters
     private final static String NUMTIMESTEPS = "3000";
@@ -991,7 +992,7 @@ public class CyberShake_PP_DAXGen {
 	
 
 	private Job createStochJob(int sourceIndex, int rupIndex, int rupvarcount, String rupVarLFN, int count, int currDax) {
-		String id = "ID_" + sourceIndex+"_"+rupIndex+"_"+rupvarcount;
+		String id = "ID_Stoch_" + sourceIndex+"_"+rupIndex+"_"+rupvarcount;
 		
 		Job job = new Job(id, NAMESPACE, STOCH_NAME, VERSION);
 		
@@ -1021,7 +1022,7 @@ public class CyberShake_PP_DAXGen {
 
 	
 	private Job createHighFrequencyJob(int sourceIndex, int rupIndex, int rupvarcount, String rupVarLFN, int count, int currDax) {
-		String id = "ID_" + sourceIndex+"_"+rupIndex+"_"+rupvarcount;
+		String id = "ID_HF_" + sourceIndex+"_"+rupIndex+"_"+rupvarcount;
 		
 		Job job = new Job(id, NAMESPACE, HIGH_FREQ_NAME, VERSION);
 		
@@ -1062,9 +1063,9 @@ public class CyberShake_PP_DAXGen {
 	
 
 	private Job createMergeSeisJob(int sourceIndex, int rupIndex, int rupvarcount, String rupVarLFN, int count, int currDax) {
-		String id = "ID_" + sourceIndex+"_"+rupIndex+"_"+rupvarcount;
+		String id = "ID_Merge" + sourceIndex+"_"+rupIndex+"_"+rupvarcount;
 		
-		Job job = new Job(id, NAMESPACE, HIGH_FREQ_NAME, VERSION);
+		Job job = new Job(id, NAMESPACE, MERGE_NAME, VERSION);
 		
 		File lfSeisFile = new File(SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + sourceIndex + "_" + 
 				rupIndex + "_"+ rupvarcount + "_lf" + SEISMOGRAM_FILENAME_EXTENSION);
