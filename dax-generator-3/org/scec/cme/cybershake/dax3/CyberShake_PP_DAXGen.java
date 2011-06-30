@@ -272,7 +272,7 @@ public class CyberShake_PP_DAXGen {
 							Job highFreqJob = createHighFrequencyJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
 							dax.addJob(highFreqJob);
 							dax.addDependency(stochJob, highFreqJob);
-							dax.addDependency(localVMJob, highFreqJob);							
+//							dax.addDependency(localVMJob, highFreqJob);							
 							
 							mergeJob = createMergeSeisJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), rupvarcount, rupvarcount);
 							dax.addJob(mergeJob);
