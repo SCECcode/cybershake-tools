@@ -9,16 +9,19 @@ import edu.isi.pegasus.planner.dax.Job;
 
 public class CyberShake_DB_DAXGen {
 	//Paths
+	//Condor will expand this into the submit username
+	public static final String USER = "$ENV(USER)";
+	
 	public static final String DB_CHECK_OUTFILE_DIR = "/home/scec-02/tera3d/CyberShake2007/cybershk/pegasus/db_check_outfiles/";
-	public static final String CURVE_OUTPUT_DIR_PREFIX = "/home/scec-00/cybershk/opensha/curves/";
-	public static final String DISAGG_OUTPUT_DIR_PREFIX = "/home/scec-00/cybershk/opensha/disagg/";
+	public static final String CURVE_OUTPUT_DIR_PREFIX = "/home/scec-00/" + USER + "/opensha/curves/";
+	public static final String DISAGG_OUTPUT_DIR_PREFIX = "/home/scec-00/" + USER + "/opensha/disagg/";
 	public static final String OPENSHA_CONF_DIR = "/home/scec-00/cybershk/opensha/OpenSHA/src/org/opensha/sha/cybershake/conf/";
 	public static final String CURVE_ATTEN_REL_XML_FILES = OPENSHA_CONF_DIR + "cb2008.xml"
 			+ "," + OPENSHA_CONF_DIR + "ba2008.xml"
 			+ "," + OPENSHA_CONF_DIR + "cy2008.xml"
 			+ "," + OPENSHA_CONF_DIR + "as2008.xml";
-	public static final String DB_PASS_FILE = "~/config/db_pass.txt";
-	public static final String DB_REPORT_OUTPUT_DIR = "/home/scec-00/cybershk/db_reports/";
+	public static final String DB_PASS_FILE = "/home/scec-00/" + USER + "/config/db_pass.txt";
+	public static final String DB_REPORT_OUTPUT_DIR = "/home/scec-00/" + USER + "/db_reports/";
 
 	//Constants
 	public static final String DAX_FILENAME_POST = "_db_products";
