@@ -1041,7 +1041,7 @@ public class CyberShake_PP_DAXGen {
 		job.addArgument("slat=" + riq.getLat());
 		job.addArgument("slipfile=" + slipFile.getName());
 		job.addArgument("vmod=" + localVMFile.getName());
-		job.addArgument("outfile=" + seisFile);
+		job.addArgument("outfile=" + seisFile.getName());
 		job.addArgument("vs30=" + riq.getVs30());
 		job.addArgument("tlen=" + SEIS_LENGTH);
 		job.addArgument("dt=" + HF_DT);
