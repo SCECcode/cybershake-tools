@@ -865,6 +865,17 @@ public class CyberShake_PP_DAXGen {
     	String id3 = "ID3_" + count + "_" + rupvarcount;
     	Job job3 = new Job(id3, NAMESPACE, PEAK_VAL_CALC_NAME,VERSION);
     
+    	String highFilter = FILTER_HIGHHZ;
+    	String numtimesteps = NUMTIMESTEPS;
+    	String timestep = LF_TIMESTEP;
+    	
+    	if (params.isHighFrequency()) {
+    		//need to use HF values, since LF was resampled to HF
+    		highFilter = ""+ params.getMaxHighFrequency();
+    		numtimesteps = ""+ (int)Math.round(Double.parseDouble(SEIS_LENGTH)/Double.parseDouble(HF_DT));
+    		timestep = HF_DT;
+    	}
+    	
     	job3.addArgument("simulation_out_pointsX=2"); //2 b/c 2 components
     	job3.addArgument("simulation_out_pointsY=1"); //# of variations per seismogram
     	job3.addArgument("simulation_out_timesamples="+NUMTIMESTEPS);// numTimeSteps
