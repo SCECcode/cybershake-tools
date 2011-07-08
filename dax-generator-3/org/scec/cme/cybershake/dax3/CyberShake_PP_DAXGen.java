@@ -878,13 +878,13 @@ public class CyberShake_PP_DAXGen {
     	
     	job3.addArgument("simulation_out_pointsX=2"); //2 b/c 2 components
     	job3.addArgument("simulation_out_pointsY=1"); //# of variations per seismogram
-    	job3.addArgument("simulation_out_timesamples="+NUMTIMESTEPS);// numTimeSteps
-    	job3.addArgument("simulation_out_timeskip="+ LF_TIMESTEP); //dt
+    	job3.addArgument("simulation_out_timesamples="+numtimesteps);// numTimeSteps
+    	job3.addArgument("simulation_out_timeskip="+ timestep); //dt
     	job3.addArgument("surfseis_rspectra_seismogram_units=cmpersec");
     	job3.addArgument("surfseis_rspectra_output_units=cmpersec2");
     	job3.addArgument("surfseis_rspectra_output_type=aa");
     	job3.addArgument("surfseis_rspectra_period=" + SPECTRA_PERIOD1);
-    	job3.addArgument("surfseis_rspectra_apply_filter_highHZ="+FILTER_HIGHHZ);
+    	job3.addArgument("surfseis_rspectra_apply_filter_highHZ="+highFilter);
     	job3.addArgument("surfseis_rspectra_apply_byteswap=no");
     	job3.addArgument("in=" + seisFile.getName());
     	job3.addArgument("out=" + peakValsFile.getName());
