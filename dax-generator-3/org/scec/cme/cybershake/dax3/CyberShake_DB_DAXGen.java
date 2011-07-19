@@ -212,7 +212,11 @@ public class CyberShake_DB_DAXGen {
 		job.addArgument("--run-id " + riq.getRunID());
 		job.addArgument("--erf-file " + CURVE_ERF_XML_FILE);
 		job.addArgument("--atten-rel-file " + CURVE_ATTEN_REL_XML_FILES);
-		job.addArgument("--period " + CURVE_CALC_PERIODS);
+		String periods = CURVE_CALC_PERIODS;
+		if (params.isHighFrequency()) {
+			periods += ",1,0.5,0.2,0.1";
+		}
+		job.addArgument("--period " + periods);
 		job.addArgument("--output-dir " + outputDir);
 		job.addArgument("--type " + CURVE_OUTPUT_TYPES);
 		// this makes it calculate and the add the curve without prompting if needed
