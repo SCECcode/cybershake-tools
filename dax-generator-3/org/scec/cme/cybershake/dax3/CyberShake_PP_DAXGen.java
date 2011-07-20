@@ -6,11 +6,13 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.apache.commons.cli.AlreadySelectedException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
+import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
@@ -44,6 +46,7 @@ public class CyberShake_PP_DAXGen {
     private final static String SEISMOGRAM_SYNTHESIS_NAME = "seismogram_synthesis";
     private final static String PEAK_VAL_CALC_NAME = "PeakValCalc_Okaya";
     private final static String SEIS_PSA_NAME = "Seis_PSA";
+    private final static String SEIS_PSA_MEMCACHED_NAME = "Seis_PSA_memcached";
     private final static String LOCAL_VM_NAME = "Local_VM";
     private final static String STOCH_NAME = "srf2stoch";
     private final static String HIGH_FREQ_NAME = "HighFrequency";
@@ -82,17 +85,21 @@ public class CyberShake_PP_DAXGen {
         Option no_insert = new Option("noinsert", "Don't insert ruptures into database (used for testing)");
         Option merged_executable = new Option("mr", "Use a single executable for both synthesis and PSA");
         Option high_frequency = OptionBuilder.withArgName("frequency_cutoff").hasOptionalArg().withDescription("Lower cutoff in Hz for stochastic high-frequency seismograms (default 1.0)").create("hf");
+        Option seisPSA_memcached = new Option("mmr", "use memcached implementation of seisPSA");
         cmd_opts.addOption(partition);
         cmd_opts.addOption(priorities);
         cmd_opts.addOption(replicate_sgts);
         cmd_opts.addOption(sort_ruptures);
         cmd_opts.addOption(no_insert);
-        cmd_opts.addOption(memcached);
-        cmd_opts.addOption(merged_executable);
         cmd_opts.addOption(high_frequency);
+        OptionGroup memcachedGroup = new OptionGroup();
+        memcachedGroup.addOption(memcached);
+        memcachedGroup.addOption(merged_executable);
+        memcachedGroup.addOption(seisPSA_memcached);
+        cmd_opts.addOptionGroup(memcachedGroup);
         CyberShake_PP_DAXGen daxGen = new CyberShake_PP_DAXGen();
         PP_DAXParameters pp_params = new PP_DAXParameters();
-        String usageString = "Usage: CyberShakeRob <runID> <PP directory> [-p num_subDAXes] [-r] [-rs num_repl] [-s] [-mm] [-mr] [-hf [hf_cutoff]]";
+        String usageString = "Usage: CyberShakeRob <runID> <PP directory> [-p num_subDAXes] [-r] [-rs num_repl] [-s] [-mm | -mr | -mmr] [-hf [hf_cutoff]]";
         CommandLineParser parser = new GnuParser();
         if (args.length<1) {
             System.out.println(usageString);
@@ -101,6 +108,9 @@ public class CyberShake_PP_DAXGen {
         CommandLine line = null;
         try {
             line = parser.parse(cmd_opts, args);
+        } catch (AlreadySelectedException ase) {
+        	System.err.println("Only 1 of mr, mm, mmr may be selected.");
+        	System.exit(3);
         } catch (ParseException pe) {
             pe.printStackTrace();
             System.exit(2);
@@ -134,9 +144,15 @@ public class CyberShake_PP_DAXGen {
         	}
         	pp_params.setMergedExe(true);
         }
+        if (line.hasOption("mmr")) {
+        	pp_params.setUseMergedMemcached(true);
+        }
         if (line.hasOption("hf")) {
         	if (pp_params.isMergedExe()) {
-        		System.out.println("Only 1 of -me, -h option is supported at this time.");
+        		System.out.println("Only 1 of -mr, -hf option is supported at this time.");
+        		System.exit(3);
+        	} else if (pp_params.isMergedMemcached()) {
+        		System.out.println("Only 1 of -mmr, -hf option is supported at this time.");
         		System.exit(3);
         	}
         	pp_params.setHighFrequency(true);
@@ -248,7 +264,7 @@ public class CyberShake_PP_DAXGen {
 				int rupvarcount = 0;
 				//Iterate over variations
 				while (!variationsSet.isAfterLast()) {
-					if (params.isMergedExe()) {
+					if (params.isMergedExe() || params.isMergedMemcached()) {
 						//add 1 job for seis and PSA
 						Job seisPSAJob = createSeisPSAJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
 						dax.addJob(seisPSAJob);
@@ -912,7 +928,12 @@ public class CyberShake_PP_DAXGen {
 	private Job createSeisPSAJob(int sourceIndex, int rupIndex, int rupvarcount, String rupVarLFN, int count, int currDax) {
 		String id2 = "ID2_" + sourceIndex+"_"+rupIndex+"_"+rupvarcount;
 		
-		Job job2= new Job(id2, NAMESPACE, SEIS_PSA_NAME, VERSION);
+		String seisPSAName = SEIS_PSA_NAME;
+		if (params.isMergedMemcached()) {
+			seisPSAName = SEIS_PSA_MEMCACHED_NAME;
+		}
+		
+		Job job2= new Job(id2, NAMESPACE, seisPSAName, VERSION);
                  
 		File seisFile = new File(SEISMOGRAM_FILENAME_PREFIX + 
 			riq.getSiteName() + "_" + sourceIndex + "_" + rupIndex +

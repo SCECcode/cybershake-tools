@@ -16,14 +16,15 @@ public class PP_DAXParameters {
 	private boolean highFrequency = false;
 	private double highFrequencyCutoff = 0.0;
 	private double maxHighFrequency = 10.0;
-	
+	private boolean mergedMemcached = false;
+		
 	private int numVarsPerDAX;
 	private int maxVarsPerDAX;
 	
 	private int notifyGroupSize;
 	
 	private String ppDirectory;
-	
+
 	public PP_DAXParameters() {
 		numOfDAXes = 1;
 		usePriorities = false;
@@ -171,6 +172,14 @@ public class PP_DAXParameters {
 
 	public void setMaxHighFrequency(double maxHighFrequency) {
 		this.maxHighFrequency = maxHighFrequency;
+	}
+
+	public void setUseMergedMemcached(boolean b) {
+		this.mergedMemcached = b;
+	}
+
+	public boolean isMergedMemcached() {
+		return mergedMemcached;
 	}
 
 }
