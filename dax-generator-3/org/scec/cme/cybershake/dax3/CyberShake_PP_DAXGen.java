@@ -751,7 +751,7 @@ public class CyberShake_PP_DAXGen {
      	*/
         String id1 = "ID1_" + sourceIndex+"_"+rupIndex;
         String name = EXTRACT_SGT_NAME;
-        if (params.isUseMemcached()) {
+        if (params.isUseMemcached() || params.isMergedMemcached()) {
         	name = EXTRACT_SGT_NAME + "_memcached";
         }
         Job job1 = new Job(id1, NAMESPACE, name, VERSION);
