@@ -2,7 +2,8 @@
 
 # Add RunManager modules to PYTHONPATH
 import sys
-sys.path.append('/home/scec-00/patrices/code/trunk/RunManager/')
+import params
+sys.path.append(params.RM_DIR)
 
 import os
 import cgi
@@ -153,6 +154,28 @@ def dispDetails(run):
     print "<td>"
     if (run.getNotifyUser() != ""):
         print "%s" % (str(run.getNotifyUser()))
+    else:
+        print "None"
+    print "</td>"
+    print "</tr>"
+
+    # Max_Freq
+    print "<tr>"
+    print "<td>Max Freq:</td>"
+    print "<td>"
+    if (run.getMaxFreq() != ""):
+        print "%s" % (run.getMaxFreq())
+    else:
+        print "None"
+    print "</td>"
+    print "</tr>"
+
+    # Low_Freq_Cutoff
+    print "<tr>"
+    print "<td>Low Freq Cutoff:</td>"
+    print "<td>"
+    if (run.getLowFreqCutoff() != ""):
+        print "%s" % (run.getLowFreqCutoff())
     else:
         print "None"
     print "</td>"

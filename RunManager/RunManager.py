@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 
 # Imports
@@ -193,6 +194,10 @@ class RunManager:
             fields["Notify_User"] = run.getNotifyUser()
 	if (run.getVelID() != None):
 	    fields["Velocity_Model_ID"] = run.getVelID()
+	if (run.getMaxFreq() != None):
+	    fields["Max_Frequency"] = run.getMaxFrequency()
+	if (run.getLowFreqCutoff() != None):
+	    fields["Low_Frequency_Cutoff"] = run.getLowFreqCutoff()
             
         return fields
 
@@ -246,7 +251,7 @@ class RunManager:
     def __getRunsSQL(self, where_str, order_str, lock_str):
 
         # Retrieve these runs and lock the rows for update if needed
-        sqlcmd = "select Run_ID, CS_Site_ID, CS_Short_Name, CS_Site_Lat, CS_Site_Lon, CS_Site_Name, CS_Site_Type_Name, ERF_ID, SGT_Variation_ID, Rup_Var_Scenario_ID, Velocity_Model_ID, Status, Status_Time, SGT_Host, SGT_Time, PP_Host, PP_Time, Comment, Last_User, Job_ID, Submit_Dir, Notify_User from %s r, CyberShake_Sites s, CyberShake_Site_Types t where s.CS_Site_ID = r.Site_ID and s.CS_Site_Type_ID = t.CS_Site_Type_ID %s %s %s" % (RUN_TABLE_NAME, where_str, order_str, lock_str)
+        sqlcmd = "select Run_ID, CS_Site_ID, CS_Short_Name, CS_Site_Lat, CS_Site_Lon, CS_Site_Name, CS_Site_Type_Name, ERF_ID, SGT_Variation_ID, Rup_Var_Scenario_ID, Velocity_Model_ID, Status, Status_Time, SGT_Host, SGT_Time, PP_Host, PP_Time, Comment, Last_User, Job_ID, Submit_Dir, Notify_User, Max_Frequency, Low_Frequency_Cutoff from %s r, CyberShake_Sites s, CyberShake_Site_Types t where s.CS_Site_ID = r.Site_ID and s.CS_Site_Type_ID = t.CS_Site_Type_ID %s %s %s" % (RUN_TABLE_NAME, where_str, order_str, lock_str)
         if (self.database.execsql(sqlcmd) != 0):
             self._printError("Unable to retrieve run.")
             return None
@@ -272,9 +277,7 @@ class RunManager:
                     newrun.setERFID(r[7])
                     newrun.setSGTVarID(r[8])
                     newrun.setRupVarID(r[9])
-
                     newrun.setVelID(r[10])
-
                     newrun.setStatus(r[11])
                     newrun.setStatusTime(r[12])
                     newrun.setSGTHost(r[13])
@@ -286,6 +289,8 @@ class RunManager:
                     newrun.setJobID(r[19])
                     newrun.setSubmitDir(r[20])
                     newrun.setNotifyUser(r[21])
+                    newrun.setMaxFreq(r[22])
+                    newrun.setLowFreqCutoff(r[23])
                     runs.append(newrun)
 
                 return runs

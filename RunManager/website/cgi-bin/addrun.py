@@ -2,7 +2,8 @@
 
 # Add RunManager modules to PYTHONPATH
 import sys
-sys.path.append('/home/scec-00/patrices/code/trunk/RunManager/')
+import params
+sys.path.append(params.RM_DIR)
 
 import cgi
 from RunManager import *
