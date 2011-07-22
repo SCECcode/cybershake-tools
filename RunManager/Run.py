@@ -27,7 +27,8 @@ class Run:
     job_id = None
     submit_dir = None
     notify_user = None
-
+    max_freq = None
+    low_freq_cutoff = None
 
     def __init__(self):
         self.run_id = None
@@ -47,6 +48,8 @@ class Run:
         self.job_id = None
         self.submit_dir = None
         self.notify_user = None
+        self.max_freq = None
+        self.low_freq_cutoff = None
 
 
     def copy(self, obj):
@@ -67,6 +70,8 @@ class Run:
         self.job_id = obj.job_id
         self.submit_dir = obj.submit_dir
         self.notify_user = obj.notify_user
+        self.max_freq = obj.max_freq
+        self.low_freq_cutoff = obj.low_freq_cutoff
 
 
     #@staticmethod
@@ -273,6 +278,23 @@ class Run:
         else:
             self.notify_user = str(notify_user)
 
+    def getMaxFreq(self):
+        return(self.max_freq)
+
+    def setMaxFreq(self, max_freq):
+        if (max_freq == None):
+            self.max_freq = max_freq
+        else:
+            self.max_freq = str(max_freq)
+
+    def getLowFreqCutoff(self):
+        return(self.low_freq_cutoff)
+
+    def setLowFreqCutoff(self, low_freq_cutoff):
+        if (low_freq_cutoff == None):
+            self.low_freq_cutoff = low_freq_cutoff
+        else:
+            self.low_freq_cutoff = str(low_freq_cutoff)
 
     def dumpToScreen(self):
         if (self.site_obj != None):
