@@ -147,7 +147,10 @@ def displayCurves(stats):
     img_list = []
     file_list = []
     for c in stats.getCurveList():
-        per_str = "SA_%dsec" % (int(round(c.getIMValue())))
+        if (c.getIMValue() >= 1.0):
+            per_str = "SA_%dsec" % (int(round(c.getIMValue())))
+        else:
+            per_str = "SA_%2.1fsec" % (float(c.getIMValue()))
         header_list.append(per_str)
         found = False
         match = None
