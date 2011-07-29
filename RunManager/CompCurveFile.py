@@ -18,7 +18,7 @@ class CompCurveFile:
     def __init__(self, srcname):
         self.srcname = srcname
         self.escaped = cgi.escape(self.srcname, True)
-        suffix = self.srcname.split(".", 1)
+        suffix = self.srcname.rsplit(".", 1)
         if (len(suffix) == 2):
             tokens = suffix[0].split("_")
             if (len(tokens) == 8):
