@@ -312,16 +312,16 @@ public class CyberShake_PP_DAXGen {
 							dax.addDependency(psaJob, zipJobs[1]);
 						}
 					}
-				    	
-			    	// Attach notification job to end of workflow after zip jobs
-			    	if (currDax % params.getNotifyGroupSize()== 0) {
-			    		Job notifyJob = addNotify(dax, riq.getSiteName(), "DAX", currDax, params.getNumOfDAXes());
-			    		dax.addDependency(zipJobs[0], notifyJob);
-			    		dax.addDependency(zipJobs[1], notifyJob);
-			    	}
 			   		rupvarcount++;
 			    	variationsSet.next();
 				}
+		    	// Attach notification job to end of workflow after zip jobs
+				if (currDax % params.getNotifyGroupSize()== 0) {
+		    		Job notifyJob = addNotify(dax, riq.getSiteName(), "DAX", currDax, params.getNumOfDAXes());
+		    		dax.addDependency(zipJobs[0], notifyJob);
+		    		dax.addDependency(zipJobs[1], notifyJob);
+		    	}
+				
 				if (numVarsInDAX > params.getNumVarsPerDAX()) {
 					//Create new dax
 					System.out.println(numVarsInDAX + " vars in dax " + currDax);
