@@ -457,7 +457,6 @@ public class CyberShake_PP_DAXGen {
     	    
     	    // Create update run state job
     	    Job updateJob = addUpdate(postDax, riq.getRunID(), "PP_START", "PP_END");
-    	    postDax.addJob(updateJob);
     	    
           	return postDax;
     	} catch (Exception ex) {
