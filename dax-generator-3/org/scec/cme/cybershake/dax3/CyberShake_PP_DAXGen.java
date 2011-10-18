@@ -51,6 +51,7 @@ public class CyberShake_PP_DAXGen {
     private final static String STOCH_NAME = "srf2stoch";
     private final static String HIGH_FREQ_NAME = "HighFrequency";
     private final static String MERGE_NAME = "MergeFrequency"; 
+    private final static String HF_SYNTH_NAME = "HF_Synth";
 	
     //Simulation parameters
     private final static String NUMTIMESTEPS = "3000";
@@ -83,7 +84,8 @@ public class CyberShake_PP_DAXGen {
         Option sort_ruptures = new Option("s", "sort ruptures by descending size;  will include priorities");
         Option memcached = new Option("mm", "use memcached implementation of jbsim3d");
         Option no_insert = new Option("noinsert", "Don't insert ruptures into database (used for testing)");
-        Option merged_executable = new Option("mr", "Use a single executable for both synthesis and PSA");
+        Option seisPSA = new Option("mr", "Use a single executable for both synthesis and PSA");
+        Option hf_synth = new Option("hs", "Use a single executable for srf2stoch and hfsim");
         Option high_frequency = OptionBuilder.withArgName("frequency_cutoff").hasOptionalArg().withDescription("Lower cutoff in Hz for stochastic high-frequency seismograms (default 1.0)").create("hf");
         Option seisPSA_memcached = new Option("mmr", "use memcached implementation of seisPSA");
         cmd_opts.addOption(partition);
@@ -91,15 +93,16 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(replicate_sgts);
         cmd_opts.addOption(sort_ruptures);
         cmd_opts.addOption(no_insert);
+        cmd_opts.addOption(hf_synth);
         cmd_opts.addOption(high_frequency);
         OptionGroup memcachedGroup = new OptionGroup();
         memcachedGroup.addOption(memcached);
-        memcachedGroup.addOption(merged_executable);
+        memcachedGroup.addOption(seisPSA);
         memcachedGroup.addOption(seisPSA_memcached);
         cmd_opts.addOptionGroup(memcachedGroup);
         CyberShake_PP_DAXGen daxGen = new CyberShake_PP_DAXGen();
         PP_DAXParameters pp_params = new PP_DAXParameters();
-        String usageString = "Usage: CyberShakeRob <runID> <PP directory> [-p num_subDAXes] [-r] [-rs num_repl] [-s] [-mm | -mr | -mmr] [-hf [hf_cutoff]]";
+        String usageString = "Usage: CyberShakeRob <runID> <PP directory> [-p num_subDAXes] [-r] [-rs num_repl] [-s] [-mm | -mr | -mmr] [-hs] [-hf [hf_cutoff]]";
         CommandLineParser parser = new GnuParser();
         if (args.length<1) {
             System.out.println(usageString);
@@ -161,6 +164,9 @@ public class CyberShake_PP_DAXGen {
         	} else {
         		//use 1.0 as default
         		pp_params.setHighFrequencyCutoff(1.0);
+        	}
+        	if (line.hasOption("hs")) {
+        		pp_params.setHfsynth(true);
         	}
         }
         daxGen.makeDAX(runID, pp_params);
@@ -289,14 +295,22 @@ public class CyberShake_PP_DAXGen {
 						//if HF jobs, add here
 						Job mergeJob = null;
 						if (params.isHighFrequency()) {
-							Job stochJob = createStochJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
-							dax.addJob(stochJob);
-							dax.addDependency(extractJob, stochJob);
+							Job highFreqJob = null;
+							if (params.isHfsynth()) {
+								//add merged job
+								highFreqJob = createHFSynthJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
+								dax.addJob(highFreqJob);
+								dax.addDependency(extractJob, highFreqJob);
+							} else {
+								Job stochJob = createStochJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
+								dax.addJob(stochJob);
+								dax.addDependency(extractJob, stochJob);
 							
-							Job highFreqJob = createHighFrequencyJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
-							dax.addJob(highFreqJob);
-							dax.addDependency(stochJob, highFreqJob);
-//							dax.addDependency(localVMJob, highFreqJob);							
+								highFreqJob = createHighFrequencyJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
+								dax.addJob(highFreqJob);
+								dax.addDependency(stochJob, highFreqJob);
+//								dax.addDependency(localVMJob, highFreqJob);
+							}
 							
 							mergeJob = createMergeSeisJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), rupvarcount, rupvarcount);
 							dax.addJob(mergeJob);
@@ -423,7 +437,6 @@ public class CyberShake_PP_DAXGen {
 	}
 
 
-
 	private void putFreqInDB() {
 		//read info from passwd file
 		String pass = null;
@@ -457,6 +470,7 @@ public class CyberShake_PP_DAXGen {
     	    
     	    // Create update run state job
     	    Job updateJob = addUpdate(postDax, riq.getRunID(), "PP_START", "PP_END");
+
     	    
           	return postDax;
     	} catch (Exception ex) {
@@ -1135,6 +1149,46 @@ public class CyberShake_PP_DAXGen {
 		job.addProfile("globus", "maxWallTime", "1");
      	job.addProfile("pegasus", "group", "" + count);
         job.addProfile("pegasus", "label", "" + currDax);
+		
+		return job;
+	}
+	
+
+	private Job createHFSynthJob(int sourceIndex, int rupIndex, int rupvarcount, String rupVarLFN, int count, int currDax) {
+		String id = "ID_HF_Synth" + sourceIndex + "_" + rupIndex + "_" + rupvarcount;
+		
+		Job job = new Job(id, NAMESPACE, HF_SYNTH_NAME, VERSION);
+
+		double DX = 2.0;
+		double DY = 2.5;
+		
+		File srfFile = new File(rupVarLFN);
+		File localVMFile = new File(localVMFilename);
+		File seisFile = new File(SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + sourceIndex + "_" + 
+				rupIndex + "_"+ rupvarcount + "_hf");
+		
+		seisFile.setRegister(false);
+		seisFile.setTransfer(File.TRANSFER.FALSE);
+		
+		job.uses(srfFile, File.LINK.INPUT);
+		job.uses(localVMFile, LINK.INPUT);
+		job.uses(seisFile, File.LINK.OUTPUT);
+		
+		job.addArgument("infile=" + srfFile.getName());
+		job.addArgument("outfile=" + seisFile.getName());
+		job.addArgument("dx=" + DX);
+		job.addArgument("dy=" + DY);
+		job.addArgument("stat=" + riq.getSiteName());
+		job.addArgument("slon=" + riq.getLon());
+		job.addArgument("slat=" + riq.getLat());
+		job.addArgument("vmod=" + localVMFile.getName());
+		job.addArgument("vs30=" + riq.getVs30());
+		job.addArgument("tlen=" + SEIS_LENGTH);
+		job.addArgument("dt=" + HF_DT);
+		
+		job.addProfile("globus", "maxWallTime", "1");
+		job.addProfile("pegasus", "group", "" + count);
+		job.addProfile("pegasus", "label", "" + currDax);
 		
 		return job;
 	}
