@@ -12,10 +12,11 @@ public class PP_DAXParameters {
 	private boolean sortRuptures;
 	private boolean databaseInsert;
 	private boolean useMemcached = false;
-	private boolean mergedExe = false;
+	private boolean seisPSAexe = false;
 	private boolean highFrequency = false;
 	private double highFrequencyCutoff = 0.0;
 	private double maxHighFrequency = 10.0;
+	private boolean hfsynth = false;
 	private boolean mergedMemcached = false;
 		
 	private int numVarsPerDAX;
@@ -143,11 +144,11 @@ public class PP_DAXParameters {
 	}
 
 	public void setMergedExe(boolean b) {
-		this.mergedExe = b;
+		this.seisPSAexe = b;
 	}
 	
 	public boolean isMergedExe() {
-		return this.mergedExe;
+		return this.seisPSAexe;
 	}
 
 	public boolean isHighFrequency() {
@@ -180,6 +181,14 @@ public class PP_DAXParameters {
 
 	public boolean isMergedMemcached() {
 		return mergedMemcached;
+	}
+
+	public boolean isHfsynth() {
+		return hfsynth;
+	}
+
+	public void setHfsynth(boolean hfsynth) {
+		this.hfsynth = hfsynth;
 	}
 
 }
