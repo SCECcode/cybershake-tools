@@ -120,27 +120,31 @@ def displayDetails(stats):
 def displayCurves(stats):
 
     site = stats.getSite().getShortName()
-    
-    # Construct paths
-    src_dir = "%s%s/" % (CURVE_DIR, site)
-    
-    # Get list of curves from src dir
-    try:
-        files = os.listdir(src_dir)
-    except:
-        files = []
 
-    # Isolate the .png files
+    # Find a valid curve directory
+    files = []
     curves = []
-    if (len(files) > 0):
-        # Display all .png files
-        i = 0
-        for f in files:
-            if (f.find('.png') != -1):
-                i = i + 1
-                srcname = "%s%s" % (src_dir, f)
-                curvepic = CompCurveFile(srcname)
-                curves.append(curvepic)
+    for dir in CURVE_DIRS:
+        # Construct paths
+        src_dir = "%s%s/" % (dir, site)
+
+        # Get list of curves from src dir
+        try:
+            files = os.listdir(src_dir)
+        except:
+            files = []
+
+        # Isolate the .png files for this run
+        if (len(files) > 0):
+            # Display all .png files
+            i = 0
+            for f in files:
+                if (f.find('.png') != -1):
+                    i = i + 1
+                    srcname = "%s%s" % (src_dir, f)
+                    curvepic = CompCurveFile(srcname)
+                    if (curvepic.getRunID() == stats.getRunID()):
+                        curves.append(curvepic)
 
     # Construct data for table
     header_list = []
@@ -155,7 +159,8 @@ def displayCurves(stats):
         found = False
         match = None
         for curvepic in curves:
-            if ((per_str == curvepic.getPeriod()) and (curvepic.getRunID() == stats.getRunID())):
+            if ((per_str == curvepic.getPeriod()) and \
+                    (curvepic.getRunID() == stats.getRunID())):
                 if ((match == None) or (match.getDate() < curvepic.getDate())):
                     match = curvepic
 
