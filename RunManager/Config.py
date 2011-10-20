@@ -66,8 +66,9 @@ OPENSHA_AF_XML = '%s/%s,%s/%s,%s/%s,%s/%s' % \
 OPENSHA_DBPASS_FILE = '/home/scec-00/cybershk/config/db_pass.txt'
 
 
-# Directory containing hazard curve images
-CURVE_DIR = "/home/scec-00/cybershk/opensha/curves/"
+# Directories containing hazard curve images
+CURVE_DIRS = ["/home/scec-00/cybershk/opensha/curves/", \
+                  "/home/scec-00/tera3d/opensha/curves/"]
 
 
 # Path to the most recent scatter plot
