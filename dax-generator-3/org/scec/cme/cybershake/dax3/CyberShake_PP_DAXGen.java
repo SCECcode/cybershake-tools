@@ -320,23 +320,27 @@ public class CyberShake_PP_DAXGen {
 							
 							if (params.isMergePSA()) {
 								mergeJob = createMergePSAJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
+								dax.addDependency(highFreqJob, mergeJob);							
+								dax.addDependency(seismoJob, mergeJob);
+								//make the zip jobs appropriate children
+								dax.addDependency(mergeJob, zipJobs[0]);
+								dax.addDependency(mergeJob, zipJobs[1]);
+							} else {
+								mergeJob = createMergeSeisJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
+								dax.addDependency(highFreqJob, mergeJob);							
+								dax.addDependency(seismoJob, mergeJob);
+								Job psaJob = createPSAJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
+								dax.addJob(psaJob);
+								dax.addDependency(mergeJob, psaJob);
+								//make the zip jobs appropriate children
+								dax.addDependency(mergeJob, zipJobs[0]);
+								dax.addDependency(psaJob, zipJobs[1]);
 							}
-							mergeJob = createMergeSeisJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
-							dax.addJob(mergeJob);
-							dax.addDependency(highFreqJob, mergeJob);							
-							dax.addDependency(seismoJob, mergeJob);
-						}
-							
-						//create and add PSA
-						Job psaJob = createPSAJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
-						dax.addJob(psaJob);
-						//set up dependencies
-						if (params.isHighFrequency()) {
-							dax.addDependency(mergeJob, psaJob);
-							//make the zip jobs appropriate children
-							dax.addDependency(mergeJob, zipJobs[0]);
-							dax.addDependency(psaJob, zipJobs[1]);
 						} else {
+							//create and add PSA
+							Job psaJob = createPSAJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
+							dax.addJob(psaJob);
+							//set up dependencies
 							dax.addDependency(seismoJob, psaJob);
 							//make the zip jobs appropriate children
 							dax.addDependency(seismoJob, zipJobs[0]);
