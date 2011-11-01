@@ -320,6 +320,7 @@ public class CyberShake_PP_DAXGen {
 							
 							if (params.isMergePSA()) {
 								mergeJob = createMergePSAJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
+								dax.addJob(mergeJob);
 								dax.addDependency(highFreqJob, mergeJob);							
 								dax.addDependency(seismoJob, mergeJob);
 								//make the zip jobs appropriate children
@@ -1208,7 +1209,7 @@ public class CyberShake_PP_DAXGen {
 	
 
 	private Job createMergePSAJob(int sourceIndex, int rupIndex, int rupvarcount, String rupVarLFN, int count, int currDax) {
-		String id = "ID_MergePSA" + sourceIndex + "_" + rupIndex + "_" + rupvarcount;
+		String id = "ID_MergePSA_" + sourceIndex + "_" + rupIndex + "_" + rupvarcount;
 		
 		Job job = new Job(id, NAMESPACE, MERGE_PSA_NAME, VERSION);
 		
