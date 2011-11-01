@@ -328,6 +328,7 @@ public class CyberShake_PP_DAXGen {
 								dax.addDependency(mergeJob, zipJobs[1]);
 							} else {
 								mergeJob = createMergeSeisJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
+								dax.addJob(mergeJob);
 								dax.addDependency(highFreqJob, mergeJob);							
 								dax.addDependency(seismoJob, mergeJob);
 								Job psaJob = createPSAJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
