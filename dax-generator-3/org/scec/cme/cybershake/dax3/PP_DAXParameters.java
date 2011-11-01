@@ -17,6 +17,7 @@ public class PP_DAXParameters {
 	private double highFrequencyCutoff = 0.0;
 	private double maxHighFrequency = 10.0;
 	private boolean hfsynth = false;
+	private boolean mergePSA = false;
 	private boolean mergedMemcached = false;
 		
 	private int numVarsPerDAX;
@@ -189,6 +190,14 @@ public class PP_DAXParameters {
 
 	public void setHfsynth(boolean hfsynth) {
 		this.hfsynth = hfsynth;
+	}
+
+	public boolean isMergePSA() {
+		return mergePSA;
+	}
+
+	public void setMergePSA(boolean mergePSA) {
+		this.mergePSA = mergePSA;
 	}
 
 }
