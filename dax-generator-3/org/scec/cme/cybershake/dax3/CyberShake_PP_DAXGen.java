@@ -52,6 +52,7 @@ public class CyberShake_PP_DAXGen {
     private final static String HIGH_FREQ_NAME = "HighFrequency";
     private final static String MERGE_NAME = "MergeFrequency"; 
     private final static String HF_SYNTH_NAME = "HF_Synth";
+    private final static String MERGE_PSA_NAME = "MergePSA";
 	
     //Simulation parameters
     private final static String NUMTIMESTEPS = "3000";
@@ -86,6 +87,7 @@ public class CyberShake_PP_DAXGen {
         Option no_insert = new Option("noinsert", "Don't insert ruptures into database (used for testing)");
         Option seisPSA = new Option("mr", "Use a single executable for both synthesis and PSA");
         Option hf_synth = new Option("hs", "Use a single executable for srf2stoch and hfsim");
+        Option merge_psa = new Option("mp", "Use a single executable for merging lf/hf seismograms and PSA");
         Option high_frequency = OptionBuilder.withArgName("frequency_cutoff").hasOptionalArg().withDescription("Lower cutoff in Hz for stochastic high-frequency seismograms (default 1.0)").create("hf");
         Option seisPSA_memcached = new Option("mmr", "use memcached implementation of seisPSA");
         cmd_opts.addOption(partition);
@@ -94,6 +96,7 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(sort_ruptures);
         cmd_opts.addOption(no_insert);
         cmd_opts.addOption(hf_synth);
+        cmd_opts.addOption(merge_psa);
         cmd_opts.addOption(high_frequency);
         OptionGroup memcachedGroup = new OptionGroup();
         memcachedGroup.addOption(memcached);
@@ -167,6 +170,9 @@ public class CyberShake_PP_DAXGen {
         	}
         	if (line.hasOption("hs")) {
         		pp_params.setHfsynth(true);
+        	}
+        	if (line.hasOption("mp")) {
+        		pp_params.setMergePSA(true);
         	}
         }
         daxGen.makeDAX(runID, pp_params);
@@ -312,7 +318,10 @@ public class CyberShake_PP_DAXGen {
 //								dax.addDependency(localVMJob, highFreqJob);
 							}
 							
-							mergeJob = createMergeSeisJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), rupvarcount, rupvarcount);
+							if (params.isMergePSA()) {
+								mergeJob = createMergePSAJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
+							}
+							mergeJob = createMergeSeisJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
 							dax.addJob(mergeJob);
 							dax.addDependency(highFreqJob, mergeJob);							
 							dax.addDependency(seismoJob, mergeJob);
@@ -1190,6 +1199,61 @@ public class CyberShake_PP_DAXGen {
 		job.addProfile("pegasus", "group", "" + count);
 		job.addProfile("pegasus", "label", "" + currDax);
 		
+		return job;
+	}
+	
+
+	private Job createMergePSAJob(int sourceIndex, int rupIndex, int rupvarcount, String rupVarLFN, int count, int currDax) {
+		String id = "ID_MergePSA" + sourceIndex + "_" + rupIndex + "_" + rupvarcount;
+		
+		Job job = new Job(id, NAMESPACE, MERGE_PSA_NAME, VERSION);
+		
+		File lfSeisFile = new File(SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + sourceIndex + "_" + 
+				rupIndex + "_"+ rupvarcount + "_lf" + SEISMOGRAM_FILENAME_EXTENSION);
+		File hfSeisFile = new File(SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + sourceIndex + "_" + 
+				rupIndex + "_"+ rupvarcount + "_hf");
+		File mergedFile = new File(SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + sourceIndex + "_" + 
+				rupIndex + "_"+ rupvarcount + SEISMOGRAM_FILENAME_EXTENSION);
+		File psaFile = new File(PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" + sourceIndex + "_" + rupIndex +
+    			"_"+rupvarcount+ PEAKVALS_FILENAME_EXTENSION);
+		
+		job.uses(lfSeisFile, File.LINK.INPUT);
+		job.uses(hfSeisFile, File.LINK.INPUT);
+		job.uses(mergedFile, File.LINK.OUTPUT);
+		job.uses(psaFile, File.LINK.OUTPUT);
+		
+		mergedFile.setTransfer(File.TRANSFER.FALSE);
+		mergedFile.setRegister(false);
+		
+		psaFile.setTransfer(File.TRANSFER.FALSE);
+		psaFile.setRegister(false);
+
+		int hf_nt = (int)Math.round(Double.parseDouble(SEIS_LENGTH)/Double.parseDouble(HF_DT));
+		
+		job.addArgument("freq=" + params.getHighFrequencyCutoff());
+		job.addArgument("lf_seis=" + lfSeisFile.getName());
+		job.addArgument("hf_seis=" + hfSeisFile.getName());
+		job.addArgument("outfile=" + mergedFile.getName());
+		job.addArgument("hf_dt=" + HF_DT);
+		job.addArgument("hf_nt=" + hf_nt);
+		job.addArgument("lf_dt=" + LF_TIMESTEP);
+		job.addArgument("lf_nt=" + NUMTIMESTEPS);
+       	job.addArgument("simulation_out_pointsX=2"); //2b/c 2 components
+    	job.addArgument("simulation_out_pointsY=1"); //# of variations per seismogram
+    	job.addArgument("simulation_out_timesamples="+hf_nt);// numTimeSteps
+    	job.addArgument("simulation_out_timeskip="+ HF_DT); //dt
+    	job.addArgument("surfseis_rspectra_seismogram_units=cmpersec");
+    	job.addArgument("surfseis_rspectra_output_units=cmpersec2");
+    	job.addArgument("surfseis_rspectra_output_type=aa");
+    	job.addArgument("surfseis_rspectra_period=" + SPECTRA_PERIOD1);
+    	job.addArgument("surfseis_rspectra_apply_filter_highHZ="+FILTER_HIGHHZ);
+    	job.addArgument("surfseis_rspectra_apply_byteswap=no");
+    	job.addArgument("out=" + psaFile.getName());
+		
+		job.addProfile("globus", "maxWallTime", "1");
+		job.addProfile("pegasus", "group", "" + count);
+		job.addProfile("pegasus", "label", "" + currDax);
+    	
 		return job;
 	}
 }
