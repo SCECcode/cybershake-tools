@@ -1252,7 +1252,7 @@ public class CyberShake_PP_DAXGen {
     	job.addArgument("surfseis_rspectra_output_units=cmpersec2");
     	job.addArgument("surfseis_rspectra_output_type=aa");
     	job.addArgument("surfseis_rspectra_period=" + SPECTRA_PERIOD1);
-    	job.addArgument("surfseis_rspectra_apply_filter_highHZ="+FILTER_HIGHHZ);
+    	job.addArgument("surfseis_rspectra_apply_filter_highHZ="+params.getMaxHighFrequency());
     	job.addArgument("surfseis_rspectra_apply_byteswap=no");
     	job.addArgument("out=" + psaFile.getName());
 		
