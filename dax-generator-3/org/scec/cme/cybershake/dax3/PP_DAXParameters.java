@@ -26,6 +26,8 @@ public class PP_DAXParameters {
 	private int notifyGroupSize;
 	
 	private String ppDirectory;
+	
+	private boolean rvDB = false;
 
 	public PP_DAXParameters() {
 		numOfDAXes = 1;
@@ -198,6 +200,14 @@ public class PP_DAXParameters {
 
 	public void setMergePSA(boolean mergePSA) {
 		this.mergePSA = mergePSA;
+	}
+
+	public boolean isRvDB() {
+		return rvDB;
+	}
+
+	public void setRvDB(boolean rvDB) {
+		this.rvDB = rvDB;
 	}
 
 }
