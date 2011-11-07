@@ -70,6 +70,9 @@ public class CyberShake_PP_DAXGen {
     private final static String pass_file = "focal.txt";
     private static DBConnect dbc;
      
+    //SQLite DB
+    private RuptureVariationDB sqlDB = null;
+    
     //Instance variables
     private PP_DAXParameters params;
     private RunIDQuery riq;
@@ -90,6 +93,7 @@ public class CyberShake_PP_DAXGen {
         Option merge_psa = new Option("mp", "Use a single executable for merging lf/hf seismograms and PSA");
         Option high_frequency = OptionBuilder.withArgName("frequency_cutoff").hasOptionalArg().withDescription("Lower cutoff in Hz for stochastic high-frequency seismograms (default 1.0)").create("hf");
         Option seisPSA_memcached = new Option("mmr", "use memcached implementation of seisPSA");
+        Option sqlIndex = new Option("sql", "Create sqlite file containing (source, rupture, rv) to sub workflow mapping");
         cmd_opts.addOption(partition);
         cmd_opts.addOption(priorities);
         cmd_opts.addOption(replicate_sgts);
@@ -98,6 +102,7 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(hf_synth);
         cmd_opts.addOption(merge_psa);
         cmd_opts.addOption(high_frequency);
+        cmd_opts.addOption(sqlIndex);
         OptionGroup memcachedGroup = new OptionGroup();
         memcachedGroup.addOption(memcached);
         memcachedGroup.addOption(seisPSA);
@@ -175,8 +180,10 @@ public class CyberShake_PP_DAXGen {
         		pp_params.setMergePSA(true);
         	}
         }
+        if (line.hasOption("sql")) {
+        	pp_params.setRvDB(true);
+        }
         daxGen.makeDAX(runID, pp_params);
-        
 	}
 
 
@@ -220,7 +227,11 @@ public class CyberShake_PP_DAXGen {
 			Job[] zipJobs = addZipJobs(dax, currDax);
   	    
 			int numVarsInDAX = 0;
-  	    
+
+			if (params.isRvDB()) {
+	        	sqlDB = new RuptureVariationDB(riq.getSiteName(), riq.getRunID());
+			}
+			
 			while (!ruptureSet.isAfterLast()) {
 				++count;
 				if (count%100==0) {
@@ -259,7 +270,6 @@ public class CyberShake_PP_DAXGen {
 					File jDaxFile = new File(daxFile);
 					jDaxFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + daxFile, "local");
 					topLevelDax.addFile(jDaxFile);
-
 					
 					currDax++;
 					dax = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + currDax, currDax, params.getNumOfDAXes());
@@ -284,6 +294,11 @@ public class CyberShake_PP_DAXGen {
 				int rupvarcount = 0;
 				//Iterate over variations
 				while (!variationsSet.isAfterLast()) {
+					//Add entry to SQL DB
+					if (params.isRvDB()) {
+						sqlDB.addMapping(sourceIndex, rupIndex, rupvarcount, currDax);
+					}
+					
 					if (params.isMergedExe() || params.isMergedMemcached()) {
 						//add 1 job for seis and PSA
 						Job seisPSAJob = createSeisPSAJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
