@@ -34,10 +34,10 @@ public class RuptureVariationDB {
 	
 	public void addMapping(int sourceID, int ruptureID, int rupVarID, int daxNum) {
 		try {
-			ps.setString(0, sourceID + "");
-			ps.setString(1, ruptureID + "");
-			ps.setString(2, rupVarID + "");
-			ps.setString(3, daxNum + "");
+			ps.setString(1, sourceID + "");
+			ps.setString(2, ruptureID + "");
+			ps.setString(3, rupVarID + "");
+			ps.setString(4, daxNum + "");
 			ps.addBatch();
 			numInBatch++;
 			if (numInBatch>BATCH_SIZE) {
