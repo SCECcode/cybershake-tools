@@ -1237,17 +1237,18 @@ public class CyberShake_PP_DAXGen {
 				rupIndex + "_"+ rupvarcount + SEISMOGRAM_FILENAME_EXTENSION);
 		File psaFile = new File(PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" + sourceIndex + "_" + rupIndex +
     			"_"+rupvarcount+ PEAKVALS_FILENAME_EXTENSION);
+
+		mergedFile.setTransfer(File.TRANSFER.FALSE);
+		mergedFile.setRegister(false);
+		
+		psaFile.setTransfer(File.TRANSFER.FALSE);
+		psaFile.setRegister(false);
 		
 		job.uses(lfSeisFile, File.LINK.INPUT);
 		job.uses(hfSeisFile, File.LINK.INPUT);
 		job.uses(mergedFile, File.LINK.OUTPUT);
 		job.uses(psaFile, File.LINK.OUTPUT);
 		
-		mergedFile.setTransfer(File.TRANSFER.FALSE);
-		mergedFile.setRegister(false);
-		
-		psaFile.setTransfer(File.TRANSFER.FALSE);
-		psaFile.setRegister(false);
 
 		int hf_nt = (int)Math.round(Double.parseDouble(SEIS_LENGTH)/Double.parseDouble(HF_DT));
 		
