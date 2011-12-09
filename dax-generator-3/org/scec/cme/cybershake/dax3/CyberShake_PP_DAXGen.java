@@ -86,13 +86,13 @@ public class CyberShake_PP_DAXGen {
         Option priorities = new Option("r", "use priorities");
         Option replicate_sgts = OptionBuilder.withArgName("num_sgts").hasArg().withDescription("Number of times to replicated SGT files, >=1, <=50").create("rs");
         Option sort_ruptures = new Option("s", "sort ruptures by descending size;  will include priorities");
-        Option memcached = new Option("mm", "use memcached implementation of jbsim3d");
+        Option memcached = new Option("cj", "use memcached implementation of Jbsim3d");
         Option no_insert = new Option("noinsert", "Don't insert ruptures into database (used for testing)");
-        Option seisPSA = new Option("mr", "Use a single executable for both synthesis and PSA");
-        Option hf_synth = new Option("hs", "Use a single executable for srf2stoch and hfsim");
-        Option merge_psa = new Option("mp", "Use a single executable for merging lf/hf seismograms and PSA");
+        Option seisPSA = new Option("ms", "Use a single executable for both synthesis and PSA");
+        Option hf_synth = new Option("mh", "Use a single executable for high-frequency srf2stoch and hfsim");
+        Option merge_psa = new Option("mb", "Use a single executable for merging broadband seismograms and PSA");
         Option high_frequency = OptionBuilder.withArgName("frequency_cutoff").hasOptionalArg().withDescription("Lower cutoff in Hz for stochastic high-frequency seismograms (default 1.0)").create("hf");
-        Option seisPSA_memcached = new Option("mmr", "use memcached implementation of seisPSA");
+        Option seisPSA_memcached = new Option("cs", "use memcached implementation of seisPSA");
         Option sqlIndex = new Option("sql", "Create sqlite file containing (source, rupture, rv) to sub workflow mapping");
         cmd_opts.addOption(partition);
         cmd_opts.addOption(priorities);
