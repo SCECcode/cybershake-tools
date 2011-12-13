@@ -86,7 +86,7 @@ public class CyberShake_PP_DAXGen {
         Option priorities = new Option("r", "use priorities");
         Option replicate_sgts = OptionBuilder.withArgName("num_sgts").hasArg().withDescription("Number of times to replicated SGT files, >=1, <=50").create("rs");
         Option sort_ruptures = new Option("s", "sort ruptures by descending size;  will include priorities");
-        Option memcached = new Option("cj", "use memcached implementation of Jbsim3d");
+        Option jbsim_memcached = new Option("cj", "use memcached implementation of Jbsim3d");
         Option no_insert = new Option("noinsert", "Don't insert ruptures into database (used for testing)");
         Option seisPSA = new Option("ms", "Use a single executable for both synthesis and PSA");
         Option hf_synth = new Option("mh", "Use a single executable for high-frequency srf2stoch and hfsim");
@@ -104,7 +104,7 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(high_frequency);
         cmd_opts.addOption(sqlIndex);
         OptionGroup memcachedGroup = new OptionGroup();
-        memcachedGroup.addOption(memcached);
+        memcachedGroup.addOption(jbsim_memcached);
         memcachedGroup.addOption(seisPSA);
         memcachedGroup.addOption(seisPSA_memcached);
         cmd_opts.addOptionGroup(memcachedGroup);
@@ -129,36 +129,36 @@ public class CyberShake_PP_DAXGen {
         int runID = Integer.parseInt(args[0]);
         String directory = args[1];
         pp_params.setPPDirectory(directory);
-        if (line.hasOption("p")) {
+        if (line.hasOption(partition.getOpt())) {
             pp_params.setNumOfDAXes(Integer.parseInt(line.getOptionValue("p")));
         }
-        if (line.hasOption("r")) {
+        if (line.hasOption(priorities.getOpt())) {
     		pp_params.setUsePriorities(true);
         }
-        if (line.hasOption("rs")) {
+        if (line.hasOption(replicate_sgts.getOpt())) {
             pp_params.setSgtReplication(Integer.parseInt(line.getOptionValue("rs")));
         }
-        if (line.hasOption("s")) {
+        if (line.hasOption(sort_ruptures.getOpt())) {
         	pp_params.setSortRuptures(true);
         	pp_params.setUsePriorities(true);
         }
-        if (line.hasOption("noinsert")) {
+        if (line.hasOption(no_insert.getOpt())) {
         	pp_params.setInsert(false);
         }
-        if (line.hasOption("mm")) {
+        if (line.hasOption(jbsim_memcached.getOpt())) {
         	pp_params.setUseMemcached(true);
         }
-        if (line.hasOption("mr")) {
+        if (line.hasOption(seisPSA.getOpt())) {
         	if (pp_params.isUseMemcached()) {
         		System.out.println("Only 1 of -mm, -mr option is supported at this time.");
         		System.exit(2);
         	}
         	pp_params.setMergedExe(true);
         }
-        if (line.hasOption("mmr")) {
+        if (line.hasOption(seisPSA_memcached.getOpt())) {
         	pp_params.setUseMergedMemcached(true);
         }
-        if (line.hasOption("hf")) {
+        if (line.hasOption(high_frequency.getOpt())) {
         	if (pp_params.isMergedExe()) {
         		System.out.println("Only 1 of -mr, -hf option is supported at this time.");
         		System.exit(3);
@@ -173,14 +173,14 @@ public class CyberShake_PP_DAXGen {
         		//use 1.0 as default
         		pp_params.setHighFrequencyCutoff(1.0);
         	}
-        	if (line.hasOption("hs")) {
+        	if (line.hasOption(hf_synth.getOpt())) {
         		pp_params.setHfsynth(true);
         	}
-        	if (line.hasOption("mp")) {
+        	if (line.hasOption(merge_psa.getOpt())) {
         		pp_params.setMergePSA(true);
         	}
         }
-        if (line.hasOption("sql")) {
+        if (line.hasOption(sqlIndex.getOpt())) {
         	pp_params.setRvDB(true);
         }
         daxGen.makeDAX(runID, pp_params);
