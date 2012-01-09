@@ -181,6 +181,7 @@ public class CyberShake_SGT_DAXGen {
 		updateJob.addArgument(to_state);
 		
 		updateJob.addProfile("globus", "maxWallTime","5");
+		updateJob.addProfile("hints","executionPool", "shock");
 	
 		return updateJob;
 	}
