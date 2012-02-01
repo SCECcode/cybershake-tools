@@ -815,6 +815,9 @@ public class CyberShake_PP_DAXGen {
         if (params.isUseMemcached() || params.isMergedMemcached()) {
         	name = EXTRACT_SGT_NAME + "_memcached";
         }
+        if (params.isJbsimRVMem()) {
+        	name = EXTRACT_SGT_NAME + "_rv_in_mem";
+        }
         Job job1 = new Job(id1, NAMESPACE, name, VERSION);
 
         job1.addArgument("stat="+riq.getSiteName());
@@ -843,13 +846,26 @@ public class CyberShake_PP_DAXGen {
          
          File rupVarFile = new File(rupVarLFN);
          
-         job1.addArgument("rupmodfile=" + rupVarFile.getName());
+         if (params.isJbsimRVMem()) {
+        	//Don't use rupture file;  instead, use source/rupture/slip/hypo arguments
+ 			//43_0.txt.variation-s0000-h0000
+ 			String[] pieces = rupVarLFN.split("-");
+ 			int slip = Integer.parseInt(pieces[1].substring(1));
+ 			int hypo = Integer.parseInt(pieces[2].substring(1));
+ 			job1.addArgument("source=" + sourceIndex);
+ 			job1.addArgument("rupture=" + rupIndex);
+ 			job1.addArgument("slip=" + slip);
+ 			job1.addArgument("hypo=" + hypo);
+         } else {
+        	 job1.addArgument("rupmodfile=" + rupVarFile.getName());
+             job1.uses(rupVarFile,File.LINK.INPUT);
+         }
+         
          job1.addArgument("sgt_xfile="+ sgtxFile.getName());
          job1.addArgument("sgt_yfile=" + sgtyFile.getName());
          job1.addArgument("extract_sgt_xfile=" + rupsgtxFile.getName());
          job1.addArgument("extract_sgt_yfile=" + rupsgtyFile.getName());
 
-         job1.uses(rupVarFile,File.LINK.INPUT);
          job1.uses(sgtxFile,File.LINK.INPUT);
          job1.uses(sgtyFile,File.LINK.INPUT);
          job1.uses(rupsgtxFile, File.LINK.OUTPUT);
