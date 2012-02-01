@@ -19,6 +19,8 @@ public class PP_DAXParameters {
 	private boolean hfsynth = false;
 	private boolean mergePSA = false;
 	private boolean mergedMemcached = false;
+	
+	private boolean jbsimRVMem = false;
 		
 	private int numVarsPerDAX;
 	private int maxVarsPerDAX;
@@ -208,6 +210,14 @@ public class PP_DAXParameters {
 
 	public void setRvDB(boolean rvDB) {
 		this.rvDB = rvDB;
+	}
+
+	public boolean isJbsimRVMem() {
+		return jbsimRVMem;
+	}
+
+	public void setJbsimRVMem(boolean jbsimRVMem) {
+		this.jbsimRVMem = jbsimRVMem;
 	}
 
 }
