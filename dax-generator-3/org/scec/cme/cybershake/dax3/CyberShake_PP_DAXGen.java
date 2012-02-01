@@ -94,6 +94,7 @@ public class CyberShake_PP_DAXGen {
         Option high_frequency = OptionBuilder.withArgName("frequency_cutoff").hasOptionalArg().withDescription("Lower cutoff in Hz for stochastic high-frequency seismograms (default 1.0)").create("hf");
         Option seisPSA_memcached = new Option("cs", "use memcached implementation of seisPSA");
         Option sqlIndex = new Option("sql", "Create sqlite file containing (source, rupture, rv) to sub workflow mapping");
+        Option jbsim_rv_mem = new Option("jbmem", "Use the version of jbsim which uses in-memory rupture variations");
         cmd_opts.addOption(partition);
         cmd_opts.addOption(priorities);
         cmd_opts.addOption(replicate_sgts);
@@ -103,6 +104,7 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(merge_psa);
         cmd_opts.addOption(high_frequency);
         cmd_opts.addOption(sqlIndex);
+        cmd_opts.addOption(jbsim_rv_mem);
         OptionGroup memcachedGroup = new OptionGroup();
         memcachedGroup.addOption(jbsim_memcached);
         memcachedGroup.addOption(seisPSA);
@@ -182,6 +184,13 @@ public class CyberShake_PP_DAXGen {
         }
         if (line.hasOption(sqlIndex.getOpt())) {
         	pp_params.setRvDB(true);
+        }
+        if (line.hasOption(jbsim_rv_mem.getOpt())) {
+        	if (pp_params.isMergedExe() || pp_params.isUseMemcached() || pp_params.isMergedMemcached()) {
+        		System.err.println("Can't use in-memory rupture variations with a merged or memcached jbsim.");
+        		System.exit(-3);
+        	}
+        	pp_params.setJbsimRVMem(true);
         }
         daxGen.makeDAX(runID, pp_params);
 	}
@@ -866,6 +875,9 @@ public class CyberShake_PP_DAXGen {
         if (params.isUseMemcached()) {
         	name = SEISMOGRAM_SYNTHESIS_NAME + "_memcached";
         }
+        if (params.isJbsimRVMem()) {
+        	name = SEISMOGRAM_SYNTHESIS_NAME + "_rv_in_mem";
+        }
 		
 		Job job2= new Job(id2, NAMESPACE, name, VERSION);
                  
@@ -894,7 +906,20 @@ public class CyberShake_PP_DAXGen {
 		File rupsgtx = new File(riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfx.sgt");
 		File rupsgty = new File(riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfy.sgt");
 		
-		job2.addArgument("rupmodfile=" + rupVarFile.getName());
+		if (params.isJbsimRVMem()) {
+			//Don't use rupture file;  instead, use source/rupture/slip/hypo arguments
+			//43_0.txt.variation-s0000-h0000
+			String[] pieces = rupVarLFN.split("-");
+			int slip = Integer.parseInt(pieces[1].substring(1));
+			int hypo = Integer.parseInt(pieces[2].substring(1));
+			job2.addArgument("source=" + sourceIndex);
+			job2.addArgument("rupture=" + rupIndex);
+			job2.addArgument("slip=" + slip);
+			job2.addArgument("hypo=" + hypo);
+		} else {
+			job2.addArgument("rupmodfile=" + rupVarFile.getName());
+	     	job2.uses(rupVarFile,File.LINK.INPUT);   
+		}
 		job2.addArgument("sgt_xfile=" + rupsgtx.getName());
 		job2.addArgument("sgt_yfile=" + rupsgty.getName());
      	job2.addArgument("seis_file=" + seisFile.getName());
@@ -902,8 +927,7 @@ public class CyberShake_PP_DAXGen {
      	//Must set flags BEFORE 'uses' call, because uses makes a clone
 		seisFile.setRegister(false);
 		seisFile.setTransfer(File.TRANSFER.FALSE);
-     	
-     	job2.uses(rupVarFile,File.LINK.INPUT);     
+     	  
      	job2.uses(rupsgtx,File.LINK.INPUT);
 		job2.uses(rupsgty,File.LINK.INPUT);
 		job2.uses(seisFile, File.LINK.OUTPUT);
