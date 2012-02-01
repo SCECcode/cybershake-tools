@@ -856,8 +856,11 @@ public class CyberShake_PP_DAXGen {
  			job1.addArgument("rupture=" + rupIndex);
  			job1.addArgument("slip=" + slip);
  			job1.addArgument("hypo=" + hypo);
- 			String rupmoddir = "rupture_dir_" + riq.getErfID() + "_" + riq.getRuptVarScenID();
- 			job1.addArgument("rupmoddir=" + rupmoddir);
+ 			File rupmoddir = new File("rupture_dir_" + riq.getErfID() + "_" + riq.getRuptVarScenID());
+ 			job1.addArgument("rupmoddir=" + rupmoddir.getName());
+ 			rupmoddir.setRegister(false);
+ 			rupmoddir.setTransfer(File.TRANSFER.FALSE);
+ 			job1.uses(rupmoddir, File.LINK.INPUT);
          } else {
         	 job1.addArgument("rupmodfile=" + rupVarFile.getName());
              job1.uses(rupVarFile,File.LINK.INPUT);
@@ -934,8 +937,11 @@ public class CyberShake_PP_DAXGen {
 			job2.addArgument("rupture=" + rupIndex);
 			job2.addArgument("slip=" + slip);
 			job2.addArgument("hypo=" + hypo);
- 			String rupmoddir = "rupture_dir_" + riq.getErfID() + "_" + riq.getRuptVarScenID();
- 			job2.addArgument("rupmoddir=" + rupmoddir);
+ 			File rupmoddir = new File("rupture_dir_" + riq.getErfID() + "_" + riq.getRuptVarScenID());
+ 			job2.addArgument("rupmoddir=" + rupmoddir.getName());
+ 			rupmoddir.setRegister(false);
+ 			rupmoddir.setTransfer(File.TRANSFER.FALSE);
+ 			job2.uses(rupmoddir, File.LINK.INPUT);
 		} else {
 			job2.addArgument("rupmodfile=" + rupVarFile.getName());
 	     	job2.uses(rupVarFile,File.LINK.INPUT);   
