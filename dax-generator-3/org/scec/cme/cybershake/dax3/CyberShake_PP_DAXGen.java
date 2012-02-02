@@ -852,15 +852,11 @@ public class CyberShake_PP_DAXGen {
  			String[] pieces = rupVarLFN.split("-");
  			int slip = Integer.parseInt(pieces[1].substring(1));
  			int hypo = Integer.parseInt(pieces[2].substring(1));
- 			job1.addArgument("source=" + sourceIndex);
- 			job1.addArgument("rupture=" + rupIndex);
  			job1.addArgument("slip=" + slip);
  			job1.addArgument("hypo=" + hypo);
- 			File rupmoddir = new File("rupture_dir_" + riq.getErfID() + "_" + riq.getRuptVarScenID());
- 			job1.addArgument("rupmoddir=" + rupmoddir.getName());
- 			rupmoddir.setRegister(false);
- 			rupmoddir.setTransfer(File.TRANSFER.FALSE);
- 			job1.uses(rupmoddir, File.LINK.INPUT);
+ 			File rup_geom_file = new File("e" + riq.getErfID() + "_rv" + riq.getRuptVarScenID() + "_" + sourceIndex + "_" + rupIndex + ".txt");
+ 			job1.addArgument("rup_geom_file=" + rup_geom_file.getName());
+ 			job1.uses(rup_geom_file, File.LINK.INPUT);
          } else {
         	 job1.addArgument("rupmodfile=" + rupVarFile.getName());
              job1.uses(rupVarFile,File.LINK.INPUT);
@@ -933,15 +929,11 @@ public class CyberShake_PP_DAXGen {
 			String[] pieces = rupVarLFN.split("-");
 			int slip = Integer.parseInt(pieces[1].substring(1));
 			int hypo = Integer.parseInt(pieces[2].substring(1));
-			job2.addArgument("source=" + sourceIndex);
-			job2.addArgument("rupture=" + rupIndex);
 			job2.addArgument("slip=" + slip);
 			job2.addArgument("hypo=" + hypo);
- 			File rupmoddir = new File("rupture_dir_" + riq.getErfID() + "_" + riq.getRuptVarScenID());
- 			job2.addArgument("rupmoddir=" + rupmoddir.getName());
- 			rupmoddir.setRegister(false);
- 			rupmoddir.setTransfer(File.TRANSFER.FALSE);
- 			job2.uses(rupmoddir, File.LINK.INPUT);
+ 			File rup_geom_file = new File("e" + riq.getErfID() + "_rv" + riq.getRuptVarScenID() + "_" + sourceIndex + "_" + rupIndex + ".txt");
+ 			job2.addArgument("rup_geom_file=" + rup_geom_file.getName());
+ 			job2.uses(rup_geom_file, File.LINK.INPUT);
 		} else {
 			job2.addArgument("rupmodfile=" + rupVarFile.getName());
 	     	job2.uses(rupVarFile,File.LINK.INPUT);   
