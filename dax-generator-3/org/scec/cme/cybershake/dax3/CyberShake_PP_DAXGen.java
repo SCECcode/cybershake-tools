@@ -202,6 +202,13 @@ public class CyberShake_PP_DAXGen {
 			//Get parameters from DB and calculate number of variations
 			ResultSet ruptureSet = getParameters(runID);
 		
+			//Check to make sure RV model is consistent with in-memory choice
+			//since if we generate rupture variations in memory, we only support RV ID 4
+			if (riq.getRuptVarScenID()==3 && params.isJbsimRVMem()) {
+				System.err.println("Can't use in-memory rupture variations with rupture variation ID 3.");
+				System.exit(-4);
+			}
+			
 			//populate DB with frequency info
 			putFreqInDB();
 			
