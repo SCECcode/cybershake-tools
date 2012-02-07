@@ -195,7 +195,11 @@ public class CyberShake_PP_DAXGen {
         	pp_params.setJbsimRVMem(true);
         }
         if (line.hasOption(hfsynth_rv_mem.getOpt())) {
-        	
+        	if (pp_params.isHfsynth()==false || pp_params.isHighFrequency()==false) {
+        		System.err.println("Can't use in-memory rupture variations in HF_Synth if you're not running high frequency with HF_Synth.");
+        		System.exit(-4);
+        	}
+        	pp_params.setHfsynthRVMem(true);
         }
         	
         daxGen.makeDAX(runID, pp_params);
@@ -1255,11 +1259,25 @@ public class CyberShake_PP_DAXGen {
 		seisFile.setRegister(false);
 		seisFile.setTransfer(File.TRANSFER.FALSE);
 		
-		job.uses(srfFile, File.LINK.INPUT);
 		job.uses(localVMFile, LINK.INPUT);
 		job.uses(seisFile, File.LINK.OUTPUT);
 		
-		job.addArgument("infile=" + srfFile.getName());
+		if (params.isHfsynthRVMem()) {
+			String[] pieces = rupVarLFN.split("-");
+			int slip = Integer.parseInt(pieces[1].substring(1));
+			int hypo = Integer.parseInt(pieces[2].substring(1));
+			
+			File rup_geom_file = new File("e" + riq.getErfID() + "_rv" + riq.getRuptVarScenID() + "_" + sourceIndex + "_" + rupIndex + ".txt");
+ 			job.addArgument("rup_geom_file=" + rup_geom_file.getName());
+			job.addArgument("slip=" + slip);
+			job.addArgument("hypo=" + hypo);
+			
+ 			job.uses(rup_geom_file, File.LINK.INPUT);
+		} else {
+			job.addArgument("infile=" + srfFile.getName());
+			job.uses(srfFile, File.LINK.INPUT);
+		}
+
 		job.addArgument("outfile=" + seisFile.getName());
 		job.addArgument("dx=" + DX);
 		job.addArgument("dy=" + DY);
