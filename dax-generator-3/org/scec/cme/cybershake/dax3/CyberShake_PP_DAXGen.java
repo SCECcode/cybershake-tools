@@ -95,6 +95,7 @@ public class CyberShake_PP_DAXGen {
         Option seisPSA_memcached = new Option("cs", "use memcached implementation of seisPSA");
         Option sqlIndex = new Option("sql", "Create sqlite file containing (source, rupture, rv) to sub workflow mapping");
         Option jbsim_rv_mem = new Option("jbmem", "Use the version of jbsim which uses in-memory rupture variations");
+        Option hfsynth_rv_mem = new Option("hfmem", "Use the version of hf_synth which uses in-memory rupture variations");
         cmd_opts.addOption(partition);
         cmd_opts.addOption(priorities);
         cmd_opts.addOption(replicate_sgts);
@@ -105,6 +106,7 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(high_frequency);
         cmd_opts.addOption(sqlIndex);
         cmd_opts.addOption(jbsim_rv_mem);
+        cmd_opts.addOption(hfsynth_rv_mem);
         OptionGroup memcachedGroup = new OptionGroup();
         memcachedGroup.addOption(jbsim_memcached);
         memcachedGroup.addOption(seisPSA);
@@ -192,6 +194,10 @@ public class CyberShake_PP_DAXGen {
         	}
         	pp_params.setJbsimRVMem(true);
         }
+        if (line.hasOption(hfsynth_rv_mem.getOpt())) {
+        	
+        }
+        	
         daxGen.makeDAX(runID, pp_params);
 	}
 
