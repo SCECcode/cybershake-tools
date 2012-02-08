@@ -1246,7 +1246,14 @@ public class CyberShake_PP_DAXGen {
 	private Job createHFSynthJob(int sourceIndex, int rupIndex, int rupvarcount, String rupVarLFN, int count, int currDax) {
 		String id = "ID_HF_Synth" + sourceIndex + "_" + rupIndex + "_" + rupvarcount;
 		
-		Job job = new Job(id, NAMESPACE, HF_SYNTH_NAME, VERSION);
+		String jobName = HF_SYNTH_NAME;
+		
+        if (params.isHfsynthRVMem()) {
+        	jobName = HF_SYNTH_NAME + "_rv_in_mem";
+        }
+		
+		
+		Job job = new Job(id, NAMESPACE, jobName, VERSION);
 
 		double DX = 2.0;
 		double DY = 2.5;
