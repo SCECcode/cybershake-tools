@@ -207,12 +207,12 @@ public class CyberShake_SGT_DAXGen {
 		paramFile.setTransfer(File.TRANSFER.FALSE);
 		boundsFile.setTransfer(File.TRANSFER.FALSE);
 		
-		modelboxFile.setRegister(true);
-		gridfileFile.setRegister(true);
-		gridoutFile.setRegister(true);
-		coordFile.setRegister(true);
-		paramFile.setRegister(true);
-		boundsFile.setRegister(true);
+		modelboxFile.setRegister(false);
+		gridfileFile.setRegister(false);
+		gridoutFile.setRegister(false);
+		coordFile.setRegister(false);
+		paramFile.setRegister(false);
+		boundsFile.setRegister(false);
 		
 		preCVMJob.addArgument(modelboxFile);
 		preCVMJob.addArgument(gridfileFile);
@@ -250,6 +250,9 @@ public class CyberShake_SGT_DAXGen {
 			System.out.println(velModel + " is an invalid velocity model option, exiting.");
 			System.exit(2);
 		}
+		
+		gridoutFile.setRegister(false);
+		coordFile.setRegister(false);
 		
 		vMeshGenJob.uses(gridoutFile, File.LINK.INPUT);
 		vMeshGenJob.uses(coordFile, File.LINK.INPUT);
@@ -291,9 +294,9 @@ public class CyberShake_SGT_DAXGen {
 		sFile.setTransfer(File.TRANSFER.FALSE);
 		dFile.setTransfer(File.TRANSFER.FALSE);
 		
-		pFile.setRegister(true);
-		sFile.setRegister(true);
-		dFile.setRegister(true);
+		pFile.setRegister(false);
+		sFile.setRegister(false);
+		dFile.setRegister(false);
 		
 		vMeshMergeJob.addArgument(riq.getSiteName());
 		vMeshMergeJob.addArgument(gridfileFile);
@@ -330,10 +333,10 @@ public class CyberShake_SGT_DAXGen {
 		radiusFile.setTransfer(File.TRANSFER.FALSE);
 		sgtcordFile.setTransfer(File.TRANSFER.FALSE);
 		
-		fdlocFile.setRegister(true);
-		faultlistFile.setRegister(true);
-		radiusFile.setRegister(true);
-		sgtcordFile.setRegister(true);
+		fdlocFile.setRegister(false);
+		faultlistFile.setRegister(false);
+		radiusFile.setRegister(false);
+		sgtcordFile.setRegister(false);
 		
 		preSGTJob.addArgument(riq.getSiteName());
 		preSGTJob.addArgument(riq.getErfID() + "");
