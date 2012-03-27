@@ -96,6 +96,7 @@ public class CyberShake_PP_DAXGen {
         Option sqlIndex = new Option("sql", "Create sqlite file containing (source, rupture, rv) to sub workflow mapping");
         Option jbsim_rv_mem = new Option("jbmem", "Use the version of jbsim which uses in-memory rupture variations");
         Option hfsynth_rv_mem = new Option("hfmem", "Use the version of hf_synth which uses in-memory rupture variations");
+        Option awp = new Option("awp", "Use AWP SGTs");
         cmd_opts.addOption(partition);
         cmd_opts.addOption(priorities);
         cmd_opts.addOption(replicate_sgts);
@@ -107,6 +108,7 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(sqlIndex);
         cmd_opts.addOption(jbsim_rv_mem);
         cmd_opts.addOption(hfsynth_rv_mem);
+        cmd_opts.addOption(awp);
         OptionGroup memcachedGroup = new OptionGroup();
         memcachedGroup.addOption(jbsim_memcached);
         memcachedGroup.addOption(seisPSA);
@@ -200,6 +202,9 @@ public class CyberShake_PP_DAXGen {
         		System.exit(-4);
         	}
         	pp_params.setHfsynthRVMem(true);
+        }
+        if (line.hasOption(awp.getOpt())) {
+        	pp_params.setUseAWP(true);
         }
         	
         daxGen.makeDAX(runID, pp_params);
@@ -883,6 +888,22 @@ public class CyberShake_PP_DAXGen {
          job1.addArgument("sgt_yfile=" + sgtyFile.getName());
          job1.addArgument("extract_sgt_xfile=" + rupsgtxFile.getName());
          job1.addArgument("extract_sgt_yfile=" + rupsgtyFile.getName());
+         
+         if (params.isUseAWP()) {
+        	 //Use AWP SGTs;  need to include headers as arguments
+        	 String sgtheadx = riq.getSiteName()+"_fx_" + riq.getRunID() + ".sgthead";
+        	 String sgtheady = riq.getSiteName()+"_fy_" + riq.getRunID() + ".sgthead";
+        	 
+        	 File sgtheadxFile = new File(sgtheadx);
+        	 File sgtheadyFile = new File(sgtheady);
+        	 
+        	 job1.addArgument("x_header=" + sgtheadxFile.getName());
+        	 job1.addArgument("y_header=" + sgtheadyFile.getName());
+        	 
+        	 job1.uses(sgtheadxFile, File.LINK.INPUT);
+        	 job1.uses(sgtheadyFile, File.LINK.INPUT);
+         }
+         
 
          job1.uses(sgtxFile,File.LINK.INPUT);
          job1.uses(sgtyFile,File.LINK.INPUT);
