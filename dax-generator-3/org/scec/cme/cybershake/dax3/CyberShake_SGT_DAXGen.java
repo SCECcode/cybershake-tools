@@ -5,12 +5,22 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import org.apache.commons.cli.AlreadySelectedException;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionBuilder;
+import org.apache.commons.cli.OptionGroup;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
 import edu.isi.pegasus.planner.dax.ADAG;
 import edu.isi.pegasus.planner.dax.DAX;
 import edu.isi.pegasus.planner.dax.File;
 import edu.isi.pegasus.planner.dax.Job;
 
-public class CyberShake_SGT_DAXGen {
+public class CyberShake_SGT_DAXGen implements CyberShake_SGT {
 	//Constants
     private final static String DAX_FILENAME_PREFIX = "CyberShake_SGT";
     private final static String DAX_FILENAME_EXTENSION = ".dax";
@@ -22,22 +32,50 @@ public class CyberShake_SGT_DAXGen {
 	private RunIDQuery riq;
 	
 	public static void main(String[] args) {
-		if (args.length<4) {
-			System.out.println("Usage: CyberShake_SGT_DAXGen [-v4 | -vh ] <output filename> <destination directory> [-f <runID file, one per line> | <runID1> <runID2> ... ]");
-			System.exit(-1);
-		}
-		String velocityModel = args[0];
-		String outputFilename = args[1]; 
-		String directory = args[2];
+        Options cmd_opts = new Options();
+        Option cvms = new Option("v4", "Use CVM-S4 velocity model");
+        Option cvmh = new Option("vh", "use CVM-H velocity model");
+        OptionGroup vModelGroup = new OptionGroup();
+        vModelGroup.addOption(cvms);
+        vModelGroup.addOption(cvmh);
+        cmd_opts.addOptionGroup(vModelGroup);
+        Option awp = new Option("awp", "Use AWP-ODC-SGT to generate the SGTs");
+        cmd_opts.addOption(awp);
+        Option runIDFile = OptionBuilder.withArgName("runID_file").hasArg().withDescription("File containing list of Run IDs to use.").create("f");
+        Option runIDList = OptionBuilder.withArgName("runID_list").hasArgs().withDescription("List of Run IDs to use.").create("r");
+        OptionGroup runIDGroup = new OptionGroup();
+        runIDGroup.setRequired(true);
+        runIDGroup.addOption(runIDFile);
+        runIDGroup.addOption(runIDList);
+        cmd_opts.addOptionGroup(runIDGroup);
+        
+        String usageString = "Usage: CyberShake_SGT_DAXGen <output filename> <destination directory> [options] [-f <runID file, one per line> | -r <runID1> <runID2> ... ]";
+        CommandLineParser parser = new GnuParser();
+        if (args.length<4) {
+            System.out.println(usageString);
+            System.exit(1);
+        }
+        CommandLine line = null;
+        try {
+            line = parser.parse(cmd_opts, args);
+        } catch (ParseException pe) {
+            pe.printStackTrace();
+            System.exit(2);
+        }
+        
+		String outputFilename = args[0]; 
+		String directory = args[1];
 		String inputFile = "";
+		String velocityModel = "1D";
 		ArrayList<RunIDQuery> runIDQueries = new ArrayList<RunIDQuery>();
-		if (args[2]=="-f") {
+		
+		if (line.hasOption(runIDFile.getOpt())) {
 			inputFile = args[3];
 			try {
 				BufferedReader br = new BufferedReader(new FileReader(inputFile));
-				String line = br.readLine();
-				while (line!=null) {
-					runIDQueries.add(new RunIDQuery(Integer.parseInt(line), false));
+				String entry = br.readLine();
+				while (entry!=null) {
+					runIDQueries.add(new RunIDQuery(Integer.parseInt(entry), false));
 				}
 				br.close();
 			} catch (IOException iex) {
@@ -49,6 +87,13 @@ public class CyberShake_SGT_DAXGen {
 				runIDQueries.add(new RunIDQuery(Integer.parseInt(args[i]), false));
 			}
 		}
+		
+		if (line.hasOption(cvms.getOpt())) {
+			velocityModel = "cvms";
+		} else if (line.hasOption(cvmh.getOpt())) {
+			velocityModel = "cvmh";
+		}
+
 		boolean twoLevel = false;
 		
 		ADAG topLevelDAX = null;
@@ -62,7 +107,13 @@ public class CyberShake_SGT_DAXGen {
 		
 		//Create a DAX for each site
 		for (int i=0; i<runIDQueries.size(); i++) {
-			CyberShake_SGT_DAXGen sd = new CyberShake_SGT_DAXGen(runIDQueries.get(i));
+			CyberShake_SGT sd;
+			if (line.hasOption(awp.getOpt())) {
+				sd = new CyberShake_SGT_DAXGen(runIDQueries.get(i));	
+			} else {
+				sd = new CyberShake_AWP_SGT_DAXGen(runIDQueries.get(i));	
+			}
+			
 			ADAG sgtDax = sd.makeDAX(velocityModel);
 			
 			if (twoLevel) {
@@ -242,9 +293,9 @@ public class CyberShake_SGT_DAXGen {
 		vMeshGenJob.addArgument(gridoutFile);		
 		vMeshGenJob.addArgument(coordFile);
 		
-		if (velModel.equals("-v4")) {
+		if (velModel.equals("cvms")) {
 			vMeshGenJob.addArgument("cvms");
-		} else if (velModel.equals("-vh")) {
+		} else if (velModel.equals("cvmh")) {
 			vMeshGenJob.addArgument("cvmh");			
 		} else {
 			System.out.println(velModel + " is an invalid velocity model option, exiting.");
