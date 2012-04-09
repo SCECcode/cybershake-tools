@@ -70,7 +70,7 @@ public class CyberShake_SGT_DAXGen implements CyberShake_SGT {
 		ArrayList<RunIDQuery> runIDQueries = new ArrayList<RunIDQuery>();
 		
 		if (line.hasOption(runIDFile.getOpt())) {
-			inputFile = args[3];
+			inputFile = line.getOptionValue(runIDFile.getOpt());
 			try {
 				BufferedReader br = new BufferedReader(new FileReader(inputFile));
 				String entry = br.readLine();
@@ -82,8 +82,8 @@ public class CyberShake_SGT_DAXGen implements CyberShake_SGT {
 				iex.printStackTrace();
 				System.exit(1);
 			}
-		} else {
-			String[] runIDs = runIDList.getValues();
+		} else if (line.hasOption(runIDList.getOpt())) {
+			String[] runIDs = line.getOptionValues(runIDList.getOpt());
 			for (String runID: runIDs) {
 				runIDQueries.add(new RunIDQuery(Integer.parseInt(runID), false));
 			}
@@ -94,7 +94,7 @@ public class CyberShake_SGT_DAXGen implements CyberShake_SGT {
 		} else if (line.hasOption(cvmh.getOpt())) {
 			velocityModel = "cvmh";
 		}
-
+		
 		boolean twoLevel = false;
 		
 		ADAG topLevelDAX = null;
@@ -110,9 +110,9 @@ public class CyberShake_SGT_DAXGen implements CyberShake_SGT {
 		for (int i=0; i<runIDQueries.size(); i++) {
 			CyberShake_SGT sd;
 			if (line.hasOption(awp.getOpt())) {
-				sd = new CyberShake_SGT_DAXGen(runIDQueries.get(i));	
-			} else {
 				sd = new CyberShake_AWP_SGT_DAXGen(runIDQueries.get(i));	
+			} else {
+				sd = new CyberShake_SGT_DAXGen(runIDQueries.get(i));	
 			}
 			
 			ADAG sgtDax = sd.makeDAX(velocityModel);
@@ -284,6 +284,8 @@ public class CyberShake_SGT_DAXGen implements CyberShake_SGT {
 	}
 	
 	private Job addVMeshGen(String velModel) {
+		System.err.println("here");
+		
 		String id = "UCVMMeshGen_" + riq.getSiteName();
 		Job vMeshGenJob = new Job(id, NAMESPACE, "UCVMMeshGen", VERSION);
 		
@@ -294,10 +296,11 @@ public class CyberShake_SGT_DAXGen implements CyberShake_SGT {
 		vMeshGenJob.addArgument(gridoutFile);		
 		vMeshGenJob.addArgument(coordFile);
 		
+		
 		if (velModel.equals("cvms")) {
 			vMeshGenJob.addArgument("cvms");
 		} else if (velModel.equals("cvmh")) {
-			vMeshGenJob.addArgument("cvmh");			
+			vMeshGenJob.addArgument("cvmh");
 		} else {
 			System.out.println(velModel + " is an invalid velocity model option, exiting.");
 			System.exit(2);
