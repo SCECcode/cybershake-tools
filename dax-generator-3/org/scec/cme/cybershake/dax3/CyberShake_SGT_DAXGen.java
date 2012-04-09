@@ -233,7 +233,7 @@ public class CyberShake_SGT_DAXGen implements CyberShake_SGT {
 		updateJob.addArgument(to_state);
 		
 		updateJob.addProfile("globus", "maxWallTime","5");
-		updateJob.addProfile("hints","executionPool", "shock");
+		updateJob.addProfile("hints","executionPool", "local");
 	
 		return updateJob;
 	}
