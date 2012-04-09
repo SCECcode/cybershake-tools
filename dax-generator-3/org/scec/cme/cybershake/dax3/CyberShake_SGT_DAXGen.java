@@ -83,8 +83,9 @@ public class CyberShake_SGT_DAXGen implements CyberShake_SGT {
 				System.exit(1);
 			}
 		} else {
-			for (int i=3; i<args.length; i++) {
-				runIDQueries.add(new RunIDQuery(Integer.parseInt(args[i]), false));
+			String[] runIDs = runIDList.getValues();
+			for (String runID: runIDs) {
+				runIDQueries.add(new RunIDQuery(Integer.parseInt(runID), false));
 			}
 		}
 		
