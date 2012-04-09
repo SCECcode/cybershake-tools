@@ -97,6 +97,7 @@ public class CyberShake_PP_DAXGen {
         Option jbsim_rv_mem = new Option("jbmem", "Use the version of jbsim which uses in-memory rupture variations");
         Option hfsynth_rv_mem = new Option("hfmem", "Use the version of hf_synth which uses in-memory rupture variations");
         Option awp = new Option("awp", "Use AWP SGTs");
+        Option mpi_cluster = new Option("mpi_cluster", "Use pegasus-mpi-cluster");
         cmd_opts.addOption(partition);
         cmd_opts.addOption(priorities);
         cmd_opts.addOption(replicate_sgts);
@@ -109,6 +110,7 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(jbsim_rv_mem);
         cmd_opts.addOption(hfsynth_rv_mem);
         cmd_opts.addOption(awp);
+        cmd_opts.addOption(mpi_cluster);
         OptionGroup memcachedGroup = new OptionGroup();
         memcachedGroup.addOption(jbsim_memcached);
         memcachedGroup.addOption(seisPSA);
@@ -206,6 +208,10 @@ public class CyberShake_PP_DAXGen {
         if (line.hasOption(awp.getOpt())) {
         	pp_params.setUseAWP(true);
         }
+        
+        if (line.hasOption(mpi_cluster.getOpt())) {
+        	pp_params.setMPICluster(true);
+        }
         	
         daxGen.makeDAX(runID, pp_params);
 	}
@@ -289,7 +295,11 @@ public class CyberShake_PP_DAXGen {
 					dax.writeToFile(daxFile);
 					//Add to topLevelDax
 					DAX jDax = new DAX("dax_" + currDax, daxFile);
-					jDax.addArgument("--cluster horizontal");
+					if (params.isMPICluster()) {
+						jDax.addArgument("--cluster label");
+					} else {
+						jDax.addArgument("--cluster horizontal");
+					}
 					//Makes sure it doesn't prune workflow elements
 					jDax.addArgument("--force");
 					jDax.addArgument("-qqqqq");
@@ -407,7 +417,11 @@ public class CyberShake_PP_DAXGen {
 					dax.writeToFile(daxFile);
 					//Add to topLevelDax
 					DAX jDax = new DAX("dax_" + currDax, daxFile);
-					jDax.addArgument("--cluster horizontal");
+					if (params.isMPICluster()) {
+						jDax.addArgument("--cluster label");
+					} else {
+						jDax.addArgument("--cluster horizontal");
+					}
 					//Makes sure it doesn't prune workflow elements
 					jDax.addArgument("--force");
 					jDax.addArgument("-qqqqq");
@@ -440,7 +454,11 @@ public class CyberShake_PP_DAXGen {
 			dax.writeToFile(daxFile);
 			//Add to topLevelDax
 			DAX jDax = new DAX("dax_" + currDax, daxFile);
-			jDax.addArgument("--cluster horizontal");
+			if (params.isMPICluster()) {
+				jDax.addArgument("--cluster label");
+			} else {
+				jDax.addArgument("--cluster horizontal");
+			}
 			jDax.addArgument("--force");
 			jDax.addArgument("-qqqqq");
 			jDax.addArgument("--output shock");
