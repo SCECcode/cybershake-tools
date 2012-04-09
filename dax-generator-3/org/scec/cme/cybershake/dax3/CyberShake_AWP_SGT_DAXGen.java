@@ -178,9 +178,9 @@ public class CyberShake_AWP_SGT_DAXGen implements CyberShake_SGT {
 		vMeshGenJob.addArgument(coordFile);
 		vMeshGenJob.addArgument(mediaFile);
 		
-		if (velModel.equals("-v4")) {
+		if (velModel.equals("cvms")) {
 			vMeshGenJob.addArgument("cvms");
-		} else if (velModel.equals("-vh")) {
+		} else if (velModel.equals("cvmh")) {
 			vMeshGenJob.addArgument("cvmh");			
 		} else {
 			System.out.println(velModel + " is an invalid velocity model option, exiting.");
