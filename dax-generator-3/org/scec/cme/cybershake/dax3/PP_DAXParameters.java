@@ -33,6 +33,7 @@ public class PP_DAXParameters {
 	private String ppDirectory;
 	
 	private boolean rvDB = false;
+	private boolean mpi_cluster;
 
 	public PP_DAXParameters() {
 		numOfDAXes = 1;
@@ -239,5 +240,12 @@ public class PP_DAXParameters {
 		this.useAWP = useAWP;
 	}
 
+	public void setMPICluster(boolean b) {
+		mpi_cluster = b;
+	}
+
+	public boolean isMPICluster() {
+		return mpi_cluster;
+	}
 
 }
