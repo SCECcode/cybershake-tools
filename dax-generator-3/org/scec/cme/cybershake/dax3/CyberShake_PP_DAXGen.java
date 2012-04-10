@@ -820,6 +820,10 @@ public class CyberShake_PP_DAXGen {
     		zipPSAFile.addProfile("condor", "priority", params.getNumOfDAXes()-daxValue + "");
     	}
     	
+    	if (params.isMPICluster()) {
+    		zipSeisFile.addProfile("pegasus", "label", "" + daxValue);
+    	}
+    	
     	return new Job[]{zipSeisJob, zipPSAJob};
     }
     
