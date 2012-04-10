@@ -822,6 +822,7 @@ public class CyberShake_PP_DAXGen {
     	
     	if (params.isMPICluster()) {
     		zipSeisFile.addProfile("pegasus", "label", "" + daxValue);
+    		zipPSAFile.addProfile("pegasus", "label", "" + daxValue);
     	}
     	
     	return new Job[]{zipSeisJob, zipPSAJob};
