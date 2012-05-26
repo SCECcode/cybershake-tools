@@ -10,6 +10,7 @@ import org.apache.commons.cli.AlreadySelectedException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.OptionGroup;
@@ -118,10 +119,10 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOptionGroup(memcachedGroup);
         CyberShake_PP_DAXGen daxGen = new CyberShake_PP_DAXGen();
         PP_DAXParameters pp_params = new PP_DAXParameters();
-        String usageString = "Usage: CyberShakeRob <runID> <PP directory> [-p num_subDAXes] [-r] [-rs num_repl] [-s] [-mm | -mr | -mmr] [-hs] [-hf [hf_cutoff]]";
         CommandLineParser parser = new GnuParser();
         if (args.length<1) {
-            System.out.println(usageString);
+        	HelpFormatter formatter = new HelpFormatter();
+        	formatter.printHelp("CyberShake_PP_DAXGen", cmd_opts);
             System.exit(1);
         }
         CommandLine line = null;
@@ -255,7 +256,7 @@ public class CyberShake_PP_DAXGen {
 			
 			ruptureSet.first();
 		
-			int sourceIndex, rupIndex;
+			int sourceIndex, rupIndex, numRupPoints;
 			int count = 0;
 
 			int currDax = 0;
@@ -278,6 +279,7 @@ public class CyberShake_PP_DAXGen {
   	    	  	    	
 				sourceIndex = ruptureSet.getInt("Source_ID");
 				rupIndex = ruptureSet.getInt("Rupture_ID");
+				numRupPoints = ruptureSet.getInt("Num_Points");
 
 				//get variations from the DB
 				//need them to figure out if we need a new DAX
@@ -327,7 +329,7 @@ public class CyberShake_PP_DAXGen {
 				}
   	    	
 				//Insert extraction job
-				Job extractJob = createExtractJob(sourceIndex, rupIndex, variationsSet.getString("Rup_Var_LFN"), count, currDax);
+				Job extractJob = createExtractJob(sourceIndex, rupIndex, numRupPoints, variationsSet.getString("Rup_Var_LFN"), count, currDax);
 				dax.addJob(extractJob);
 				
 				variationsSet.first();
@@ -342,7 +344,7 @@ public class CyberShake_PP_DAXGen {
 					
 					if (params.isMergedExe() || params.isMergedMemcached()) {
 						//add 1 job for seis and PSA
-						Job seisPSAJob = createSeisPSAJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
+						Job seisPSAJob = createSeisPSAJob(sourceIndex, rupIndex, rupvarcount, numRupPoints, variationsSet.getString("Rup_Var_LFN"), count, currDax);
 						dax.addJob(seisPSAJob);
 						//set up dependencies
 						dax.addDependency(extractJob, seisPSAJob);
@@ -351,7 +353,7 @@ public class CyberShake_PP_DAXGen {
 						dax.addDependency(seisPSAJob, zipJobs[1]);
 					} else {
 						//create and add seismogram synthesis
-						Job seismoJob = createSeismogramJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
+						Job seismoJob = createSeismogramJob(sourceIndex, rupIndex, rupvarcount, numRupPoints, variationsSet.getString("Rup_Var_LFN"), count, currDax);
 						dax.addJob(seismoJob);
 						dax.addDependency(extractJob, seismoJob);
 						//if HF jobs, add here
@@ -368,14 +370,14 @@ public class CyberShake_PP_DAXGen {
 								dax.addJob(stochJob);
 								dax.addDependency(extractJob, stochJob);
 							
-								highFreqJob = createHighFrequencyJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
+								highFreqJob = createHighFrequencyJob(sourceIndex, rupIndex, rupvarcount, numRupPoints, variationsSet.getString("Rup_Var_LFN"), count, currDax);
 								dax.addJob(highFreqJob);
 								dax.addDependency(stochJob, highFreqJob);
 //								dax.addDependency(localVMJob, highFreqJob);
 							}
 							
 							if (params.isMergePSA()) {
-								mergeJob = createMergePSAJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
+								mergeJob = createMergePSAJob(sourceIndex, rupIndex, rupvarcount, numRupPoints, variationsSet.getString("Rup_Var_LFN"), count, currDax);
 								dax.addJob(mergeJob);
 								dax.addDependency(highFreqJob, mergeJob);							
 								dax.addDependency(seismoJob, mergeJob);
@@ -580,14 +582,14 @@ public class CyberShake_PP_DAXGen {
 	}
 	
 	private ResultSet getRuptures(String stationName) {
-		String query =  "select R.Source_ID, R.Rupture_ID " +
+		String query =  "select R.Source_ID, R.Rupture_ID, R.Num_Points " +
 			"from CyberShake_Site_Ruptures R, CyberShake_Sites S " +
 			"where S.CS_Short_Name=\"" + stationName + "\" " +
 			"and R.CS_Site_ID=S.CS_Site_ID " +
-			"and R.ERF_ID=" + riq.getErfID() + " order by R.Source_ID, R.Rupture_ID";
+			"and R.ERF_ID=" + riq.getErfID() + " order by R.Num_Points desc";
 		if (params.isSortRuptures()) {
 			//Sort on reverse # of points
-			query = "select R.Source_ID, R.Rupture_ID " +
+			query = "select R.Source_ID, R.Rupture_ID, R.Num_Points " +
 			"from CyberShake_Site_Ruptures SR, CyberShake_Sites S, Ruptures R " +
 			"where S.CS_Short_Name=\"" + stationName + "\" " +
 			"and SR.CS_Site_ID=S.CS_Site_ID " +
@@ -850,7 +852,7 @@ public class CyberShake_PP_DAXGen {
 	}
 	
 
-	private Job createExtractJob(int sourceIndex, int rupIndex, String rupVarLFN, int rupCount, int currDax) {
+	private Job createExtractJob(int sourceIndex, int rupIndex, int numRupPoints, String rupVarLFN, int rupCount, int currDax) {
         /**
      	* Add the sgt extraction job
      	*
@@ -938,6 +940,10 @@ public class CyberShake_PP_DAXGen {
          job1.addProfile("pegasus", "label", "" + currDax);
          job1.addProfile("dagman", "category", "extract-jobs");
          
+         int extractMem = getExtractMem(numRupPoints);
+         
+         job1.addProfile("pegasus", "request_memory", "" + extractMem);
+         
          if (params.isUsePriorities()) {
          	job1.addProfile("condor", "priority", params.getNumOfDAXes()-currDax + "");
          }
@@ -947,7 +953,7 @@ public class CyberShake_PP_DAXGen {
 	
 
 
-	private Job createSeismogramJob(int sourceIndex, int rupIndex, int rupvarcount, String rupVarLFN, int count, int currDax) {
+	private Job createSeismogramJob(int sourceIndex, int rupIndex, int rupvarcount, int numRupPoints, String rupVarLFN, int count, int currDax) {
 		String id2 = "ID2_" + sourceIndex+"_"+rupIndex+"_"+rupvarcount;
 		String name = SEISMOGRAM_SYNTHESIS_NAME;
         if (params.isUseMemcached()) {
@@ -1015,6 +1021,10 @@ public class CyberShake_PP_DAXGen {
      	job2.addProfile("pegasus", "group", "" + count);
         job2.addProfile("pegasus", "label", "" + currDax);
      
+        int memNeeded = getSeisMem(numRupPoints);
+        
+        job2.addProfile("pegasus", "request_memory", "" + memNeeded);
+        
         if (params.isUsePriorities()) {
          	job2.addProfile("condor", "priority", params.getNumOfDAXes()-currDax + "");
         }
@@ -1072,6 +1082,10 @@ public class CyberShake_PP_DAXGen {
     	job3.addProfile("pegasus", "group", "" + count);
         job3.addProfile("pegasus", "label", "" + currDax);
         
+        int psaMem = getPSAMem();
+        
+        job3.addProfile("pegasus", "request_memory", "" + psaMem);
+        
         if (params.isUsePriorities()) {
         	job3.addProfile("condor", "priority", params.getNumOfDAXes()-currDax + "");
         }
@@ -1080,7 +1094,8 @@ public class CyberShake_PP_DAXGen {
 	}
 	
 	
-	private Job createSeisPSAJob(int sourceIndex, int rupIndex, int rupvarcount, String rupVarLFN, int count, int currDax) {
+	private Job createSeisPSAJob(int sourceIndex, int rupIndex, int rupvarcount, int numRupPoints, String rupVarLFN, int count, int currDax) {
+		//<profile namespace="pegasus" key="request_memory">100</profile>
 		String id2 = "ID2_" + sourceIndex+"_"+rupIndex+"_"+rupvarcount;
 		
 		String seisPSAName = SEIS_PSA_NAME;
@@ -1146,13 +1161,63 @@ public class CyberShake_PP_DAXGen {
 		job2.addProfile("globus", "maxWallTime", "2");
      	job2.addProfile("pegasus", "group", "" + count);
         job2.addProfile("pegasus", "label", "" + currDax);
-     
+
+        int memNeeded = getSeisMem(numRupPoints) + getPSAMem();
+        
+        job2.addProfile("pegasus", "request_memory", "" + memNeeded);
+        
         if (params.isUsePriorities()) {
          	job2.addProfile("condor", "priority", params.getNumOfDAXes()-currDax + "");
         }
 		return job2;
 	}
 	
+	private int getExtractMem(int numRupPoints) {
+		int size_sgtmaster = 32;
+		int size_sgtindex = 24;
+		int size_sgtheader = 128;
+		int size_sgtparams = 20;
+		int sgt_timesteps = 2000;
+		int numComponents = 3;
+		double tolerance = 1.1;
+		double rvMem = 3.5*1024*1024*(params.getHighFrequencyCutoff()/0.5)*(params.getHighFrequencyCutoff()/0.5);
+		//Save about 500,000 pts per SGT set for 0.5 Hz
+		int numSGTpts = (int)(500000*(params.getHighFrequencyCutoff()/0.5)*(params.getHighFrequencyCutoff()/0.5));
+		double sgtpars = numComponents * (size_sgtmaster + numSGTpts*size_sgtindex);
+		double sgtparams = size_sgtparams * numSGTpts * numComponents;
+		double sgt_subset = numComponents * (size_sgtmaster + numRupPoints*(size_sgtindex + size_sgtheader + 6*4*sgt_timesteps*(params.getHighFrequencyCutoff()/0.5)));
+		return (int)(Math.ceil(tolerance*(rvMem + sgtpars + sgtparams + sgt_subset)/(1024*1024)));
+	}
+	
+	private int getSeisMem(int numRupPoints) {
+		//Estimate of memory in MB required from # of points
+		int size_sgtmaster = 32;
+		int size_sgtindex = 24;
+		int size_sgtheader = 128;
+		int numComponents = 3;
+		double tolerance = 1.1;
+		//Total size is size for SGTs + size of rupture variation
+		//3.5 MB is max RV size for 0.5 Hz
+		double rvMem = 3.5*1024*1024*(params.getHighFrequencyCutoff()/0.5)*(params.getHighFrequencyCutoff()/0.5);
+		double sgtMem = size_sgtmaster + numRupPoints*(size_sgtindex + size_sgtheader + 6*numComponents*Integer.parseInt(NUMTIMESTEPS)*4);
+		double seisOut = Integer.parseInt(NUMTIMESTEPS)*numComponents*4;
+		if (params.isHighFrequency()) {
+			seisOut *= 0.1/Double.parseDouble(HF_DT);
+		}
+		return (int)(Math.ceil((sgtMem+rvMem+seisOut)*tolerance/(1024*1024)));
+	}
+	
+	private int getPSAMem() {
+		int numComponents = 3;
+		//Need to read in all seismograms
+		if (params.isHighFrequency()) {
+			//Extra factor of 4 for smaller dt
+			return (int)(Math.ceil(Integer.parseInt(NUMTIMESTEPS)*numComponents*4*4));
+		} else {
+			return (int)(Math.ceil(Integer.parseInt(NUMTIMESTEPS)*numComponents*4));
+		}
+	}
+
 
 	private Job createLocalVMJob(String vmName, String localVMName) {
 		String id = "ID0_create_local_VM";
@@ -1208,7 +1273,7 @@ public class CyberShake_PP_DAXGen {
 	}
 
 	
-	private Job createHighFrequencyJob(int sourceIndex, int rupIndex, int rupvarcount, String rupVarLFN, int count, int currDax) {
+	private Job createHighFrequencyJob(int sourceIndex, int rupIndex, int rupvarcount, int numRupPoints, String rupVarLFN, int count, int currDax) {
 		String id = "ID_HF_" + sourceIndex+"_"+rupIndex+"_"+rupvarcount;
 		
 		Job job = new Job(id, NAMESPACE, HIGH_FREQ_NAME, VERSION);
@@ -1244,6 +1309,10 @@ public class CyberShake_PP_DAXGen {
 		job.addProfile("globus", "maxWallTime", "2");
      	job.addProfile("pegasus", "group", "" + count);
         job.addProfile("pegasus", "label", "" + currDax);
+        
+        int memNeeded = getSeisMem(numRupPoints);
+        
+        job.addProfile("pegasus", "request_memory", "" + memNeeded);
 		
 		return job;
 	}
@@ -1283,6 +1352,13 @@ public class CyberShake_PP_DAXGen {
      	job.addProfile("pegasus", "group", "" + count);
         job.addProfile("pegasus", "label", "" + currDax);
 		
+        
+        int numComponents = 3;
+        //x9 because x1 for LF input, x4 for HF input, x4 for HF output
+        int memUsage = (int)(Math.ceil(1.1*Integer.parseInt(NUMTIMESTEPS)*numComponents*4*9/(1024*1024)));
+        
+        job.addProfile("pegasus", "request_memory", "" + memUsage);
+        
 		return job;
 	}
 	
@@ -1344,11 +1420,17 @@ public class CyberShake_PP_DAXGen {
 		job.addProfile("pegasus", "group", "" + count);
 		job.addProfile("pegasus", "label", "" + currDax);
 		
+        int numComponents = 3;
+        //x4 for HF output
+        int memUsage = (int)(Math.ceil(1.1*Integer.parseInt(NUMTIMESTEPS)*numComponents*4*4/(1024*1024)));
+        
+        job.addProfile("pegasus", "request_memory", "" + memUsage);
+		
 		return job;
 	}
 	
 
-	private Job createMergePSAJob(int sourceIndex, int rupIndex, int rupvarcount, String rupVarLFN, int count, int currDax) {
+	private Job createMergePSAJob(int sourceIndex, int rupIndex, int rupvarcount, int numRupPoints, String rupVarLFN, int count, int currDax) {
 		String id = "ID_MergePSA_" + sourceIndex + "_" + rupIndex + "_" + rupvarcount;
 		
 		Job job = new Job(id, NAMESPACE, MERGE_PSA_NAME, VERSION);
@@ -1400,6 +1482,12 @@ public class CyberShake_PP_DAXGen {
 		job.addProfile("pegasus", "group", "" + count);
 		job.addProfile("pegasus", "label", "" + currDax);
     	
+		int numComponents = 3;
+        //x5 for LF input, HF input  + PSA
+        int memUsage = (int)(Math.ceil(1.1*Integer.parseInt(NUMTIMESTEPS)*numComponents*4*5/(1024*1024))) + getPSAMem();
+		
+        job.addProfile("pegasus", "request_memory", "" + memUsage);
+        
 		return job;
 	}
 }
