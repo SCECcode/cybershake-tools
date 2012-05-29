@@ -604,8 +604,6 @@ public class CyberShake_PP_DAXGen {
 			"order by R.Num_Points desc";
 		}
 
-		System.out.println(query);
-		System.exit(1);
 		ResultSet rs = dbc.selectData(query);
 		try {
 			rs.first();
