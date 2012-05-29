@@ -605,6 +605,7 @@ public class CyberShake_PP_DAXGen {
 		}
 
 		System.out.println(query);
+		System.exit(1);
 		ResultSet rs = dbc.selectData(query);
 		try {
 			rs.first();
