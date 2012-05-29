@@ -582,11 +582,15 @@ public class CyberShake_PP_DAXGen {
 	}
 	
 	private ResultSet getRuptures(String stationName) {
-		String query =  "select R.Source_ID, R.Rupture_ID, R.Num_Points " +
-			"from CyberShake_Site_Ruptures R, CyberShake_Sites S " +
+		String query =  "select SR.Source_ID, SR.Rupture_ID, R.Num_Points " +
+			"from CyberShake_Site_Ruptures SR, CyberShake_Sites S, Ruptures R" +
 			"where S.CS_Short_Name=\"" + stationName + "\" " +
-			"and R.CS_Site_ID=S.CS_Site_ID " +
-			"and R.ERF_ID=" + riq.getErfID() + " order by R.Num_Points desc";
+			"and SR.CS_Site_ID=S.CS_Site_ID " +
+			"and SR.ERF_ID=" + riq.getErfID() + " " +
+			"and SR.Source_ID=R.Source_ID " +
+			"and SR.Rupture_ID=R.Rupture_ID " +
+			"and SR.ERF_ID=R.ERF_ID " +
+			"order by R.Num_Points desc";
 		if (params.isSortRuptures()) {
 			//Sort on reverse # of points
 			query = "select R.Source_ID, R.Rupture_ID, R.Num_Points " +
