@@ -614,6 +614,7 @@ public class CyberShake_PP_DAXGen {
 	      	}
 		} catch (SQLException e) {
 			e.printStackTrace();
+			System.exit(2);
 		}
       	return rs;
 	}
