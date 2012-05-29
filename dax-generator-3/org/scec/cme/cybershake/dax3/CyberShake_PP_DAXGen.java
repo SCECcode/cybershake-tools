@@ -583,7 +583,7 @@ public class CyberShake_PP_DAXGen {
 	
 	private ResultSet getRuptures(String stationName) {
 		String query =  "select SR.Source_ID, SR.Rupture_ID, R.Num_Points " +
-			"from CyberShake_Site_Ruptures SR, CyberShake_Sites S, Ruptures R" +
+			"from CyberShake_Site_Ruptures SR, CyberShake_Sites S, Ruptures R " +
 			"where S.CS_Short_Name=\"" + stationName + "\" " +
 			"and SR.CS_Site_ID=S.CS_Site_ID " +
 			"and SR.ERF_ID=" + riq.getErfID() + " " +
