@@ -1217,9 +1217,9 @@ public class CyberShake_PP_DAXGen {
 		//Need to read in all seismograms
 		if (params.isHighFrequency()) {
 			//Extra factor of 4 for smaller dt
-			return (int)(Math.ceil(Integer.parseInt(NUMTIMESTEPS)*numComponents*4*4));
+			return (int)(Math.ceil(Integer.parseInt(NUMTIMESTEPS)*numComponents*4*4/(1024*1024)));
 		} else {
-			return (int)(Math.ceil(Integer.parseInt(NUMTIMESTEPS)*numComponents*4));
+			return (int)(Math.ceil(Integer.parseInt(NUMTIMESTEPS)*numComponents*4/(1024*1024)));
 		}
 	}
 
