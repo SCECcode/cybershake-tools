@@ -193,10 +193,10 @@ public class CyberShake_PP_DAXGen {
         	pp_params.setRvDB(true);
         }
         if (line.hasOption(jbsim_rv_mem.getOpt())) {
-        	if (pp_params.isMergedExe() || pp_params.isUseMemcached() || pp_params.isMergedMemcached()) {
-        		System.err.println("Can't use in-memory rupture variations with a merged or memcached jbsim.");
-        		System.exit(-3);
-        	}
+//        	if (pp_params.isMergedExe() || pp_params.isUseMemcached() || pp_params.isMergedMemcached()) {
+//        		System.err.println("Can't use in-memory rupture variations with a merged or memcached jbsim.");
+//        		System.exit(-3);
+//        	}
         	pp_params.setJbsimRVMem(true);
         }
         if (line.hasOption(hfsynth_rv_mem.getOpt())) {
