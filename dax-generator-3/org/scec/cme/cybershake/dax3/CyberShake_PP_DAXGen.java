@@ -1137,6 +1137,7 @@ public class CyberShake_PP_DAXGen {
      	job2.addArgument("seis_file=" + seisFile.getName());
 
      	//PSA args
+     	job2.addArgument("run_psa=1"); //include PSA part
        	job2.addArgument("simulation_out_pointsX=2"); //2 b/c 2 components
     	job2.addArgument("simulation_out_pointsY=1"); //# of variations per seismogram
     	job2.addArgument("simulation_out_timesamples="+NUMTIMESTEPS);// numTimeSteps
