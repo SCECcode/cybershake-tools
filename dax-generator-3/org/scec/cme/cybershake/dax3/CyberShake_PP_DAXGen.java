@@ -589,8 +589,7 @@ public class CyberShake_PP_DAXGen {
 			"and SR.ERF_ID=" + riq.getErfID() + " " +
 			"and SR.Source_ID=R.Source_ID " +
 			"and SR.Rupture_ID=R.Rupture_ID " +
-			"and SR.ERF_ID=R.ERF_ID " +
-			"order by R.Num_Points desc";
+			"and SR.ERF_ID=R.ERF_ID";
 		if (params.isSortRuptures()) {
 			//Sort on reverse # of points
 			query = "select R.Source_ID, R.Rupture_ID, R.Num_Points " +
