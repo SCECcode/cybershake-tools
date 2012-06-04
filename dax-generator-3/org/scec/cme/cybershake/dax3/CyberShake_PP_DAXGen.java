@@ -1239,16 +1239,18 @@ public class CyberShake_PP_DAXGen {
 		int size_sgtindex = 24;
 		int size_sgtheader = 128;
 		int numComponents = 3;
+		int numSGTtimesteps = 2000;
 		double tolerance = 1.1;
-		//Total size is size for SGTs + size of rupture variation
+		//Total size is size for SGTs + size of rupture variation + seismogram
+		//Do calculation in MB
 		//3.5 MB is max RV size for 0.5 Hz
-		double rvMem = 3.5*1024*1024*(params.getHighFrequencyCutoff()/0.5)*(params.getHighFrequencyCutoff()/0.5);
-		double sgtMem = size_sgtmaster + numRupPoints*(size_sgtindex + size_sgtheader + 6*numComponents*Integer.parseInt(NUMTIMESTEPS)*4);
-		double seisOut = Integer.parseInt(NUMTIMESTEPS)*numComponents*4;
+		double rvMem = 3.5*(params.getHighFrequencyCutoff()/0.5)*(params.getHighFrequencyCutoff()/0.5);
+		double sgtMem = numComponents/(1024*1024) * (size_sgtmaster + numRupPoints*(size_sgtindex + size_sgtheader + 6*numSGTtimesteps*(params.getHighFrequencyCutoff()/0.5)*4));
+		double seisOut = Integer.parseInt(NUMTIMESTEPS)*numComponents*4/(1024*1024);
 		if (params.isHighFrequency()) {
 			seisOut *= 0.1/Double.parseDouble(HF_DT);
 		}
-		return (int)(Math.ceil((sgtMem+rvMem+seisOut)*tolerance/(1024*1024)));
+		return (int)((sgtMem+rvMem+seisOut)*tolerance)+1;
 	}
 	
 	private int getPSAMem() {
