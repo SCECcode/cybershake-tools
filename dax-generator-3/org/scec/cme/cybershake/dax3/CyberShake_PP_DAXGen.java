@@ -1165,7 +1165,22 @@ public class CyberShake_PP_DAXGen {
 		File rupsgtx = new File(riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfx.sgt");
 		File rupsgty = new File(riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfy.sgt");
 		
-		job2.addArgument("rupmodfile=" + rupVarFile.getName());
+		if (params.isJbsimRVMem()) {
+			//Don't use rupture file;  instead, use source/rupture/slip/hypo arguments
+			//43_0.txt.variation-s0000-h0000
+			String[] pieces = rupVarLFN.split("-");
+			int slip = Integer.parseInt(pieces[1].substring(1));
+			int hypo = Integer.parseInt(pieces[2].substring(1));
+			job2.addArgument("slip=" + slip);
+			job2.addArgument("hypo=" + hypo);
+ 			File rup_geom_file = new File("e" + riq.getErfID() + "_rv" + riq.getRuptVarScenID() + "_" + sourceIndex + "_" + rupIndex + ".txt");
+ 			job2.addArgument("rup_geom_file=" + rup_geom_file.getName());
+ 			job2.uses(rup_geom_file, File.LINK.INPUT);
+		} else {
+			job2.addArgument("rupmodfile=" + rupVarFile.getName());
+	     	job2.uses(rupVarFile,File.LINK.INPUT);   
+		}
+		
 		job2.addArgument("sgt_xfile=" + rupsgtx.getName());
 		job2.addArgument("sgt_yfile=" + rupsgty.getName());
      	job2.addArgument("seis_file=" + seisFile.getName());
