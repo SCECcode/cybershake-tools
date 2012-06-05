@@ -1272,7 +1272,7 @@ public class CyberShake_PP_DAXGen {
 		//3.5 MB is max RV size for 0.5 Hz
 		double rvMem = 3.5*(params.getHighFrequencyCutoff()/0.5)*(params.getHighFrequencyCutoff()/0.5);
 		double sgtMem = numComponents/(1024.0*1024.0) * (size_sgtmaster + numRupPoints*(size_sgtindex + size_sgtheader + 6*numSGTtimesteps*(params.getHighFrequencyCutoff()/0.5)*4));
-		double seisOut = Integer.parseInt(NUMTIMESTEPS)*numComponents*4/(1024*1024);
+		double seisOut = Integer.parseInt(NUMTIMESTEPS)*numComponents*4/(1024.0*1024);
 		if (show) {
 			System.out.println(params.getHighFrequencyCutoff());
 			System.out.println("rvMem: " + rvMem + " sgtMem: " + sgtMem + " seisOut: " + seisOut);
