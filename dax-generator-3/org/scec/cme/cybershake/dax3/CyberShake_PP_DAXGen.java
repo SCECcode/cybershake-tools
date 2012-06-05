@@ -1056,6 +1056,9 @@ public class CyberShake_PP_DAXGen {
         job2.addProfile("pegasus", "label", "" + currDax);
      
         int memNeeded = getSeisMem(numRupPoints);
+        if (sourceIndex==128 && rupIndex==1296) {
+        	System.out.println("128/1296 requires " + memNeeded);
+        }
         
         job2.addProfile("pegasus", "request_memory", "" + memNeeded);
         
