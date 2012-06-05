@@ -182,7 +182,7 @@ public class CyberShake_PP_DAXGen {
         		pp_params.setHighFrequencyCutoff(Double.parseDouble(line.getOptionValue("hf")));
         	} else {
         		//use 1.0 as default
-        		pp_params.setHighFrequencyCutoff(0.5);
+        		pp_params.setHighFrequencyCutoff(1.0);
         	}
         	if (line.hasOption(hf_synth.getOpt())) {
         		pp_params.setHfsynth(true);
@@ -190,6 +190,9 @@ public class CyberShake_PP_DAXGen {
         	if (line.hasOption(merge_psa.getOpt())) {
         		pp_params.setMergePSA(true);
         	}
+        } else {
+        	//only running low frequency
+    		pp_params.setHighFrequencyCutoff(0.5);	
         }
         if (line.hasOption(sqlIndex.getOpt())) {
         	pp_params.setRvDB(true);
