@@ -174,6 +174,7 @@ public class PP_DAXParameters {
 	}
 
 	public void setHighFrequencyCutoff(double highFrequencyCutoff) {
+		System.out.println("Setting HF cutoff to " + highFrequencyCutoff);
 		this.highFrequencyCutoff = highFrequencyCutoff;
 	}
 
