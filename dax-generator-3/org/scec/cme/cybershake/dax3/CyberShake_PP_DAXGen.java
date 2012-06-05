@@ -1057,6 +1057,7 @@ public class CyberShake_PP_DAXGen {
      
         int memNeeded = getSeisMem(numRupPoints);
         if (sourceIndex==128 && rupIndex==1296) {
+        	memNeeded = getSeisMem(numRupPoints, true);
         	System.out.println("128/1296 requires " + memNeeded);
         }
         
@@ -1252,6 +1253,10 @@ public class CyberShake_PP_DAXGen {
 	}
 	
 	private int getSeisMem(int numRupPoints) {
+		return getSeisMem(numRupPoints, false);
+	}
+	
+	private int getSeisMem(int numRupPoints, boolean show) {
 		//Estimate of memory in MB required from # of points
 		int size_sgtmaster = 32;
 		int size_sgtindex = 24;
@@ -1263,8 +1268,11 @@ public class CyberShake_PP_DAXGen {
 		//Do calculation in MB
 		//3.5 MB is max RV size for 0.5 Hz
 		double rvMem = 3.5*(params.getHighFrequencyCutoff()/0.5)*(params.getHighFrequencyCutoff()/0.5);
-		double sgtMem = numComponents/(1024*1024) * (size_sgtmaster + numRupPoints*(size_sgtindex + size_sgtheader + 6*numSGTtimesteps*(params.getHighFrequencyCutoff()/0.5)*4));
+		double sgtMem = numComponents/(1024.0*1024.0) * (size_sgtmaster + numRupPoints*(size_sgtindex + size_sgtheader + 6*numSGTtimesteps*(params.getHighFrequencyCutoff()/0.5)*4));
 		double seisOut = Integer.parseInt(NUMTIMESTEPS)*numComponents*4/(1024*1024);
+		if (show) {
+			System.out.println("rvMem: " + rvMem + " sgtMem: " + sgtMem + " seisOut: " + seisOut);
+		}
 		if (params.isHighFrequency()) {
 			seisOut *= 0.1/Double.parseDouble(HF_DT);
 		}
