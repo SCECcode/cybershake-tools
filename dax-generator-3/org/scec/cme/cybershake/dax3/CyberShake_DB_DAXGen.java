@@ -89,9 +89,42 @@ public class CyberShake_DB_DAXGen {
 		
 		ADAG dax = new ADAG(daxName, 0, 1);
 		
+		Job zipPSAJob = null;
+		
+		//Start by adding zip job, if necessary
+		if (!params.isZip()) {
+			//Need to zip seis and PSA up on local site
+			String id = "ZipSeis";
+	    	Job zipSeisJob = new Job(id, CyberShake_PP_DAXGen.NAMESPACE, "ZipSeis", "1.0");
+	    	File zipSeisFile = new File("CyberShake_" + riq.getSiteName() + "_" + riq.getRunID() + "_seismograms.zip");
+	    	zipSeisFile.setRegister(true);
+	    	
+	    	zipSeisJob.addArgument(".");
+	    	zipSeisJob.addArgument(zipSeisFile.getName());
+	    	zipSeisJob.uses(zipSeisFile, File.LINK.OUTPUT);
+
+	    	dax.addJob(zipSeisJob);
+	    	
+	    	String id2 = "ZipPSA";
+	    	zipPSAJob = new Job(id2, CyberShake_PP_DAXGen.NAMESPACE, "ZipPSA", "1.0");
+	    	File zipPSAFile = new File("CyberShake_" + riq.getSiteName() + "_" + riq.getRunID() + "_PSA.zip");
+	    	zipPSAFile.setRegister(true);
+
+	    	zipPSAJob.addArgument(".");
+	    	zipPSAJob.addArgument(zipPSAFile.getName());
+	    	zipPSAJob.uses(zipPSAFile, File.LINK.OUTPUT);
+
+	    	dax.addJob(zipPSAJob);
+		}
+		
 		// Add workflow jobs
 		Job insertJob = createDBInsertionJob();
 		dax.addJob(insertJob);
+		//If we needed to add local zip jobs, add dependency on PSA zip
+		if (!params.isZip()) {
+			dax.addDependency(zipPSAJob, insertJob);
+		}
+		
 		Job dbCheckJob = createDBCheckJob();
 		dax.addJob(dbCheckJob);
 		
