@@ -22,6 +22,7 @@ public class CyberShake_DB_DAXGen {
 			+ "," + OPENSHA_CONF_DIR + "as2008.xml";
 	public static final String DB_PASS_FILE = "/home/scec-00/" + USER + "/config/db_pass.txt";
 	public static final String DB_REPORT_OUTPUT_DIR = "/home/scec-00/" + USER + "/db_reports/";
+	public static final String STORAGE_DIR = "/home/scec-02/tera3d/CyberShake2007/data/PPFiles/";
 
 	//Constants
 	public static final String DAX_FILENAME_POST = "_db_products";
@@ -99,7 +100,7 @@ public class CyberShake_DB_DAXGen {
 	    	File zipSeisFile = new File("CyberShake_" + riq.getSiteName() + "_" + riq.getRunID() + "_seismograms.zip");
 	    	zipSeisFile.setRegister(true);
 	    	
-	    	zipSeisJob.addArgument(".");
+	    	zipSeisJob.addArgument(STORAGE_DIR + "/" + riq.getSiteName() + "/" + riq.getRunID());
 	    	zipSeisJob.addArgument(zipSeisFile.getName());
 	    	zipSeisJob.uses(zipSeisFile, File.LINK.OUTPUT);
 
@@ -110,7 +111,7 @@ public class CyberShake_DB_DAXGen {
 	    	File zipPSAFile = new File("CyberShake_" + riq.getSiteName() + "_" + riq.getRunID() + "_PSA.zip");
 	    	zipPSAFile.setRegister(true);
 
-	    	zipPSAJob.addArgument(".");
+	    	zipPSAJob.addArgument(STORAGE_DIR + "/" + riq.getSiteName() + "/" + riq.getRunID());
 	    	zipPSAJob.addArgument(zipPSAFile.getName());
 	    	zipPSAJob.uses(zipPSAFile, File.LINK.OUTPUT);
 
