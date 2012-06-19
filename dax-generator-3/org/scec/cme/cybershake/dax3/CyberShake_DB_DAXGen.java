@@ -295,6 +295,10 @@ public class CyberShake_DB_DAXGen {
 				zipFile.setRegister(false);
 				job.uses(zipFile, File.LINK.INPUT);
 			}
+		} else {
+			File zipFile = new File("CyberShake_" + riq.getSiteName() + "_" + riq.getRunID() +  "_PSA.zip");
+			zipFile.setRegister(false);
+			job.uses(zipFile, File.LINK.INPUT);
 		}
 		
 		job.addArgument("-server " + DB_SERVER);
