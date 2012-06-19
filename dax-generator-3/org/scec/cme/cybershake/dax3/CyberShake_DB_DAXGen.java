@@ -65,18 +65,18 @@ public class CyberShake_DB_DAXGen {
 		zipFilesDir = ".";
 	}
 	
-	public CyberShake_DB_DAXGen(RunIDQuery r, PP_DAXParameters params, String zipFilesDir, int numDAXes) {
+	public CyberShake_DB_DAXGen(RunIDQuery r, PP_DAXParameters params, String zipFilesDir, int numDAXes, boolean transferZip) {
 		this(r);
 		this.zipFilesDir = zipFilesDir;
-		transferZipFiles = true;
+		transferZipFiles = transferZip;
 		this.numDAXes = numDAXes;
 		this.params = params;
 	}
 	
-	public CyberShake_DB_DAXGen(RunIDQuery r, String zipFilesDir, int numDAXes, boolean highFreq, double highFreqCutoff) {
+	public CyberShake_DB_DAXGen(RunIDQuery r, String zipFilesDir, int numDAXes, boolean highFreq, double highFreqCutoff, boolean transferZip) {
 		this(r);
 		this.zipFilesDir = zipFilesDir;
-		transferZipFiles = true;
+		transferZipFiles = transferZip;
 		this.numDAXes = numDAXes;
 		params = new PP_DAXParameters();
 		params.setHighFrequency(highFreq);
@@ -323,7 +323,7 @@ public class CyberShake_DB_DAXGen {
 		RunIDQuery rid = new RunIDQuery(runID, false);
 		
 		if (args.length == 3)
-			gen = new CyberShake_DB_DAXGen(rid, args[1], Integer.parseInt(args[2]), false, 0.5);
+			gen = new CyberShake_DB_DAXGen(rid, args[1], Integer.parseInt(args[2]), false, 0.5, true);
 		else
 			gen = new CyberShake_DB_DAXGen(rid);
 		

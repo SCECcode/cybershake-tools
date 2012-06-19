@@ -589,7 +589,7 @@ public class CyberShake_PP_DAXGen {
 	}
 
 	private ADAG genDBProductsDAX(int numSubDAXes) {
-		CyberShake_DB_DAXGen gen = new CyberShake_DB_DAXGen(riq, params, ".", numSubDAXes);
+		CyberShake_DB_DAXGen gen = new CyberShake_DB_DAXGen(riq, params, ".", numSubDAXes, params.isZip());
 		ADAG dax = gen.makeDAX();
 			
 		return dax;		
@@ -1059,10 +1059,6 @@ public class CyberShake_PP_DAXGen {
         job2.addProfile("pegasus", "label", "" + currDax);
      
         int memNeeded = getSeisMem(numRupPoints);
-        if (sourceIndex==128 && rupIndex==1296) {
-        	memNeeded = getSeisMem(numRupPoints, true);
-        	System.out.println("128/1296 requires " + memNeeded);
-        }
         
         job2.addProfile("pegasus", "request_memory", "" + memNeeded);
         
@@ -1256,10 +1252,6 @@ public class CyberShake_PP_DAXGen {
 	}
 	
 	private int getSeisMem(int numRupPoints) {
-		return getSeisMem(numRupPoints, false);
-	}
-	
-	private int getSeisMem(int numRupPoints, boolean show) {
 		//Estimate of memory in MB required from # of points
 		int size_sgtmaster = 32;
 		int size_sgtindex = 24;
@@ -1273,10 +1265,7 @@ public class CyberShake_PP_DAXGen {
 		double rvMem = 3.5*(params.getHighFrequencyCutoff()/0.5)*(params.getHighFrequencyCutoff()/0.5);
 		double sgtMem = numComponents/(1024.0*1024.0) * (size_sgtmaster + numRupPoints*(size_sgtindex + size_sgtheader + 6*numSGTtimesteps*(params.getHighFrequencyCutoff()/0.5)*4));
 		double seisOut = Integer.parseInt(NUMTIMESTEPS)*numComponents*4/(1024.0*1024);
-		if (show) {
-			System.out.println(params.getHighFrequencyCutoff());
-			System.out.println("rvMem: " + rvMem + " sgtMem: " + sgtMem + " seisOut: " + seisOut);
-		}
+
 		if (params.isHighFrequency()) {
 			seisOut *= 0.1/Double.parseDouble(HF_DT);
 		}
