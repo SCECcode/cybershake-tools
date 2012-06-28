@@ -116,6 +116,19 @@ public class CyberShake_DB_DAXGen {
 	    	zipPSAJob.uses(zipPSAFile, File.LINK.OUTPUT);
 
 	    	dax.addJob(zipPSAJob);
+	    	
+	    	//Delete .bsa and .grm files
+	    	id = "DeleteSeis";
+	    	Job deleteSeisJob = new Job(id, CyberShake_PP_DAXGen.NAMESPACE, "DeleteSeis", "1.0");
+	    	deleteSeisJob.addArgument(STORAGE_DIR + "/" + riq.getSiteName() + "/" + riq.getRunID());
+	    	dax.addJob(deleteSeisJob);
+	    	dax.addDependency(zipSeisJob, deleteSeisJob);
+	    	
+	    	id = "DeletePSA";
+	    	Job deletePSAJob = new Job(id, CyberShake_PP_DAXGen.NAMESPACE, "DeletePSA", "1.0");
+	    	deletePSAJob.addArgument(STORAGE_DIR + "/" + riq.getSiteName() + "/" + riq.getRunID());
+	    	dax.addJob(deletePSAJob);
+	    	dax.addDependency(zipPSAJob, deletePSAJob);
 		}
 		
 		// Add workflow jobs
