@@ -65,82 +65,97 @@ public class CyberShake_SGT_DAXGen implements CyberShake_SGT {
         
 		String outputFilename = args[0]; 
 		String directory = args[1];
-		String inputFile = "";
 		String velocityModel = "1D";
-		ArrayList<RunIDQuery> runIDQueries = new ArrayList<RunIDQuery>();
-		
-		if (line.hasOption(runIDFile.getOpt())) {
-			inputFile = line.getOptionValue(runIDFile.getOpt());
-			try {
-				BufferedReader br = new BufferedReader(new FileReader(inputFile));
-				String entry = br.readLine();
-				while (entry!=null) {
-					runIDQueries.add(new RunIDQuery(Integer.parseInt(entry), false));
-				}
-				br.close();
-			} catch (IOException iex) {
-				iex.printStackTrace();
-				System.exit(1);
-			}
-		} else if (line.hasOption(runIDList.getOpt())) {
-			String[] runIDs = line.getOptionValues(runIDList.getOpt());
-			for (String runID: runIDs) {
-				runIDQueries.add(new RunIDQuery(Integer.parseInt(runID), false));
-			}
-		}
-		
 		if (line.hasOption(cvms.getOpt())) {
 			velocityModel = "cvms";
 		} else if (line.hasOption(cvmh.getOpt())) {
 			velocityModel = "cvmh";
+		}		
+		
+		boolean awp_bool = false;
+		if (line.hasOption(awp.getOpt())) {
+			awp_bool = true;
 		}
 		
-		boolean twoLevel = false;
+		ArrayList<RunIDQuery> runIDQueries = null;
 		
-		ADAG topLevelDAX = null;
-		long timeStamp = System.currentTimeMillis();
+		if (line.hasOption(runIDFile.getOpt())) {
+			runIDQueries = runIDsFromFile(awp, line.getOptionValue(runIDFile.getOpt()));
+		} else {		
+			runIDQueries = runIDsFromArgs(awp, line.getOptionValues(runIDList.getOpt()));
+		}
+				
+		ADAG[] sgtDAXes = makeWorkflows(runIDQueries, velocityModel, awp_bool, directory, outputFilename);
 		
-		if (runIDQueries.size()>1) {
+		if (sgtDAXes.length>1) {
 			//Create a top-level DAX
-			twoLevel = true;
-			topLevelDAX = new ADAG(DAX_FILENAME_PREFIX + "_" + timeStamp + DAX_FILENAME_EXTENSION);
-		}
-		
-		//Create a DAX for each site
-		for (int i=0; i<runIDQueries.size(); i++) {
-			CyberShake_SGT sd;
-			if (line.hasOption(awp.getOpt())) {
-				sd = new CyberShake_AWP_SGT_DAXGen(runIDQueries.get(i));	
-			} else {
-				sd = new CyberShake_SGT_DAXGen(runIDQueries.get(i));	
-			}
-			
-			ADAG sgtDax = sd.makeDAX(velocityModel);
-			
-			if (twoLevel) {
+			long timeStamp = System.currentTimeMillis();
+			ADAG topLevelDAX = new ADAG(DAX_FILENAME_PREFIX + "_" + timeStamp + DAX_FILENAME_EXTENSION);
+			for (int i=0; i<runIDQueries.size(); i++) {
 				String daxFileName = DAX_FILENAME_PREFIX + "_" + runIDQueries.get(i).getSiteName() + "_" + i + ".dax";
-				sgtDax.writeToFile(daxFileName);
+				sgtDAXes[i].writeToFile(daxFileName);
 				DAX sgtDaxJob = new DAX("SGT_" + runIDQueries.get(i).getSiteName(), daxFileName);
 				//Avoid pruning of jobs
 				sgtDaxJob.addArgument("--force");
 				//Copy results to ranger unpurged directory
 				sgtDaxJob.addArgument("-o ranger");
 				topLevelDAX.addDAX(sgtDaxJob);
-				
+			
 				File sgtDaxFile = new File(daxFileName);
 				sgtDaxFile.addPhysicalFile("file://" + directory + "/" + daxFileName, "local");
 				topLevelDAX.addFile(sgtDaxFile);
-			} else {
-				//Only 1 site to do, use supplied filename
-				sgtDax.writeToFile(outputFilename);
 			}
+			topLevelDAX.writeToFile(outputFilename);
+		} else {
+			sgtDAXes[0].writeToFile(outputFilename);
+		}
+	} 
+
+	public static ArrayList<RunIDQuery> runIDsFromFile(Option awp, String inputFile) {
+		ArrayList<RunIDQuery> runIDQueries = new ArrayList<RunIDQuery>();
+		
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(inputFile));
+			String entry = br.readLine();
+			while (entry!=null) {
+				runIDQueries.add(new RunIDQuery(Integer.parseInt(entry), false));
+			}
+			br.close();
+		} catch (IOException iex) {
+			iex.printStackTrace();
+			System.exit(1);
 		}
 		
-		if (twoLevel) {
-			topLevelDAX.writeToFile(outputFilename);
+		return runIDQueries;
+	}
+	
+	public static ArrayList<RunIDQuery> runIDsFromArgs(Option awp, String[] runIDs) {
+		ArrayList<RunIDQuery> runIDQueries = new ArrayList<RunIDQuery>();
+		
+		for (String runID: runIDs) {
+			runIDQueries.add(new RunIDQuery(Integer.parseInt(runID), false));
 		}
+		return runIDQueries;
+	}
+		
+	public static ADAG[] makeWorkflows(ArrayList<RunIDQuery> runIDQueries, String velocityModel, boolean awp, String directory, String outputFilename) {
+		//Create a DAX for each site
+		ADAG[] daxes = new ADAG[runIDQueries.size()];
+		
+		for (int i=0; i<runIDQueries.size(); i++) {
+			CyberShake_SGT sd;
+			if (awp) {
+				sd = new CyberShake_AWP_SGT_DAXGen(runIDQueries.get(i));	
+			} else {
+				sd = new CyberShake_SGT_DAXGen(runIDQueries.get(i));	
+			}
+			
+			daxes[i] = sd.makeDAX(velocityModel);
+		}
+		return daxes;	
 	}
 
+	
 	public CyberShake_SGT_DAXGen(RunIDQuery r) {
 		riq = r;
 	}

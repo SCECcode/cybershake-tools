@@ -221,17 +221,19 @@ public class CyberShake_PP_DAXGen {
         if (line.hasOption(no_zip.getOpt())) {
         	pp_params.setZip(false);
         }
-        	
+
         daxGen.makeDAX(runID, pp_params);
 	}
 
-
-	private void makeDAX(int runID, PP_DAXParameters params) {
+	public ADAG makeDAX(int runID, PP_DAXParameters params) {
+		//Return preDAX so we can set up dependencies if needed
 		try {
 			this.params = params;
 			//Get parameters from DB and calculate number of variations
 			ResultSet ruptureSet = getParameters(runID);
-		
+
+			ADAG topLevelDax = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName(), 0, 1);
+
 			//Check to make sure RV model is consistent with in-memory choice
 			//since if we generate rupture variations in memory, we only support RV ID 4
 			if (riq.getRuptVarScenID()==3 && params.isJbsimRVMem()) {
@@ -242,7 +244,6 @@ public class CyberShake_PP_DAXGen {
 			//populate DB with frequency info
 			putFreqInDB();
 			
-			ADAG topLevelDax = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName(), 0, 1);
 			
 			// Add DAX for checking SGT files
 			ADAG preDAX = makePreDAX(riq.getRunID(), riq.getSiteName());
@@ -538,11 +539,12 @@ public class CyberShake_PP_DAXGen {
 
 			String topLevelDaxName = DAX_FILENAME_PREFIX + riq.getSiteName() + DAX_FILENAME_EXTENSION;
 			topLevelDax.writeToFile(topLevelDaxName);
-			
+			return topLevelDax;
 		} catch (SQLException ex) {
 			ex.printStackTrace();
 			System.exit(1);
 		}
+		return null;
 	}
 
 
@@ -598,7 +600,7 @@ public class CyberShake_PP_DAXGen {
 
 	private ResultSet getParameters(int runID) {
 		//Populate RunID object
-    		riq = new RunIDQuery(runID, params.isHighFrequency());
+   		riq = new RunIDQuery(runID, params.isHighFrequency());
 		dbc = new DBConnect(DB_SERVER, DB, USER, PASS);
 
 		String stationName = riq.getSiteName();
