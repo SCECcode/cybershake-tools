@@ -82,7 +82,10 @@ public class CyberShake_Integrated_DAXGen {
         try {
             line = parser.parse(cmd_opts, args);
         } catch (ParseException pe) {
-            pe.printStackTrace();
+        	System.err.println(pe.getMessage());
+        	HelpFormatter formatter = new HelpFormatter();
+        	formatter.printHelp("CyberShake_Integrated_DAXGen", cmd_opts);
+        	System.exit(1);
             System.exit(2);
         }
 		
