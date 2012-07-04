@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.OptionGroup;
@@ -23,6 +24,9 @@ public class CyberShake_Integrated_DAXGen {
 	
 	public static void main(String[] args) {
 		Options cmd_opts = new Options();
+		//Help
+		Option help = new Option("h", "Get usage");
+		cmd_opts.addOption(help);
 		//SGT options
 		//Velocity models
 		Option cvms = new Option("v4", "Use CVM-S4 velocity model");
@@ -82,6 +86,12 @@ public class CyberShake_Integrated_DAXGen {
             System.exit(2);
         }
 		
+        if (args.length < 3 || line.hasOption(help.getOpt())) {
+        	HelpFormatter formatter = new HelpFormatter();
+        	formatter.printHelp("CyberShake_Integrated_DAXGen", cmd_opts);
+        	System.exit(1);
+        }
+        
 		String outputFilename = args[0]; 
 		String directory = args[1];
 		String velocityModel = "1D";
@@ -89,7 +99,10 @@ public class CyberShake_Integrated_DAXGen {
 			velocityModel = "cvms";
 		} else if (line.hasOption(cvmh.getOpt())) {
 			velocityModel = "cvmh";
-		}		
+		} else {
+			System.err.println("Must select a velocity model, cvms or cvmh.");
+			System.exit(3);
+		}
 		
 		boolean awp_bool = false;
 		if (line.hasOption(awp.getOpt())) {
