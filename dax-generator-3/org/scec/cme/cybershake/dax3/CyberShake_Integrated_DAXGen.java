@@ -195,7 +195,7 @@ public class CyberShake_Integrated_DAXGen {
         }
         
         if (line.hasOption(rv_mem.getOpt())) {
-        	if (pp_params.isHfsynth()==false || pp_params.isHighFrequency()==false) {
+        	if (pp_params.isHfsynth()==false && pp_params.isHighFrequency()==true) {
         		System.err.println("Can't use in-memory rupture variations in HF_Synth if you're not running high frequency with HF_Synth.");
         		System.exit(-4);
         	}
