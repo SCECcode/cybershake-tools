@@ -135,6 +135,7 @@ public class CyberShake_Integrated_DAXGen {
 			sgtDaxJobs[i] = new DAX("SGT_" + runIDQueries.get(i).getSiteName(), daxFileName);
 			//Avoid pruning of jobs
 			sgtDaxJobs[i].addArgument("--force");
+			
 			//Copy results to ranger unpurged directory
 //			sgtDaxJob.addArgument("-o ranger");
 			topLevelDAX.addDAX(sgtDaxJobs[i]);
@@ -226,6 +227,9 @@ public class CyberShake_Integrated_DAXGen {
 			ppDax.addArgument("-qqqqq");
 			//Force stage-out of zip files
 			ppDax.addArgument("--output shock");
+			if (pp_params.isMPICluster()) {
+				ppDax.addArgument("-Dpegasus.clusterer.job.aggregator=MPIExec");
+			}
 			ppDax.addProfile("dagman", "category", "ppwf");
 			topLevelDAX.addDAX(ppDax);
 			//Dependencies between SGT dax and PP dax
