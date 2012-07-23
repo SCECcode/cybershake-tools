@@ -217,7 +217,7 @@ public class CyberShake_Integrated_DAXGen {
         for (int i=0; i<runIDQueries.size(); i++) {
         	ADAG ppADAX = daxGen.makeDAX(runIDQueries.get(i).getRunID(), pp_params);
         	
-			String daxFile = PP_DAX_FILENAME_PREFIX + runIDQueries.get(i).getSiteName() + DAX_FILENAME_EXTENSION;
+			String daxFile = PP_DAX_FILENAME_PREFIX + "_" + runIDQueries.get(i).getSiteName() + DAX_FILENAME_EXTENSION;
 			ppADAX.writeToFile(daxFile);
 			//Add to topLevelDax
 			DAX ppDax = new DAX("dax_" + runIDQueries.get(i).getSiteName(), daxFile);
