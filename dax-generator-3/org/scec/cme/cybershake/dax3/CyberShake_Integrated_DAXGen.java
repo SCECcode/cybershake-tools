@@ -19,7 +19,9 @@ import edu.isi.pegasus.planner.dax.File;
 /* Creates a CyberShake workflow which consists of an SGT workflow and a PP workflow.
  */
 public class CyberShake_Integrated_DAXGen {
-    private final static String DAX_FILENAME_PREFIX = "CyberShake_full_";
+    private final static String DAX_FILENAME_PREFIX = "CyberShake_full";
+    private final static String SGT_DAX_FILENAME_PREFIX = "CyberShake_SGT";
+    private final static String PP_DAX_FILENAME_PREFIX = "CyberShake";
     private final static String DAX_FILENAME_EXTENSION = ".dax";
 	
 	public static void main(String[] args) {
@@ -128,7 +130,7 @@ public class CyberShake_Integrated_DAXGen {
 		ADAG topLevelDAX = new ADAG(DAX_FILENAME_PREFIX + "_" + timeStamp + DAX_FILENAME_EXTENSION);
 		DAX[] sgtDaxJobs = new DAX[sgtDAXes.length];
 		for (int i=0; i<sgtDAXes.length; i++) {
-			String daxFileName = DAX_FILENAME_PREFIX + "_" + runIDQueries.get(i).getSiteName() + "_" + i + ".dax";
+			String daxFileName = SGT_DAX_FILENAME_PREFIX + "_" + runIDQueries.get(i).getSiteName() + "_" + i + ".dax";
 			sgtDAXes[i].writeToFile(daxFileName);
 			sgtDaxJobs[i] = new DAX("SGT_" + runIDQueries.get(i).getSiteName(), daxFileName);
 			//Avoid pruning of jobs
@@ -215,7 +217,7 @@ public class CyberShake_Integrated_DAXGen {
         for (int i=0; i<runIDQueries.size(); i++) {
         	ADAG ppADAX = daxGen.makeDAX(runIDQueries.get(i).getRunID(), pp_params);
         	
-			String daxFile = DAX_FILENAME_PREFIX + runIDQueries.get(i).getSiteName() + DAX_FILENAME_EXTENSION;
+			String daxFile = PP_DAX_FILENAME_PREFIX + runIDQueries.get(i).getSiteName() + DAX_FILENAME_EXTENSION;
 			ppADAX.writeToFile(daxFile);
 			//Add to topLevelDax
 			DAX ppDax = new DAX("dax_" + runIDQueries.get(i).getSiteName(), daxFile);
