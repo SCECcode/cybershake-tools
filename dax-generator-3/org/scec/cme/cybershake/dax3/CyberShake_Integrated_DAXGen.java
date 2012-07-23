@@ -19,7 +19,7 @@ import edu.isi.pegasus.planner.dax.File;
 /* Creates a CyberShake workflow which consists of an SGT workflow and a PP workflow.
  */
 public class CyberShake_Integrated_DAXGen {
-    private final static String DAX_FILENAME_PREFIX = "CyberShake_SGT";
+    private final static String DAX_FILENAME_PREFIX = "CyberShake_full_";
     private final static String DAX_FILENAME_EXTENSION = ".dax";
 	
 	public static void main(String[] args) {
@@ -141,7 +141,6 @@ public class CyberShake_Integrated_DAXGen {
 			sgtDaxFile.addPhysicalFile("file://" + directory + "/" + daxFileName, "local");
 			topLevelDAX.addFile(sgtDaxFile);
 		}
-		topLevelDAX.writeToFile(outputFilename);
 		
 		//Post-processing
         CyberShake_PP_DAXGen daxGen = new CyberShake_PP_DAXGen();
@@ -233,9 +232,7 @@ public class CyberShake_Integrated_DAXGen {
 			ppDaxFile.addPhysicalFile("file://" + directory + "/" + daxFile, "local");
 			topLevelDAX.addFile(ppDaxFile);
         }
-        
-		String topLevelDaxName = DAX_FILENAME_PREFIX + timeStamp + DAX_FILENAME_EXTENSION;
-		topLevelDAX.writeToFile(topLevelDaxName);
+		topLevelDAX.writeToFile(outputFilename);
 	}
 	
 }
