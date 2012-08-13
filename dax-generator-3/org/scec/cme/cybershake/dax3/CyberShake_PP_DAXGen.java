@@ -43,6 +43,7 @@ public class CyberShake_PP_DAXGen {
     private final static String CHECK_SGT_NAME = "CheckSgt";
     private final static String ZIP_SEIS_NAME = "ZipSeismograms";
     private final static String ZIP_PSA_NAME = "ZipPeakSA";
+    private final static String ZIP_COMBINED_NAME = "ZipCombined";
     private final static String EXTRACT_SGT_NAME = "extract_sgt";
     private final static String SEISMOGRAM_SYNTHESIS_NAME = "seismogram_synthesis";
     private final static String PEAK_VAL_CALC_NAME = "PeakValCalc_Okaya";
@@ -100,6 +101,7 @@ public class CyberShake_PP_DAXGen {
         Option awp = new Option("awp", "Use AWP SGTs");
         Option mpi_cluster = new Option("mpi_cluster", "Use pegasus-mpi-cluster");
         Option no_zip = new Option("nz", "No zip jobs (transfer files individually, zip after transfer)");
+        Option separate_zip = new Option("sz", "Run zip jobs as separate jobs at end of sub workflows.");
         cmd_opts.addOption(partition);
         cmd_opts.addOption(priorities);
         cmd_opts.addOption(replicate_sgts);
@@ -113,12 +115,15 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(hfsynth_rv_mem);
         cmd_opts.addOption(awp);
         cmd_opts.addOption(mpi_cluster);
-        cmd_opts.addOption(no_zip);
         OptionGroup memcachedGroup = new OptionGroup();
         memcachedGroup.addOption(jbsim_memcached);
         memcachedGroup.addOption(seisPSA);
         memcachedGroup.addOption(seisPSA_memcached);
         cmd_opts.addOptionGroup(memcachedGroup);
+        OptionGroup zipGroup = new OptionGroup();
+        zipGroup.addOption(no_zip);
+        zipGroup.addOption(separate_zip);
+        cmd_opts.addOptionGroup(zipGroup);
         CyberShake_PP_DAXGen daxGen = new CyberShake_PP_DAXGen();
         PP_DAXParameters pp_params = new PP_DAXParameters();
         CommandLineParser parser = new GnuParser();
@@ -220,6 +225,9 @@ public class CyberShake_PP_DAXGen {
         }
         if (line.hasOption(no_zip.getOpt())) {
         	pp_params.setZip(false);
+        }
+        if (line.hasOption(separate_zip.getOpt())) {
+        	pp_params.setSeparateZip(true);
         }
 
         daxGen.makeDAX(runID, pp_params);
@@ -338,8 +346,9 @@ public class CyberShake_PP_DAXGen {
 					if (currDax % params.getNotifyGroupSize()== 0) {
 			    		Job notifyJob = addNotify(dax, riq.getSiteName(), "DAX", currDax, params.getNumOfDAXes());
 						if (params.isZip()) {
-							dax.addDependency(zipJobs[0], notifyJob);
-							dax.addDependency(zipJobs[1], notifyJob);
+							for (Job zipJob: zipJobs) {
+								dax.addDependency(zipJob, notifyJob);
+							}
 						}
 			    	}
 					
@@ -367,8 +376,9 @@ public class CyberShake_PP_DAXGen {
 						dax.addDependency(extractJob, seisPSAJob);
 						//make the zip jobs appropriate children
 						if (params.isZip()) {
-							dax.addDependency(seisPSAJob, zipJobs[0]);
-							dax.addDependency(seisPSAJob, zipJobs[1]);
+							for (Job zipJob: zipJobs) {
+								dax.addDependency(seisPSAJob, zipJob);
+							}
 						}
 					} else {
 						//create and add seismogram synthesis
@@ -402,8 +412,9 @@ public class CyberShake_PP_DAXGen {
 								dax.addDependency(seismoJob, mergeJob);
 								//make the zip jobs appropriate children
 								if (params.isZip()) {
-									dax.addDependency(mergeJob, zipJobs[0]);
-									dax.addDependency(mergeJob, zipJobs[1]);
+									for (Job zipJob: zipJobs) {
+										dax.addDependency(mergeJob, zipJob);
+									}
 								}
 							} else {
 								mergeJob = createMergeSeisJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
@@ -415,8 +426,12 @@ public class CyberShake_PP_DAXGen {
 								dax.addDependency(mergeJob, psaJob);
 								//make the zip jobs appropriate children
 								if (params.isZip()) {
-									dax.addDependency(mergeJob, zipJobs[0]);
-									dax.addDependency(psaJob, zipJobs[1]);
+									if (params.isSeparateZip()) {
+										dax.addDependency(psaJob, zipJobs[0]);
+									} else {
+										dax.addDependency(mergeJob, zipJobs[0]);
+										dax.addDependency(psaJob, zipJobs[1]);
+									}
 								}
 							}
 						} else {
@@ -427,8 +442,12 @@ public class CyberShake_PP_DAXGen {
 							dax.addDependency(seismoJob, psaJob);
 							//make the zip jobs appropriate children
 							if (params.isZip()) {
-								dax.addDependency(seismoJob, zipJobs[0]);
-								dax.addDependency(psaJob, zipJobs[1]);
+								if (params.isSeparateZip()) {
+									dax.addDependency(psaJob, zipJobs[0]);
+								} else {
+									dax.addDependency(seismoJob, zipJobs[0]);
+									dax.addDependency(psaJob, zipJobs[1]);
+								}
 							}
 						}
 					}
@@ -470,8 +489,9 @@ public class CyberShake_PP_DAXGen {
 					if (currDax % params.getNotifyGroupSize()== 0) {
 			    		Job notifyJob = addNotify(dax, riq.getSiteName(), "DAX", currDax, params.getNumOfDAXes());
 						if (params.isZip()) {
-							dax.addDependency(zipJobs[0], notifyJob);
-							dax.addDependency(zipJobs[1], notifyJob);
+							for (Job zipJob: zipJobs) {
+								dax.addDependency(zipJob, notifyJob);
+							}
 						}
 			    	}
 					
@@ -830,12 +850,32 @@ public class CyberShake_PP_DAXGen {
     }
     
     private Job[] addZipJobs(ADAG dax, int daxValue) {
+       	File zipSeisFile = new File("CyberShake_" + riq.getSiteName() + "_" + riq.getRunID() + "_" + daxValue + "_seismograms.zip");
+    	zipSeisFile.setTransfer(File.TRANSFER.TRUE);
+    	zipSeisFile.setRegister(true);
+    	
+    	File zipPSAFile = new File("CyberShake_" + riq.getSiteName() + "_" + riq.getRunID() + "_" + daxValue + "_PSA.zip");
+    	zipPSAFile.setTransfer(File.TRANSFER.TRUE);
+    	zipPSAFile.setRegister(true);
+    	
+    	if (params.isSeparateZip()) {
+    		String id4 = "ZipCombined_" + daxValue;
+    		Job zipCombinedJob = new Job(id4, NAMESPACE, ZIP_COMBINED_NAME, VERSION);
+    		dax.addJob(zipCombinedJob);
+    		zipCombinedJob.addArgument(".");
+    		zipCombinedJob.addArgument(zipSeisFile);
+    		zipCombinedJob.addArgument(zipPSAFile);
+    		
+    		if (params.isUsePriorities()) {
+        		zipCombinedJob.addProfile("condor", "priority", params.getNumOfDAXes()-daxValue + "");
+    		}
+    		
+    		return new Job[]{zipCombinedJob};
+    	}
+    	
     	String id4 = "ZipSeis_" + daxValue;
     	Job zipSeisJob = new Job(id4, NAMESPACE, ZIP_SEIS_NAME, VERSION);
     	dax.addJob(zipSeisJob);
-    	File zipSeisFile = new File("CyberShake_" + riq.getSiteName() + "_" + riq.getRunID() + "_" + daxValue + "_seismograms.zip");
-    	zipSeisFile.setTransfer(File.TRANSFER.TRUE);
-    	zipSeisFile.setRegister(true);
     	
     	zipSeisJob.addArgument(".");
     	zipSeisJob.addArgument(zipSeisFile);
@@ -844,9 +884,7 @@ public class CyberShake_PP_DAXGen {
     	String id5 = "ZipPSA_" + daxValue;
     	Job zipPSAJob = new Job(id5, NAMESPACE, ZIP_PSA_NAME, VERSION);
     	dax.addJob(zipPSAJob);
-    	File zipPSAFile = new File("CyberShake_" + riq.getSiteName() + "_" + riq.getRunID() + "_" + daxValue + "_PSA.zip");
-    	zipPSAFile.setTransfer(File.TRANSFER.TRUE);
-    	zipPSAFile.setRegister(true);
+
     	zipPSAJob.addArgument(".");
     	zipPSAJob.addArgument(zipPSAFile);
     	zipPSAJob.uses(zipPSAFile, File.LINK.OUTPUT);
@@ -855,8 +893,8 @@ public class CyberShake_PP_DAXGen {
     		zipSeisJob.addProfile("condor", "priority", params.getNumOfDAXes()-daxValue + "");
     		zipPSAJob.addProfile("condor", "priority", params.getNumOfDAXes()-daxValue + "");
     	}
-    	
-    	if (params.isMPICluster()) {
+
+    	if (params.isMPICluster() && !params.isSeparateZip()) {
     		zipSeisJob.addProfile("pegasus", "label", "" + daxValue);
     		zipPSAJob.addProfile("pegasus", "label", "" + daxValue);
     	}
