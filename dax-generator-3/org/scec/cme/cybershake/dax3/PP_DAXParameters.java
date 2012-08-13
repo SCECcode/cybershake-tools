@@ -35,6 +35,7 @@ public class PP_DAXParameters {
 	private boolean rvDB = false;
 	private boolean mpi_cluster;
 	private boolean zip = true;
+	private boolean separateZip = false;
 
 	public PP_DAXParameters() {
 		numOfDAXes = 1;
@@ -258,4 +259,11 @@ public class PP_DAXParameters {
 		this.zip = zip;
 	}
 
+	public void setSeparateZip(boolean b) {
+		this.separateZip  = b;
+	}
+	
+	public boolean isSeparateZip() {
+		return this.separateZip;
+	}
 }
