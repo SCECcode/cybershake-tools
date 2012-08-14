@@ -865,6 +865,8 @@ public class CyberShake_PP_DAXGen {
     		zipCombinedJob.addArgument(".");
     		zipCombinedJob.addArgument(zipSeisFile);
     		zipCombinedJob.addArgument(zipPSAFile);
+    		zipCombinedJob.uses(zipSeisFile, File.LINK.OUTPUT);
+    		zipCombinedJob.uses(zipPSAFile, File.LINK.OUTPUT);
     		
     		if (params.isUsePriorities()) {
         		zipCombinedJob.addProfile("condor", "priority", params.getNumOfDAXes()-daxValue + "");
