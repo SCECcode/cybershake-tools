@@ -1254,7 +1254,6 @@ public class CyberShake_PP_DAXGen {
     		peakValsFile.setTransfer(File.TRANSFER.TRUE);
         }
      	
-     	job2.uses(rupVarFile,File.LINK.INPUT);     
      	job2.uses(rupsgtx,File.LINK.INPUT);
 		job2.uses(rupsgty,File.LINK.INPUT);
 		job2.uses(seisFile, File.LINK.OUTPUT);
