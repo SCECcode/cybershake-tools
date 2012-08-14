@@ -89,12 +89,12 @@ public class CyberShake_PP_DAXGen {
         Option replicate_sgts = OptionBuilder.withArgName("num_sgts").hasArg().withDescription("Number of times to replicated SGT files, >=1, <=50").create("rs");
         Option sort_ruptures = new Option("s", "sort ruptures by descending size;  will include priorities");
         Option jbsim_memcached = new Option("cj", "use memcached implementation of Jbsim3d");
+        Option seisPSA_memcached = new Option("cs", "use memcached implementation of seisPSA");
         Option no_insert = new Option("noinsert", "Don't insert ruptures into database (used for testing)");
         Option seisPSA = new Option("ms", "Use a single executable for both synthesis and PSA");
         Option hf_synth = new Option("mh", "Use a single executable for high-frequency srf2stoch and hfsim");
         Option merge_psa = new Option("mb", "Use a single executable for merging broadband seismograms and PSA");
         Option high_frequency = OptionBuilder.withArgName("frequency_cutoff").hasOptionalArg().withDescription("Lower cutoff in Hz for stochastic high-frequency seismograms (default 1.0)").create("hf");
-        Option seisPSA_memcached = new Option("cs", "use memcached implementation of seisPSA");
         Option sqlIndex = new Option("sql", "Create sqlite file containing (source, rupture, rv) to sub workflow mapping");
         Option jbsim_rv_mem = new Option("jbmem", "Use the version of jbsim which uses in-memory rupture variations");
         Option hfsynth_rv_mem = new Option("hfmem", "Use the version of hf_synth which uses in-memory rupture variations");
@@ -1249,7 +1249,7 @@ public class CyberShake_PP_DAXGen {
         peakValsFile.setRegister(false);
         peakValsFile.setTransfer(File.TRANSFER.FALSE);
         
-        if (params.isZip()) {
+        if (!params.isZip()) {
     		seisFile.setTransfer(File.TRANSFER.TRUE);
     		peakValsFile.setTransfer(File.TRANSFER.TRUE);
         }
