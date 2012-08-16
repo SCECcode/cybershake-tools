@@ -135,7 +135,8 @@ public class CyberShake_Integrated_DAXGen {
 			sgtDaxJobs[i] = new DAX("SGT_" + runIDQueries.get(i).getSiteName(), daxFileName);
 			//Avoid pruning of jobs
 			sgtDaxJobs[i].addArgument("--force");
-			
+			//Force stage-out and registration
+			sgtDaxJobs[i].addArgument("--output shock");
 			//Copy results to ranger unpurged directory
 //			sgtDaxJob.addArgument("-o ranger");
 			topLevelDAX.addDAX(sgtDaxJobs[i]);
