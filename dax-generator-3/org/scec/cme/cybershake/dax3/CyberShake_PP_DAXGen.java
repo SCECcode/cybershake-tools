@@ -102,6 +102,7 @@ public class CyberShake_PP_DAXGen {
         Option mpi_cluster = new Option("mpi_cluster", "Use pegasus-mpi-cluster");
         Option no_zip = new Option("nz", "No zip jobs (transfer files individually, zip after transfer)");
         Option separate_zip = new Option("sz", "Run zip jobs as separate jobs at end of sub workflows.");
+        Option directory_hierarchy = new Option("dh", "Use directory hierarchy on compute resource for seismograms and PSA files.");
         cmd_opts.addOption(partition);
         cmd_opts.addOption(priorities);
         cmd_opts.addOption(replicate_sgts);
@@ -115,6 +116,7 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(hfsynth_rv_mem);
         cmd_opts.addOption(awp);
         cmd_opts.addOption(mpi_cluster);
+        cmd_opts.addOption(directory_hierarchy);
         OptionGroup memcachedGroup = new OptionGroup();
         memcachedGroup.addOption(jbsim_memcached);
         memcachedGroup.addOption(seisPSA);
@@ -228,6 +230,9 @@ public class CyberShake_PP_DAXGen {
         }
         if (line.hasOption(separate_zip.getOpt())) {
         	pp_params.setSeparateZip(true);
+        }
+        if (line.hasOption(directory_hierarchy.getOpt())) {
+        	pp_params.setDirHierarchy(true);
         }
 
         daxGen.makeDAX(runID, pp_params);
@@ -1003,6 +1008,10 @@ public class CyberShake_PP_DAXGen {
         	 job1.uses(sgtheadyFile, File.LINK.INPUT);
          }
          
+         if (params.isDirHierarchy()) {
+        	 //extraction job will create if needed and extract here
+        	 job1.addArgument("sgtdir=" + sourceIndex + "/" + rupIndex);
+         }
 
          job1.uses(sgtxFile,File.LINK.INPUT);
          job1.uses(sgtyFile,File.LINK.INPUT);
@@ -1038,7 +1047,8 @@ public class CyberShake_PP_DAXGen {
         }
 		
 		Job job2= new Job(id2, NAMESPACE, name, VERSION);
-                 
+        
+		
 		File seisFile = new File(SEISMOGRAM_FILENAME_PREFIX + 
 			riq.getSiteName() + "_" + sourceIndex + "_" + rupIndex +
 			"_"+ rupvarcount + SEISMOGRAM_FILENAME_EXTENSION);                            
@@ -1063,6 +1073,16 @@ public class CyberShake_PP_DAXGen {
          
 		File rupsgtx = new File(riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfx.sgt");
 		File rupsgty = new File(riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfy.sgt");
+
+		if (params.isDirHierarchy()) {
+			seisFile = new File(sourceIndex + "/" + rupIndex + "/" + SEISMOGRAM_FILENAME_PREFIX + 
+			riq.getSiteName() + "_" + sourceIndex + "_" + rupIndex +
+			"_"+ rupvarcount + SEISMOGRAM_FILENAME_EXTENSION);
+			
+			rupsgtx = new File(sourceIndex + "/" + rupIndex + "/" + riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfx.sgt");
+			rupsgty = new File(sourceIndex + "/" + rupIndex + "/" + riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfy.sgt");
+		}
+
 		
 		if (params.isJbsimRVMem()) {
 			//Don't use rupture file;  instead, use source/rupture/slip/hypo arguments
@@ -1112,14 +1132,25 @@ public class CyberShake_PP_DAXGen {
 
 	
 	private Job createPSAJob(int sourceIndex, int rupIndex, int rupvarcount, String rupVarLFN, int count, int currDax) {
-   		File seisFile = new File(SEISMOGRAM_FILENAME_PREFIX +
+		File seisFile = new File(SEISMOGRAM_FILENAME_PREFIX +
    			riq.getSiteName() + "_" + sourceIndex + "_" + rupIndex +
    			"_"+rupvarcount+  SEISMOGRAM_FILENAME_EXTENSION);  
 		
     	File peakValsFile = new File(PEAKVALS_FILENAME_PREFIX +
     			riq.getSiteName() + "_" + sourceIndex + "_" + rupIndex +
     			"_"+rupvarcount+ PEAKVALS_FILENAME_EXTENSION);
-    
+
+    	if (params.isDirHierarchy()) {
+			String dir = sourceIndex + java.io.File.pathSeparator + rupIndex;
+    		seisFile = new File(dir+ "/" + SEISMOGRAM_FILENAME_PREFIX +
+    	   			riq.getSiteName() + "_" + sourceIndex + "_" + rupIndex +
+    	   			"_"+rupvarcount+  SEISMOGRAM_FILENAME_EXTENSION);  
+    			
+	    	peakValsFile = new File(dir + "/" + PEAKVALS_FILENAME_PREFIX +
+    	    			riq.getSiteName() + "_" + sourceIndex + "_" + rupIndex +
+    	    			"_"+rupvarcount+ PEAKVALS_FILENAME_EXTENSION);
+    	}
+    	
     	// make a new job for extracting peak values(may need differentiation or integration
     	// to convert between IMT values for 1 spectral period
     	String id3 = "ID3_" + count + "_" + rupvarcount;
@@ -1187,14 +1218,28 @@ public class CyberShake_PP_DAXGen {
 		}
 		
 		Job job2= new Job(id2, NAMESPACE, seisPSAName, VERSION);
-                 
-		File seisFile = new File(SEISMOGRAM_FILENAME_PREFIX + 
-			riq.getSiteName() + "_" + sourceIndex + "_" + rupIndex +
-			"_"+ rupvarcount + SEISMOGRAM_FILENAME_EXTENSION);                            
+        
+		File seisFile = null;
+		File peakValsFile = null;
 		
-		File peakValsFile = new File(PEAKVALS_FILENAME_PREFIX +
+		if (params.isDirHierarchy()) {
+			String dir = sourceIndex + java.io.File.pathSeparator + rupIndex;
+			seisFile = new File(dir + "/" +
+					SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
+					sourceIndex + "_" + rupIndex + "_" + rupvarcount + SEISMOGRAM_FILENAME_EXTENSION);
+			
+			peakValsFile = new File(dir + "/" +
+					PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
+					sourceIndex + "_" + rupIndex + "_" + rupvarcount + PEAKVALS_FILENAME_EXTENSION);
+		} else {
+			seisFile = new File(SEISMOGRAM_FILENAME_PREFIX + 
+				riq.getSiteName() + "_" + sourceIndex + "_" + rupIndex +
+				"_"+ rupvarcount + SEISMOGRAM_FILENAME_EXTENSION);                            
+		
+			peakValsFile = new File(PEAKVALS_FILENAME_PREFIX +
     			riq.getSiteName() + "_" + sourceIndex + "_" + rupIndex +
     			"_"+rupvarcount+ PEAKVALS_FILENAME_EXTENSION);
+		}
 		
 		File rupVarFile = new File(rupVarLFN);
 		
