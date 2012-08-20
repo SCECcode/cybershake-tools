@@ -36,6 +36,7 @@ public class PP_DAXParameters {
 	private boolean mpi_cluster;
 	private boolean zip = true;
 	private boolean separateZip = false;
+	private boolean dirHierarchy = false;
 
 	public PP_DAXParameters() {
 		numOfDAXes = 1;
@@ -265,5 +266,13 @@ public class PP_DAXParameters {
 	
 	public boolean isSeparateZip() {
 		return this.separateZip;
+	}
+
+	public void setDirHierarchy(boolean dirHierarchy) {
+		this.dirHierarchy = dirHierarchy;
+	}
+
+	public boolean isDirHierarchy() {
+		return dirHierarchy;
 	}
 }
