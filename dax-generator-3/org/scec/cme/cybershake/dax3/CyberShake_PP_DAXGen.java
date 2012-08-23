@@ -1251,9 +1251,16 @@ public class CyberShake_PP_DAXGen {
 		job2.addArgument("outputBinary=1");
 		job2.addArgument("mergeOutput=1");
 		job2.addArgument("ntout="+NUMTIMESTEPS);
-         
+        
 		File rupsgtx = new File(riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfx.sgt");
 		File rupsgty = new File(riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfy.sgt");
+		
+		if (params.isDirHierarchy()) {
+			//Add hierarchy to sub sgt path
+			String dir = sourceIndex + java.io.File.pathSeparator + rupIndex;
+			rupsgtx = new File(dir + "/" + riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfx.sgt");
+			rupsgty = new File(dir + "/" + riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfy.sgt");
+		}
 		
 		if (params.isJbsimRVMem()) {
 			//Don't use rupture file;  instead, use source/rupture/slip/hypo arguments
