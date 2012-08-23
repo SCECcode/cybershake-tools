@@ -136,7 +136,7 @@ public class CyberShake_Integrated_DAXGen {
 			//Avoid pruning of jobs
 			sgtDaxJobs[i].addArgument("--force");
 			//Force stage-out and registration
-			sgtDaxJobs[i].addArgument("--output shock");
+			sgtDaxJobs[i].addArgument("--output kraken");
 			//Copy results to ranger unpurged directory
 //			sgtDaxJob.addArgument("-o ranger");
 			topLevelDAX.addDAX(sgtDaxJobs[i]);
@@ -144,7 +144,7 @@ public class CyberShake_Integrated_DAXGen {
 			File sgtDaxFile = new File(daxFileName);
 			sgtDaxFile.addPhysicalFile("file://" + directory + "/" + daxFileName, "local");
 			topLevelDAX.addFile(sgtDaxFile);
-		}
+		}		
 		
 		//Post-processing
         CyberShake_PP_DAXGen daxGen = new CyberShake_PP_DAXGen();
