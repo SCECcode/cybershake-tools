@@ -1141,7 +1141,7 @@ public class CyberShake_PP_DAXGen {
     			"_"+rupvarcount+ PEAKVALS_FILENAME_EXTENSION);
 
     	if (params.isDirHierarchy()) {
-			String dir = sourceIndex + java.io.File.pathSeparator + rupIndex;
+			String dir = sourceIndex + "/" + rupIndex;
     		seisFile = new File(dir+ "/" + SEISMOGRAM_FILENAME_PREFIX +
     	   			riq.getSiteName() + "_" + sourceIndex + "_" + rupIndex +
     	   			"_"+rupvarcount+  SEISMOGRAM_FILENAME_EXTENSION);  
@@ -1223,7 +1223,7 @@ public class CyberShake_PP_DAXGen {
 		File peakValsFile = null;
 		
 		if (params.isDirHierarchy()) {
-			String dir = sourceIndex + java.io.File.pathSeparator + rupIndex;
+			String dir = sourceIndex + "/" + rupIndex;
 			seisFile = new File(dir + "/" +
 					SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
 					sourceIndex + "_" + rupIndex + "_" + rupvarcount + SEISMOGRAM_FILENAME_EXTENSION);
@@ -1257,10 +1257,15 @@ public class CyberShake_PP_DAXGen {
 		
 		if (params.isDirHierarchy()) {
 			//Add hierarchy to sub sgt path
-			String dir = sourceIndex + java.io.File.pathSeparator + rupIndex;
+			String dir = sourceIndex + "/" + rupIndex;
 			rupsgtx = new File(dir + "/" + riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfx.sgt");
 			rupsgty = new File(dir + "/" + riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfy.sgt");
 		}
+		
+		rupsgtx.setRegister(false);
+		rupsgtx.setTransfer(File.TRANSFER.FALSE);
+		rupsgty.setRegister(false);
+		rupsgty.setTransfer(File.TRANSFER.FALSE);
 		
 		if (params.isJbsimRVMem()) {
 			//Don't use rupture file;  instead, use source/rupture/slip/hypo arguments
