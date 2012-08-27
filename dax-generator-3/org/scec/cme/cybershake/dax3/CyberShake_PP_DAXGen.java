@@ -1025,7 +1025,7 @@ public class CyberShake_PP_DAXGen {
          
          int extractMem = getExtractMem(numRupPoints);
          
-         job1.addProfile("pegasus", "request_memory", "" + extractMem);
+         job1.addProfile("pegasus", "pmc_request_memory", "" + extractMem);
          
          if (params.isUsePriorities()) {
          	job1.addProfile("condor", "priority", params.getNumOfDAXes()-currDax + "");
@@ -1122,7 +1122,7 @@ public class CyberShake_PP_DAXGen {
      
         int memNeeded = getSeisMem(numRupPoints);
         
-        job2.addProfile("pegasus", "request_memory", "" + memNeeded);
+        job2.addProfile("pegasus", "pmc_request_memory", "" + memNeeded);
         
         if (params.isUsePriorities()) {
          	job2.addProfile("condor", "priority", params.getNumOfDAXes()-currDax + "");
@@ -1198,7 +1198,7 @@ public class CyberShake_PP_DAXGen {
         
         int psaMem = getPSAMem();
         
-        job3.addProfile("pegasus", "request_memory", "" + psaMem);
+        job3.addProfile("pegasus", "pmc_request_memory", "" + psaMem);
         
         if (params.isUsePriorities()) {
         	job3.addProfile("condor", "priority", params.getNumOfDAXes()-currDax + "");
@@ -1324,7 +1324,7 @@ public class CyberShake_PP_DAXGen {
 
         int memNeeded = getSeisMem(numRupPoints) + getPSAMem();
         
-        job2.addProfile("pegasus", "request_memory", "" + memNeeded);
+        job2.addProfile("pegasus", "pmc_request_memory", "" + memNeeded);
         
         if (params.isUsePriorities()) {
          	job2.addProfile("condor", "priority", params.getNumOfDAXes()-currDax + "");
@@ -1475,7 +1475,7 @@ public class CyberShake_PP_DAXGen {
         
         int memNeeded = getSeisMem(numRupPoints);
         
-        job.addProfile("pegasus", "request_memory", "" + memNeeded);
+        job.addProfile("pegasus", "pmc_request_memory", "" + memNeeded);
 		
 		return job;
 	}
@@ -1520,7 +1520,7 @@ public class CyberShake_PP_DAXGen {
         //x9 because x1 for LF input, x4 for HF input, x4 for HF output
         int memUsage = (int)(Math.ceil(1.1*Integer.parseInt(NUMTIMESTEPS)*numComponents*4*9/(1024*1024)));
         
-        job.addProfile("pegasus", "request_memory", "" + memUsage);
+        job.addProfile("pegasus", "pmc_request_memory", "" + memUsage);
         
 		return job;
 	}
@@ -1587,7 +1587,7 @@ public class CyberShake_PP_DAXGen {
         //x4 for HF output
         int memUsage = (int)(Math.ceil(1.1*Integer.parseInt(NUMTIMESTEPS)*numComponents*4*4/(1024*1024)));
         
-        job.addProfile("pegasus", "request_memory", "" + memUsage);
+        job.addProfile("pegasus", "pmc_request_memory", "" + memUsage);
 		
 		return job;
 	}
@@ -1649,7 +1649,7 @@ public class CyberShake_PP_DAXGen {
         //x5 for LF input, HF input  + PSA
         int memUsage = (int)(Math.ceil(1.1*Integer.parseInt(NUMTIMESTEPS)*numComponents*4*5/(1024*1024))) + getPSAMem();
 		
-        job.addProfile("pegasus", "request_memory", "" + memUsage);
+        job.addProfile("pegasus", "pmc_request_memory", "" + memUsage);
         
 		return job;
 	}
