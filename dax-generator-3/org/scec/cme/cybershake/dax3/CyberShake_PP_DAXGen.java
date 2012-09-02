@@ -1104,6 +1104,10 @@ public class CyberShake_PP_DAXGen {
      	job2.addArgument("seis_file=" + seisFile.getName());
 
      	//Must set flags BEFORE 'uses' call, because uses makes a clone
+     	rupsgtx.setRegister(false);
+     	rupsgtx.setTransfer(File.TRANSFER.FALSE);
+     	rupsgty.setRegister(false);
+     	rupsgty.setTransfer(File.TRANSFER.FALSE);
 		seisFile.setRegister(false);
 		if (params.isZip()) {
 			seisFile.setTransfer(File.TRANSFER.FALSE);
