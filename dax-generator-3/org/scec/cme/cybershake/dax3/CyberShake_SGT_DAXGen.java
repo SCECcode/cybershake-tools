@@ -433,6 +433,11 @@ public class CyberShake_SGT_DAXGen implements CyberShake_SGT {
 		String id = "SGTGen_" + component + "_" + riq.getSiteName();
 		Job sgtGenJob = new Job(id, NAMESPACE, "SGTGen", VERSION);
 		
+		if (riq.getSgtVarID()==7) {
+			//Use V3.0.3 
+			sgtGenJob = new Job(id, NAMESPACE, "SGTGen", "3.0.3");
+		}
+		
 		File gridoutFile = new File("gridout_" + riq.getSiteName());
 		File modelboxFile = new File(riq.getSiteName() + ".modelbox");
 		File fdlocFile = new File(riq.getSiteName() + ".fdloc");
