@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 import org.apache.commons.cli.AlreadySelectedException;
 import org.apache.commons.cli.CommandLine;
@@ -81,6 +82,19 @@ public class CyberShake_PP_DAXGen {
     private String localVMFilename;
     private Job localVMJob = null;
 	
+    //Class for load balancing
+    private class RuptureEntry {
+    	int sourceID;
+    	int ruptureID;
+    	int numVars;
+    	
+    	public RuptureEntry(int s, int r, int n) {
+    		sourceID = s;
+    		ruptureID = r;
+    		numVars = n;
+    	}
+    }
+    
     public static void main(String[] args) {
 	//Command-line options
         Options cmd_opts = new Options();
@@ -103,6 +117,7 @@ public class CyberShake_PP_DAXGen {
         Option no_zip = new Option("nz", "No zip jobs (transfer files individually, zip after transfer)");
         Option separate_zip = new Option("sz", "Run zip jobs as separate jobs at end of sub workflows.");
         Option directory_hierarchy = new Option("dh", "Use directory hierarchy on compute resource for seismograms and PSA files.");
+        Option load_balance = new Option("lb", "Use load-balancing among the sub-workflows based on number of rupture points.");
         cmd_opts.addOption(partition);
         cmd_opts.addOption(priorities);
         cmd_opts.addOption(replicate_sgts);
@@ -117,6 +132,7 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(awp);
         cmd_opts.addOption(mpi_cluster);
         cmd_opts.addOption(directory_hierarchy);
+        cmd_opts.addOption(load_balance);
         OptionGroup memcachedGroup = new OptionGroup();
         memcachedGroup.addOption(jbsim_memcached);
         memcachedGroup.addOption(seisPSA);
@@ -234,6 +250,9 @@ public class CyberShake_PP_DAXGen {
         if (line.hasOption(directory_hierarchy.getOpt())) {
         	pp_params.setDirHierarchy(true);
         }
+        if (line.hasOption(load_balance.getOpt())) {
+        	pp_params.setLoadBalance(true);
+        }
 
         daxGen.makeDAX(runID, pp_params);
 	}
@@ -244,6 +263,12 @@ public class CyberShake_PP_DAXGen {
 			this.params = params;
 			//Get parameters from DB and calculate number of variations
 			ResultSet ruptureSet = getParameters(runID);
+			//If we're using load balancing, bin the ruptures
+			ArrayList<RuptureEntry>[] bins = null;
+			if (params.isLoadBalance()) {
+				bins = binRuptures(ruptureSet);
+			}
+			
 
 			ADAG topLevelDax = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName(), 0, 1);
 
@@ -256,7 +281,6 @@ public class CyberShake_PP_DAXGen {
 			
 			//populate DB with frequency info
 			putFreqInDB();
-			
 			
 			// Add DAX for checking SGT files
 			ADAG preDAX = makePreDAX(riq.getRunID(), riq.getSiteName());
@@ -280,6 +304,7 @@ public class CyberShake_PP_DAXGen {
 		
 			int sourceIndex, rupIndex, numRupPoints;
 			int count = 0;
+			int localRupCount = 0;
 
 			int currDax = 0;
 			ADAG dax = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + currDax, currDax, params.getNumOfDAXes());
@@ -296,25 +321,34 @@ public class CyberShake_PP_DAXGen {
 	        	sqlDB = new RuptureVariationDB(riq.getSiteName(), riq.getRunID());
 			}
 			
-			while (!ruptureSet.isAfterLast()) {
+			while (!ruptureSet.isAfterLast() && !(currDax==params.getNumOfDAXes() && localRupCount==bins[currDax].size())) {
 				++count;
 				if (count%100==0) {
 					System.out.println("Added " + count + " ruptures.");
 					System.gc();
 				}
-  	    	  	    	
-				sourceIndex = ruptureSet.getInt("Source_ID");
-				rupIndex = ruptureSet.getInt("Rupture_ID");
-				numRupPoints = ruptureSet.getInt("Num_Points");
+
+				if (params.isLoadBalance()) {
+					//Get rupture info from bin
+					sourceIndex = bins[currDax].get(localRupCount).sourceID;
+					rupIndex = bins[currDax].get(localRupCount).ruptureID;
+					numRupPoints = bins[currDax].get(localRupCount).numVars;
+				} else {
+					sourceIndex = ruptureSet.getInt("Source_ID");
+					rupIndex = ruptureSet.getInt("Rupture_ID");
+					numRupPoints = ruptureSet.getInt("Num_Points");
+				}
 
 				//get variations from the DB
 				//need them to figure out if we need a new DAX
 				ResultSet variationsSet = getVariations(sourceIndex, rupIndex);
 				variationsSet.last();
-				
+
 				int numVars = variationsSet.getRow();
-				if (numVarsInDAX + numVars < params.getMaxVarsPerDAX()) {
+				if (!params.isLoadBalance() && (numVarsInDAX + numVars < params.getMaxVarsPerDAX())) {
 					numVarsInDAX += numVars;
+				} else if (params.isLoadBalance() && (localRupCount<bins[currDax].size())) {
+					localRupCount++;
 				} else {
 					//Create new dax
 					System.out.println(numVarsInDAX + " vars in dax " + currDax);
@@ -341,6 +375,7 @@ public class CyberShake_PP_DAXGen {
 					topLevelDax.addFile(jDaxFile);
 					
 					currDax++;
+					localRupCount = 0;
 					dax = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + currDax, currDax, params.getNumOfDAXes());
 					//create new set of zip jobs
 					if (params.isZip()) {
@@ -573,6 +608,49 @@ public class CyberShake_PP_DAXGen {
 	}
 
 
+	private ArrayList<RuptureEntry>[] binRuptures(ResultSet ruptureSet) {
+		try {
+			ArrayList<RuptureEntry>[] bins = new ArrayList[params.getNumOfDAXes()];
+			int i, sourceIndex, rupIndex, numRupPoints, numVars;
+			double[] runtimes = new double[params.getNumOfDAXes()];
+			//Initialize bins
+			for (i=0; i<bins.length; i++) {
+				bins[i] = new ArrayList<RuptureEntry>();
+				sourceIndex = ruptureSet.getInt("Source_ID");
+				rupIndex = ruptureSet.getInt("Rupture_ID");
+				numRupPoints = ruptureSet.getInt("Num_Points");
+				ResultSet variationsSet = getNumVariations(sourceIndex, rupIndex);
+				numVars = variationsSet.getInt("count(*)");
+				bins[i].add(new RuptureEntry(sourceIndex, rupIndex, numVars));
+				runtimes[i] = numVars*(0.45*Math.pow(1.00033, numRupPoints));
+				ruptureSet.next();
+			}
+			while (!ruptureSet.isAfterLast()) {
+				//find shortest bin
+				double shortestVal = runtimes[0];
+				int shortestBin = 0;
+				for (i=1; i<runtimes.length; i++) {
+					if (runtimes[i]<shortestVal) {
+						shortestBin = i;
+					}
+				}
+				sourceIndex = ruptureSet.getInt("Source_ID");
+				rupIndex = ruptureSet.getInt("Rupture_ID");
+				numRupPoints = ruptureSet.getInt("Num_Points");
+				ResultSet variationsSet = getNumVariations(sourceIndex, rupIndex);
+				numVars = variationsSet.getInt("count(*)");
+				bins[shortestBin].add(new RuptureEntry(sourceIndex, rupIndex, numVars));
+				runtimes[shortestBin] += numVars*(0.45*Math.pow(1.00033, numRupPoints));
+				ruptureSet.next();
+			}
+			return bins;
+		} catch (SQLException sqe) {
+			sqe.printStackTrace();
+			System.exit(1);
+		}
+		return null;
+	}
+
 	private void putFreqInDB() {
 		//read info from passwd file
 		String pass = null;
@@ -629,11 +707,13 @@ public class CyberShake_PP_DAXGen {
 		dbc = new DBConnect(DB_SERVER, DB, USER, PASS);
 
 		String stationName = riq.getSiteName();
-      		ResultSet ruptureSet = getRuptures(stationName);
-      		int numOfVariations = getNumOfVariations(ruptureSet);
-      		params.setNumVarsPerDAX(numOfVariations/params.getNumOfDAXes());
+  		ResultSet ruptureSet = getRuptures(stationName);
+  		if (!params.isLoadBalance()) {
+  			int numOfVariations = getNumOfVariations(ruptureSet);
+  			params.setNumVarsPerDAX(numOfVariations/params.getNumOfDAXes());
+  		}
       	
-      		return ruptureSet;
+  		return ruptureSet;
 	}
 	
 	private ResultSet getRuptures(String stationName) {
@@ -645,7 +725,7 @@ public class CyberShake_PP_DAXGen {
 			"and SR.Source_ID=R.Source_ID " +
 			"and SR.Rupture_ID=R.Rupture_ID " +
 			"and SR.ERF_ID=R.ERF_ID";
-		if (params.isSortRuptures()) {
+		if (params.isSortRuptures() || params.isLoadBalance()) {
 			//Sort on reverse # of points
 			query = "select R.Source_ID, R.Rupture_ID, R.Num_Points " +
 			"from CyberShake_Site_Ruptures SR, CyberShake_Sites S, Ruptures R " +
@@ -917,6 +997,26 @@ public class CyberShake_PP_DAXGen {
 			" and Source_ID=" + sourceIndex +
 			" and Rupture_ID=" + rupIndex +
 			" order by Rup_Var_ID";
+		ResultSet rs = dbc.selectData(query);
+		try {
+			rs.first();
+		 	if (rs.getRow()==0) {
+	      	    System.err.println("No variations found for source " + sourceIndex + ", rupture " + rupIndex + ", ERF " + riq.getErfID() + ", rupt var scenario " + riq.getRuptVarScenID() + ", exiting.");
+	      	    System.exit(1);
+	      	}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+      	return rs;
+	}
+	
+	private ResultSet getNumVariations(int sourceIndex, int rupIndex) {
+		String query = "select count(*) " +
+			"from Rupture_Variations " +
+			"where Rup_Var_Scenario_ID=" + riq.getRuptVarScenID() +
+			" and ERF_ID=" + riq.getErfID() +
+			" and Source_ID=" + sourceIndex +
+			" and Rupture_ID=" + rupIndex;
 		ResultSet rs = dbc.selectData(query);
 		try {
 			rs.first();
