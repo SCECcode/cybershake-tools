@@ -350,12 +350,13 @@ public class CyberShake_PP_DAXGen {
 					numVarsInDAX += numVars;
 				} else if (params.isLoadBalance() && (localRupCount<bins[currDax].size()-1)) {
 					localRupCount++;
-				} else if (!params.isLoadBalance() || currDax<params.getNumOfDAXes()) {
+				} else if (!params.isLoadBalance() || currDax<params.getNumOfDAXes()-1) {
 					//Create new dax
 					if (!params.isLoadBalance()) {
 						System.out.println(numVarsInDAX + " vars in dax " + currDax);
 						numVarsInDAX = numVars;
 					} else {
+						System.out.println("Writing dax " + currDax);
 						localRupCount = 0;
 					}
 					String daxFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + currDax + DAX_FILENAME_EXTENSION;
