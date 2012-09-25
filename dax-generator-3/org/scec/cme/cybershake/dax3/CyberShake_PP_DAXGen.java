@@ -321,7 +321,7 @@ public class CyberShake_PP_DAXGen {
 	        	sqlDB = new RuptureVariationDB(riq.getSiteName(), riq.getRunID());
 			}
 			
-			while (!ruptureSet.isAfterLast() && !(currDax==params.getNumOfDAXes() && localRupCount==bins[currDax].size())) {
+			while (!ruptureSet.isAfterLast() && (currDax<params.getNumOfDAXes()-1 || localRupCount<bins[currDax].size())) {
 				++count;
 				if (count%100==0) {
 					System.out.println("Added " + count + " ruptures.");
@@ -495,49 +495,52 @@ public class CyberShake_PP_DAXGen {
 			    	variationsSet.next();
 				}
 		    	
-				if (numVarsInDAX > params.getNumVarsPerDAX()) {
-					//Create new dax
-					System.out.println(numVarsInDAX + " vars in dax " + currDax);
-					numVarsInDAX = 0;
-					String daxFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + currDax + DAX_FILENAME_EXTENSION;
-					dax.writeToFile(daxFile);
-					//Add to topLevelDax
-					DAX jDax = new DAX("dax_" + currDax, daxFile);
-					if (params.isMPICluster()) {
-						jDax.addArgument("--cluster label");
-					} else {
-						jDax.addArgument("--cluster horizontal");
-					}
-					//Makes sure it doesn't prune workflow elements
-					jDax.addArgument("--force");
-					jDax.addArgument("-qqqqq");
-					//Force stage-out of zip files
-					jDax.addArgument("--output shock");
-					jDax.addProfile("dagman", "category", "subwf");
-					topLevelDax.addDAX(jDax);
-					topLevelDax.addDependency(preD, jDax);
-					File jDaxFile = new File(daxFile);
-					jDaxFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + daxFile, "local");
-					topLevelDax.addFile(jDaxFile);
-					currDax++;
-					dax = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + currDax, currDax, params.getNumOfDAXes());
-					//create new set of zip jobs
-					if (params.isZip()) {
-						zipJobs = addZipJobs(dax, currDax);
-					}
-					// Attach notification job to end of workflow after zip jobs
-					if (currDax % params.getNotifyGroupSize()== 0) {
-			    		Job notifyJob = addNotify(dax, riq.getSiteName(), "DAX", currDax, params.getNumOfDAXes());
+				if (!params.isLoadBalance()) {
+
+					if (numVarsInDAX > params.getNumVarsPerDAX()) {
+						//Create new dax
+						System.out.println(numVarsInDAX + " vars in dax " + currDax);
+						numVarsInDAX = 0;
+						String daxFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + currDax + DAX_FILENAME_EXTENSION;
+						dax.writeToFile(daxFile);
+						//Add to topLevelDax
+						DAX jDax = new DAX("dax_" + currDax, daxFile);
+						if (params.isMPICluster()) {
+							jDax.addArgument("--cluster label");
+						} else {
+							jDax.addArgument("--cluster horizontal");
+						}
+						//Makes sure it doesn't prune workflow elements
+						jDax.addArgument("--force");
+						jDax.addArgument("-qqqqq");
+						//Force stage-out of zip files
+						jDax.addArgument("--output shock");
+						jDax.addProfile("dagman", "category", "subwf");
+						topLevelDax.addDAX(jDax);
+						topLevelDax.addDependency(preD, jDax);
+						File jDaxFile = new File(daxFile);
+						jDaxFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + daxFile, "local");
+						topLevelDax.addFile(jDaxFile);
+						currDax++;
+						dax = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + currDax, currDax, params.getNumOfDAXes());
+						//create new set of zip jobs
 						if (params.isZip()) {
-							for (Job zipJob: zipJobs) {
-								dax.addDependency(zipJob, notifyJob);
+							zipJobs = addZipJobs(dax, currDax);
+						}
+						// Attach notification job to end of workflow after zip jobs
+						if (currDax % params.getNotifyGroupSize()== 0) {
+							Job notifyJob = addNotify(dax, riq.getSiteName(), "DAX", currDax, params.getNumOfDAXes());
+							if (params.isZip()) {
+								for (Job zipJob: zipJobs) {
+									dax.addDependency(zipJob, notifyJob);
+								}
 							}
 						}
-			    	}
-					
+
+					}
+
+					ruptureSet.next();
 				}
-				
-				ruptureSet.next();
 			}
 			//write leftover jobs to dax
 			System.out.println(numVarsInDAX + " vars in dax " + currDax);
