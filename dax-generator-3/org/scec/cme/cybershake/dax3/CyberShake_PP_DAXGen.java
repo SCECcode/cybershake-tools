@@ -369,24 +369,6 @@ public class CyberShake_PP_DAXGen {
 					}
 					ruptureSet.next();
 				}
-				//Write leftover jobs to file
-				String daxFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + currDax + DAX_FILENAME_EXTENSION;
-				dax.writeToFile(daxFile);
-				//Add to topLevelDax
-				DAX jDax = new DAX("dax_" + currDax, daxFile);
-				if (params.isMPICluster()) {
-					jDax.addArgument("--cluster label");
-				} else {
-					jDax.addArgument("--cluster horizontal");
-				}
-				jDax.addArgument("--force");
-				jDax.addArgument("-qqqqq");
-				jDax.addArgument("--output shock");
-				topLevelDax.addDAX(jDax);
-				topLevelDax.addDependency(preD, jDax);
-				File jDaxFile = new File(daxFile);
-				jDaxFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + daxFile, "local");
-				topLevelDax.addFile(jDaxFile);
 			} else {
 				//Load balancing
 				//loop over bins
@@ -427,7 +409,27 @@ public class CyberShake_PP_DAXGen {
 				    	}
 					}
 				}
+				currDax = bins.length-1;
 			}
+
+			//Write leftover jobs to file
+			String daxFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + currDax + DAX_FILENAME_EXTENSION;
+			dax.writeToFile(daxFile);
+			//Add to topLevelDax
+			DAX jDax = new DAX("dax_" + currDax, daxFile);
+			if (params.isMPICluster()) {
+				jDax.addArgument("--cluster label");
+			} else {
+				jDax.addArgument("--cluster horizontal");
+			}
+			jDax.addArgument("--force");
+			jDax.addArgument("-qqqqq");
+			jDax.addArgument("--output shock");
+			topLevelDax.addDAX(jDax);
+			topLevelDax.addDependency(preD, jDax);
+			File jDaxFile = new File(daxFile);
+			jDaxFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + daxFile, "local");
+			topLevelDax.addFile(jDaxFile);
 			
 			// Add DAX for DB insertion/curve generation
 			DAX dbDax = null;
