@@ -359,9 +359,9 @@ public class CyberShake_PP_DAXGen {
 								}
 							}
 				    	}
-						
-						addRupture(dax, variationsSet, sourceIndex, rupIndex, numRupPoints, count, currDax, zipJobs);
 					}
+					addRupture(dax, variationsSet, sourceIndex, rupIndex, numRupPoints, count, currDax, zipJobs);
+
 					if (numVarsInDAX > params.getNumVarsPerDAX()) {
 						dax = createNewDax(preD, currDax, dax, topLevelDax);
 						currDax++;
