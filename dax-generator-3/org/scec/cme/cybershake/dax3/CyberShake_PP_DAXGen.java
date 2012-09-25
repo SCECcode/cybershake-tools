@@ -330,7 +330,7 @@ public class CyberShake_PP_DAXGen {
 
 				if (params.isLoadBalance()) {
 					//Get rupture info from bin
-					System.out.println("localRupCount: " + localRupCount + " of " + bins[currDax].get(localRupCount));
+					System.out.println("localRupCount: " + localRupCount + " of " + bins[currDax].size());
 					sourceIndex = bins[currDax].get(localRupCount).sourceID;
 					rupIndex = bins[currDax].get(localRupCount).ruptureID;
 					numRupPoints = bins[currDax].get(localRupCount).numVars;
