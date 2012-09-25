@@ -321,263 +321,113 @@ public class CyberShake_PP_DAXGen {
 	        	sqlDB = new RuptureVariationDB(riq.getSiteName(), riq.getRunID());
 			}
 			
-			//For load balancing, we exit the while loop with a break at the end 			
-			while (!ruptureSet.isAfterLast()) {
-				++count;
-				if (count%100==0) {
-					System.out.println("Added " + count + " ruptures.");
-					System.gc();
-				}
-
-				if (params.isLoadBalance()) {
-					//Get rupture info from bin
-					System.out.println("localRupCount: " + localRupCount + " of " + bins[currDax].size());
-					sourceIndex = bins[currDax].get(localRupCount).sourceID;
-					rupIndex = bins[currDax].get(localRupCount).ruptureID;
-					numRupPoints = bins[currDax].get(localRupCount).numVars;
-				} else {
+			if (!params.isLoadBalance()) {
+				//loop over rupture set
+				
+				while (!ruptureSet.isAfterLast()) {
+					count++;
+					if (count%100==0) {
+						System.out.println("Added " + count + " ruptures.");
+						System.gc();
+					}
 					sourceIndex = ruptureSet.getInt("Source_ID");
 					rupIndex = ruptureSet.getInt("Rupture_ID");
 					numRupPoints = ruptureSet.getInt("Num_Points");
-				}
 
-				//get variations from the DB
-				//need them to figure out if we need a new DAX
-				ResultSet variationsSet = getVariations(sourceIndex, rupIndex);
-				variationsSet.last();
+					ResultSet variationsSet = getVariations(sourceIndex, rupIndex);
+					variationsSet.last();
 
-				int numVars = variationsSet.getRow();
-				if (!params.isLoadBalance() && (numVarsInDAX + numVars < params.getMaxVarsPerDAX())) {
-					numVarsInDAX += numVars;
-				} else if (params.isLoadBalance() && (localRupCount<bins[currDax].size()-1)) {
-					localRupCount++;
-				} else if (!params.isLoadBalance() || currDax<params.getNumOfDAXes()-1) {
-					//Create new dax
-					if (!params.isLoadBalance()) {
-						System.out.println(numVarsInDAX + " vars in dax " + currDax);
-						numVarsInDAX = numVars;
+					int numVars = variationsSet.getRow();
+					if (numVarsInDAX + numVars < params.getMaxVarsPerDAX()) {
+						numVarsInDAX += numVars;
 					} else {
-						System.out.println("Writing dax " + currDax);
-						localRupCount = 0;
-					}
-					String daxFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + currDax + DAX_FILENAME_EXTENSION;
-					dax.writeToFile(daxFile);
-					//Add to topLevelDax
-					DAX jDax = new DAX("dax_" + currDax, daxFile);
-					if (params.isMPICluster()) {
-						jDax.addArgument("--cluster label");
-					} else {
-						jDax.addArgument("--cluster horizontal");
-					}
-					//Makes sure it doesn't prune workflow elements
-					jDax.addArgument("--force");
-					jDax.addArgument("-qqqqq");
-					//Force stage-out of zip files
-					jDax.addArgument("--output shock");
-					jDax.addProfile("dagman", "category", "subwf");
-					topLevelDax.addDAX(jDax);
-					topLevelDax.addDependency(preD, jDax);
-					File jDaxFile = new File(daxFile);
-					jDaxFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + daxFile, "local");
-					topLevelDax.addFile(jDaxFile);
-					
-					currDax++;
-					dax = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + currDax, currDax, params.getNumOfDAXes());
-					//create new set of zip jobs
-					if (params.isZip()) {
-						zipJobs = addZipJobs(dax, currDax);
-					}
-					
-					// Attach notification job to end of workflow after zip jobs
-					if (currDax % params.getNotifyGroupSize()== 0) {
-			    		Job notifyJob = addNotify(dax, riq.getSiteName(), "DAX", currDax, params.getNumOfDAXes());
-						if (params.isZip()) {
-							for (Job zipJob: zipJobs) {
-								dax.addDependency(zipJob, notifyJob);
-							}
-						}
-			    	}
-					
-				}
-  	    	
-				//Insert extraction job
-				Job extractJob = createExtractJob(sourceIndex, rupIndex, numRupPoints, variationsSet.getString("Rup_Var_LFN"), count, currDax);
-				dax.addJob(extractJob);
-				
-				variationsSet.first();
-			
-				int rupvarcount = 0;
-				//Iterate over variations
-				while (!variationsSet.isAfterLast()) {
-					//Add entry to SQL DB
-					if (params.isRvDB()) {
-						sqlDB.addMapping(sourceIndex, rupIndex, rupvarcount, currDax);
-					}
-					
-					if (params.isMergedExe() || params.isMergedMemcached()) {
-						//add 1 job for seis and PSA
-						Job seisPSAJob = createSeisPSAJob(sourceIndex, rupIndex, rupvarcount, numRupPoints, variationsSet.getString("Rup_Var_LFN"), count, currDax);
-						dax.addJob(seisPSAJob);
-						//set up dependencies
-						dax.addDependency(extractJob, seisPSAJob);
-						//make the zip jobs appropriate children
-						if (params.isZip()) {
-							for (Job zipJob: zipJobs) {
-								dax.addDependency(seisPSAJob, zipJob);
-							}
-						}
-					} else {
-						//create and add seismogram synthesis
-						Job seismoJob = createSeismogramJob(sourceIndex, rupIndex, rupvarcount, numRupPoints, variationsSet.getString("Rup_Var_LFN"), count, currDax);
-						dax.addJob(seismoJob);
-						dax.addDependency(extractJob, seismoJob);
-						//if HF jobs, add here
-						Job mergeJob = null;
-						if (params.isHighFrequency()) {
-							Job highFreqJob = null;
-							if (params.isHfsynth()) {
-								//add merged job
-								highFreqJob = createHFSynthJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
-								dax.addJob(highFreqJob);
-								dax.addDependency(extractJob, highFreqJob);
-							} else {
-								Job stochJob = createStochJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
-								dax.addJob(stochJob);
-								dax.addDependency(extractJob, stochJob);
-							
-								highFreqJob = createHighFrequencyJob(sourceIndex, rupIndex, rupvarcount, numRupPoints, variationsSet.getString("Rup_Var_LFN"), count, currDax);
-								dax.addJob(highFreqJob);
-								dax.addDependency(stochJob, highFreqJob);
-//								dax.addDependency(localVMJob, highFreqJob);
-							}
-							
-							if (params.isMergePSA()) {
-								mergeJob = createMergePSAJob(sourceIndex, rupIndex, rupvarcount, numRupPoints, variationsSet.getString("Rup_Var_LFN"), count, currDax);
-								dax.addJob(mergeJob);
-								dax.addDependency(highFreqJob, mergeJob);							
-								dax.addDependency(seismoJob, mergeJob);
-								//make the zip jobs appropriate children
-								if (params.isZip()) {
-									for (Job zipJob: zipJobs) {
-										dax.addDependency(mergeJob, zipJob);
-									}
-								}
-							} else {
-								mergeJob = createMergeSeisJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
-								dax.addJob(mergeJob);
-								dax.addDependency(highFreqJob, mergeJob);							
-								dax.addDependency(seismoJob, mergeJob);
-								Job psaJob = createPSAJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
-								dax.addJob(psaJob);
-								dax.addDependency(mergeJob, psaJob);
-								//make the zip jobs appropriate children
-								if (params.isZip()) {
-									if (params.isSeparateZip()) {
-										dax.addDependency(psaJob, zipJobs[0]);
-									} else {
-										dax.addDependency(mergeJob, zipJobs[0]);
-										dax.addDependency(psaJob, zipJobs[1]);
-									}
-								}
-							}
-						} else {
-							//create and add PSA
-							Job psaJob = createPSAJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
-							dax.addJob(psaJob);
-							//set up dependencies
-							dax.addDependency(seismoJob, psaJob);
-							//make the zip jobs appropriate children
-							if (params.isZip()) {
-								if (params.isSeparateZip()) {
-									dax.addDependency(psaJob, zipJobs[0]);
-								} else {
-									dax.addDependency(seismoJob, zipJobs[0]);
-									dax.addDependency(psaJob, zipJobs[1]);
-								}
-							}
-						}
-					}
-			   		rupvarcount++;
-			    	variationsSet.next();
-				}
-		    	
-				if (!params.isLoadBalance()) {
-
-					if (numVarsInDAX > params.getNumVarsPerDAX()) {
 						//Create new dax
-						System.out.println(numVarsInDAX + " vars in dax " + currDax);
-						numVarsInDAX = 0;
-						String daxFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + currDax + DAX_FILENAME_EXTENSION;
-						dax.writeToFile(daxFile);
-						//Add to topLevelDax
-						DAX jDax = new DAX("dax_" + currDax, daxFile);
-						if (params.isMPICluster()) {
-							jDax.addArgument("--cluster label");
-						} else {
-							jDax.addArgument("--cluster horizontal");
-						}
-						//Makes sure it doesn't prune workflow elements
-						jDax.addArgument("--force");
-						jDax.addArgument("-qqqqq");
-						//Force stage-out of zip files
-						jDax.addArgument("--output shock");
-						jDax.addProfile("dagman", "category", "subwf");
-						topLevelDax.addDAX(jDax);
-						topLevelDax.addDependency(preD, jDax);
-						File jDaxFile = new File(daxFile);
-						jDaxFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + daxFile, "local");
-						topLevelDax.addFile(jDaxFile);
+						dax = createNewDax(preD, currDax, dax, topLevelDax);
+						numVarsInDAX = numVars;
 						currDax++;
-						dax = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + currDax, currDax, params.getNumOfDAXes());
-						//create new set of zip jobs
+						
 						if (params.isZip()) {
 							zipJobs = addZipJobs(dax, currDax);
 						}
+						
 						// Attach notification job to end of workflow after zip jobs
 						if (currDax % params.getNotifyGroupSize()== 0) {
-							Job notifyJob = addNotify(dax, riq.getSiteName(), "DAX", currDax, params.getNumOfDAXes());
+				    		Job notifyJob = addNotify(dax, riq.getSiteName(), "DAX", currDax, params.getNumOfDAXes());
 							if (params.isZip()) {
 								for (Job zipJob: zipJobs) {
 									dax.addDependency(zipJob, notifyJob);
 								}
 							}
+				    	}
+						
+						addRupture(dax, variationsSet, sourceIndex, rupIndex, numRupPoints, count, currDax, zipJobs);
+					}
+					if (numVarsInDAX > params.getNumVarsPerDAX()) {
+						dax = createNewDax(preD, currDax, dax, topLevelDax);
+						currDax++;
+						numVarsInDAX = 0;
+					}
+					ruptureSet.next();
+				}
+				//Write leftover jobs to file
+				String daxFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + currDax + DAX_FILENAME_EXTENSION;
+				dax.writeToFile(daxFile);
+				//Add to topLevelDax
+				DAX jDax = new DAX("dax_" + currDax, daxFile);
+				if (params.isMPICluster()) {
+					jDax.addArgument("--cluster label");
+				} else {
+					jDax.addArgument("--cluster horizontal");
+				}
+				jDax.addArgument("--force");
+				jDax.addArgument("-qqqqq");
+				jDax.addArgument("--output shock");
+				topLevelDax.addDAX(jDax);
+				topLevelDax.addDependency(preD, jDax);
+				File jDaxFile = new File(daxFile);
+				jDaxFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + daxFile, "local");
+				topLevelDax.addFile(jDaxFile);
+			} else {
+				//Load balancing
+				//loop over bins
+				int i, j;
+				ArrayList<RuptureEntry> currBin;
+				for (i=0; i<bins.length; i++) {
+					currBin = bins[i];
+					for (j=0; j<currBin.size(); j++) {
+						count++;
+						if (count%100==0) {
+							System.out.println("Added " + count + " ruptures.");
+							System.gc();
 						}
 
-					}
+						sourceIndex = bins[currDax].get(localRupCount).sourceID;
+						rupIndex = bins[currDax].get(localRupCount).ruptureID;
+						numRupPoints = bins[currDax].get(localRupCount).numVars;
 
-					ruptureSet.next();
-				} else {
-					//Load balance
-					if (currDax==params.getNumOfDAXes()-1 && localRupCount==bins[currDax].size()) {
-						//We're done, break while loop
-						break;
+						ResultSet variationsSet = getVariations(sourceIndex, rupIndex);
+						
+						addRupture(dax, variationsSet, sourceIndex, rupIndex, numRupPoints, count, i, zipJobs);						
+					}
+					if (i<bins.length-1) {
+						dax = createNewDax(preD, i, dax, topLevelDax);
+						
+						if (params.isZip()) {
+							zipJobs = addZipJobs(dax, i);
+						}
+						
+						// Attach notification job to end of workflow after zip jobs
+						if (currDax % params.getNotifyGroupSize()== 0) {
+				    		Job notifyJob = addNotify(dax, riq.getSiteName(), "DAX", i, params.getNumOfDAXes());
+							if (params.isZip()) {
+								for (Job zipJob: zipJobs) {
+									dax.addDependency(zipJob, notifyJob);
+								}
+							}
+				    	}
 					}
 				}
 			}
-			//write leftover jobs to dax
-			if (!params.isLoadBalance()) {
-				System.out.println(numVarsInDAX + " vars in dax " + currDax);
-			} else {
-				System.out.println("Writing dax " + currDax);
-			}
-			String daxFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + currDax + DAX_FILENAME_EXTENSION;
-			dax.writeToFile(daxFile);
-			//Add to topLevelDax
-			DAX jDax = new DAX("dax_" + currDax, daxFile);
-			if (params.isMPICluster()) {
-				jDax.addArgument("--cluster label");
-			} else {
-				jDax.addArgument("--cluster horizontal");
-			}
-			jDax.addArgument("--force");
-			jDax.addArgument("-qqqqq");
-			jDax.addArgument("--output shock");
-			topLevelDax.addDAX(jDax);
-			topLevelDax.addDependency(preD, jDax);
-			File jDaxFile = new File(daxFile);
-			jDaxFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + daxFile, "local");
-			topLevelDax.addFile(jDaxFile);
-
 			
 			// Add DAX for DB insertion/curve generation
 			DAX dbDax = null;
@@ -625,6 +475,144 @@ public class CyberShake_PP_DAXGen {
 		}
 		return null;
 	}
+			
+	public ADAG createNewDax(DAX preDax, int currDax, ADAG dax, ADAG topLevelDax) {
+		System.out.println("Writing dax " + currDax);
+		String daxFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + currDax + DAX_FILENAME_EXTENSION;
+		dax.writeToFile(daxFile);
+		//Add to topLevelDax
+		DAX jDax = new DAX("dax_" + currDax, daxFile);
+		if (params.isMPICluster()) {
+			jDax.addArgument("--cluster label");
+		} else {
+			jDax.addArgument("--cluster horizontal");
+		}
+		//Makes sure it doesn't prune workflow elements
+		jDax.addArgument("--force");
+		jDax.addArgument("-qqqqq");
+		//Force stage-out of zip files
+		jDax.addArgument("--output shock");
+		jDax.addProfile("dagman", "category", "subwf");
+		topLevelDax.addDAX(jDax);
+		topLevelDax.addDependency(preDax, jDax);
+		File jDaxFile = new File(daxFile);
+		jDaxFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + daxFile, "local");
+		topLevelDax.addFile(jDaxFile);
+					
+		ADAG newDax = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + currDax+1, currDax+1, params.getNumOfDAXes());
+		//create new set of zip jobs			
+		return newDax;
+	}
+
+	
+	public void addRupture(ADAG dax, ResultSet variationsSet, int sourceIndex, int rupIndex, int numRupPoints, int count, int currDax, Job[] zipJobs) {
+		try {
+			//Insert extraction job
+			Job extractJob = createExtractJob(sourceIndex, rupIndex, numRupPoints, variationsSet.getString("Rup_Var_LFN"), count, currDax);
+			dax.addJob(extractJob);
+
+			variationsSet.first();
+
+			int rupvarcount = 0;
+			//Iterate over variations
+			while (!variationsSet.isAfterLast()) {
+				//Add entry to SQL DB
+				if (params.isRvDB()) {
+					sqlDB.addMapping(sourceIndex, rupIndex, rupvarcount, currDax);
+				}
+
+				if (params.isMergedExe() || params.isMergedMemcached()) {
+					//add 1 job for seis and PSA
+					Job seisPSAJob = createSeisPSAJob(sourceIndex, rupIndex, rupvarcount, numRupPoints, variationsSet.getString("Rup_Var_LFN"), count, currDax);
+					dax.addJob(seisPSAJob);
+					//set up dependencies
+					dax.addDependency(extractJob, seisPSAJob);
+					//make the zip jobs appropriate children
+					if (params.isZip()) {
+						for (Job zipJob: zipJobs) {
+							dax.addDependency(seisPSAJob, zipJob);
+						}
+					}
+				} else {
+					//create and add seismogram synthesis
+					Job seismoJob = createSeismogramJob(sourceIndex, rupIndex, rupvarcount, numRupPoints, variationsSet.getString("Rup_Var_LFN"), count, currDax);
+					dax.addJob(seismoJob);
+					dax.addDependency(extractJob, seismoJob);
+					//if HF jobs, add here
+					Job mergeJob = null;
+					if (params.isHighFrequency()) {
+						Job highFreqJob = null;
+						if (params.isHfsynth()) {
+							//add merged job
+							highFreqJob = createHFSynthJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
+							dax.addJob(highFreqJob);
+							dax.addDependency(extractJob, highFreqJob);
+						} else {
+							Job stochJob = createStochJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
+							dax.addJob(stochJob);
+							dax.addDependency(extractJob, stochJob);
+
+							highFreqJob = createHighFrequencyJob(sourceIndex, rupIndex, rupvarcount, numRupPoints, variationsSet.getString("Rup_Var_LFN"), count, currDax);
+							dax.addJob(highFreqJob);
+							dax.addDependency(stochJob, highFreqJob);
+							//								dax.addDependency(localVMJob, highFreqJob);
+						}
+
+						if (params.isMergePSA()) {
+							mergeJob = createMergePSAJob(sourceIndex, rupIndex, rupvarcount, numRupPoints, variationsSet.getString("Rup_Var_LFN"), count, currDax);
+							dax.addJob(mergeJob);
+							dax.addDependency(highFreqJob, mergeJob);							
+							dax.addDependency(seismoJob, mergeJob);
+							//make the zip jobs appropriate children
+							if (params.isZip()) {
+								for (Job zipJob: zipJobs) {
+									dax.addDependency(mergeJob, zipJob);
+								}
+							}
+						} else {
+							mergeJob = createMergeSeisJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
+							dax.addJob(mergeJob);
+							dax.addDependency(highFreqJob, mergeJob);							
+							dax.addDependency(seismoJob, mergeJob);
+							Job psaJob = createPSAJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
+							dax.addJob(psaJob);
+							dax.addDependency(mergeJob, psaJob);
+							//make the zip jobs appropriate children
+							if (params.isZip()) {
+								if (params.isSeparateZip()) {
+									dax.addDependency(psaJob, zipJobs[0]);
+								} else {
+									dax.addDependency(mergeJob, zipJobs[0]);
+									dax.addDependency(psaJob, zipJobs[1]);
+								}
+							}
+						}
+					} else {
+						//create and add PSA
+						Job psaJob = createPSAJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
+						dax.addJob(psaJob);
+						//set up dependencies
+						dax.addDependency(seismoJob, psaJob);
+						//make the zip jobs appropriate children
+						if (params.isZip()) {
+							if (params.isSeparateZip()) {
+								dax.addDependency(psaJob, zipJobs[0]);
+							} else {
+								dax.addDependency(seismoJob, zipJobs[0]);
+								dax.addDependency(psaJob, zipJobs[1]);
+							}
+						}
+					}
+				}
+				rupvarcount++;
+				variationsSet.next();
+			}
+		} catch (SQLException sqex) {
+			sqex.printStackTrace();
+			System.exit(2);
+		}
+	}
+
 
 
 	private ArrayList<RuptureEntry>[] binRuptures(ResultSet ruptureSet) {
