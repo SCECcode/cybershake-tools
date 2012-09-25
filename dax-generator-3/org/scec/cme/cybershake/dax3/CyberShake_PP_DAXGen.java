@@ -350,10 +350,14 @@ public class CyberShake_PP_DAXGen {
 					numVarsInDAX += numVars;
 				} else if (params.isLoadBalance() && (localRupCount<bins[currDax].size()-1)) {
 					localRupCount++;
-				} else {
+				} else if (!params.isLoadBalance() || currDax<params.getNumOfDAXes()) {
 					//Create new dax
-					System.out.println(numVarsInDAX + " vars in dax " + currDax);
-					numVarsInDAX = numVars;
+					if (!params.isLoadBalance()) {
+						System.out.println(numVarsInDAX + " vars in dax " + currDax);
+						numVarsInDAX = numVars;
+					} else {
+						localRupCount = 0;
+					}
 					String daxFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + currDax + DAX_FILENAME_EXTENSION;
 					dax.writeToFile(daxFile);
 					//Add to topLevelDax
@@ -376,7 +380,6 @@ public class CyberShake_PP_DAXGen {
 					topLevelDax.addFile(jDaxFile);
 					
 					currDax++;
-					localRupCount = 0;
 					dax = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + currDax, currDax, params.getNumOfDAXes());
 					//create new set of zip jobs
 					if (params.isZip()) {
