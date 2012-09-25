@@ -321,7 +321,7 @@ public class CyberShake_PP_DAXGen {
 	        	sqlDB = new RuptureVariationDB(riq.getSiteName(), riq.getRunID());
 			}
 			
-			while (!ruptureSet.isAfterLast() && (currDax<params.getNumOfDAXes()-1 || localRupCount<bins[currDax].size())) {
+			while (!ruptureSet.isAfterLast() && (currDax<params.getNumOfDAXes()-1 || localRupCount<bins[currDax].size()-1)) {
 				++count;
 				if (count%100==0) {
 					System.out.println("Added " + count + " ruptures.");
@@ -348,7 +348,7 @@ public class CyberShake_PP_DAXGen {
 				int numVars = variationsSet.getRow();
 				if (!params.isLoadBalance() && (numVarsInDAX + numVars < params.getMaxVarsPerDAX())) {
 					numVarsInDAX += numVars;
-				} else if (params.isLoadBalance() && (localRupCount<bins[currDax].size())) {
+				} else if (params.isLoadBalance() && (localRupCount<bins[currDax].size()-1)) {
 					localRupCount++;
 				} else if (!params.isLoadBalance() || currDax<params.getNumOfDAXes()-1) {
 					//Create new dax
