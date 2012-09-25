@@ -651,6 +651,9 @@ public class CyberShake_PP_DAXGen {
 				runtimes[shortestBin] += numVars*(0.45*Math.pow(1.00033, numRupPoints));
 				ruptureSet.next();
 			}
+			for (i=0; i<bins.length; i++) {
+				System.out.println("Bin " + i + " has " + bins[i].size() + " ruptures.");
+			}
 			return bins;
 		} catch (SQLException sqe) {
 			sqe.printStackTrace();
