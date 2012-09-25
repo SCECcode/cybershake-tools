@@ -321,7 +321,8 @@ public class CyberShake_PP_DAXGen {
 	        	sqlDB = new RuptureVariationDB(riq.getSiteName(), riq.getRunID());
 			}
 			
-			while (!ruptureSet.isAfterLast() && (currDax<params.getNumOfDAXes()-1 || localRupCount<bins[currDax].size()-1)) {
+			//For load balancing, we exit the while loop with a break at the end 			
+			while (!ruptureSet.isAfterLast()) {
 				++count;
 				if (count%100==0) {
 					System.out.println("Added " + count + " ruptures.");
@@ -545,10 +546,20 @@ public class CyberShake_PP_DAXGen {
 					}
 
 					ruptureSet.next();
+				} else {
+					//Load balance
+					if (currDax==params.getNumOfDAXes()-1 && localRupCount==bins[currDax].size()-1) {
+						//We're done, break while loop
+						break;
+					}
 				}
 			}
 			//write leftover jobs to dax
-			System.out.println(numVarsInDAX + " vars in dax " + currDax);
+			if (!params.isLoadBalance()) {
+				System.out.println(numVarsInDAX + " vars in dax " + currDax);
+			} else {
+				System.out.println("Writing dax " + currDax);
+			}
 			String daxFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + currDax + DAX_FILENAME_EXTENSION;
 			dax.writeToFile(daxFile);
 			//Add to topLevelDax
