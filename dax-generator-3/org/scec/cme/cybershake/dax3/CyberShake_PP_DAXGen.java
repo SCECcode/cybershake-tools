@@ -348,7 +348,7 @@ public class CyberShake_PP_DAXGen {
 				int numVars = variationsSet.getRow();
 				if (!params.isLoadBalance() && (numVarsInDAX + numVars < params.getMaxVarsPerDAX())) {
 					numVarsInDAX += numVars;
-				} else if (params.isLoadBalance() && (localRupCount<bins[currDax].size())) {
+				} else if (params.isLoadBalance() && (localRupCount<bins[currDax].size()-1)) {
 					localRupCount++;
 				} else {
 					//Create new dax
