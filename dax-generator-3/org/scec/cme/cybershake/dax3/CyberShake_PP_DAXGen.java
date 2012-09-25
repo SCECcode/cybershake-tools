@@ -348,7 +348,7 @@ public class CyberShake_PP_DAXGen {
 				int numVars = variationsSet.getRow();
 				if (!params.isLoadBalance() && (numVarsInDAX + numVars < params.getMaxVarsPerDAX())) {
 					numVarsInDAX += numVars;
-				} else if (params.isLoadBalance() && (localRupCount<bins[currDax].size()-1)) {
+				} else if (params.isLoadBalance() && (localRupCount<bins[currDax].size())) {
 					localRupCount++;
 				} else if (!params.isLoadBalance() || currDax<params.getNumOfDAXes()-1) {
 					//Create new dax
@@ -652,7 +652,7 @@ public class CyberShake_PP_DAXGen {
 				ruptureSet.next();
 			}
 			for (i=0; i<bins.length; i++) {
-				System.out.println("Bin " + i + " has " + bins[i].size() + " ruptures.");
+				System.out.println("Bin " + i + " has " + bins[i].size() + " ruptures, est. runtime " + runtimes[i]);
 			}
 			return bins;
 		} catch (SQLException sqe) {
