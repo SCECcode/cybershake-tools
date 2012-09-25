@@ -548,7 +548,7 @@ public class CyberShake_PP_DAXGen {
 					ruptureSet.next();
 				} else {
 					//Load balance
-					if (currDax==params.getNumOfDAXes()-1 && localRupCount==bins[currDax].size()-1) {
+					if (currDax==params.getNumOfDAXes()-1 && localRupCount==bins[currDax].size()) {
 						//We're done, break while loop
 						break;
 					}
