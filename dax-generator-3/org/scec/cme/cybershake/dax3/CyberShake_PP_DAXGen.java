@@ -401,9 +401,9 @@ public class CyberShake_PP_DAXGen {
 							System.gc();
 						}
 
-						sourceIndex = bins[currDax].get(localRupCount).sourceID;
-						rupIndex = bins[currDax].get(localRupCount).ruptureID;
-						numRupPoints = bins[currDax].get(localRupCount).numVars;
+						sourceIndex = currBin.get(j).sourceID;
+						rupIndex = currBin.get(j).ruptureID;
+						numRupPoints = currBin.get(j).numVars;
 
 						ResultSet variationsSet = getVariations(sourceIndex, rupIndex);
 						
