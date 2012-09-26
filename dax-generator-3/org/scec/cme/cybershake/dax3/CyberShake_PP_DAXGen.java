@@ -392,15 +392,16 @@ public class CyberShake_PP_DAXGen {
 						addRupture(dax, variationsSet, sourceIndex, rupIndex, numRupPoints, count, i, zipJobs);						
 					}
 					if (i<bins.length-1) {
+						//Create next dax
 						dax = createNewDax(preD, i, dax, topLevelDax);
 						
 						if (params.isZip()) {
-							zipJobs = addZipJobs(dax, i);
+							zipJobs = addZipJobs(dax, i+1);
 						}
 						
 						// Attach notification job to end of workflow after zip jobs
 						if (currDax % params.getNotifyGroupSize()== 0) {
-				    		Job notifyJob = addNotify(dax, riq.getSiteName(), "DAX", i, params.getNumOfDAXes());
+				    		Job notifyJob = addNotify(dax, riq.getSiteName(), "DAX", i+1, params.getNumOfDAXes());
 							if (params.isZip()) {
 								for (Job zipJob: zipJobs) {
 									dax.addDependency(zipJob, notifyJob);
