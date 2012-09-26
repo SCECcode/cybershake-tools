@@ -501,7 +501,7 @@ public class CyberShake_PP_DAXGen {
 		jDaxFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + daxFile, "local");
 		topLevelDax.addFile(jDaxFile);
 					
-		ADAG newDax = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + currDax+1, currDax+1, params.getNumOfDAXes());
+		ADAG newDax = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + (currDax+1), currDax+1, params.getNumOfDAXes());
 		//create new set of zip jobs			
 		return newDax;
 	}
