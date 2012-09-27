@@ -86,12 +86,12 @@ public class CyberShake_PP_DAXGen {
     private class RuptureEntry {
     	int sourceID;
     	int ruptureID;
-    	int numVars;
+    	int numRupPoints;
     	
     	public RuptureEntry(int s, int r, int n) {
     		sourceID = s;
     		ruptureID = r;
-    		numVars = n;
+    		numRupPoints = n;
     	}
     }
     
@@ -385,7 +385,10 @@ public class CyberShake_PP_DAXGen {
 
 						sourceIndex = currBin.get(j).sourceID;
 						rupIndex = currBin.get(j).ruptureID;
-						numRupPoints = currBin.get(j).numVars;
+						numRupPoints = currBin.get(j).numRupPoints;
+						if (sourceIndex==86 && rupIndex==6) {
+							System.out.println("numRupPoints: " + numRupPoints);
+						}
 
 						ResultSet variationsSet = getVariations(sourceIndex, rupIndex);
 						
