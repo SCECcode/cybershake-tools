@@ -634,7 +634,7 @@ public class CyberShake_PP_DAXGen {
 				numRupPoints = ruptureSet.getInt("Num_Points");
 				ResultSet variationsSet = getNumVariations(sourceIndex, rupIndex);
 				numVars = variationsSet.getInt("count(*)");
-				bins[i].add(new RuptureEntry(sourceIndex, rupIndex, numVars));
+				bins[i].add(new RuptureEntry(sourceIndex, rupIndex, numRupPoints));
 				runtimes[i] = numVars*(0.45*Math.pow(1.00033, numRupPoints));
 				ruptureSet.next();
 			}
@@ -652,7 +652,7 @@ public class CyberShake_PP_DAXGen {
 				numRupPoints = ruptureSet.getInt("Num_Points");
 				ResultSet variationsSet = getNumVariations(sourceIndex, rupIndex);
 				numVars = variationsSet.getInt("count(*)");
-				bins[shortestBin].add(new RuptureEntry(sourceIndex, rupIndex, numVars));
+				bins[shortestBin].add(new RuptureEntry(sourceIndex, rupIndex, numRupPoints));
 				runtimes[shortestBin] += numVars*(0.45*Math.pow(1.00033, numRupPoints));
 				ruptureSet.next();
 			}
