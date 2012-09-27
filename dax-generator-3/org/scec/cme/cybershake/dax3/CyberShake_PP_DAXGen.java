@@ -386,9 +386,6 @@ public class CyberShake_PP_DAXGen {
 						sourceIndex = currBin.get(j).sourceID;
 						rupIndex = currBin.get(j).ruptureID;
 						numRupPoints = currBin.get(j).numRupPoints;
-						if (sourceIndex==86 && rupIndex==6) {
-							System.out.println("numRupPoints: " + numRupPoints);
-						}
 
 						ResultSet variationsSet = getVariations(sourceIndex, rupIndex);
 						
