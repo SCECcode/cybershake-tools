@@ -116,6 +116,10 @@ public class PP_DAXParameters {
 		return notifyGroupSize;
 	}
 
+	public void setNotifyGroupSize(int groupSize) {
+		notifyGroupSize = groupSize;
+	}
+	
 	public int getCurrentSGTRep() {
 		return currentSGTRep;
 	}

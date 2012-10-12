@@ -254,6 +254,9 @@ public class CyberShake_PP_DAXGen {
         	pp_params.setLoadBalance(true);
         }
 
+        //Removing notifications
+        pp_params.setNotifyGroupSize(pp_params.getNumOfDAXes()+1);
+        
         daxGen.makeDAX(runID, pp_params);
 	}
 
