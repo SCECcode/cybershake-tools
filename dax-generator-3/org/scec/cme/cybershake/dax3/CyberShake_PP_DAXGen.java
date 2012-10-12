@@ -1374,6 +1374,7 @@ public class CyberShake_PP_DAXGen {
 					PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
 					sourceIndex + "_" + rupIndex + "_" + rupvarcount + PEAKVALS_FILENAME_EXTENSION);
 		} else if (params.isFileForward()) {
+			System.out.println("Adding file forwards");
 			//Don't need dir hierarchy, since /tmp filesystem is node-local
 			seisFile = new File("/tmp/" + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
 					sourceIndex + "_" + rupIndex + "_" + rupvarcount + SEISMOGRAM_FILENAME_EXTENSION);
@@ -1383,6 +1384,7 @@ public class CyberShake_PP_DAXGen {
 					sourceIndex + "_" + rupIndex + "_" + rupvarcount + PEAKVALS_FILENAME_EXTENSION);
 			combinedPeakValsFile = new File(PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
 					sourceIndex + "_" + rupIndex + PEAKVALS_FILENAME_EXTENSION);
+			
 			job2.addArgument("-F " + seisFile.getName() + "=" + combinedSeisFile);
 			job2.addArgument("-F " + peakValsFile.getName() + "=" + combinedPeakValsFile);
 			
