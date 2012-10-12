@@ -268,8 +268,10 @@ public class CyberShake_PP_DAXGen {
         		pp_params.setFileForward(true);
         		if (pp_params.isZip()) {
             		System.out.println("Since we are using file forwarding, turning off zipping.");
+            		System.out.println("Overriding directory hierarchy.");
             		pp_params.setZip(false);
             		pp_params.setSeparateZip(false);
+            		pp_params.setDirHierarchy(false);
             	}
         	}
         }
@@ -1373,9 +1375,18 @@ public class CyberShake_PP_DAXGen {
 			peakValsFile = new File(dir + "/" +
 					PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
 					sourceIndex + "_" + rupIndex + "_" + rupvarcount + PEAKVALS_FILENAME_EXTENSION);
-		} else if (params.isFileForward()) {
-			System.out.println("Adding file forwards");
-			//Don't need dir hierarchy, since /tmp filesystem is node-local
+		} else {
+			seisFile = new File(SEISMOGRAM_FILENAME_PREFIX + 
+					riq.getSiteName() + "_" + sourceIndex + "_" + rupIndex +
+					"_"+ rupvarcount + SEISMOGRAM_FILENAME_EXTENSION);                            
+			
+			peakValsFile = new File(PEAKVALS_FILENAME_PREFIX +
+	    			riq.getSiteName() + "_" + sourceIndex + "_" + rupIndex +
+	    			"_"+rupvarcount+ PEAKVALS_FILENAME_EXTENSION);
+		}
+		
+		if (params.isFileForward()) {
+			//Can overwrite dir hierarchy, since /tmp filesystem is node-local
 			seisFile = new File("/tmp/" + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
 					sourceIndex + "_" + rupIndex + "_" + rupvarcount + SEISMOGRAM_FILENAME_EXTENSION);
 			combinedSeisFile = new File(COMBINED_SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
@@ -1396,13 +1407,7 @@ public class CyberShake_PP_DAXGen {
 			job2.uses(combinedSeisFile, File.LINK.OUTPUT);			
 			job2.uses(combinedPeakValsFile, File.LINK.OUTPUT);
 	    } else {
-			seisFile = new File(SEISMOGRAM_FILENAME_PREFIX + 
-				riq.getSiteName() + "_" + sourceIndex + "_" + rupIndex +
-				"_"+ rupvarcount + SEISMOGRAM_FILENAME_EXTENSION);                            
-		
-			peakValsFile = new File(PEAKVALS_FILENAME_PREFIX +
-    			riq.getSiteName() + "_" + sourceIndex + "_" + rupIndex +
-    			"_"+rupvarcount+ PEAKVALS_FILENAME_EXTENSION);
+
 		}
 		
 		File rupVarFile = new File(rupVarLFN);
