@@ -38,6 +38,8 @@ public class PP_DAXParameters {
 	private boolean separateZip = false;
 	private boolean dirHierarchy = false;
 	private boolean loadBalance = false;
+	
+	private boolean fileForward = false;
 
 	public PP_DAXParameters() {
 		numOfDAXes = 1;
@@ -287,5 +289,13 @@ public class PP_DAXParameters {
 
 	public void setLoadBalance(boolean loadBalance) {
 		this.loadBalance = loadBalance;
+	}
+
+	public boolean isFileForward() {
+		return fileForward;
+	}
+
+	public void setFileForward(boolean fileForward) {
+		this.fileForward = fileForward;
 	}
 }

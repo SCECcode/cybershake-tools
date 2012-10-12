@@ -23,6 +23,7 @@ import edu.isi.pegasus.planner.dax.DAX;
 import edu.isi.pegasus.planner.dax.File;
 import edu.isi.pegasus.planner.dax.Job;
 import edu.isi.pegasus.planner.dax.File.LINK;
+import edu.isi.pegasus.planner.dax.File.TRANSFER;
 
 
 public class CyberShake_PP_DAXGen {
@@ -37,6 +38,10 @@ public class CyberShake_PP_DAXGen {
     private final static String SEISMOGRAM_FILENAME_EXTENSION = ".grm";
     private final static String PEAKVALS_FILENAME_PREFIX = "PeakVals_";
     private final static String PEAKVALS_FILENAME_EXTENSION = ".bsa";
+	private final static String COMBINED_SEISMOGRAM_FILENAME_PREFIX = "Seismogram_";
+    private final static String COMBINED_SEISMOGRAM_FILENAME_EXTENSION = ".grm";
+    private final static String COMBINED_PEAKVALS_FILENAME_PREFIX = "PeakVals_";
+    private final static String COMBINED_PEAKVALS_FILENAME_EXTENSION = ".bsa";
 	
 	//Job names
     private final static String UPDATERUN_NAME = "UpdateRun";
@@ -118,6 +123,7 @@ public class CyberShake_PP_DAXGen {
         Option separate_zip = new Option("sz", "Run zip jobs as separate jobs at end of sub workflows.");
         Option directory_hierarchy = new Option("dh", "Use directory hierarchy on compute resource for seismograms and PSA files.");
         Option load_balance = new Option("lb", "Use load-balancing among the sub-workflows based on number of rupture points.");
+        Option file_forward = new Option("ff", "Use pipe-forwarding option.  Requires PMC.");
         cmd_opts.addOption(partition);
         cmd_opts.addOption(priorities);
         cmd_opts.addOption(replicate_sgts);
@@ -133,6 +139,7 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(mpi_cluster);
         cmd_opts.addOption(directory_hierarchy);
         cmd_opts.addOption(load_balance);
+        cmd_opts.addOption(file_forward);
         OptionGroup memcachedGroup = new OptionGroup();
         memcachedGroup.addOption(jbsim_memcached);
         memcachedGroup.addOption(seisPSA);
@@ -254,6 +261,19 @@ public class CyberShake_PP_DAXGen {
         	pp_params.setLoadBalance(true);
         }
 
+        if (line.hasOption(file_forward.getOpt())) {
+        	if (!pp_params.isMPICluster()) {
+        		System.err.println("Need to use pegasus-mpi-cluster in order to use file forwarding.  Ignoring file forwarding option.");
+        	} else {
+        		pp_params.setFileForward(true);
+        	}
+        	if (pp_params.isZip()) {
+        		System.out.println("Since we are using file forwarding, turning off zipping.");
+        		pp_params.setZip(false);
+        		pp_params.setSeparateZip(false);
+        	}
+        }
+        
         //Removing notifications
         pp_params.setNotifyGroupSize(pp_params.getNumOfDAXes()+1);
         
@@ -1341,6 +1361,8 @@ public class CyberShake_PP_DAXGen {
         
 		File seisFile = null;
 		File peakValsFile = null;
+		File combinedSeisFile = null;
+		File combinedPeakValsFile = null;
 		
 		if (params.isDirHierarchy()) {
 			String dir = sourceIndex + "/" + rupIndex;
@@ -1351,7 +1373,27 @@ public class CyberShake_PP_DAXGen {
 			peakValsFile = new File(dir + "/" +
 					PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
 					sourceIndex + "_" + rupIndex + "_" + rupvarcount + PEAKVALS_FILENAME_EXTENSION);
-		} else {
+		} else if (params.isFileForward()) {
+			//Don't need dir hierarchy, since /tmp filesystem is node-local
+			seisFile = new File("/tmp/" + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
+					sourceIndex + "_" + rupIndex + "_" + rupvarcount + SEISMOGRAM_FILENAME_EXTENSION);
+			combinedSeisFile = new File(COMBINED_SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
+					sourceIndex + "_" + rupIndex + COMBINED_SEISMOGRAM_FILENAME_EXTENSION);
+			peakValsFile = new File("/tmp/" + PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
+					sourceIndex + "_" + rupIndex + "_" + rupvarcount + PEAKVALS_FILENAME_EXTENSION);
+			combinedPeakValsFile = new File(PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
+					sourceIndex + "_" + rupIndex + PEAKVALS_FILENAME_EXTENSION);
+			job2.addArgument("-F " + seisFile.getName() + "=" + combinedSeisFile);
+			job2.addArgument("-F " + peakValsFile.getName() + "=" + combinedPeakValsFile);
+			
+			combinedSeisFile.setRegister(true);
+			combinedSeisFile.setTransfer(TRANSFER.TRUE);
+			combinedPeakValsFile.setRegister(true);
+			combinedPeakValsFile.setTransfer(TRANSFER.TRUE);
+			
+			job2.uses(combinedSeisFile, File.LINK.OUTPUT);			
+			job2.uses(combinedPeakValsFile, File.LINK.OUTPUT);
+	    } else {
 			seisFile = new File(SEISMOGRAM_FILENAME_PREFIX + 
 				riq.getSiteName() + "_" + sourceIndex + "_" + rupIndex +
 				"_"+ rupvarcount + SEISMOGRAM_FILENAME_EXTENSION);                            
