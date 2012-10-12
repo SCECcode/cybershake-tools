@@ -1396,8 +1396,8 @@ public class CyberShake_PP_DAXGen {
 			combinedPeakValsFile = new File(PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
 					sourceIndex + "_" + rupIndex + PEAKVALS_FILENAME_EXTENSION);
 			
-			job2.addArgument("-F " + seisFile.getName() + "=" + combinedSeisFile);
-			job2.addArgument("-F " + peakValsFile.getName() + "=" + combinedPeakValsFile);
+			job2.addArgument("-F " + seisFile.getName() + "=" + combinedSeisFile.getName());
+			job2.addArgument("-F " + peakValsFile.getName() + "=" + combinedPeakValsFile.getName());
 			
 			combinedSeisFile.setRegister(true);
 			combinedSeisFile.setTransfer(TRANSFER.TRUE);
