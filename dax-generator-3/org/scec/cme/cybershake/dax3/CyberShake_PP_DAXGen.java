@@ -266,11 +266,11 @@ public class CyberShake_PP_DAXGen {
         		System.err.println("Need to use pegasus-mpi-cluster in order to use file forwarding.  Ignoring file forwarding option.");
         	} else {
         		pp_params.setFileForward(true);
-        	}
-        	if (pp_params.isZip()) {
-        		System.out.println("Since we are using file forwarding, turning off zipping.");
-        		pp_params.setZip(false);
-        		pp_params.setSeparateZip(false);
+        		if (pp_params.isZip()) {
+            		System.out.println("Since we are using file forwarding, turning off zipping.");
+            		pp_params.setZip(false);
+            		pp_params.setSeparateZip(false);
+            	}
         	}
         }
         
