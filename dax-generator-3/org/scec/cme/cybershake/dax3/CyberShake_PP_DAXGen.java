@@ -55,6 +55,7 @@ public class CyberShake_PP_DAXGen {
     private final static String PEAK_VAL_CALC_NAME = "PeakValCalc_Okaya";
     private final static String SEIS_PSA_NAME = "Seis_PSA";
     private final static String SEIS_PSA_MEMCACHED_NAME = "Seis_PSA_memcached";
+    private final static String SEIS_PSA_HEADER_NAME = "Seis_PSA_header";
     private final static String LOCAL_VM_NAME = "Local_VM";
     private final static String STOCH_NAME = "srf2stoch";
     private final static String HIGH_FREQ_NAME = "HighFrequency";
@@ -1357,6 +1358,8 @@ public class CyberShake_PP_DAXGen {
 		String seisPSAName = SEIS_PSA_NAME;
 		if (params.isMergedMemcached()) {
 			seisPSAName = SEIS_PSA_MEMCACHED_NAME;
+		} else if (params.isFileForward()) {
+			seisPSAName = SEIS_PSA_HEADER_NAME;
 		}
 		
 		Job job2= new Job(id2, NAMESPACE, seisPSAName, VERSION);
