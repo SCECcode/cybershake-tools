@@ -1358,7 +1358,8 @@ public class CyberShake_PP_DAXGen {
 		String seisPSAName = SEIS_PSA_NAME;
 		if (params.isMergedMemcached()) {
 			seisPSAName = SEIS_PSA_MEMCACHED_NAME;
-		} else if (params.isFileForward()) {
+		} 
+		if (params.isFileForward()) {
 			seisPSAName = SEIS_PSA_HEADER_NAME;
 		}
 		
