@@ -1083,6 +1083,7 @@ public class CyberShake_PP_DAXGen {
         if (params.isJbsimRVMem()) {
         	name = EXTRACT_SGT_NAME + "_rv_in_mem";
         }
+        
         Job job1 = new Job(id1, NAMESPACE, name, VERSION);
 
         job1.addArgument("stat="+riq.getSiteName());
@@ -1410,6 +1411,17 @@ public class CyberShake_PP_DAXGen {
 			
 			job2.uses(combinedSeisFile, File.LINK.OUTPUT);			
 			job2.uses(combinedPeakValsFile, File.LINK.OUTPUT);
+			
+			//add source, rupture, rupture variation arguments
+			job2.addArgument("source_id=" + sourceIndex);
+			job2.addArgument("rupture_id=" + rupIndex);
+			job2.addArgument("rup_var_id=" + rupvarcount);
+			job2.addArgument("det_max_freq=" + params.getHighFrequencyCutoff());
+			if (params.isHighFrequency()) {
+				job2.addArgument("stoch_max_freq=" + params.getMaxHighFrequency());
+			} else {
+				job2.addArgument("stoch_max_freq=-1.0"); //signify no stochastic components
+			}
 	    } else {
 
 		}
