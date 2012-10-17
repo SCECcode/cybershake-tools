@@ -44,7 +44,7 @@ public class CyberShake_PP_DAXGen {
     private final static String COMBINED_PEAKVALS_FILENAME_EXTENSION = ".bsa";
     
 //    private final static String TMP_FS = "/dev/shm";
-    private final static String TMP_FS = "/scratch/lustre/tera3d/tmp";
+    private final static String TMP_FS = "/lustre/scratch/tera3d/tmp";
 	
 	//Job names
     private final static String UPDATERUN_NAME = "UpdateRun";
@@ -836,15 +836,16 @@ public class CyberShake_PP_DAXGen {
       		Job checkSgtYJob = addCheck(preDax, stationName, "y");
 	    
       		// Create Notify job
-      		Job notifyJob = addNotify(preDax, stationName, CHECK_SGT_NAME, 0, 0);
+      		//Skip notify
+      		//Job notifyJob = addNotify(preDax, stationName, CHECK_SGT_NAME, 0, 0);
 	    
       		/// Make md5 check jobs children of update job
       		preDax.addDependency(updateJob, checkSgtXJob);
       		preDax.addDependency(updateJob, checkSgtYJob);
 
       		// Make notify job child of the two md5 check jobs
-      		preDax.addDependency(checkSgtXJob, notifyJob);
-      		preDax.addDependency(checkSgtYJob, notifyJob);
+      		//preDax.addDependency(checkSgtXJob, notifyJob);
+      		//preDax.addDependency(checkSgtYJob, notifyJob);
 	    	
 			if (params.isHighFrequency()) {
 				//create local velocity model file for everyone to use
@@ -862,7 +863,7 @@ public class CyberShake_PP_DAXGen {
       				preDax.addDependency(checkSgtXJob, j);
       				preDax.addDependency(checkSgtYJob, j);
       				//notify job is child of replicate jobs
-      				preDax.addDependency(j, notifyJob);
+      				//preDax.addDependency(j, notifyJob);
       			}
       		}
 	    
@@ -1405,9 +1406,9 @@ public class CyberShake_PP_DAXGen {
 			combinedPeakValsFile = new File(COMBINED_PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
 					sourceIndex + "_" + rupIndex + COMBINED_PEAKVALS_FILENAME_EXTENSION);
 			
-			job2.addArgument("-F " + seisFile.getName() + "=" + combinedSeisFile.getName());
-			job2.addArgument("-F " + peakValsFile.getName() + "=" + combinedPeakValsFile.getName());
-			
+	        job2.addProfile("pegasus", "pmc_arguments", "-F " + seisFile.getName() + "=" + combinedSeisFile.getName());
+	        job2.addProfile("pegasus", "pmc_arguments", "-F " + peakValsFile.getName() + "=" + combinedPeakValsFile.getName());
+
 			combinedSeisFile.setRegister(true);
 			combinedSeisFile.setTransfer(TRANSFER.TRUE);
 			combinedPeakValsFile.setRegister(true);
