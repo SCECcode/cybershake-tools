@@ -42,6 +42,8 @@ public class CyberShake_PP_DAXGen {
     private final static String COMBINED_SEISMOGRAM_FILENAME_EXTENSION = ".grm";
     private final static String COMBINED_PEAKVALS_FILENAME_PREFIX = "PeakVals_";
     private final static String COMBINED_PEAKVALS_FILENAME_EXTENSION = ".bsa";
+    
+    private final static String TMP_FS = "/dev/shm";
 	
 	//Job names
     private final static String UPDATERUN_NAME = "UpdateRun";
@@ -1392,14 +1394,14 @@ public class CyberShake_PP_DAXGen {
 		
 		if (params.isFileForward()) {
 			//Can overwrite dir hierarchy, since /tmp filesystem is node-local
-			seisFile = new File("/tmp/" + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
+			seisFile = new File(TMP_FS + "/" + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
 					sourceIndex + "_" + rupIndex + "_" + rupvarcount + SEISMOGRAM_FILENAME_EXTENSION);
 			combinedSeisFile = new File(COMBINED_SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
 					sourceIndex + "_" + rupIndex + COMBINED_SEISMOGRAM_FILENAME_EXTENSION);
-			peakValsFile = new File("/tmp/" + PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
+			peakValsFile = new File(TMP_FS + "/" + PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
 					sourceIndex + "_" + rupIndex + "_" + rupvarcount + PEAKVALS_FILENAME_EXTENSION);
-			combinedPeakValsFile = new File(PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
-					sourceIndex + "_" + rupIndex + PEAKVALS_FILENAME_EXTENSION);
+			combinedPeakValsFile = new File(COMBINED_PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
+					sourceIndex + "_" + rupIndex + COMBINED_PEAKVALS_FILENAME_EXTENSION);
 			
 			job2.addArgument("-F " + seisFile.getName() + "=" + combinedSeisFile.getName());
 			job2.addArgument("-F " + peakValsFile.getName() + "=" + combinedPeakValsFile.getName());
