@@ -93,7 +93,7 @@ public class CyberShake_DB_DAXGen {
 		Job zipPSAJob = null;
 		
 		//Start by adding zip job, if necessary
-		if (!params.isZip()) {
+		if (!params.isZip() && !params.isFileForward()) {
 			//Need to zip seis and PSA up on local site
 			String id = "ZipSeis";
 	    	Job zipSeisJob = new Job(id, CyberShake_PP_DAXGen.NAMESPACE, "ZipSeis", "1.0");
