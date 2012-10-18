@@ -66,22 +66,30 @@ public class CyberShake_DB_DAXGen {
 		filesDir = ".";
 	}
 	
-	public CyberShake_DB_DAXGen(RunIDQuery r, PP_DAXParameters params, String filesDir, int numDAXes, boolean transferZip) {
+	public CyberShake_DB_DAXGen(RunIDQuery r, PP_DAXParameters params, int numDAXes, boolean transferZip) {
 		this(r);
-		this.filesDir = filesDir;
 		transferZipFiles = transferZip;
 		this.numDAXes = numDAXes;
 		this.params = params;
+		if (params.isFileForward()){
+			this.filesDir = STORAGE_DIR + "/" + r.getSiteName() + "/" + r.getRunID();
+		} else {
+			this.filesDir = ".";
+		}
 	}
 	
-	public CyberShake_DB_DAXGen(RunIDQuery r, String filesDir, int numDAXes, boolean highFreq, double highFreqCutoff, boolean transferZip) {
+	public CyberShake_DB_DAXGen(RunIDQuery r, int numDAXes, boolean highFreq, double highFreqCutoff, boolean transferZip) {
 		this(r);
-		this.filesDir = filesDir;
 		transferZipFiles = transferZip;
 		this.numDAXes = numDAXes;
 		params = new PP_DAXParameters();
 		params.setHighFrequency(highFreq);
 		params.setHighFrequencyCutoff(highFreqCutoff);
+		if (params.isFileForward()){
+			this.filesDir = STORAGE_DIR + "/" + r.getSiteName() + "/" + r.getRunID();
+		} else {
+			this.filesDir = ".";
+		}
 	}
 	
 	
@@ -130,12 +138,12 @@ public class CyberShake_DB_DAXGen {
 	    	dax.addJob(deletePSAJob);
 	    	dax.addDependency(zipPSAJob, deletePSAJob);
 		}
-		
+				
 		// Add workflow jobs
 		Job insertJob = createDBInsertionJob();
 		dax.addJob(insertJob);
 		//If we needed to add local zip jobs, add dependency on PSA zip
-		if (!params.isZip()) {
+		if (!params.isZip() && !params.isFileForward()) {
 			dax.addDependency(zipPSAJob, insertJob);
 		}
 		
@@ -324,7 +332,9 @@ public class CyberShake_DB_DAXGen {
 			//Using header files
 			job.addArgument("-d");
 		}
+		
 		job.addArgument("-p " + filesDir);
+
 		job.addArgument("-run " + riq.getRunID());
 		String periods = "10,5,3";
 		if (params.isHighFrequency()) {
@@ -339,16 +349,16 @@ public class CyberShake_DB_DAXGen {
 	}
 
 	public static void main(String args[]) {
-		if (args.length!=1 && args.length!=3) {
-			System.out.println("USAGE: CyberShakeDBProductsDAXGen RUN_ID [ZIP_FILES_DIR NUM_DAXES]");
+		if (args.length!=1 && args.length!=2) {
+			System.out.println("USAGE: CyberShakeDBProductsDAXGen RUN_ID [NUM_DAXES]");
 			System.exit(1);
 		}
 		int runID = Integer.parseInt(args[0]);
 		CyberShake_DB_DAXGen gen;
 		RunIDQuery rid = new RunIDQuery(runID, false);
 		
-		if (args.length == 3)
-			gen = new CyberShake_DB_DAXGen(rid, args[1], Integer.parseInt(args[2]), false, 0.5, true);
+		if (args.length == 2)
+			gen = new CyberShake_DB_DAXGen(rid, Integer.parseInt(args[1]), false, 0.5, true);
 		else
 			gen = new CyberShake_DB_DAXGen(rid);
 		
