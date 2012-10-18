@@ -43,8 +43,8 @@ public class CyberShake_PP_DAXGen {
     private final static String COMBINED_PEAKVALS_FILENAME_PREFIX = "PeakVals_";
     private final static String COMBINED_PEAKVALS_FILENAME_EXTENSION = ".bsa";
     
-//    private final static String TMP_FS = "/dev/shm";
-    private final static String TMP_FS = "/lustre/scratch/tera3d/tmp";
+    private final static String TMP_FS = "/dev/shm";
+//    private final static String TMP_FS = "/lustre/scratch/tera3d/tmp";
 	
 	//Job names
     private final static String UPDATERUN_NAME = "UpdateRun";
