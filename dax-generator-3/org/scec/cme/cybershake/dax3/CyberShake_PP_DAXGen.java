@@ -1498,7 +1498,7 @@ public class CyberShake_PP_DAXGen {
         peakValsFile.setRegister(false);
         peakValsFile.setTransfer(File.TRANSFER.FALSE);
         
-        if (!params.isZip()) {
+        if (!params.isZip() && !params.isFileForward()) {
     		seisFile.setTransfer(File.TRANSFER.TRUE);
     		peakValsFile.setTransfer(File.TRANSFER.TRUE);
         }
