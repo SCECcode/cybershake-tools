@@ -1407,7 +1407,7 @@ public class CyberShake_PP_DAXGen {
 					sourceIndex + "_" + rupIndex + COMBINED_PEAKVALS_FILENAME_EXTENSION);
 			
 			//Combine all -F arguments into a single profile
-	        job2.addProfile("pegasus", "pmc_arguments", "-F " + seisFile.getName() + "=" + combinedSeisFile.getName() + "-F " + peakValsFile.getName() + "=" + combinedPeakValsFile.getName());
+	        job2.addProfile("pegasus", "pmc_arguments", "-F " + seisFile.getName() + "=" + combinedSeisFile.getName() + " -F " + peakValsFile.getName() + "=" + combinedPeakValsFile.getName());
 
 			combinedSeisFile.setRegister(true);
 			combinedSeisFile.setTransfer(TRANSFER.TRUE);
