@@ -48,7 +48,7 @@ public class CyberShake_DB_DAXGen {
 	
 	//Instance variables
 	private RunIDQuery riq;
-	private String zipFilesDir;
+	private String filesDir;
 	private boolean transferZipFiles = true;
 	private int numDAXes;
 	private PP_DAXParameters params;
@@ -63,20 +63,20 @@ public class CyberShake_DB_DAXGen {
 	
 	public CyberShake_DB_DAXGen(RunIDQuery r) {
 		riq = r;
-		zipFilesDir = ".";
+		filesDir = ".";
 	}
 	
-	public CyberShake_DB_DAXGen(RunIDQuery r, PP_DAXParameters params, String zipFilesDir, int numDAXes, boolean transferZip) {
+	public CyberShake_DB_DAXGen(RunIDQuery r, PP_DAXParameters params, String filesDir, int numDAXes, boolean transferZip) {
 		this(r);
-		this.zipFilesDir = zipFilesDir;
+		this.filesDir = filesDir;
 		transferZipFiles = transferZip;
 		this.numDAXes = numDAXes;
 		this.params = params;
 	}
 	
-	public CyberShake_DB_DAXGen(RunIDQuery r, String zipFilesDir, int numDAXes, boolean highFreq, double highFreqCutoff, boolean transferZip) {
+	public CyberShake_DB_DAXGen(RunIDQuery r, String filesDir, int numDAXes, boolean highFreq, double highFreqCutoff, boolean transferZip) {
 		this(r);
-		this.zipFilesDir = zipFilesDir;
+		this.filesDir = filesDir;
 		transferZipFiles = transferZip;
 		this.numDAXes = numDAXes;
 		params = new PP_DAXParameters();
@@ -309,15 +309,22 @@ public class CyberShake_DB_DAXGen {
 				zipFile.setRegister(false);
 				job.uses(zipFile, File.LINK.INPUT);
 			}
-		} else {
+		}
+		/* Not sure that this is used
+		 * } else {
 			File zipFile = new File("CyberShake_" + riq.getSiteName() + "_" + riq.getRunID() +  "_PSA.zip");
 			zipFile.setRegister(false);
 			job.uses(zipFile, File.LINK.INPUT);
-		}
+		}*/
 		
 		job.addArgument("-server " + DB_SERVER);
-		job.addArgument("-z");
-		job.addArgument("-p " + zipFilesDir);
+		if (transferZipFiles) {
+			job.addArgument("-z");
+		} else if (params.isFileForward()) {
+			//Using header files
+			job.addArgument("-d");
+		}
+		job.addArgument("-p " + filesDir);
 		job.addArgument("-run " + riq.getRunID());
 		String periods = "10,5,3";
 		if (params.isHighFrequency()) {
@@ -325,7 +332,7 @@ public class CyberShake_DB_DAXGen {
 		}
 		job.addArgument("-periods " + periods);
 		
-		job.addProfile("globus", "maxWallTime","90");
+		job.addProfile("globus", "maxWallTime","60");
 		job.addProfile("hints","executionPool", "shock");
 		
 		return job;
