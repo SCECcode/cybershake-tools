@@ -70,9 +70,12 @@ public class PP_DAXParameters {
       	// Setup notifications
       	// If numOfDAXes < MAX_NUM_EMAILS, send a notification for every DAX
       	// Otherwise, send a notification every MAX_NUM_EMAILS(th) DAX
-		if (this.numOfDAXes>MAX_NUM_EMAILS) {
-      		this.notifyGroupSize = (int)Math.round(this.numOfDAXes / MAX_NUM_EMAILS);
-		}
+		
+		//Add this to disable notifications
+		this.notifyGroupSize = numOfDAXes+1; 
+//		if (this.numOfDAXes>MAX_NUM_EMAILS) {
+//      		this.notifyGroupSize = (int)Math.round(this.numOfDAXes / MAX_NUM_EMAILS);
+//		}
 	}
 
 	public boolean isUsePriorities() {
