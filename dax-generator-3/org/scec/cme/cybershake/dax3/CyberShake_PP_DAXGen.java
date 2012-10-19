@@ -1556,10 +1556,7 @@ public class CyberShake_PP_DAXGen {
      	
      	job2.uses(rupsgtx,File.LINK.INPUT);
 		job2.uses(rupsgty,File.LINK.INPUT);
-		if (params.isPipeForward()) {
-			job2.uses(combinedSeisFile, File.LINK.OUTPUT);
-			job2.uses(combinedPeakValsFile, File.LINK.OUTPUT);
-		} else {
+		if (!params.isPipeForward()) {
 			job2.uses(seisFile, File.LINK.OUTPUT);
 			job2.uses(peakValsFile, File.LINK.OUTPUT);
 		}
