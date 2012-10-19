@@ -127,7 +127,8 @@ public class CyberShake_PP_DAXGen {
         Option separate_zip = new Option("sz", "Run zip jobs as separate jobs at end of sub workflows.");
         Option directory_hierarchy = new Option("dh", "Use directory hierarchy on compute resource for seismograms and PSA files.");
         Option load_balance = new Option("lb", "Use load-balancing among the sub-workflows based on number of rupture points.");
-        Option file_forward = new Option("ff", "Use pipe-forwarding option.  Requires PMC.");
+        Option file_forward = new Option("ff", "Use file-forwarding option.  Requires PMC.");
+        Option pipe_forward = new Option("pf", "Use pipe-forwarding option.  Requires PMC.");
         cmd_opts.addOption(partition);
         cmd_opts.addOption(priorities);
         cmd_opts.addOption(replicate_sgts);
@@ -143,7 +144,10 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(mpi_cluster);
         cmd_opts.addOption(directory_hierarchy);
         cmd_opts.addOption(load_balance);
-        cmd_opts.addOption(file_forward);
+        OptionGroup forwardingGroup = new OptionGroup();
+        forwardingGroup.addOption(file_forward);
+        forwardingGroup.addOption(pipe_forward);
+        cmd_opts.addOptionGroup(forwardingGroup);
         OptionGroup memcachedGroup = new OptionGroup();
         memcachedGroup.addOption(jbsim_memcached);
         memcachedGroup.addOption(seisPSA);
@@ -272,6 +276,19 @@ public class CyberShake_PP_DAXGen {
         		pp_params.setFileForward(true);
         		if (pp_params.isZip()) {
             		System.out.println("Since we are using file forwarding, turning off zipping.");
+            		System.out.println("Overriding directory hierarchy.");
+            		pp_params.setZip(false);
+            		pp_params.setSeparateZip(false);
+            		pp_params.setDirHierarchy(false);
+            	}
+        	}
+        } else if (line.hasOption(pipe_forward.getOpt())) {
+        	if (!pp_params.isMPICluster()) {
+        		System.err.println("Need to use pegasus-mpi-cluster in order to use pipe forwarding.  Ignoring pipe forwarding option.");
+        	} else {
+        		pp_params.setPipeForward(true);
+        		if (pp_params.isZip()) {
+            		System.out.println("Since we are using pipe forwarding, turning off zipping.");
             		System.out.println("Overriding directory hierarchy.");
             		pp_params.setZip(false);
             		pp_params.setSeparateZip(false);
@@ -1365,7 +1382,7 @@ public class CyberShake_PP_DAXGen {
 		if (params.isMergedMemcached()) {
 			seisPSAName = SEIS_PSA_MEMCACHED_NAME;
 		} 
-		if (params.isFileForward()) {
+		if (params.isFileForward() || params.isPipeForward()) {
 			seisPSAName = SEIS_PSA_HEADER_NAME;
 		}
 		
@@ -1427,8 +1444,34 @@ public class CyberShake_PP_DAXGen {
 			} else {
 				job2.addArgument("stoch_max_freq=-1.0"); //signify no stochastic components
 			}
-	    } else {
+	    } else if (params.isPipeForward()) {
+			//Can overwrite dir hierarchy - no intermediate files
+			combinedSeisFile = new File(COMBINED_SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
+					sourceIndex + "_" + rupIndex + COMBINED_SEISMOGRAM_FILENAME_EXTENSION);
+			combinedPeakValsFile = new File(COMBINED_PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
+					sourceIndex + "_" + rupIndex + COMBINED_PEAKVALS_FILENAME_EXTENSION);
+			
+			//Combine all -F arguments into a single profile
+	        job2.addProfile("pegasus", "pmc_arguments", "-f GRM=" + combinedSeisFile.getName() + " -f PSA=" + combinedPeakValsFile.getName());
 
+			combinedSeisFile.setRegister(true);
+			combinedSeisFile.setTransfer(TRANSFER.TRUE);
+			combinedPeakValsFile.setRegister(true);
+			combinedPeakValsFile.setTransfer(TRANSFER.TRUE);
+			
+			job2.uses(combinedSeisFile, File.LINK.OUTPUT);			
+			job2.uses(combinedPeakValsFile, File.LINK.OUTPUT);
+			
+			//add source, rupture, rupture variation arguments
+			job2.addArgument("source_id=" + sourceIndex);
+			job2.addArgument("rupture_id=" + rupIndex);
+			job2.addArgument("rup_var_id=" + rupvarcount);
+			job2.addArgument("det_max_freq=" + params.getHighFrequencyCutoff());
+			if (params.isHighFrequency()) {
+				job2.addArgument("stoch_max_freq=" + params.getMaxHighFrequency());
+			} else {
+				job2.addArgument("stoch_max_freq=-1.0"); //signify no stochastic components
+			}
 		}
 		
 		File rupVarFile = new File(rupVarLFN);
@@ -1475,7 +1518,11 @@ public class CyberShake_PP_DAXGen {
 		
 		job2.addArgument("sgt_xfile=" + rupsgtx.getName());
 		job2.addArgument("sgt_yfile=" + rupsgty.getName());
-     	job2.addArgument("seis_file=" + seisFile.getName());
+		if (params.isPipeForward()) {
+	     	job2.addArgument("seis_file=" + combinedSeisFile.getName());	
+		} else {
+			job2.addArgument("seis_file=" + seisFile.getName());
+		}
 
      	//PSA args
      	job2.addArgument("run_psa=1"); //include PSA part
@@ -1489,7 +1536,11 @@ public class CyberShake_PP_DAXGen {
     	job2.addArgument("surfseis_rspectra_period=" + SPECTRA_PERIOD1);
     	job2.addArgument("surfseis_rspectra_apply_filter_highHZ="+FILTER_HIGHHZ);
     	job2.addArgument("surfseis_rspectra_apply_byteswap=no");
-    	job2.addArgument("out=" + peakValsFile.getName());
+    	if (params.isPipeForward()) {
+        	job2.addArgument("out=" + combinedPeakValsFile.getName());
+    	} else {
+    		job2.addArgument("out=" + peakValsFile.getName());
+    	}
      	
      	//Must set flags BEFORE 'uses' call, because uses makes a clone
 		seisFile.setRegister(false);
@@ -1498,15 +1549,20 @@ public class CyberShake_PP_DAXGen {
         peakValsFile.setRegister(false);
         peakValsFile.setTransfer(File.TRANSFER.FALSE);
         
-        if (!params.isZip() && !params.isFileForward()) {
+        if (!params.isZip() && (!params.isFileForward() || !params.isPipeForward())) {
     		seisFile.setTransfer(File.TRANSFER.TRUE);
     		peakValsFile.setTransfer(File.TRANSFER.TRUE);
         }
      	
      	job2.uses(rupsgtx,File.LINK.INPUT);
 		job2.uses(rupsgty,File.LINK.INPUT);
-		job2.uses(seisFile, File.LINK.OUTPUT);
-    	job2.uses(peakValsFile, File.LINK.OUTPUT);
+		if (params.isPipeForward()) {
+			job2.uses(combinedSeisFile, File.LINK.OUTPUT);
+			job2.uses(combinedPeakValsFile, File.LINK.OUTPUT);
+		} else {
+			job2.uses(seisFile, File.LINK.OUTPUT);
+			job2.uses(peakValsFile, File.LINK.OUTPUT);
+		}
 
 		job2.addProfile("globus", "maxWallTime", "2");
      	job2.addProfile("pegasus", "group", "" + count);

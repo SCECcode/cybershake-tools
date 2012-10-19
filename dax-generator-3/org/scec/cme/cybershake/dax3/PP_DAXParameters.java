@@ -40,7 +40,9 @@ public class PP_DAXParameters {
 	private boolean loadBalance = false;
 	
 	private boolean fileForward = false;
+	private boolean pipeForward = false;
 
+	
 	public PP_DAXParameters() {
 		numOfDAXes = 1;
 		usePriorities = false;
@@ -300,5 +302,13 @@ public class PP_DAXParameters {
 
 	public void setFileForward(boolean fileForward) {
 		this.fileForward = fileForward;
+	}
+
+	public boolean isPipeForward() {
+		return pipeForward;
+	}
+
+	public void setPipeForward(boolean pipeForward) {
+		this.pipeForward = pipeForward;
 	}
 }
