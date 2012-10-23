@@ -43,8 +43,11 @@ public class CyberShake_PP_DAXGen {
     private final static String COMBINED_PEAKVALS_FILENAME_PREFIX = "PeakVals_";
     private final static String COMBINED_PEAKVALS_FILENAME_EXTENSION = ".bsa";
     
+//  private final static String TMP_FS = "/lustre/scratch/tera3d/tmp";
     private final static String TMP_FS = "/dev/shm";
-//    private final static String TMP_FS = "/lustre/scratch/tera3d/tmp";
+    private final static String FD_PATH = "/proc/self/fd";
+    private final static String SEISMOGRAM_ENV_VAR = "GRM";
+    private final static String PEAKVALS_ENV_VAR = "PSA";
 	
 	//Job names
     private final static String UPDATERUN_NAME = "UpdateRun";
@@ -1451,8 +1454,8 @@ public class CyberShake_PP_DAXGen {
 			combinedPeakValsFile = new File(COMBINED_PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
 					sourceIndex + "_" + rupIndex + COMBINED_PEAKVALS_FILENAME_EXTENSION);
 			
-			//Combine all -F arguments into a single profile
-	        job2.addProfile("pegasus", "pmc_arguments", "-f GRM=" + combinedSeisFile.getName() + " -f PSA=" + combinedPeakValsFile.getName());
+			//Combine all -f arguments into a single profile
+	        job2.addProfile("pegasus", "pmc_arguments", "-f " + SEISMOGRAM_ENV_VAR + "=" + combinedSeisFile.getName() + " -f " + PEAKVALS_ENV_VAR + "=" + combinedPeakValsFile.getName());
 
 			combinedSeisFile.setRegister(true);
 			combinedSeisFile.setTransfer(TRANSFER.TRUE);
@@ -1519,7 +1522,7 @@ public class CyberShake_PP_DAXGen {
 		job2.addArgument("sgt_xfile=" + rupsgtx.getName());
 		job2.addArgument("sgt_yfile=" + rupsgty.getName());
 		if (params.isPipeForward()) {
-	     	job2.addArgument("seis_file=" + combinedSeisFile.getName());	
+	     	job2.addArgument("seis_file=" + FD_PATH + "/$" + SEISMOGRAM_ENV_VAR);	
 		} else {
 			job2.addArgument("seis_file=" + seisFile.getName());
 		}
@@ -1537,7 +1540,7 @@ public class CyberShake_PP_DAXGen {
     	job2.addArgument("surfseis_rspectra_apply_filter_highHZ="+FILTER_HIGHHZ);
     	job2.addArgument("surfseis_rspectra_apply_byteswap=no");
     	if (params.isPipeForward()) {
-        	job2.addArgument("out=" + combinedPeakValsFile.getName());
+        	job2.addArgument("out=" + FD_PATH + "/$" + PEAKVALS_ENV_VAR);
     	} else {
     		job2.addArgument("out=" + peakValsFile.getName());
     	}
@@ -1556,7 +1559,8 @@ public class CyberShake_PP_DAXGen {
      	
      	job2.uses(rupsgtx,File.LINK.INPUT);
 		job2.uses(rupsgty,File.LINK.INPUT);
-		if (params.isPipeForward()) {
+		if (params.isPipeForward() && rupvarcount==0) {
+			//rupvarcount==0 means that we only put this in once for each rupture
 			job2.uses(combinedSeisFile, File.LINK.OUTPUT);
 			job2.uses(combinedPeakValsFile, File.LINK.OUTPUT);
 		} else {
