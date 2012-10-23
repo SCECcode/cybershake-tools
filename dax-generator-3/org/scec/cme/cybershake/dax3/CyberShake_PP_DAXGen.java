@@ -1462,8 +1462,10 @@ public class CyberShake_PP_DAXGen {
 			combinedPeakValsFile.setRegister(true);
 			combinedPeakValsFile.setTransfer(TRANSFER.TRUE);
 			
-			job2.uses(combinedSeisFile, File.LINK.OUTPUT);			
-			job2.uses(combinedPeakValsFile, File.LINK.OUTPUT);
+			if (rupvarcount==0) {
+				job2.uses(combinedSeisFile, File.LINK.OUTPUT);			
+				job2.uses(combinedPeakValsFile, File.LINK.OUTPUT);
+			}
 			
 			//add source, rupture, rupture variation arguments
 			job2.addArgument("source_id=" + sourceIndex);
