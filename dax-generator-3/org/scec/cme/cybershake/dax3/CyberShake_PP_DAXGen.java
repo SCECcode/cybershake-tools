@@ -1456,13 +1456,13 @@ public class CyberShake_PP_DAXGen {
 			
 			//Combine all -f arguments into a single profile
 	        job2.addProfile("pegasus", "pmc_arguments", "-f " + SEISMOGRAM_ENV_VAR + "=" + combinedSeisFile.getName() + " -f " + PEAKVALS_ENV_VAR + "=" + combinedPeakValsFile.getName());
-
-			combinedSeisFile.setRegister(true);
-			combinedSeisFile.setTransfer(TRANSFER.TRUE);
-			combinedPeakValsFile.setRegister(true);
-			combinedPeakValsFile.setTransfer(TRANSFER.TRUE);
 			
 			if (rupvarcount==0) {
+				combinedSeisFile.setRegister(true);
+				combinedSeisFile.setTransfer(TRANSFER.TRUE);
+				combinedPeakValsFile.setRegister(true);
+				combinedPeakValsFile.setTransfer(TRANSFER.TRUE);
+				
 				job2.uses(combinedSeisFile, File.LINK.OUTPUT);			
 				job2.uses(combinedPeakValsFile, File.LINK.OUTPUT);
 			}
