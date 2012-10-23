@@ -401,14 +401,14 @@ public class CyberShake_PP_DAXGen {
 						
 						// Attach notification job to end of workflow after zip jobs
 						//+1 to avoid notification on first job
-						if ((currDax+1) % params.getNotifyGroupSize()== 0) {
-				    		Job notifyJob = addNotify(dax, riq.getSiteName(), "DAX", currDax, params.getNumOfDAXes());
-							if (params.isZip()) {
-								for (Job zipJob: zipJobs) {
-									dax.addDependency(zipJob, notifyJob);
-								}
-							}
-				    	}
+//						if ((currDax+1) % params.getNotifyGroupSize()== 0) {
+//				    		Job notifyJob = addNotify(dax, riq.getSiteName(), "DAX", currDax, params.getNumOfDAXes());
+//							if (params.isZip()) {
+//								for (Job zipJob: zipJobs) {
+//									dax.addDependency(zipJob, notifyJob);
+//								}
+//							}
+//				    	}
 					}
 					addRupture(dax, variationsSet, sourceIndex, rupIndex, numRupPoints, count, currDax, zipJobs);
 
@@ -450,14 +450,14 @@ public class CyberShake_PP_DAXGen {
 						}
 						
 						// Attach notification job to end of workflow after zip jobs
-						if (currDax % params.getNotifyGroupSize()== 0) {
-				    		Job notifyJob = addNotify(dax, riq.getSiteName(), "DAX", i+1, params.getNumOfDAXes());
-							if (params.isZip()) {
-								for (Job zipJob: zipJobs) {
-									dax.addDependency(zipJob, notifyJob);
-								}
-							}
-				    	}
+//						if (currDax % params.getNotifyGroupSize()== 0) {
+//				    		Job notifyJob = addNotify(dax, riq.getSiteName(), "DAX", i+1, params.getNumOfDAXes());
+//							if (params.isZip()) {
+//								for (Job zipJob: zipJobs) {
+//									dax.addDependency(zipJob, notifyJob);
+//								}
+//							}
+//				    	}
 					}
 				}
 				currDax = bins.length-1;
