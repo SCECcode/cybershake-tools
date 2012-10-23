@@ -1477,6 +1477,8 @@ public class CyberShake_PP_DAXGen {
 			} else {
 				job2.addArgument("stoch_max_freq=-1.0"); //signify no stochastic components
 			}
+			
+    		job2.addArgument("pipe_fwd=1");
 		}
 		
 		File rupVarFile = new File(rupVarLFN);
