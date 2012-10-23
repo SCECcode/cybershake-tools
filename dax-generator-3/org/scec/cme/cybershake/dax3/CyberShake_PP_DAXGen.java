@@ -1561,10 +1561,12 @@ public class CyberShake_PP_DAXGen {
      	
      	job2.uses(rupsgtx,File.LINK.INPUT);
 		job2.uses(rupsgty,File.LINK.INPUT);
-		if (params.isPipeForward() && rupvarcount==0) {
-			//rupvarcount==0 means that we only put this in once for each rupture
-			job2.uses(combinedSeisFile, File.LINK.OUTPUT);
-			job2.uses(combinedPeakValsFile, File.LINK.OUTPUT);
+		if (params.isPipeForward()) {
+			if (rupvarcount==0) {
+				//rupvarcount==0 means that we only put this in once for each rupture
+				job2.uses(combinedSeisFile, File.LINK.OUTPUT);
+				job2.uses(combinedPeakValsFile, File.LINK.OUTPUT);
+			}
 		} else {
 			job2.uses(seisFile, File.LINK.OUTPUT);
 			job2.uses(peakValsFile, File.LINK.OUTPUT);
