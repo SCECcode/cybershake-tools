@@ -143,7 +143,7 @@ public class CyberShake_DB_DAXGen {
 		Job insertJob = createDBInsertionJob();
 		dax.addJob(insertJob);
 		//If we needed to add local zip jobs, add dependency on PSA zip
-		if (!params.isZip() && !params.isFileForward()) {
+		if (!params.isZip() || !params.isFileForward()) {
 			dax.addDependency(zipPSAJob, insertJob);
 		}
 		
