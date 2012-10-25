@@ -71,7 +71,7 @@ public class CyberShake_DB_DAXGen {
 		transferZipFiles = transferZip;
 		this.numDAXes = numDAXes;
 		this.params = params;
-		if (params.isFileForward()){
+		if (params.isFileForward() || params.isPipeForward()){
 			this.filesDir = STORAGE_DIR + "/" + r.getSiteName() + "/" + r.getRunID();
 		} else {
 			this.filesDir = ".";
@@ -85,7 +85,7 @@ public class CyberShake_DB_DAXGen {
 		params = new PP_DAXParameters();
 		params.setHighFrequency(highFreq);
 		params.setHighFrequencyCutoff(highFreqCutoff);
-		if (params.isFileForward()){
+		if (params.isFileForward() || params.isPipeForward()){
 			this.filesDir = STORAGE_DIR + "/" + r.getSiteName() + "/" + r.getRunID();
 		} else {
 			this.filesDir = ".";
@@ -101,7 +101,7 @@ public class CyberShake_DB_DAXGen {
 		Job zipPSAJob = null;
 		
 		//Start by adding zip job, if necessary
-		if (!params.isZip() && (!params.isFileForward() || !params.isPipeForward())) {
+		if (!params.isZip() && !(params.isFileForward() || params.isPipeForward())) {
 			//Need to zip seis and PSA up on local site
 			String id = "ZipSeis";
 	    	Job zipSeisJob = new Job(id, CyberShake_PP_DAXGen.NAMESPACE, "ZipSeis", "1.0");
@@ -328,7 +328,7 @@ public class CyberShake_DB_DAXGen {
 		job.addArgument("-server " + DB_SERVER);
 		if (transferZipFiles) {
 			job.addArgument("-z");
-		} else if (params.isFileForward()) {
+		} else if (params.isFileForward() || params.isPipeForward()) {
 			//Using header files
 			job.addArgument("-d");
 		}
