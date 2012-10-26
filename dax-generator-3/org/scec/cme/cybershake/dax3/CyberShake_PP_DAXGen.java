@@ -1427,7 +1427,7 @@ public class CyberShake_PP_DAXGen {
 					sourceIndex + "_" + rupIndex + COMBINED_PEAKVALS_FILENAME_EXTENSION);
 			
 			//Combine all -F arguments into a single profile
-	        job2.addProfile("pegasus", "pmc_arguments", "-F " + seisFile.getName() + "=" + combinedSeisFile.getName() + " -F " + peakValsFile.getName() + "=" + combinedPeakValsFile.getName());
+	        job2.addProfile("pegasus", "pmc_task_arguments", "-F " + seisFile.getName() + "=" + combinedSeisFile.getName() + " -F " + peakValsFile.getName() + "=" + combinedPeakValsFile.getName());
 
 			combinedSeisFile.setRegister(true);
 			combinedSeisFile.setTransfer(TRANSFER.TRUE);
@@ -1455,7 +1455,7 @@ public class CyberShake_PP_DAXGen {
 					sourceIndex + "_" + rupIndex + COMBINED_PEAKVALS_FILENAME_EXTENSION);
 			
 			//Combine all -f arguments into a single profile
-	        job2.addProfile("pegasus", "pmc_arguments", "-f " + SEISMOGRAM_ENV_VAR + "=" + combinedSeisFile.getName() + " -f " + PEAKVALS_ENV_VAR + "=" + combinedPeakValsFile.getName());
+	        job2.addProfile("pegasus", "pmc_task_arguments", "-f " + SEISMOGRAM_ENV_VAR + "=" + combinedSeisFile.getName() + " -f " + PEAKVALS_ENV_VAR + "=" + combinedPeakValsFile.getName());
 			
 			if (rupvarcount==0) {
 				combinedSeisFile.setRegister(true);
