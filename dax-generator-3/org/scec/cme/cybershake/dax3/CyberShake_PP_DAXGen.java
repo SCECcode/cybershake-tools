@@ -667,6 +667,15 @@ public class CyberShake_PP_DAXGen {
 	}
 
 
+	private double estimateRuntime(int numVariations, int numRupturePoints) {
+		//From Ranger estimates
+		//return numVariations*(0.45*Math.pow(1.00033, numRupturePoints));
+		//From Kraken estimates
+		double extractTime = 0.603*Math.pow(numRupturePoints, 0.839);
+		//2.0 is here because read_sgt is on average half the runtime
+		double seisPSATime = numVariations*(2.0*0.00129*Math.pow(numRupturePoints, 0.926));
+		return extractTime + seisPSATime;
+	}
 
 	private ArrayList<RuptureEntry>[] binRuptures(ResultSet ruptureSet) {
 		try {
@@ -682,7 +691,7 @@ public class CyberShake_PP_DAXGen {
 				ResultSet variationsSet = getNumVariations(sourceIndex, rupIndex);
 				numVars = variationsSet.getInt("count(*)");
 				bins[i].add(new RuptureEntry(sourceIndex, rupIndex, numRupPoints));
-				runtimes[i] = numVars*(0.45*Math.pow(1.00033, numRupPoints));
+				runtimes[i] = estimateRuntime(numVars, numRupPoints);
 				ruptureSet.next();
 			}
 			while (!ruptureSet.isAfterLast()) {
@@ -700,7 +709,7 @@ public class CyberShake_PP_DAXGen {
 				ResultSet variationsSet = getNumVariations(sourceIndex, rupIndex);
 				numVars = variationsSet.getInt("count(*)");
 				bins[shortestBin].add(new RuptureEntry(sourceIndex, rupIndex, numRupPoints));
-				runtimes[shortestBin] += numVars*(0.45*Math.pow(1.00033, numRupPoints));
+				runtimes[shortestBin] += estimateRuntime(numVars, numRupPoints);
 				ruptureSet.next();
 			}
 			for (i=0; i<bins.length; i++) {
