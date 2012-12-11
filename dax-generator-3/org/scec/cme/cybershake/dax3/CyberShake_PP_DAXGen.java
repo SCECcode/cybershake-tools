@@ -68,6 +68,7 @@ public class CyberShake_PP_DAXGen {
     private final static String MERGE_NAME = "MergeFrequency"; 
     private final static String HF_SYNTH_NAME = "HF_Synth";
     private final static String MERGE_PSA_NAME = "MergePSA";
+    private final static String EXTRACT_SGT_MPI_NAME = "Extract_SGT_MPI";
 	
     //Simulation parameters
     private final static String NUMTIMESTEPS = "3000";
@@ -132,6 +133,7 @@ public class CyberShake_PP_DAXGen {
         Option load_balance = new Option("lb", "Use load-balancing among the sub-workflows based on number of rupture points.");
         Option file_forward = new Option("ff", "Use file-forwarding option.  Requires PMC.");
         Option pipe_forward = new Option("pf", "Use pipe-forwarding option.  Requires PMC.");
+        Option extract_sgt_mpi = new Option("em", "Use single-job MPI version of extract SGT.  Will be run as part of pre wf.");
         cmd_opts.addOption(partition);
         cmd_opts.addOption(priorities);
         cmd_opts.addOption(replicate_sgts);
@@ -147,6 +149,7 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(mpi_cluster);
         cmd_opts.addOption(directory_hierarchy);
         cmd_opts.addOption(load_balance);
+        cmd_opts.addOption(extract_sgt_mpi);
         OptionGroup forwardingGroup = new OptionGroup();
         forwardingGroup.addOption(file_forward);
         forwardingGroup.addOption(pipe_forward);
@@ -298,6 +301,15 @@ public class CyberShake_PP_DAXGen {
             		pp_params.setDirHierarchy(false);
             	}
         	}
+        }
+        
+        if (line.hasOption(extract_sgt_mpi.getOpt())) {
+        	if (pp_params.isDirHierarchy()) {
+        		System.err.println("Directory hierarchy together with extract_sgt_mpi is not supported yet.");
+        		System.exit(1);
+        	}
+        	System.out.println("Using extract_sgt_mpi.");
+        	pp_params.setExtractMPI(true);
         }
         
         //Removing notifications
@@ -560,9 +572,12 @@ public class CyberShake_PP_DAXGen {
 	
 	public void addRupture(ADAG dax, ResultSet variationsSet, int sourceIndex, int rupIndex, int numRupPoints, int count, int currDax, Job[] zipJobs) {
 		try {
-			//Insert extraction job
-			Job extractJob = createExtractJob(sourceIndex, rupIndex, numRupPoints, variationsSet.getString("Rup_Var_LFN"), count, currDax);
-			dax.addJob(extractJob);
+			Job extractJob = null;
+			if (!params.isExtractMPI()) {
+				//Insert extraction job
+				extractJob = createExtractJob(sourceIndex, rupIndex, numRupPoints, variationsSet.getString("Rup_Var_LFN"), count, currDax);
+				dax.addJob(extractJob);
+			}
 
 			variationsSet.first();
 
@@ -578,8 +593,10 @@ public class CyberShake_PP_DAXGen {
 					//add 1 job for seis and PSA
 					Job seisPSAJob = createSeisPSAJob(sourceIndex, rupIndex, rupvarcount, numRupPoints, variationsSet.getString("Rup_Var_LFN"), count, currDax);
 					dax.addJob(seisPSAJob);
-					//set up dependencies
-					dax.addDependency(extractJob, seisPSAJob);
+					if (!params.isExtractMPI()) {
+						//set up dependencies
+						dax.addDependency(extractJob, seisPSAJob);
+					}
 					//make the zip jobs appropriate children
 					if (params.isZip()) {
 						for (Job zipJob: zipJobs) {
@@ -590,7 +607,9 @@ public class CyberShake_PP_DAXGen {
 					//create and add seismogram synthesis
 					Job seismoJob = createSeismogramJob(sourceIndex, rupIndex, rupvarcount, numRupPoints, variationsSet.getString("Rup_Var_LFN"), count, currDax);
 					dax.addJob(seismoJob);
-					dax.addDependency(extractJob, seismoJob);
+					if (!params.isExtractMPI()) {
+						dax.addDependency(extractJob, seismoJob);
+					}
 					//if HF jobs, add here
 					Job mergeJob = null;
 					if (params.isHighFrequency()) {
@@ -599,11 +618,15 @@ public class CyberShake_PP_DAXGen {
 							//add merged job
 							highFreqJob = createHFSynthJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
 							dax.addJob(highFreqJob);
-							dax.addDependency(extractJob, highFreqJob);
+							if (!params.isExtractMPI()) {
+								dax.addDependency(extractJob, highFreqJob);
+							}
 						} else {
 							Job stochJob = createStochJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
 							dax.addJob(stochJob);
-							dax.addDependency(extractJob, stochJob);
+							if (!params.isExtractMPI()) {
+								dax.addDependency(extractJob, stochJob);
+							}
 
 							highFreqJob = createHighFrequencyJob(sourceIndex, rupIndex, rupvarcount, numRupPoints, variationsSet.getString("Rup_Var_LFN"), count, currDax);
 							dax.addJob(highFreqJob);
@@ -894,6 +917,37 @@ public class CyberShake_PP_DAXGen {
       				//notify job is child of replicate jobs
       				//preDax.addDependency(j, notifyJob);
       			}
+      		}
+      		
+      		if (params.isExtractMPI()) {
+      			Job extractMPIJob = new Job("Extract_SGT_MPI", NAMESPACE, EXTRACT_SGT_MPI_NAME, VERSION);
+      			
+      			extractMPIJob.addArgument(riq.getSiteName());
+      			extractMPIJob.addArgument("" + riq.getLat());
+      			extractMPIJob.addArgument("" + riq.getLon());
+
+      			String sgtx=riq.getSiteName()+"_fx_" + riq.getRunID() + ".sgt";
+      	        String sgty=riq.getSiteName()+"_fy_" + riq.getRunID() + ".sgt";
+      	        
+      	        File sgtXFile = new File(sgtx);
+      	        File sgtYFile = new File(sgty);
+      	        
+      	        extractMPIJob.uses(sgtXFile, LINK.INPUT);
+      	        extractMPIJob.uses(sgtYFile, LINK.INPUT);
+      	        
+      			extractMPIJob.addArgument(sgtx);
+      			extractMPIJob.addArgument(sgty);
+      			
+      			extractMPIJob.addArgument("" + riq.getErfID());
+      			
+      			if (params.isDirHierarchy()) {
+      				extractMPIJob.addArgument("-dh");
+      			}
+      			
+      			preDax.addJob(extractMPIJob);
+      			
+      			preDax.addDependency(checkSgtXJob, extractMPIJob);
+      			preDax.addDependency(checkSgtYJob, extractMPIJob);
       		}
 	    
       		// Save the DAX
@@ -1509,6 +1563,11 @@ public class CyberShake_PP_DAXGen {
 			String dir = sourceIndex + "/" + rupIndex;
 			rupsgtx = new File(dir + "/" + riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfx.sgt");
 			rupsgty = new File(dir + "/" + riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfy.sgt");
+		} else if (params.isExtractMPI()) {
+			//Add pre directory and source dir to sub-sgt path
+			String dir = "../CyberShake_%s_pre_preDAX";
+			rupsgtx = new File(dir + "/" + sourceIndex + "/" + riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfx.sgt");
+			rupsgty = new File(dir + "/" + sourceIndex + "/" + riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfy.sgt");
 		}
 		
 		rupsgtx.setRegister(false);
