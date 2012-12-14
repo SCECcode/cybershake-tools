@@ -42,7 +42,8 @@ public class PP_DAXParameters {
 	private boolean fileForward = false;
 	private boolean pipeForward = false;
 
-	private boolean extractMPI = false;
+	private boolean extractSGTMPI = false;
+	private boolean singleExtractSGTMPI = false;
 
 	public PP_DAXParameters() {
 		numOfDAXes = 1;
@@ -313,11 +314,19 @@ public class PP_DAXParameters {
 		this.pipeForward = pipeForward;
 	}
 	
-	public boolean isExtractMPI() {
-		return extractMPI;
+	public boolean isExtractSGTMPI() {
+		return extractSGTMPI;
 	}
 
-	public void setExtractMPI(boolean extractMPI) {
-		this.extractMPI = extractMPI;
+	public void setExtractSGTMPI(boolean extractSGTMPI) {
+		this.extractSGTMPI = extractSGTMPI;
+	}
+
+	public boolean isSingleExtractSGTMPI() {
+		return singleExtractSGTMPI;
+	}
+
+	public void setSingleExtractSGTMPI(boolean extractMPI) {
+		this.singleExtractSGTMPI = extractMPI;
 	}
 }

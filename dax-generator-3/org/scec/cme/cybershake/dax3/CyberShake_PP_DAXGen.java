@@ -1,7 +1,9 @@
 package org.scec.cme.cybershake.dax3;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -133,7 +135,8 @@ public class CyberShake_PP_DAXGen {
         Option load_balance = new Option("lb", "Use load-balancing among the sub-workflows based on number of rupture points.");
         Option file_forward = new Option("ff", "Use file-forwarding option.  Requires PMC.");
         Option pipe_forward = new Option("pf", "Use pipe-forwarding option.  Requires PMC.");
-        Option extract_sgt_mpi = new Option("em", "Use single-job MPI version of extract SGT.  Will be run as part of pre wf.");
+        Option extract_sgt_mpi = new Option("em", "Use extract_sgt_mpi rather than jbsim3d in subwfs to perform extractions.");
+        Option single_extract_sgt_mpi = new Option("sem", "Use single-job MPI version of extract SGT.  Will be run as part of pre wf.");
         cmd_opts.addOption(partition);
         cmd_opts.addOption(priorities);
         cmd_opts.addOption(replicate_sgts);
@@ -150,6 +153,7 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(directory_hierarchy);
         cmd_opts.addOption(load_balance);
         cmd_opts.addOption(extract_sgt_mpi);
+        cmd_opts.addOption(single_extract_sgt_mpi);
         OptionGroup forwardingGroup = new OptionGroup();
         forwardingGroup.addOption(file_forward);
         forwardingGroup.addOption(pipe_forward);
@@ -304,12 +308,17 @@ public class CyberShake_PP_DAXGen {
         }
         
         if (line.hasOption(extract_sgt_mpi.getOpt())) {
+        	System.out.println("Using extract_sgt_mpi instead of jbsim3d.");
+        	pp_params.setExtractSGTMPI(true);
+        }
+        
+        if (line.hasOption(single_extract_sgt_mpi.getOpt())) {
         	if (pp_params.isDirHierarchy()) {
         		System.err.println("Directory hierarchy together with extract_sgt_mpi is not supported yet.");
         		System.exit(1);
         	}
-        	System.out.println("Using extract_sgt_mpi.");
-        	pp_params.setExtractMPI(true);
+        	System.out.println("Using single extract_sgt_mpi.");
+        	pp_params.setSingleExtractSGTMPI(true);
         }
         
         //Removing notifications
@@ -375,7 +384,16 @@ public class CyberShake_PP_DAXGen {
 			if (params.isZip()) {
 				zipJobs = addZipJobs(dax, currDax);
 			}
-  	    
+			
+			Job extractSGTMPIJob = null;
+			ArrayList<String> extractRuptures = null;
+			String ruptureListFilename = null;
+			if (params.isExtractSGTMPI()) {
+				ruptureListFilename = "rupture_file_list_" + riq.getSiteName() + "_" + currDax;
+				extractRuptures = new ArrayList<String>();
+				extractSGTMPIJob = addExtractSGTMPIJob(dax, currDax, ruptureListFilename);
+			}
+			
 			int numVarsInDAX = 0;
 
 			if (params.isRvDB()) {
@@ -403,9 +421,19 @@ public class CyberShake_PP_DAXGen {
 						numVarsInDAX += numVars;
 					} else {
 						//Create new dax
-						dax = createNewDax(preD, currDax, dax, topLevelDax);
+						if (params.isExtractSGTMPI()) {
+							dax = createNewDax(preD, currDax, dax, topLevelDax, extractRuptures, ruptureListFilename);
+						} else {
+							dax = createNewDax(preD, currDax, dax, topLevelDax);
+						}
 						numVarsInDAX = numVars;
 						currDax++;
+						
+						if (params.isExtractSGTMPI()) {
+							extractRuptures.clear();
+							ruptureListFilename = "rupture_file_list_" + riq.getSiteName() + "_" + currDax;
+							extractSGTMPIJob = addExtractSGTMPIJob(dax, currDax, ruptureListFilename);
+						}
 						
 						if (params.isZip()) {
 							zipJobs = addZipJobs(dax, currDax);
@@ -422,12 +450,38 @@ public class CyberShake_PP_DAXGen {
 //							}
 //				    	}
 					}
-					addRupture(dax, variationsSet, sourceIndex, rupIndex, numRupPoints, count, currDax, zipJobs);
+
+					if (params.isExtractSGTMPI()) {
+						String rup_geom_filename = "e" + riq.getErfID() + "_rv" + riq.getRuptVarScenID() + "_" + sourceIndex + "_" + rupIndex + ".txt";
+						extractRuptures.add(rup_geom_filename);
+						
+						//Add extracted SGT files as used by extractSGTMPI job
+						//In same working dir, so don't need to be transferred
+						File rupsgtxFile = new File(riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfx.sgt");
+				        rupsgtxFile.setTransfer(File.TRANSFER.FALSE);
+				        rupsgtxFile.setRegister(false);
+				        
+				        File rupsgtyFile = new File(riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfy.sgt");
+				        rupsgtyFile.setTransfer(File.TRANSFER.FALSE);
+				        rupsgtyFile.setRegister(false);
+					}
+					
+					addRupture(dax, variationsSet, sourceIndex, rupIndex, numRupPoints, count, currDax, zipJobs, extractSGTMPIJob);
 
 					if (numVarsInDAX > params.getNumVarsPerDAX()) {
-						dax = createNewDax(preD, currDax, dax, topLevelDax);
+						if (params.isExtractSGTMPI()) {
+							dax = createNewDax(preD, currDax, dax, topLevelDax, extractRuptures, ruptureListFilename);
+						} else {
+							dax = createNewDax(preD, currDax, dax, topLevelDax);
+						}
 						currDax++;
 						numVarsInDAX = 0;
+						
+						if (params.isExtractSGTMPI()) {
+							extractRuptures.clear();
+							ruptureListFilename = "rupture_file_list_" + riq.getSiteName() + "_" + currDax;
+							extractSGTMPIJob = addExtractSGTMPIJob(dax, currDax, ruptureListFilename);
+						}
 					}
 					ruptureSet.next();
 				}
@@ -451,14 +505,40 @@ public class CyberShake_PP_DAXGen {
 
 						ResultSet variationsSet = getVariations(sourceIndex, rupIndex);
 						
-						addRupture(dax, variationsSet, sourceIndex, rupIndex, numRupPoints, count, i, zipJobs);						
+						if (params.isExtractSGTMPI()) {
+							//Add file to list of rupture files to use
+							String rup_geom_filename = "e" + riq.getErfID() + "_rv" + riq.getRuptVarScenID() + "_" + sourceIndex + "_" + rupIndex + ".txt";
+							extractRuptures.add(rup_geom_filename);
+							
+							//Add extracted SGT files as used by extractSGTMPI job
+							//In same working dir, so don't need to be transferred
+							File rupsgtxFile = new File(riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfx.sgt");
+					        rupsgtxFile.setTransfer(File.TRANSFER.FALSE);
+					        rupsgtxFile.setRegister(false);
+					        
+					        File rupsgtyFile = new File(riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfy.sgt");
+					        rupsgtyFile.setTransfer(File.TRANSFER.FALSE);
+					        rupsgtyFile.setRegister(false);
+						}
+						
+						addRupture(dax, variationsSet, sourceIndex, rupIndex, numRupPoints, count, i, zipJobs, extractSGTMPIJob);						
 					}
 					if (i<bins.length-1) {
 						//Create next dax
-						dax = createNewDax(preD, i, dax, topLevelDax);
+						if (params.isExtractSGTMPI()) {
+							dax = createNewDax(preD, currDax, dax, topLevelDax, extractRuptures, ruptureListFilename);
+						} else {
+							dax = createNewDax(preD, i, dax, topLevelDax);
+						}
 						
 						if (params.isZip()) {
 							zipJobs = addZipJobs(dax, i+1);
+						}
+						
+						if (params.isExtractSGTMPI()) {
+							extractRuptures.clear();
+							ruptureListFilename = "rupture_file_list_" + riq.getSiteName() + "_" + currDax;
+							extractSGTMPIJob = addExtractSGTMPIJob(dax, currDax, ruptureListFilename);
 						}
 						
 						// Attach notification job to end of workflow after zip jobs
@@ -541,6 +621,61 @@ public class CyberShake_PP_DAXGen {
 		return null;
 	}
 			
+	private Job addExtractSGTMPIJob(ADAG dax, int currDax, String ruptureListFilename) {
+		Job extractSGTMPIJob = new Job("Extract_SGT_MPI_" + currDax, NAMESPACE, EXTRACT_SGT_MPI_NAME, VERSION);
+		
+		extractSGTMPIJob.addArgument(riq.getSiteName());
+		extractSGTMPIJob.addArgument("" + riq.getLat());
+		extractSGTMPIJob.addArgument("" + riq.getLon());
+		
+		String sgtx=riq.getSiteName()+"_fx_" + riq.getRunID() + ".sgt";
+        String sgty=riq.getSiteName()+"_fy_" + riq.getRunID() + ".sgt";
+		
+        File sgtXFile = new File(sgtx);
+        File sgtYFile = new File(sgty);
+        
+        extractSGTMPIJob.uses(sgtXFile, LINK.INPUT);
+        extractSGTMPIJob.uses(sgtYFile, LINK.INPUT);
+
+        extractSGTMPIJob.addArgument(sgtx);
+        extractSGTMPIJob.addArgument(sgty);
+		
+        extractSGTMPIJob.addArgument("" + riq.getErfID());
+
+		File ruptureListFile = new File(ruptureListFilename);
+		
+		ruptureListFile.setTransfer(TRANSFER.TRUE);
+		
+		extractSGTMPIJob.uses(ruptureListFile, LINK.INPUT);
+		
+		dax.addJob(extractSGTMPIJob);
+		
+		return extractSGTMPIJob;
+	}
+
+	public ADAG createNewDax(DAX preDax, int currDax, ADAG dax, ADAG topLevelDax, ArrayList<String> extractRuptures, String ruptureListFilename) {
+		java.io.File javaFile = new java.io.File(ruptureListFilename);
+		String cwd = "";
+		try {
+			cwd = javaFile.getCanonicalPath();
+			BufferedWriter bw = new BufferedWriter(new FileWriter(ruptureListFilename));
+			bw.write(extractRuptures.size() + "\n");
+			for (String s: extractRuptures) {
+				bw.write(s + "\n");
+			}
+			bw.flush();
+			bw.close();
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
+			System.exit(3);
+		}
+		edu.isi.pegasus.planner.dax.File rupListFile = new File(ruptureListFilename);
+		rupListFile.addPhysicalFile("file://" + cwd + "/" + ruptureListFilename);
+		dax.addFile(rupListFile);
+		
+		return createNewDax(preDax, currDax, dax, topLevelDax);
+	}
+	
 	public ADAG createNewDax(DAX preDax, int currDax, ADAG dax, ADAG topLevelDax) {
 		System.out.println("Writing dax " + currDax);
 		String daxFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + currDax + DAX_FILENAME_EXTENSION;
@@ -570,16 +705,17 @@ public class CyberShake_PP_DAXGen {
 	}
 
 	
-	public void addRupture(ADAG dax, ResultSet variationsSet, int sourceIndex, int rupIndex, int numRupPoints, int count, int currDax, Job[] zipJobs) {
+	public void addRupture(ADAG dax, ResultSet variationsSet, int sourceIndex, int rupIndex, int numRupPoints, int count, int currDax, Job[] zipJobs, Job extractSGTMPIJob) {
 		try {
 			Job extractJob = null;
-			if (!params.isExtractMPI()) {
+
+			variationsSet.first();
+			
+			if (!params.isSingleExtractSGTMPI() && !params.isExtractSGTMPI()) {
 				//Insert extraction job
 				extractJob = createExtractJob(sourceIndex, rupIndex, numRupPoints, variationsSet.getString("Rup_Var_LFN"), count, currDax);
 				dax.addJob(extractJob);
 			}
-
-			variationsSet.first();
 
 			int rupvarcount = 0;
 			//Iterate over variations
@@ -593,10 +729,15 @@ public class CyberShake_PP_DAXGen {
 					//add 1 job for seis and PSA
 					Job seisPSAJob = createSeisPSAJob(sourceIndex, rupIndex, rupvarcount, numRupPoints, variationsSet.getString("Rup_Var_LFN"), count, currDax);
 					dax.addJob(seisPSAJob);
-					if (!params.isExtractMPI()) {
+					if (params.isExtractSGTMPI()) {
+						
+						
+						dax.addDependency(extractSGTMPIJob, seisPSAJob);
+					} else if (!params.isSingleExtractSGTMPI()) {
 						//set up dependencies
 						dax.addDependency(extractJob, seisPSAJob);
 					}
+					
 					//make the zip jobs appropriate children
 					if (params.isZip()) {
 						for (Job zipJob: zipJobs) {
@@ -607,7 +748,7 @@ public class CyberShake_PP_DAXGen {
 					//create and add seismogram synthesis
 					Job seismoJob = createSeismogramJob(sourceIndex, rupIndex, rupvarcount, numRupPoints, variationsSet.getString("Rup_Var_LFN"), count, currDax);
 					dax.addJob(seismoJob);
-					if (!params.isExtractMPI()) {
+					if (!params.isSingleExtractSGTMPI()) {
 						dax.addDependency(extractJob, seismoJob);
 					}
 					//if HF jobs, add here
@@ -618,13 +759,13 @@ public class CyberShake_PP_DAXGen {
 							//add merged job
 							highFreqJob = createHFSynthJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
 							dax.addJob(highFreqJob);
-							if (!params.isExtractMPI()) {
+							if (!params.isSingleExtractSGTMPI()) {
 								dax.addDependency(extractJob, highFreqJob);
 							}
 						} else {
 							Job stochJob = createStochJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
 							dax.addJob(stochJob);
-							if (!params.isExtractMPI()) {
+							if (!params.isSingleExtractSGTMPI()) {
 								dax.addDependency(extractJob, stochJob);
 							}
 
@@ -919,7 +1060,7 @@ public class CyberShake_PP_DAXGen {
       			}
       		}
       		
-      		if (params.isExtractMPI()) {
+      		if (params.isSingleExtractSGTMPI()) {
       			Job extractMPIJob = new Job("Extract_SGT_MPI", NAMESPACE, EXTRACT_SGT_MPI_NAME, VERSION);
       			
       			extractMPIJob.addArgument(riq.getSiteName());
@@ -1563,7 +1704,7 @@ public class CyberShake_PP_DAXGen {
 			String dir = sourceIndex + "/" + rupIndex;
 			rupsgtx = new File(dir + "/" + riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfx.sgt");
 			rupsgty = new File(dir + "/" + riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfy.sgt");
-		} else if (params.isExtractMPI()) {
+		} else if (params.isSingleExtractSGTMPI()) {
 			//Add pre directory and source dir to sub-sgt path
 			String dir = "../CyberShake_%s_pre_preDAX";
 			rupsgtx = new File(dir + "/" + sourceIndex + "/" + riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfx.sgt");
