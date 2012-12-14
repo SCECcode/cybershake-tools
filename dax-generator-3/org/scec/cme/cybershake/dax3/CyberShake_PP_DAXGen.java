@@ -389,7 +389,7 @@ public class CyberShake_PP_DAXGen {
 			ArrayList<String> extractRuptures = null;
 			String ruptureListFilename = null;
 			if (params.isExtractSGTMPI()) {
-				ruptureListFilename = "rupture_file_list_" + riq.getSiteName() + "_" + currDax;
+				ruptureListFilename = riq.getSiteName() + "_PP_dax/rupture_file_list_" + riq.getSiteName() + "_" + currDax;
 				extractRuptures = new ArrayList<String>();
 				extractSGTMPIJob = addExtractSGTMPIJob(dax, currDax, ruptureListFilename);
 			}
@@ -431,7 +431,7 @@ public class CyberShake_PP_DAXGen {
 						
 						if (params.isExtractSGTMPI()) {
 							extractRuptures.clear();
-							ruptureListFilename = "rupture_file_list_" + riq.getSiteName() + "_" + currDax;
+							ruptureListFilename = riq.getSiteName() + "_PP_dax/rupture_file_list_" + riq.getSiteName() + "_" + currDax;
 							extractSGTMPIJob = addExtractSGTMPIJob(dax, currDax, ruptureListFilename);
 						}
 						
@@ -479,7 +479,7 @@ public class CyberShake_PP_DAXGen {
 						
 						if (params.isExtractSGTMPI()) {
 							extractRuptures.clear();
-							ruptureListFilename = "rupture_file_list_" + riq.getSiteName() + "_" + currDax;
+							ruptureListFilename = riq.getSiteName() + "_PP_dax/rupture_file_list_" + riq.getSiteName() + "_" + currDax;
 							extractSGTMPIJob = addExtractSGTMPIJob(dax, currDax, ruptureListFilename);
 						}
 					}
@@ -537,7 +537,7 @@ public class CyberShake_PP_DAXGen {
 						
 						if (params.isExtractSGTMPI()) {
 							extractRuptures.clear();
-							ruptureListFilename = "rupture_file_list_" + riq.getSiteName() + "_" + i;
+							ruptureListFilename = riq.getSiteName() + "_PP_dax/rupture_file_list_" + riq.getSiteName() + "_" + i;
 							extractSGTMPIJob = addExtractSGTMPIJob(dax, i, ruptureListFilename);
 						}
 						
@@ -655,11 +655,10 @@ public class CyberShake_PP_DAXGen {
 	}
 
 	public ADAG createNewDax(DAX preDax, int currDax, ADAG dax, ADAG topLevelDax, ArrayList<String> extractRuptures, String ruptureListFilename) {
-		String subdir = riq.getSiteName() + "_PP_dax";
-		java.io.File javaFile = new java.io.File(subdir + "/" + ruptureListFilename);
-		String cwd = "";
+		java.io.File javaFile = new java.io.File(ruptureListFilename);
+		String fullPath = "";
 		try {
-			cwd = javaFile.getCanonicalPath();
+			fullPath = javaFile.getCanonicalPath();
 			BufferedWriter bw = new BufferedWriter(new FileWriter(ruptureListFilename));
 			bw.write(extractRuptures.size() + "\n");
 			for (String s: extractRuptures) {
@@ -672,7 +671,7 @@ public class CyberShake_PP_DAXGen {
 			System.exit(3);
 		}
 		edu.isi.pegasus.planner.dax.File rupListFile = new File(ruptureListFilename);
-		rupListFile.addPhysicalFile("file://" + cwd + "/" + ruptureListFilename);
+		rupListFile.addPhysicalFile("file://" + fullPath);
 		dax.addFile(rupListFile);
 		
 		return createNewDax(preDax, currDax, dax, topLevelDax);
