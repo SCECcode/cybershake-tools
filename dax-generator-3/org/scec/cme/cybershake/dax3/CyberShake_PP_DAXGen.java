@@ -537,8 +537,8 @@ public class CyberShake_PP_DAXGen {
 						
 						if (params.isExtractSGTMPI()) {
 							extractRuptures.clear();
-							ruptureListFilename = riq.getSiteName() + "_PP_dax/rupture_file_list_" + riq.getSiteName() + "_" + i;
-							extractSGTMPIJob = addExtractSGTMPIJob(dax, i, ruptureListFilename);
+							ruptureListFilename = riq.getSiteName() + "_PP_dax/rupture_file_list_" + riq.getSiteName() + "_" + (i+1);
+							extractSGTMPIJob = addExtractSGTMPIJob(dax, i+1, ruptureListFilename);
 						}
 						
 						// Attach notification job to end of workflow after zip jobs
