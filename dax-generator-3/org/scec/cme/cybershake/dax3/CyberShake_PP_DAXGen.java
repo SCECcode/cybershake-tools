@@ -389,7 +389,7 @@ public class CyberShake_PP_DAXGen {
 			ArrayList<String> extractRuptures = null;
 			String ruptureListFilename = null;
 			if (params.isExtractSGTMPI()) {
-				ruptureListFilename = riq.getSiteName() + "_PP_dax/rupture_file_list_" + riq.getSiteName() + "_" + currDax;
+				ruptureListFilename = "rupture_file_list_" + riq.getSiteName() + "_" + currDax;
 				extractRuptures = new ArrayList<String>();
 				extractSGTMPIJob = addExtractSGTMPIJob(dax, currDax, ruptureListFilename);
 			}
@@ -431,7 +431,7 @@ public class CyberShake_PP_DAXGen {
 						
 						if (params.isExtractSGTMPI()) {
 							extractRuptures.clear();
-							ruptureListFilename = riq.getSiteName() + "_PP_dax/rupture_file_list_" + riq.getSiteName() + "_" + currDax;
+							ruptureListFilename = "rupture_file_list_" + riq.getSiteName() + "_" + currDax;
 							extractSGTMPIJob = addExtractSGTMPIJob(dax, currDax, ruptureListFilename);
 						}
 						
@@ -479,7 +479,7 @@ public class CyberShake_PP_DAXGen {
 						
 						if (params.isExtractSGTMPI()) {
 							extractRuptures.clear();
-							ruptureListFilename = riq.getSiteName() + "_PP_dax/rupture_file_list_" + riq.getSiteName() + "_" + currDax;
+							ruptureListFilename = "rupture_file_list_" + riq.getSiteName() + "_" + currDax;
 							extractSGTMPIJob = addExtractSGTMPIJob(dax, currDax, ruptureListFilename);
 						}
 					}
@@ -537,7 +537,7 @@ public class CyberShake_PP_DAXGen {
 						
 						if (params.isExtractSGTMPI()) {
 							extractRuptures.clear();
-							ruptureListFilename = riq.getSiteName() + "_PP_dax/rupture_file_list_" + riq.getSiteName() + "_" + (i+1);
+							ruptureListFilename = "rupture_file_list_" + riq.getSiteName() + "_" + (i+1);
 							extractSGTMPIJob = addExtractSGTMPIJob(dax, i+1, ruptureListFilename);
 						}
 						
@@ -675,11 +675,12 @@ public class CyberShake_PP_DAXGen {
 	}
 
 	public ADAG createNewDax(DAX preDax, int currDax, ADAG dax, ADAG topLevelDax, ArrayList<String> extractRuptures, String ruptureListFilename) {
-		java.io.File javaFile = new java.io.File(ruptureListFilename);
+		String dir = riq.getSiteName() + "_PP_dax";
+		java.io.File javaFile = new java.io.File(dir + "/" + ruptureListFilename);
 		String fullPath = "";
 		try {
 			fullPath = javaFile.getCanonicalPath();
-			BufferedWriter bw = new BufferedWriter(new FileWriter(ruptureListFilename));
+			BufferedWriter bw = new BufferedWriter(new FileWriter(javaFile));
 			bw.write(extractRuptures.size() + "\n");
 			for (String s: extractRuptures) {
 				bw.write(s + "\n");
