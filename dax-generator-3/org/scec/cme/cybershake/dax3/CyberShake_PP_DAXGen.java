@@ -556,24 +556,27 @@ public class CyberShake_PP_DAXGen {
 			}
 
 			//Write leftover jobs to file
-			java.io.File javaFile = new java.io.File(ruptureListFilename);
-			String fullPath = "";
-			try {
-				fullPath = javaFile.getCanonicalPath();
-				BufferedWriter bw = new BufferedWriter(new FileWriter(ruptureListFilename));
-				bw.write(extractRuptures.size() + "\n");
-				for (String s: extractRuptures) {
-					bw.write(s + "\n");
+			if (params.isExtractSGTMPI()) {
+				String dir = riq.getSiteName() + "_PP_dax";
+				java.io.File javaFile = new java.io.File(dir + "/" + ruptureListFilename);
+				String fullPath = "";
+				try {
+					fullPath = javaFile.getCanonicalPath();
+					BufferedWriter bw = new BufferedWriter(new FileWriter(javaFile));
+					bw.write(extractRuptures.size() + "\n");
+					for (String s: extractRuptures) {
+						bw.write(s + "\n");
+					}
+					bw.flush();
+					bw.close();
+				} catch (IOException ioe) {
+					ioe.printStackTrace();
+					System.exit(3);
 				}
-				bw.flush();
-				bw.close();
-			} catch (IOException ioe) {
-				ioe.printStackTrace();
-				System.exit(3);
+				edu.isi.pegasus.planner.dax.File rupListFile = new File(ruptureListFilename);
+				rupListFile.addPhysicalFile("file://" + fullPath);
+				dax.addFile(rupListFile);
 			}
-			edu.isi.pegasus.planner.dax.File rupListFile = new File(ruptureListFilename);
-			rupListFile.addPhysicalFile("file://" + fullPath);
-			dax.addFile(rupListFile);
 			
 			//Write leftover jobs to file
 			String daxFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + currDax + DAX_FILENAME_EXTENSION;
