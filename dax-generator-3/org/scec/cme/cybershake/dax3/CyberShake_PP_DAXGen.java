@@ -526,7 +526,7 @@ public class CyberShake_PP_DAXGen {
 					if (i<bins.length-1) {
 						//Create next dax
 						if (params.isExtractSGTMPI()) {
-							dax = createNewDax(preD, currDax, dax, topLevelDax, extractRuptures, ruptureListFilename);
+							dax = createNewDax(preD, i, dax, topLevelDax, extractRuptures, ruptureListFilename);
 						} else {
 							dax = createNewDax(preD, i, dax, topLevelDax);
 						}
@@ -537,8 +537,8 @@ public class CyberShake_PP_DAXGen {
 						
 						if (params.isExtractSGTMPI()) {
 							extractRuptures.clear();
-							ruptureListFilename = "rupture_file_list_" + riq.getSiteName() + "_" + currDax;
-							extractSGTMPIJob = addExtractSGTMPIJob(dax, currDax, ruptureListFilename);
+							ruptureListFilename = "rupture_file_list_" + riq.getSiteName() + "_" + i;
+							extractSGTMPIJob = addExtractSGTMPIJob(dax, i, ruptureListFilename);
 						}
 						
 						// Attach notification job to end of workflow after zip jobs
@@ -646,6 +646,7 @@ public class CyberShake_PP_DAXGen {
 		
 		ruptureListFile.setTransfer(TRANSFER.TRUE);
 		
+		extractSGTMPIJob.addArgument(ruptureListFile.getName());
 		extractSGTMPIJob.uses(ruptureListFile, LINK.INPUT);
 		
 		dax.addJob(extractSGTMPIJob);
@@ -654,7 +655,8 @@ public class CyberShake_PP_DAXGen {
 	}
 
 	public ADAG createNewDax(DAX preDax, int currDax, ADAG dax, ADAG topLevelDax, ArrayList<String> extractRuptures, String ruptureListFilename) {
-		java.io.File javaFile = new java.io.File(ruptureListFilename);
+		String subdir = riq.getSiteName() + "_PP_dax";
+		java.io.File javaFile = new java.io.File(subdir + "/" + ruptureListFilename);
 		String cwd = "";
 		try {
 			cwd = javaFile.getCanonicalPath();
