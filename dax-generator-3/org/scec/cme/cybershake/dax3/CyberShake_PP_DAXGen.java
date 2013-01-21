@@ -50,6 +50,8 @@ public class CyberShake_PP_DAXGen {
     private final static String FD_PATH = "/proc/self/fd";
     private final static String SEISMOGRAM_ENV_VAR = "GRM";
     private final static String PEAKVALS_ENV_VAR = "PSA";
+    //Output directory for 
+    private final static String OUTPUT_DIR = "/home/scec-02/tera3d/CyberShake2007/data/PPFiles";
 	
 	//Job names
     private final static String UPDATERUN_NAME = "UpdateRun";
@@ -362,7 +364,7 @@ public class CyberShake_PP_DAXGen {
 			//so that the topLevelDax can find it when we plan.
 			DAX preD = new DAX("preDAX", preDAXFile);
 			preD.addArgument("--force");
-			preD.addArgument("-qqqqq");
+			preD.addArgument("-q");
 			//Add the dax to the top-level dax like a job
 			topLevelDax.addDAX(preD);
 			//Create a file object.
@@ -589,8 +591,9 @@ public class CyberShake_PP_DAXGen {
 				jDax.addArgument("--cluster horizontal");
 			}
 			jDax.addArgument("--force");
-			jDax.addArgument("-qqqqq");
+			jDax.addArgument("-q");
 			jDax.addArgument("--output shock");
+			jDax.addArgument("--output-dir " + OUTPUT_DIR + "/" + riq.getSiteName() + "/" + riq.getRunID());
 			topLevelDax.addDAX(jDax);
 			topLevelDax.addDependency(preD, jDax);
 			File jDaxFile = new File(daxFile);
@@ -605,7 +608,7 @@ public class CyberShake_PP_DAXGen {
 				dbProductsDAX.writeToFile(dbDAXFile);
 				dbDax = new DAX("dbDax", dbDAXFile);
 				dbDax.addArgument("--force");
-				dbDax.addArgument("-qqqqq");
+				dbDax.addArgument("-q");
 				topLevelDax.addDAX(dbDax);
 				for (int i=0; i<=currDax; i++) {
 					topLevelDax.addDependency("dax_" + i, "dbDax");
@@ -621,7 +624,7 @@ public class CyberShake_PP_DAXGen {
 			postDAX.writeToFile(postDAXFile);
 			DAX postD = new DAX("postDax", postDAXFile);
 			postD.addArgument("--force");
-			postD.addArgument("-qqqqq");
+			postD.addArgument("-q");
 			topLevelDax.addDAX(postD);
 			if (params.getInsert()) {
 				topLevelDax.addDependency(dbDax, postD);
@@ -714,9 +717,10 @@ public class CyberShake_PP_DAXGen {
 		}
 		//Makes sure it doesn't prune workflow elements
 		jDax.addArgument("--force");
-		jDax.addArgument("-qqqqq");
+		jDax.addArgument("-q");
 		//Force stage-out of zip files
 		jDax.addArgument("--output shock");
+		jDax.addArgument("--output-dir " + OUTPUT_DIR + "/" + riq.getSiteName() + "/" + riq.getRunID());
 		jDax.addProfile("dagman", "category", "subwf");
 		topLevelDax.addDAX(jDax);
 		topLevelDax.addDependency(preDax, jDax);
