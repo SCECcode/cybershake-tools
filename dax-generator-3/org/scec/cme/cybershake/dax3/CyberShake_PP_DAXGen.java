@@ -73,6 +73,7 @@ public class CyberShake_PP_DAXGen {
     private final static String HF_SYNTH_NAME = "HF_Synth";
     private final static String MERGE_PSA_NAME = "MergePSA";
     private final static String EXTRACT_SGT_MPI_NAME = "Extract_SGT_MPI";
+    private final static String EXTRACT_SGT_MPI_AWP_NAME = "Extract_SGT_MPI_AWP";
 	
     //Simulation parameters
     private final static String NUMTIMESTEPS = "3000";
@@ -648,6 +649,46 @@ public class CyberShake_PP_DAXGen {
 	}
 			
 	private Job addExtractSGTMPIJob(ADAG dax, int currDax, String ruptureListFilename) {
+		/*--site SGRTT --l
+		at 34.1321 --lon -117.9495 --sgt-x SGRTT_fxraw_336.sgt --sgt-y SGRTT_fyraw_336.sgt --header-x SGRTT_fx_33
+		6.sgthead --header-y SGRTT_fy_336.sgthead --erf-id 35 --rup-list SGRTT_rupture_list.txt */
+		if (params.isUseAWP()) {
+	       	 //Use AWP SGTs;  need to include headers as arguments
+	  		 Job extractSGTMPIJob = new Job("Extract_SGT_MPI_AWP_" + currDax, NAMESPACE, EXTRACT_SGT_MPI_AWP_NAME, VERSION);
+			
+	 		 extractSGTMPIJob.addArgument("--site " + riq.getSiteName());
+			 extractSGTMPIJob.addArgument("--lat " + riq.getLat());
+			 extractSGTMPIJob.addArgument("--lon " + riq.getLon());
+	  		 
+			 String sgtx=riq.getSiteName()+"_fx_" + riq.getRunID() + ".sgt";
+		     String sgty=riq.getSiteName()+"_fy_" + riq.getRunID() + ".sgt";
+				
+		     File sgtXFile = new File(sgtx);
+		     File sgtYFile = new File(sgty);
+		        
+		     extractSGTMPIJob.uses(sgtXFile, LINK.INPUT);
+		     extractSGTMPIJob.uses(sgtYFile, LINK.INPUT);
+
+		     extractSGTMPIJob.addArgument("--sgt-x " + sgtx);
+		     extractSGTMPIJob.addArgument("--sgt-y " + sgty);
+			 
+		     extractSGTMPIJob.addArgument("--erf-id " + riq.getErfID());
+		     
+	       	 String sgtheadx = riq.getSiteName()+"_fx_" + riq.getRunID() + ".sgthead";
+	       	 String sgtheady = riq.getSiteName()+"_fy_" + riq.getRunID() + ".sgthead";
+	       	 
+	       	 File sgtheadxFile = new File(sgtheadx);
+	       	 File sgtheadyFile = new File(sgtheady);
+	       	 
+	       	 extractSGTMPIJob.addArgument("--header-x" + sgtheadxFile.getName());
+	         extractSGTMPIJob.addArgument("--header-y" + sgtheadyFile.getName());
+	       	 
+	         extractSGTMPIJob.uses(sgtheadxFile, File.LINK.INPUT);
+	         extractSGTMPIJob.uses(sgtheadyFile, File.LINK.INPUT);
+	         
+	         return extractSGTMPIJob;
+		}
+			
 		Job extractSGTMPIJob = new Job("Extract_SGT_MPI_" + currDax, NAMESPACE, EXTRACT_SGT_MPI_NAME, VERSION);
 		
 		extractSGTMPIJob.addArgument(riq.getSiteName());
