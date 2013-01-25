@@ -116,6 +116,7 @@ public class CyberShake_PP_DAXGen {
     public static void main(String[] args) {
 	//Command-line options
         Options cmd_opts = new Options();
+        Option help = new Option("-h", "--help", false, "Print help for CyberShake_PP_DAXGen");
         Option partition = OptionBuilder.withArgName("num_partitions").hasArg().withDescription("Number of partitions to create.").create("p");
         Option priorities = new Option("r", "use priorities");
         Option replicate_sgts = OptionBuilder.withArgName("num_sgts").hasArg().withDescription("Number of times to replicated SGT files, >=1, <=50").create("rs");
@@ -140,6 +141,7 @@ public class CyberShake_PP_DAXGen {
         Option pipe_forward = new Option("pf", "Use pipe-forwarding option.  Requires PMC.");
         Option extract_sgt_mpi = new Option("em", "Use extract_sgt_mpi rather than jbsim3d in subwfs to perform extractions.");
         Option single_extract_sgt_mpi = new Option("sem", "Use single-job MPI version of extract SGT.  Will be run as part of pre wf.");
+        cmd_opts.addOption(help);
         cmd_opts.addOption(partition);
         cmd_opts.addOption(priorities);
         cmd_opts.addOption(replicate_sgts);
@@ -188,6 +190,12 @@ public class CyberShake_PP_DAXGen {
             pe.printStackTrace();
             System.exit(2);
         }
+        if (line.hasOption(help.getOpt())) {
+        	HelpFormatter formatter = new HelpFormatter();
+        	formatter.printHelp("CyberShake_PP_DAXGen", cmd_opts);
+            System.exit(1);
+        }
+        
         int runID = Integer.parseInt(args[0]);
         String directory = args[1];
         pp_params.setPPDirectory(directory);
