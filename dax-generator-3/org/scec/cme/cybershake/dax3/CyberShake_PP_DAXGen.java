@@ -694,6 +694,15 @@ public class CyberShake_PP_DAXGen {
 	         extractSGTMPIJob.uses(sgtheadxFile, File.LINK.INPUT);
 	         extractSGTMPIJob.uses(sgtheadyFile, File.LINK.INPUT);
 	         
+	 		 File ruptureListFile = new File(ruptureListFilename);
+			
+			 ruptureListFile.setTransfer(TRANSFER.TRUE);
+			
+			 extractSGTMPIJob.addArgument("--rup-list " + ruptureListFile.getName());
+			 extractSGTMPIJob.uses(ruptureListFile, LINK.INPUT);
+	         
+	         dax.addJob(extractSGTMPIJob);
+	         
 	         return extractSGTMPIJob;
 		}
 			
