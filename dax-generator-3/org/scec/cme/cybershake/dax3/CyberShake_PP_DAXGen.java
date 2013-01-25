@@ -116,7 +116,7 @@ public class CyberShake_PP_DAXGen {
     public static void main(String[] args) {
 	//Command-line options
         Options cmd_opts = new Options();
-        Option help = new Option("-h", "--help", false, "Print help for CyberShake_PP_DAXGen");
+        Option help = new Option("h", "help", false, "Print help for CyberShake_PP_DAXGen");
         Option partition = OptionBuilder.withArgName("num_partitions").hasArg().withDescription("Number of partitions to create.").create("p");
         Option priorities = new Option("r", "use priorities");
         Option replicate_sgts = OptionBuilder.withArgName("num_sgts").hasArg().withDescription("Number of times to replicated SGT files, >=1, <=50").create("rs");
