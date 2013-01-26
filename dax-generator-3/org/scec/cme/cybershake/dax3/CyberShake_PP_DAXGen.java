@@ -688,8 +688,8 @@ public class CyberShake_PP_DAXGen {
 	       	 File sgtheadxFile = new File(sgtheadx);
 	       	 File sgtheadyFile = new File(sgtheady);
 	       	 
-	       	 extractSGTMPIJob.addArgument("--header-x" + sgtheadxFile.getName());
-	         extractSGTMPIJob.addArgument("--header-y" + sgtheadyFile.getName());
+	       	 extractSGTMPIJob.addArgument("--header-x " + sgtheadxFile.getName());
+	         extractSGTMPIJob.addArgument("--header-y " + sgtheadyFile.getName());
 	       	 
 	         extractSGTMPIJob.uses(sgtheadxFile, File.LINK.INPUT);
 	         extractSGTMPIJob.uses(sgtheadyFile, File.LINK.INPUT);
