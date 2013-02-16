@@ -12,11 +12,11 @@ DB_NAME = "CyberShake"
 
 # Valid computing resources
 HOST_LIST = ["unknown", "hpc", "mercury", "abe", "ranger", "kraken", \
-                 "sdsc"]
+                 "sdsc", "hpc-local", "stampede", "bluewaters" ]
 
 # Valid users
 USER_LIST = ["cybershk", "tera3d", "scottcal", "kmilner", "maechlin", \
-                 "patrices"]
+                 "patrices", "davidgil" ]
 
 # Valid states
 START_STATE = "Initial"
