@@ -35,23 +35,27 @@ def init():
     argc = len(sys.argv)
     
     # Check command line arguments
-    if ((argc != 2) and (argc != 6)):
-        print "Usage: " + sys.argv[0] + " <site> [erf id] [sgt var id] [rup var id] [vel id]"
-        print "Example: " + sys.argv[0] + " USC 35 5 3 1"
+    if ((argc != 2) and (argc != 7)):
+        print "Usage: " + sys.argv[0] + " <site> [erf id] [sgt var id] [rup var id] [vel id] [awp]"
+        print "Example: " + sys.argv[0] + " USC 35 5 3 1 0"
         return 1
 
     # Parse command line args
     info.site = sys.argv[1]
-    if (argc == 6):
+    if (argc == 7):
         info.erf = int(sys.argv[2])
         info.sgt_var = int(sys.argv[3])
         info.rup_var = int(sys.argv[4])
 	info.vel_id = int(sys.argv[5])
+	info.awp = False
+	if (sys.argv[6]=="1"):
+		info.awp = True
     else:
         info.erf = None
         info.sgt_var = None
         info.rup_var = None
 	info.vel_id = None
+	info.awp = False
     
     #print "Configuration:"
     #print "Site:\t\t" + info.site
@@ -62,12 +66,17 @@ def init():
     return 0
 
 
-def cloneLFNs(match, clone):
+def cloneLFNs(match, clone, awp):
     
     lfns = ["%s_fx_%d.sgt", \
                 "%s_fy_%d.sgt", \
                 "%s_fx_%d.sgt.md5", \
                 "%s_fy_%d.sgt.md5", ]
+
+    if (awp==True):
+	#add sgtheaders
+	lfns.append("%s_fx_%d.sgthead")
+	lfns.append("%s_fy_%d.sgthead")
 
     rls = RLS()
 
@@ -111,16 +120,15 @@ def findMatch(rm, run, match_states):
         run.setStatus(s)
         matches = rm.getRuns(run, lock=False)
 	if (matches != None):
-            for run in matches:
-                sgt_time = int(time.mktime(time.strptime(run.getSGTTime(), '%Y-%m-%d %H:%M:%S')))
+            for match in matches:
+                sgt_time = int(time.mktime(time.strptime(match.getSGTTime(), '%Y-%m-%d %H:%M:%S')))
                 if (pref_match == None):
-                    pref_match = run
+                    pref_match = match
                 else:
                     pref_time = int(time.mktime(time.strptime(pref_match.getSGTTime(), '%Y-%m-%d %H:%M:%S')))
                     if (sgt_time > pref_time):
-                        pref_match = run
+                        pref_match = match
  
-     
     return pref_match
 
 
@@ -143,7 +151,6 @@ def main():
     # Find preferred runids, if any
     need_clone = False
     pref_match = findMatch(rm, searchrun, MATCH_STATE_DICT["USE"])
-    print pref_match
     if (pref_match == None):
         need_clone = True
 	pref_match = findMatch(rm, searchrun, MATCH_STATE_DICT["CLONE"])
@@ -172,7 +179,7 @@ def main():
             return 1
         else:
             # Clone the RLS entries for the SGTs
-            if (cloneLFNs(pref_match, clone) != 0):
+            if (cloneLFNs(pref_match, clone, info.awp) != 0):
                 rm.rollbackTransaction()
                 print "Failed cloning LFNs for run %d." % (pref_match.getRunID())
                 return 1
