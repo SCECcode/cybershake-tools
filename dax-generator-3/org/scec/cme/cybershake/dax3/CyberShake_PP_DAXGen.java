@@ -739,7 +739,7 @@ public class CyberShake_PP_DAXGen {
 	}
 
 	public ADAG createNewDax(DAX preDax, int currDax, ADAG dax, ADAG topLevelDax, ArrayList<String> extractRuptures, String ruptureListFilename) {
-		String dir = riq.getSiteName() + "_PP_dax";
+		String dir = riq.getSiteName() + "_PP_dax" + "/" + "run_" + riq.getRunID();
 		java.io.File javaFile = new java.io.File(dir + "/" + ruptureListFilename);
 		String fullPath = "";
 		try {
@@ -1217,6 +1217,13 @@ public class CyberShake_PP_DAXGen {
 		//Need a local copy to be inserted into RLS;  trying this
 		checkJob.uses(sgtFile, File.LINK.INOUT);
 		checkJob.uses(sgtmd5File, File.LINK.INOUT);
+		//If using AWP files, then also add sgthead files to uses.
+		//They're not actually used by the job, but this forces them to be transferred in.
+		if (params.isUseAWP()) {
+			File sgtHeadFile = new File(site + "_f" + component + "_" + riq.getRunID() + ".sgthead"); 
+			checkJob.uses(sgtHeadFile, File.LINK.INOUT);
+			sgtHeadFile.setRegister(true);
+		}
 
 		sgtFile.setRegister(true);
 		sgtmd5File.setRegister(true);
