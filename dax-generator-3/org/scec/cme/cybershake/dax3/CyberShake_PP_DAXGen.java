@@ -50,8 +50,9 @@ public class CyberShake_PP_DAXGen {
     private final static String FD_PATH = "/proc/self/fd";
     private final static String SEISMOGRAM_ENV_VAR = "GRM";
     private final static String PEAKVALS_ENV_VAR = "PSA";
-    //Output directory for 
-    private final static String OUTPUT_DIR = "/home/scec-02/tera3d/CyberShake2007/data/PPFiles";
+    //Output directory for Study 13.4
+//    private final static String OUTPUT_DIR = "/home/scec-02/tera3d/CyberShake2007/data/PPFiles";
+    private final static String OUTPUT_DIR = "/home/scec-04/cybershk/CyberShake/data/PPFiles";
 	
 	//Job names
     private final static String UPDATERUN_NAME = "UpdateRun";

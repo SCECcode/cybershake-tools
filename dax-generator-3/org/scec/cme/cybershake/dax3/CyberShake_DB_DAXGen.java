@@ -22,7 +22,9 @@ public class CyberShake_DB_DAXGen {
 			+ "," + OPENSHA_CONF_DIR + "as2008.xml";
 	public static final String DB_PASS_FILE = "/home/scec-00/" + USER + "/config/db_pass.txt";
 	public static final String DB_REPORT_OUTPUT_DIR = "/home/scec-00/" + USER + "/db_reports/";
-	public static final String STORAGE_DIR = "/home/scec-02/tera3d/CyberShake2007/data/PPFiles/";
+//	public static final String STORAGE_DIR = "/home/scec-02/tera3d/CyberShake2007/data/PPFiles/";
+	//scec-04 storage dir
+	public static final String STORAGE_DIR = "/home/scec-04/tera3d/CyberShake/data/PPFiles/";
 
 	//Constants
 	public static final String DAX_FILENAME_POST = "_db_products";
