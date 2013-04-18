@@ -52,7 +52,7 @@ public class CyberShake_PP_DAXGen {
     private final static String PEAKVALS_ENV_VAR = "PSA";
     //Output directory for Study 13.4
 //    private final static String OUTPUT_DIR = "/home/scec-02/tera3d/CyberShake2007/data/PPFiles";
-    private final static String OUTPUT_DIR = "/home/scec-04/cybershk/CyberShake/data/PPFiles";
+    private final static String OUTPUT_DIR = "/home/scec-04/tera3d/CyberShake/data/PPFiles";
 	
 	//Job names
     private final static String UPDATERUN_NAME = "UpdateRun";
