@@ -268,7 +268,8 @@ public class CyberShake_DB_DAXGen {
 		job.addArgument("--site " + riq.getSiteName());
 		job.addArgument("--run-id " + riq.getRunID());
 		job.addArgument("--erf-file " + CURVE_ERF_XML_FILE);
-		job.addArgument("--atten-rel-file " + CURVE_ATTEN_REL_XML_FILES);
+		//Comment this out until we update so that we can use Velocity_Model_ID=4 data
+//		job.addArgument("--atten-rel-file " + CURVE_ATTEN_REL_XML_FILES);
 		String periods = CURVE_CALC_PERIODS;
 		if (params.isHighFrequency()) {
 			periods += ",1,0.5,0.2,0.1";
