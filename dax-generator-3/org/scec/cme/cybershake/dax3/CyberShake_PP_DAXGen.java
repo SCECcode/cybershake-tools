@@ -569,7 +569,7 @@ public class CyberShake_PP_DAXGen {
 
 			//Write leftover jobs to file
 			if (params.isExtractSGTMPI()) {
-				String dir = riq.getSiteName() + "_PP_dax";
+				String dir = riq.getSiteName() + "_PP_dax" + "/" + "run_" + riq.getRunID();
 				java.io.File javaFile = new java.io.File(dir + "/" + ruptureListFilename);
 				String fullPath = "";
 				try {
