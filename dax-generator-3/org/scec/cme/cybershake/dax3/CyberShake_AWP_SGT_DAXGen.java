@@ -171,11 +171,13 @@ public class CyberShake_AWP_SGT_DAXGen implements CyberShake_SGT {
 		
 		File gridoutFile = new File("gridout_" + riq.getSiteName());
 		File coordFile = new File("model_coords_GC_" + riq.getSiteName());
+		File paramsFile = new File("model_params_GC_" + riq.getSiteName());
 		File mediaFile = new File("awp." + riq.getSiteName() + ".media");
 		
 		vMeshGenJob.addArgument(riq.getSiteName());
 		vMeshGenJob.addArgument(gridoutFile);		
 		vMeshGenJob.addArgument(coordFile);
+		vMeshGenJob.addArgument(paramsFile);
 		vMeshGenJob.addArgument(mediaFile);
 		
 		if (velModel.equals("cvms")) {
@@ -192,6 +194,7 @@ public class CyberShake_AWP_SGT_DAXGen implements CyberShake_SGT {
 		
 		vMeshGenJob.uses(gridoutFile, File.LINK.INPUT);
 		vMeshGenJob.uses(coordFile, File.LINK.INPUT);
+		vMeshGenJob.uses(paramsFile, File.LINK.INPUT);
 		vMeshGenJob.uses(mediaFile, File.LINK.OUTPUT);
 		
 		return vMeshGenJob;

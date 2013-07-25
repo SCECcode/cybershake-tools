@@ -18,13 +18,25 @@ public class RunIDQuery {
 	private int siteID = -1;
 	private String siteName;
 	private int sgtVarID;
+	private String sgtString;
 	private int ruptVarScenID;
+	private int velModelID;
+	private String velModelString;
 	private double cutoffDist;
 	private double lat;
 	private double lon;
 	private double vs30 = -1.0;
 
 	private DBConnect dbc;
+
+	private final static int RWG_SGT_ID = 5;
+	private final static int AWP_SGT_ID = 6;
+	private final static int RWG_REVISED_SGT_ID = 7;
+	
+	private final int CVMS_VEL_ID = 1;
+	private final int CVMH_11_2_VEL_ID = 2;
+	private final int HALFSPACE_VEL_ID = 3;
+	private final int CVMH_11_9_VEL_ID = 4;
 	
 	private final String HOSTNAME = "focal.usc.edu";
 	private final String DB_NAME = "CyberShake";
@@ -113,7 +125,7 @@ public class RunIDQuery {
 
 	private void populateRunIDInfo() {
 		try {
-			String query = "SELECT Site_ID, ERF_ID, SGT_Variation_ID, Rup_Var_Scenario_ID FROM CyberShake_Runs WHERE Run_ID=" + runID;
+			String query = "SELECT Site_ID, ERF_ID, SGT_Variation_ID, Rup_Var_Scenario_ID, Velocity_Model_ID FROM CyberShake_Runs WHERE Run_ID=" + runID;
 			ResultSet res = dbc.selectData(query);
 			res.first();
     		if (res.getRow()==0) {
@@ -123,11 +135,35 @@ public class RunIDQuery {
     		siteID = res.getInt("Site_ID");
     		erfID = res.getInt("ERF_ID");
     		sgtVarID = res.getInt("SGT_Variation_ID");
+    		if (sgtVarID==RWG_SGT_ID) {
+    			sgtString = "rwg";
+    		} else if (sgtVarID==AWP_SGT_ID) {
+    			sgtString = "awp";
+    		} else if (sgtVarID==RWG_REVISED_SGT_ID) {
+    			sgtString = "rwg3.0.3";
+    		} else {
+    			System.err.println("SGT variation ID " + sgtVarID + " can't be converted to a string representation.");
+    			System.exit(2);
+    		}
     		ruptVarScenID = res.getInt("Rup_Var_Scenario_ID");
+    		velModelID = res.getInt("Velocity_Model_ID");
+    		if (velModelID==CVMS_VEL_ID) {
+    			velModelString = "cvms";
+    		} else if (velModelID==CVMH_11_2_VEL_ID) {
+    			velModelString = "cvmh11.2";
+    		} else if (velModelID==CVMH_11_9_VEL_ID) {
+    			velModelString = "cvmh";
+    		} else if (velModelID==HALFSPACE_VEL_ID) {
+    			velModelString = "1D";
+    		} else {
+    			System.err.println("Velocity model ID " + velModelID + " can't be converted to a string representation.");
+    			System.exit(3);
+    		}
+
     		res.next();
     		if (!res.isAfterLast()) {
     			System.err.println("More than one Run_ID matched Run_ID "  + runID + ", aborting.");
-    			System.exit(3);
+    			System.exit(4);
     		}
     		res.close();
 		} catch (SQLException e) {
@@ -173,6 +209,18 @@ public class RunIDQuery {
 
 	public double getVs30() {
 		return vs30;
+	}
+
+	public int getVelModelID() {
+		return velModelID;
+	}
+
+	public String getSgtString() {
+		return sgtString;
+	}
+
+	public String getVelModelString() {
+		return velModelString;
 	}
 
 }
