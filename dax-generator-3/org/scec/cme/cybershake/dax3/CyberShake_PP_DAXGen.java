@@ -113,9 +113,21 @@ public class CyberShake_PP_DAXGen {
     		numRupPoints = n;
     	}
     }
-    
+      
     public static void main(String[] args) {
-	//Command-line options
+    	subMain(args, true);
+    }
+    
+    public static ADAG subMain(String[] args, boolean writeDAX) {
+    	PP_DAXParameters pp_params = new PP_DAXParameters();
+    	int runID = parseCommandLine(args, pp_params);
+    	
+        CyberShake_PP_DAXGen daxGen = new CyberShake_PP_DAXGen();
+        return daxGen.makeDAX(runID, pp_params, writeDAX);
+    }
+    
+    public static int parseCommandLine(String[] args, PP_DAXParameters pp_params) {
+    	//Command-line options
         Options cmd_opts = new Options();
         Option help = new Option("h", "help", false, "Print help for CyberShake_PP_DAXGen");
         Option partition = OptionBuilder.withArgName("num_partitions").hasArg().withDescription("Number of partitions to create.").create("p");
@@ -173,8 +185,7 @@ public class CyberShake_PP_DAXGen {
         zipGroup.addOption(no_zip);
         zipGroup.addOption(separate_zip);
         cmd_opts.addOptionGroup(zipGroup);
-        CyberShake_PP_DAXGen daxGen = new CyberShake_PP_DAXGen();
-        PP_DAXParameters pp_params = new PP_DAXParameters();
+
         CommandLineParser parser = new GnuParser();
         if (args.length<1) {
         	HelpFormatter formatter = new HelpFormatter();
@@ -336,10 +347,10 @@ public class CyberShake_PP_DAXGen {
         //Removing notifications
         pp_params.setNotifyGroupSize(pp_params.getNumOfDAXes()+1);
         
-        daxGen.makeDAX(runID, pp_params);
+        return runID;
 	}
 
-	public ADAG makeDAX(int runID, PP_DAXParameters params) {
+	public ADAG makeDAX(int runID, PP_DAXParameters params, boolean writeDAX) {
 		//Return preDAX so we can set up dependencies if needed
 		try {
 			this.params = params;
@@ -647,8 +658,10 @@ public class CyberShake_PP_DAXGen {
 			postDFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + postDAXFile, "local");
 			topLevelDax.addFile(postDFile);
 
-			String topLevelDaxName = DAX_FILENAME_PREFIX + riq.getSiteName() + DAX_FILENAME_EXTENSION;
-			topLevelDax.writeToFile(topLevelDaxName);
+			if (writeDAX) {
+				String topLevelDaxName = DAX_FILENAME_PREFIX + riq.getSiteName() + DAX_FILENAME_EXTENSION;
+				topLevelDax.writeToFile(topLevelDaxName);
+			}
 			return topLevelDax;
 		} catch (SQLException ex) {
 			ex.printStackTrace();

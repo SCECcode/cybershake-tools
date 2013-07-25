@@ -53,7 +53,7 @@ public class DBConnect
     try
     {
       getConnection();
-      stat = conn.createStatement();
+      stat = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.HOLD_CURSORS_OVER_COMMIT);
       //System.out.println(query);
       //gets the resultSet after running the query
       result = stat.executeQuery(query+";");
