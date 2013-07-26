@@ -190,8 +190,8 @@ public class CyberShake_SGT_DAXGen {
 		if (riq.getSgtString().equals("awp")) {
 			Job preAWP = addPreAWP();
 			workflowDAX.addJob(preAWP);
-			workflowDAX.addDependency(preAWP, vMeshMerge);
-			workflowDAX.addDependency(preAWP, preSGT);
+			workflowDAX.addDependency(vMeshMerge, preAWP);
+			workflowDAX.addDependency(preSGT, preAWP);
 			
 			Job sgtGenX = addAWPSGTGen("x");
 			workflowDAX.addJob(sgtGenX);
