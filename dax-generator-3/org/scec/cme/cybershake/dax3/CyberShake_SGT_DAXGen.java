@@ -594,7 +594,7 @@ public class CyberShake_SGT_DAXGen {
 		String id = "AWP_" + riq.getSiteName() + "_" + riq.getVelModelString() + "_" + component;
 		Job awpJob = new Job(id, NAMESPACE, "AWP", VERSION);
 		
-		File in3DFile = new File("IN3D." + riq.getSiteName() + "." + riq.getVelModelString() + "." + component);
+		File in3DFile = new File("IN3D." + riq.getSiteName() + "." + component);
 		
 		in3DFile.setTransfer(TRANSFER.FALSE);
 		
@@ -612,7 +612,14 @@ public class CyberShake_SGT_DAXGen {
 		Job postAWPJob = new Job(id, NAMESPACE, "PostAWP", VERSION);
 		
 		File awpStrainInFile = new File("awp-strain-" + riq.getSiteName() + "-f" + component);
-		File awpStrainOutFile = new File("awp-strain-" + riq.getSiteName() +  "-" + riq.getVelModelString() + "-f" + component + "-reformatted");
+		//We swap the component value in the output file, because AWP X = RWG Y
+		String rwgComponent = "z";
+		if (component.equals("x")) {
+			rwgComponent = "y";
+		} else if (component.equals("y")) {
+			rwgComponent = "x";
+		}
+		File awpStrainOutFile = new File(riq.getSiteName() + "_f" + rwgComponent + "_" + riq.getRunID() + ".sgt");
 		File modelboxFile = new File(riq.getSiteName() + ".modelbox");
 		File cordFile = new File(riq.getSiteName() + ".cordfile");
 		File fdlocFile = new File(riq.getSiteName() + ".fdloc");
