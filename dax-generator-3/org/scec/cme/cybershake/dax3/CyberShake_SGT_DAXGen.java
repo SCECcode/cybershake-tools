@@ -626,6 +626,7 @@ public class CyberShake_SGT_DAXGen {
 		File gridoutFile = new File("gridout_" + riq.getSiteName());
 		File in3DFile = new File("IN3D." + riq.getSiteName() + "." + component);
 		File awpMediaFile = new File("awp." + riq.getSiteName() + ".media");
+		File headerFile = new File(riq.getSiteName() + "_f" + rwgComponent + "_" + riq.getRunID() + ".sgthead");
 		
 		awpStrainInFile.setTransfer(TRANSFER.FALSE);
 		modelboxFile.setTransfer(TRANSFER.FALSE);
@@ -636,6 +637,7 @@ public class CyberShake_SGT_DAXGen {
 		awpMediaFile.setTransfer(TRANSFER.FALSE);
 		
 		awpStrainOutFile.setTransfer(TRANSFER.OPTIONAL);
+		headerFile.setTransfer(TRANSFER.OPTIONAL);
 		
 		awpStrainInFile.setRegister(false);
 		modelboxFile.setRegister(false);
@@ -646,6 +648,7 @@ public class CyberShake_SGT_DAXGen {
 		awpMediaFile.setRegister(false);
 		
 		awpStrainOutFile.setRegister(true);
+		headerFile.setRegister(true);
 
 		postAWPJob.addArgument(riq.getSiteName());
 		postAWPJob.addArgument(awpStrainInFile);
@@ -658,6 +661,7 @@ public class CyberShake_SGT_DAXGen {
 		postAWPJob.addArgument(awpMediaFile);
 		postAWPJob.addArgument(component);
 		postAWPJob.addArgument(riq.getRunID() + "");
+		postAWPJob.addArgument(headerFile);
 
 		postAWPJob.uses(awpStrainInFile, LINK.INPUT);
 		postAWPJob.uses(awpStrainOutFile, LINK.OUTPUT);
@@ -667,6 +671,7 @@ public class CyberShake_SGT_DAXGen {
 		postAWPJob.uses(gridoutFile, LINK.INPUT);
 		postAWPJob.uses(in3DFile, LINK.INPUT);
 		postAWPJob.uses(awpMediaFile, LINK.INPUT);
+		postAWPJob.uses(headerFile, LINK.OUTPUT);
 		
 		return postAWPJob;
 	}
