@@ -611,7 +611,7 @@ public class CyberShake_SGT_DAXGen {
 		String id = "PostAWP_" + riq.getSiteName() + "_" + riq.getVelModelString() + "_" + component;
 		Job postAWPJob = new Job(id, NAMESPACE, "PostAWP", VERSION);
 		
-		File awpStrainInFile = new File("awp-strain-" + riq.getSiteName() + "-f" + component);
+		File awpStrainInFile = new File("comp_" + component + "/output_sgt/awp-strain-" + riq.getSiteName() + "-f" + component);
 		//We swap the component value in the output file, because AWP X = RWG Y
 		String rwgComponent = "z";
 		if (component.equals("x")) {
@@ -620,6 +620,7 @@ public class CyberShake_SGT_DAXGen {
 			rwgComponent = "x";
 		}
 		File awpStrainOutFile = new File(riq.getSiteName() + "_f" + rwgComponent + "_" + riq.getRunID() + ".sgt");
+		File md5OutFile = new File(awpStrainOutFile.getName() + ".md5");
 		File modelboxFile = new File(riq.getSiteName() + ".modelbox");
 		File cordFile = new File(riq.getSiteName() + ".cordfile");
 		File fdlocFile = new File(riq.getSiteName() + ".fdloc");
@@ -636,8 +637,9 @@ public class CyberShake_SGT_DAXGen {
 		in3DFile.setTransfer(TRANSFER.FALSE);
 		awpMediaFile.setTransfer(TRANSFER.FALSE);
 		
-		awpStrainOutFile.setTransfer(TRANSFER.OPTIONAL);
-		headerFile.setTransfer(TRANSFER.OPTIONAL);
+		awpStrainOutFile.setTransfer(TRANSFER.TRUE);
+		headerFile.setTransfer(TRANSFER.TRUE);
+		md5OutFile.setTransfer(TRANSFER.TRUE);
 		
 		awpStrainInFile.setRegister(false);
 		modelboxFile.setRegister(false);
@@ -649,6 +651,7 @@ public class CyberShake_SGT_DAXGen {
 		
 		awpStrainOutFile.setRegister(true);
 		headerFile.setRegister(true);
+		md5OutFile.setRegister(true);
 
 		postAWPJob.addArgument(riq.getSiteName());
 		postAWPJob.addArgument(awpStrainInFile);
@@ -672,6 +675,7 @@ public class CyberShake_SGT_DAXGen {
 		postAWPJob.uses(in3DFile, LINK.INPUT);
 		postAWPJob.uses(awpMediaFile, LINK.INPUT);
 		postAWPJob.uses(headerFile, LINK.OUTPUT);
+		postAWPJob.uses(md5OutFile, LINK.OUTPUT);
 		
 		return postAWPJob;
 	}
