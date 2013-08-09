@@ -2,14 +2,10 @@ package org.scec.cme.cybershake.dax3;
 
 public class PP_DAXParameters {
 	private static final int MAX_NUM_OF_DAXES = 200;
-	private static final int MAX_SGT_REPLICATION = 50;
 	private static final int MAX_NUM_EMAILS = 5;
 	
 	private int numOfDAXes;
-	private boolean usePriorities;
-	private int sgtReplication;
 	private int currentSGTRep;
-	private boolean sortRuptures;
 	private boolean databaseInsert;
 	private boolean useMemcached = false;
 	private boolean seisPSAexe = false;
@@ -33,11 +29,10 @@ public class PP_DAXParameters {
 	private String ppDirectory;
 	
 	private boolean rvDB = false;
-	private boolean mpi_cluster;
+	private boolean mpi_cluster = true;
 	private boolean zip = true;
 	private boolean separateZip = false;
 	private boolean dirHierarchy = false;
-	private boolean loadBalance = false;
 	
 	private boolean fileForward = false;
 	private boolean pipeForward = false;
@@ -47,10 +42,7 @@ public class PP_DAXParameters {
 
 	public PP_DAXParameters() {
 		numOfDAXes = 1;
-		usePriorities = false;
-		sgtReplication = 1;
 		notifyGroupSize = 1;
-		sortRuptures = false;
 		ppDirectory = ".";
 		databaseInsert = true;
 	}
@@ -82,32 +74,6 @@ public class PP_DAXParameters {
 //		}
 	}
 
-	public boolean isUsePriorities() {
-		return usePriorities;
-	}
-
-	public void setUsePriorities(boolean usePriorities) {
-		this.usePriorities = usePriorities;
-	}
-
-	public int getSgtReplication() {
-		return sgtReplication;
-	}
-
-	public void setSgtReplication(int sgtReplication) {
-		if (sgtReplication>MAX_SGT_REPLICATION) {
-			System.out.println("The number of replicated SGTs can't be larger than " + MAX_SGT_REPLICATION + 
-					" Reducing from your request of " + sgtReplication + " DAXes.");
-			this.sgtReplication = MAX_SGT_REPLICATION;
-		} else if (sgtReplication<1) {
-			System.out.println("The number of SGTs must be at least 1.  Running with 1 copy of the SGTs.");
-			sgtReplication = 1;
-		} else {
-			this.sgtReplication = sgtReplication;
-		}
-		currentSGTRep = 0;
-	}
-
 	public int getNumVarsPerDAX() {
 		return numVarsPerDAX;
 	}
@@ -131,18 +97,6 @@ public class PP_DAXParameters {
 	
 	public int getCurrentSGTRep() {
 		return currentSGTRep;
-	}
-
-	public void incrementSGTRep() {
-		currentSGTRep = (currentSGTRep+1) % sgtReplication;
-	}
-
-	public boolean isSortRuptures() {
-		return sortRuptures;
-	}
-
-	public void setSortRuptures(boolean sortRuptures) {
-		this.sortRuptures = sortRuptures;
 	}
 
 	public String getPPDirectory() {
@@ -288,14 +242,6 @@ public class PP_DAXParameters {
 
 	public boolean isDirHierarchy() {
 		return dirHierarchy;
-	}
-
-	public boolean isLoadBalance() {
-		return loadBalance;
-	}
-
-	public void setLoadBalance(boolean loadBalance) {
-		this.loadBalance = loadBalance;
 	}
 
 	public boolean isFileForward() {
