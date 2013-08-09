@@ -130,35 +130,28 @@ public class CyberShake_PP_DAXGen {
     	//Command-line options
         Options cmd_opts = new Options();
         Option help = new Option("h", "help", false, "Print help for CyberShake_PP_DAXGen");
-        Option partition = OptionBuilder.withArgName("num_partitions").hasArg().withDescription("Number of partitions to create.").create("p");
-        Option priorities = new Option("r", "use priorities");
-        Option replicate_sgts = OptionBuilder.withArgName("num_sgts").hasArg().withDescription("Number of times to replicated SGT files, >=1, <=50").create("rs");
-        Option sort_ruptures = new Option("s", "sort ruptures by descending size;  will include priorities");
+        Option partition = OptionBuilder.withArgName("partitions").hasArg().withDescription("Number of partitions to create.").create("p");
         Option jbsim_memcached = new Option("cj", "use memcached implementation of Jbsim3d");
         Option seisPSA_memcached = new Option("cs", "use memcached implementation of seisPSA");
-        Option no_insert = new Option("noinsert", "Don't insert ruptures into database (used for testing)");
+        Option no_insert = new Option("ni", "no-insert", false, "Don't insert ruptures into database (used for testing)");
         Option seisPSA = new Option("ms", "Use a single executable for both synthesis and PSA");
         Option hf_synth = new Option("mh", "Use a single executable for high-frequency srf2stoch and hfsim");
         Option merge_psa = new Option("mb", "Use a single executable for merging broadband seismograms and PSA");
         Option high_frequency = OptionBuilder.withArgName("frequency_cutoff").hasOptionalArg().withDescription("Lower cutoff in Hz for stochastic high-frequency seismograms (default 1.0)").create("hf");
-        Option sqlIndex = new Option("sql", "Create sqlite file containing (source, rupture, rv) to sub workflow mapping");
+        Option sqlIndex = new Option("q", "sql", false, "Create sqlite file containing (source, rupture, rv) to sub workflow mapping");
         Option jbsim_rv_mem = new Option("jbmem", "Use the version of jbsim which uses in-memory rupture variations");
         Option hfsynth_rv_mem = new Option("hfmem", "Use the version of hf_synth which uses in-memory rupture variations");
-        Option awp = new Option("awp", "Use AWP SGTs");
-        Option mpi_cluster = new Option("mpi_cluster", "Use pegasus-mpi-cluster");
-        Option no_zip = new Option("nz", "No zip jobs (transfer files individually, zip after transfer)");
-        Option separate_zip = new Option("sz", "Run zip jobs as separate jobs at end of sub workflows.");
+        Option awp = new Option("a", "awp", false, "Use AWP SGTs");
+        Option no_mpi_cluster = new Option("nm", "no-mpi-cluster", false, "Do not use pegasus-mpi-cluster");
+        Option zip = new Option("z", "zip", false, "Zip seismogram and PSA files before transferring.");
+        Option separate_zip = new Option("s", "separate-zip", false, "Run zip jobs as separate jobs at end of sub workflows.");
         Option directory_hierarchy = new Option("dh", "Use directory hierarchy on compute resource for seismograms and PSA files.");
-        Option load_balance = new Option("lb", "Use load-balancing among the sub-workflows based on number of rupture points.");
-        Option file_forward = new Option("ff", "Use file-forwarding option.  Requires PMC.");
+        Option file_forward = new Option("ff", "file-forward", false, "Use file-forwarding option.  Requires PMC.");
         Option pipe_forward = new Option("pf", "Use pipe-forwarding option.  Requires PMC.");
         Option extract_sgt_mpi = new Option("em", "Use extract_sgt_mpi rather than jbsim3d in subwfs to perform extractions.");
         Option single_extract_sgt_mpi = new Option("sem", "Use single-job MPI version of extract SGT.  Will be run as part of pre wf.");
         cmd_opts.addOption(help);
         cmd_opts.addOption(partition);
-        cmd_opts.addOption(priorities);
-        cmd_opts.addOption(replicate_sgts);
-        cmd_opts.addOption(sort_ruptures);
         cmd_opts.addOption(no_insert);
         cmd_opts.addOption(hf_synth);
         cmd_opts.addOption(merge_psa);
@@ -167,9 +160,8 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(jbsim_rv_mem);
         cmd_opts.addOption(hfsynth_rv_mem);
         cmd_opts.addOption(awp);
-        cmd_opts.addOption(mpi_cluster);
+        cmd_opts.addOption(no_mpi_cluster);
         cmd_opts.addOption(directory_hierarchy);
-        cmd_opts.addOption(load_balance);
         cmd_opts.addOption(extract_sgt_mpi);
         cmd_opts.addOption(single_extract_sgt_mpi);
         OptionGroup forwardingGroup = new OptionGroup();
@@ -213,16 +205,6 @@ public class CyberShake_PP_DAXGen {
         pp_params.setPPDirectory(directory);
         if (line.hasOption(partition.getOpt())) {
             pp_params.setNumOfDAXes(Integer.parseInt(line.getOptionValue("p")));
-        }
-        if (line.hasOption(priorities.getOpt())) {
-    		pp_params.setUsePriorities(true);
-        }
-        if (line.hasOption(replicate_sgts.getOpt())) {
-            pp_params.setSgtReplication(Integer.parseInt(line.getOptionValue("rs")));
-        }
-        if (line.hasOption(sort_ruptures.getOpt())) {
-        	pp_params.setSortRuptures(true);
-        	pp_params.setUsePriorities(true);
         }
         if (line.hasOption(no_insert.getOpt())) {
         	pp_params.setInsert(false);
@@ -286,8 +268,8 @@ public class CyberShake_PP_DAXGen {
         	pp_params.setUseAWP(true);
         }
         
-        if (line.hasOption(mpi_cluster.getOpt())) {
-        	pp_params.setMPICluster(true);
+        if (line.hasOption(no_mpi_cluster.getOpt())) {
+        	pp_params.setMPICluster(false);
         }
         if (line.hasOption(no_zip.getOpt())) {
         	pp_params.setZip(false);
@@ -297,9 +279,6 @@ public class CyberShake_PP_DAXGen {
         }
         if (line.hasOption(directory_hierarchy.getOpt())) {
         	pp_params.setDirHierarchy(true);
-        }
-        if (line.hasOption(load_balance.getOpt())) {
-        	pp_params.setLoadBalance(true);
         }
 
         if (line.hasOption(file_forward.getOpt())) {
@@ -356,12 +335,8 @@ public class CyberShake_PP_DAXGen {
 			this.params = params;
 			//Get parameters from DB and calculate number of variations
 			ResultSet ruptureSet = getParameters(runID);
-			//If we're using load balancing, bin the ruptures
-			ArrayList<RuptureEntry>[] bins = null;
-			if (params.isLoadBalance()) {
-				bins = binRuptures(ruptureSet);
-			}
-			
+			//bin the ruptures
+			ArrayList<RuptureEntry>[] bins = binRuptures(ruptureSet);
 
 			ADAG topLevelDax = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName(), 0, 1);
 
@@ -423,61 +398,28 @@ public class CyberShake_PP_DAXGen {
 	        	sqlDB = new RuptureVariationDB(riq.getSiteName(), riq.getRunID());
 			}
 			
-			if (!params.isLoadBalance()) {
-				//loop over rupture set
-				
-				while (!ruptureSet.isAfterLast()) {
+			//loop over bins
+			ArrayList<RuptureEntry> currBin;
+			for (int i=0; i<bins.length; i++) {
+				currBin = bins[i];
+				for (int j=0; j<currBin.size(); j++) {
 					count++;
 					if (count%100==0) {
 						System.out.println("Added " + count + " ruptures.");
 						System.gc();
 					}
-					sourceIndex = ruptureSet.getInt("Source_ID");
-					rupIndex = ruptureSet.getInt("Rupture_ID");
-					numRupPoints = ruptureSet.getInt("Num_Points");
+
+					sourceIndex = currBin.get(j).sourceID;
+					rupIndex = currBin.get(j).ruptureID;
+					numRupPoints = currBin.get(j).numRupPoints;
 
 					ResultSet variationsSet = getVariations(sourceIndex, rupIndex);
-					variationsSet.last();
-
-					int numVars = variationsSet.getRow();
-					if (numVarsInDAX + numVars < params.getMaxVarsPerDAX()) {
-						numVarsInDAX += numVars;
-					} else {
-						//Create new dax
-						if (params.isExtractSGTMPI()) {
-							dax = createNewDax(preD, currDax, dax, topLevelDax, extractRuptures, ruptureListFilename);
-						} else {
-							dax = createNewDax(preD, currDax, dax, topLevelDax);
-						}
-						numVarsInDAX = numVars;
-						currDax++;
 						
-						if (params.isExtractSGTMPI()) {
-							extractRuptures.clear();
-							ruptureListFilename = "rupture_file_list_" + riq.getSiteName() + "_" + currDax;
-							extractSGTMPIJob = addExtractSGTMPIJob(dax, currDax, ruptureListFilename);
-						}
-						
-						if (params.isZip()) {
-							zipJobs = addZipJobs(dax, currDax);
-						}
-						
-						// Attach notification job to end of workflow after zip jobs
-						//+1 to avoid notification on first job
-//						if ((currDax+1) % params.getNotifyGroupSize()== 0) {
-//				    		Job notifyJob = addNotify(dax, riq.getSiteName(), "DAX", currDax, params.getNumOfDAXes());
-//							if (params.isZip()) {
-//								for (Job zipJob: zipJobs) {
-//									dax.addDependency(zipJob, notifyJob);
-//								}
-//							}
-//				    	}
-					}
-
 					if (params.isExtractSGTMPI()) {
+						//Add file to list of rupture files to use
 						String rup_geom_filename = "e" + riq.getErfID() + "_rv" + riq.getRuptVarScenID() + "_" + sourceIndex + "_" + rupIndex + ".txt";
 						extractRuptures.add(rup_geom_filename);
-						
+							
 						//Add extracted SGT files as used by extractSGTMPI job
 						//In same working dir, so don't need to be transferred
 						File rupsgtxFile = new File(riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfx.sgt");
@@ -488,91 +430,25 @@ public class CyberShake_PP_DAXGen {
 				        rupsgtyFile.setTransfer(File.TRANSFER.FALSE);
 				        rupsgtyFile.setRegister(false);
 					}
-					
-					addRupture(dax, variationsSet, sourceIndex, rupIndex, numRupPoints, count, currDax, zipJobs, extractSGTMPIJob);
-
-					if (numVarsInDAX > params.getNumVarsPerDAX()) {
-						if (params.isExtractSGTMPI()) {
-							dax = createNewDax(preD, currDax, dax, topLevelDax, extractRuptures, ruptureListFilename);
-						} else {
-							dax = createNewDax(preD, currDax, dax, topLevelDax);
-						}
-						currDax++;
-						numVarsInDAX = 0;
 						
-						if (params.isExtractSGTMPI()) {
-							extractRuptures.clear();
-							ruptureListFilename = "rupture_file_list_" + riq.getSiteName() + "_" + currDax;
-							extractSGTMPIJob = addExtractSGTMPIJob(dax, currDax, ruptureListFilename);
-						}
-					}
-					ruptureSet.next();
+					addRupture(dax, variationsSet, sourceIndex, rupIndex, numRupPoints, count, i, zipJobs, extractSGTMPIJob);						
 				}
-			} else {
-				//Load balancing
-				//loop over bins
-				int i, j;
-				ArrayList<RuptureEntry> currBin;
-				for (i=0; i<bins.length; i++) {
-					currBin = bins[i];
-					for (j=0; j<currBin.size(); j++) {
-						count++;
-						if (count%100==0) {
-							System.out.println("Added " + count + " ruptures.");
-							System.gc();
-						}
-
-						sourceIndex = currBin.get(j).sourceID;
-						rupIndex = currBin.get(j).ruptureID;
-						numRupPoints = currBin.get(j).numRupPoints;
-
-						ResultSet variationsSet = getVariations(sourceIndex, rupIndex);
-						
-						if (params.isExtractSGTMPI()) {
-							//Add file to list of rupture files to use
-							String rup_geom_filename = "e" + riq.getErfID() + "_rv" + riq.getRuptVarScenID() + "_" + sourceIndex + "_" + rupIndex + ".txt";
-							extractRuptures.add(rup_geom_filename);
-							
-							//Add extracted SGT files as used by extractSGTMPI job
-							//In same working dir, so don't need to be transferred
-							File rupsgtxFile = new File(riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfx.sgt");
-					        rupsgtxFile.setTransfer(File.TRANSFER.FALSE);
-					        rupsgtxFile.setRegister(false);
-					        
-					        File rupsgtyFile = new File(riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfy.sgt");
-					        rupsgtyFile.setTransfer(File.TRANSFER.FALSE);
-					        rupsgtyFile.setRegister(false);
-						}
-						
-						addRupture(dax, variationsSet, sourceIndex, rupIndex, numRupPoints, count, i, zipJobs, extractSGTMPIJob);						
+				if (i<bins.length-1) {
+					//Create next dax
+					if (params.isExtractSGTMPI()) {
+						dax = createNewDax(preD, i, dax, topLevelDax, extractRuptures, ruptureListFilename);
+					} else {
+						dax = createNewDax(preD, i, dax, topLevelDax);
 					}
-					if (i<bins.length-1) {
-						//Create next dax
-						if (params.isExtractSGTMPI()) {
-							dax = createNewDax(preD, i, dax, topLevelDax, extractRuptures, ruptureListFilename);
-						} else {
-							dax = createNewDax(preD, i, dax, topLevelDax);
-						}
 						
-						if (params.isZip()) {
-							zipJobs = addZipJobs(dax, i+1);
-						}
+					if (params.isZip()) {
+						zipJobs = addZipJobs(dax, i+1);
+					}
 						
-						if (params.isExtractSGTMPI()) {
-							extractRuptures.clear();
-							ruptureListFilename = "rupture_file_list_" + riq.getSiteName() + "_" + (i+1);
-							extractSGTMPIJob = addExtractSGTMPIJob(dax, i+1, ruptureListFilename);
-						}
-						
-						// Attach notification job to end of workflow after zip jobs
-//						if (currDax % params.getNotifyGroupSize()== 0) {
-//				    		Job notifyJob = addNotify(dax, riq.getSiteName(), "DAX", i+1, params.getNumOfDAXes());
-//							if (params.isZip()) {
-//								for (Job zipJob: zipJobs) {
-//									dax.addDependency(zipJob, notifyJob);
-//								}
-//							}
-//				    	}
+					if (params.isExtractSGTMPI()) {
+						extractRuptures.clear();
+						ruptureListFilename = "rupture_file_list_" + riq.getSiteName() + "_" + (i+1);
+						extractSGTMPIJob = addExtractSGTMPIJob(dax, i+1, ruptureListFilename);
 					}
 				}
 				currDax = bins.length-1;
@@ -1045,35 +921,23 @@ public class CyberShake_PP_DAXGen {
 
 		String stationName = riq.getSiteName();
   		ResultSet ruptureSet = getRuptures(stationName);
-  		if (!params.isLoadBalance()) {
-  			int numOfVariations = getNumOfVariations(ruptureSet);
-  			params.setNumVarsPerDAX(numOfVariations/params.getNumOfDAXes());
-  		}
+		int numOfVariations = getNumOfVariations(ruptureSet);
+		params.setNumVarsPerDAX(numOfVariations/params.getNumOfDAXes());
       	
   		return ruptureSet;
 	}
 	
 	private ResultSet getRuptures(String stationName) {
-		String query =  "select SR.Source_ID, SR.Rupture_ID, R.Num_Points " +
-			"from CyberShake_Site_Ruptures SR, CyberShake_Sites S, Ruptures R " +
-			"where S.CS_Short_Name=\"" + stationName + "\" " +
-			"and SR.CS_Site_ID=S.CS_Site_ID " +
-			"and SR.ERF_ID=" + riq.getErfID() + " " +
-			"and SR.Source_ID=R.Source_ID " +
-			"and SR.Rupture_ID=R.Rupture_ID " +
-			"and SR.ERF_ID=R.ERF_ID";
-		if (params.isSortRuptures() || params.isLoadBalance()) {
-			//Sort on reverse # of points
-			query = "select R.Source_ID, R.Rupture_ID, R.Num_Points " +
-			"from CyberShake_Site_Ruptures SR, CyberShake_Sites S, Ruptures R " +
-			"where S.CS_Short_Name=\"" + stationName + "\" " +
-			"and SR.CS_Site_ID=S.CS_Site_ID " +
-			"and SR.ERF_ID=" + riq.getErfID() + " " +
-			"and SR.ERF_ID=R.ERF_ID " + 
-			"and SR.Source_ID=R.Source_ID " +
-			"and SR.Rupture_ID=R.Rupture_ID " +
-			"order by R.Num_Points desc";
-		}
+		//Sort on reverse # of points
+		String query = "select R.Source_ID, R.Rupture_ID, R.Num_Points " +
+		"from CyberShake_Site_Ruptures SR, CyberShake_Sites S, Ruptures R " +
+		"where S.CS_Short_Name=\"" + stationName + "\" " +
+		"and SR.CS_Site_ID=S.CS_Site_ID " +
+		"and SR.ERF_ID=" + riq.getErfID() + " " +
+		"and SR.ERF_ID=R.ERF_ID " + 
+		"and SR.Source_ID=R.Source_ID " +
+		"and SR.Rupture_ID=R.Rupture_ID " +
+		"order by R.Num_Points desc";
 
 		ResultSet rs = dbc.selectData(query);
 		try {
@@ -1148,18 +1012,6 @@ public class CyberShake_PP_DAXGen {
 				localVMJob = createLocalVMJob(vmFile, localVMFilename);
 				preDax.addJob(localVMJob);
 			}
-      		
-      		if (params.getSgtReplication()>1) { //add replication job
-      			Job[] replicateSGTs = addReplicate(preDax, stationName, params.getSgtReplication());
-	    	
-      			for (Job j: replicateSGTs) {
-      				//replicate jobs are children of md5check jobs
-      				preDax.addDependency(checkSgtXJob, j);
-      				preDax.addDependency(checkSgtYJob, j);
-      				//notify job is child of replicate jobs
-      				//preDax.addDependency(j, notifyJob);
-      			}
-      		}
       		
       		if (params.isSingleExtractSGTMPI()) {
       			Job extractMPIJob = new Job("Extract_SGT_MPI", NAMESPACE, EXTRACT_SGT_MPI_NAME, VERSION);
@@ -1329,10 +1181,6 @@ public class CyberShake_PP_DAXGen {
     		zipCombinedJob.uses(zipSeisFile, File.LINK.OUTPUT);
     		zipCombinedJob.uses(zipPSAFile, File.LINK.OUTPUT);
     		
-    		if (params.isUsePriorities()) {
-        		zipCombinedJob.addProfile("condor", "priority", params.getNumOfDAXes()-daxValue + "");
-    		}
-    		
     		return new Job[]{zipCombinedJob};
     	}
     	
@@ -1351,11 +1199,6 @@ public class CyberShake_PP_DAXGen {
     	zipPSAJob.addArgument(".");
     	zipPSAJob.addArgument(zipPSAFile);
     	zipPSAJob.uses(zipPSAFile, File.LINK.OUTPUT);
-
-    	if (params.isUsePriorities()) {
-    		zipSeisJob.addProfile("condor", "priority", params.getNumOfDAXes()-daxValue + "");
-    		zipPSAJob.addProfile("condor", "priority", params.getNumOfDAXes()-daxValue + "");
-    	}
 
     	if (params.isMPICluster() && !params.isSeparateZip()) {
     		zipSeisJob.addProfile("pegasus", "label", "" + daxValue);
@@ -1431,25 +1274,19 @@ public class CyberShake_PP_DAXGen {
         String sgtx=riq.getSiteName()+"_fx_" + riq.getRunID() + ".sgt";
         String sgty=riq.getSiteName()+"_fy_" + riq.getRunID() + ".sgt";
              
-        if (params.getSgtReplication()>1) {
-        	sgtx = sgtx + "." + params.getCurrentSGTRep();
-            sgty = sgty + "." + params.getCurrentSGTRep();
-            params.incrementSGTRep();
-         }
+        File sgtxFile = new File(sgtx);
+        File sgtyFile = new File(sgty);
              
-         File sgtxFile = new File(sgtx);
-         File sgtyFile = new File(sgty);
-             
-         File rupsgtxFile = new File(riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfx.sgt");
-         rupsgtxFile.setTransfer(File.TRANSFER.FALSE);
-         rupsgtxFile.setRegister(false);
-         File rupsgtyFile = new File(riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfy.sgt");
-         rupsgtyFile.setTransfer(File.TRANSFER.FALSE);
-         rupsgtyFile.setRegister(false);
+        File rupsgtxFile = new File(riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfx.sgt");
+        rupsgtxFile.setTransfer(File.TRANSFER.FALSE);
+        rupsgtxFile.setRegister(false);
+        File rupsgtyFile = new File(riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfy.sgt");
+        rupsgtyFile.setTransfer(File.TRANSFER.FALSE);
+        rupsgtyFile.setRegister(false);
          
-         File rupVarFile = new File(rupVarLFN);
+        File rupVarFile = new File(rupVarLFN);
          
-         if (params.isJbsimRVMem()) {
+        if (params.isJbsimRVMem()) {
         	//Don't use rupture file;  instead, use source/rupture/slip/hypo arguments
  			//43_0.txt.variation-s0000-h0000
  			String[] pieces = rupVarLFN.split("-");
@@ -1503,11 +1340,6 @@ public class CyberShake_PP_DAXGen {
          int extractMem = getExtractMem(numRupPoints);
          
          job1.addProfile("pegasus", "pmc_request_memory", "" + extractMem);
-         
-         if (params.isUsePriorities()) {
-         	job1.addProfile("condor", "priority", params.getNumOfDAXes()-currDax + "");
-         }
-
          return job1;
 	}
 	
@@ -1605,9 +1437,6 @@ public class CyberShake_PP_DAXGen {
         
         job2.addProfile("pegasus", "pmc_request_memory", "" + memNeeded);
         
-        if (params.isUsePriorities()) {
-         	job2.addProfile("condor", "priority", params.getNumOfDAXes()-currDax + "");
-        }
 		return job2;
 	}
 
@@ -1680,10 +1509,6 @@ public class CyberShake_PP_DAXGen {
         int psaMem = getPSAMem();
         
         job3.addProfile("pegasus", "pmc_request_memory", "" + psaMem);
-        
-        if (params.isUsePriorities()) {
-        	job3.addProfile("condor", "priority", params.getNumOfDAXes()-currDax + "");
-        }
         
         return job3;
 	}
@@ -1898,10 +1723,7 @@ public class CyberShake_PP_DAXGen {
         int memNeeded = getSeisMem(numRupPoints) + getPSAMem();
         
         job2.addProfile("pegasus", "pmc_request_memory", "" + memNeeded);
-        
-        if (params.isUsePriorities()) {
-         	job2.addProfile("condor", "priority", params.getNumOfDAXes()-currDax + "");
-        }
+
 		return job2;
 	}
 	
