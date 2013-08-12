@@ -128,6 +128,8 @@ public class CyberShake_PP_DAXGen {
     
     public static int parseCommandLine(String[] args, PP_DAXParameters pp_params) {
     	//Command-line options
+    	String usageString = "CyberShake_PP_DAXGen <runID> <directory> ";
+    	
         Options cmd_opts = new Options();
         Option help = new Option("h", "help", false, "Print help for CyberShake_PP_DAXGen");
         Option partition = OptionBuilder.withArgName("partitions").hasArg().withDescription("Number of partitions to create.").create("p");
@@ -171,7 +173,7 @@ public class CyberShake_PP_DAXGen {
         CommandLineParser parser = new GnuParser();
         if (args.length<1) {
         	HelpFormatter formatter = new HelpFormatter();
-        	formatter.printHelp("CyberShake_PP_DAXGen", cmd_opts);
+        	formatter.printHelp(usageString, cmd_opts);
             System.exit(1);
         }
         CommandLine line = null;
@@ -186,7 +188,7 @@ public class CyberShake_PP_DAXGen {
         }
         if (line.hasOption(help.getOpt())) {
         	HelpFormatter formatter = new HelpFormatter();
-        	formatter.printHelp("CyberShake_PP_DAXGen", cmd_opts);
+        	formatter.printHelp(usageString, cmd_opts);
             System.exit(1);
         }
         
