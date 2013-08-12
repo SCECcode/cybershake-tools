@@ -334,7 +334,6 @@ public class CyberShake_PP_DAXGen {
 			Job[] zipJobs = null;
 			
 			if (params.isZip()) {
-				zipJobs = addZipJobs(dax, currDax);
 			}
 			
 			Job extractSGTMPIJob = null;
@@ -410,8 +409,9 @@ public class CyberShake_PP_DAXGen {
 
 			//Write leftover jobs to file
 			if (params.isExtractSGTMPI()) {
-				String dir = riq.getSiteName() + "_PP_dax" + "/" + "run_" + riq.getRunID();
-				java.io.File javaFile = new java.io.File(dir + "/" + ruptureListFilename);
+//				String dir = riq.getSiteName() + "_PP_dax" + "/" + "run_" + riq.getRunID();
+//				java.io.File javaFile = new java.io.File(dir + "/" + ruptureListFilename);
+				java.io.File javaFile = new java.io.File(ruptureListFilename);
 				String fullPath = "";
 				try {
 					fullPath = javaFile.getCanonicalPath();
