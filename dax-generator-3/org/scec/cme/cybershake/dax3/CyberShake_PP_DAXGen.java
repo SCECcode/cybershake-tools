@@ -583,8 +583,8 @@ public class CyberShake_PP_DAXGen {
 	}
 
 	public ADAG createNewDax(DAX preDax, int currDax, ADAG dax, ADAG topLevelDax, ArrayList<String> extractRuptures, String ruptureListFilename) {
-		String dir = riq.getSiteName() + "_PP_dax" + "/" + "run_" + riq.getRunID();
-		java.io.File javaFile = new java.io.File(dir + "/" + ruptureListFilename);
+//		String dir = riq.getSiteName() + "_PP_dax" + "/" + "run_" + riq.getRunID();
+		java.io.File javaFile = new java.io.File(ruptureListFilename);
 		String fullPath = "";
 		try {
 			fullPath = javaFile.getCanonicalPath();
