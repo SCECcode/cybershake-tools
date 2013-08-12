@@ -101,8 +101,8 @@ public class CyberShake_Integrated_DAXGen {
 		//Only pull out integrated options; send most along to the SGT and PP generators
         Options cmd_opts = new Options();
         Option help = new Option("h", "help", false, "Print help for CyberShake_Integrated_DAXGen");
-        Option runIDFile = OptionBuilder.withArgName("runID_file").hasArg().withDescription("File containing list of Run IDs to use.").create("f");
-        Option runIDList = OptionBuilder.withArgName("runID_list").hasArgs().withDescription("List of Run IDs to use.").create("r");
+        Option runIDFile = OptionBuilder.withArgName("runID_file").hasArg().withDescription("File containing list of Run IDs to use.").create("rf");
+        Option runIDList = OptionBuilder.withArgName("runID_list").hasArgs().withDescription("List of Run IDs to use.").create("rl");
         OptionGroup runIDGroup = new OptionGroup();
         runIDGroup.addOption(runIDFile);
         runIDGroup.addOption(runIDList);
