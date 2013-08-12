@@ -83,10 +83,10 @@ public class CyberShake_Integrated_DAXGen {
 			ppArgs.add(directory);
 			int j = 2;
 			while (j<args.length) {
-				if (args[j].equals("-f")) {
+				if (args[j].equals("-rf")) {
 					//Skip this one and the next one - it's the file argument
 					j += 2;
-				} else if (args[j].equals("-r")) {
+				} else if (args[j].equals("-rl")) {
 					//Skip this one and each of the next until we get one with a new option argument
 					j++;
 					while (!args[j].startsWith("-")) {
@@ -94,6 +94,7 @@ public class CyberShake_Integrated_DAXGen {
 					}
 				} else {
 					ppArgs.add(args[j]);
+					j++;
 				}
 			}
 			String[] ppArgArray = ppArgs.toArray(new String[]{});
