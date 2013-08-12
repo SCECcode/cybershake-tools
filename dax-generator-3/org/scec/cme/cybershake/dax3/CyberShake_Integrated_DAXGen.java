@@ -89,7 +89,7 @@ public class CyberShake_Integrated_DAXGen {
 				} else if (args[j].equals("-rl")) {
 					//Skip this one and each of the next until we get one with a new option argument
 					j++;
-					while (!args[j].startsWith("-")) {
+					while (j<args.length && !args[j].startsWith("-")) {
 						j++;
 					}
 				} else {
