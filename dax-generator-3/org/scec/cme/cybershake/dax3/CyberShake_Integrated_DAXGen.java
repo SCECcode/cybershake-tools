@@ -36,19 +36,15 @@ public class CyberShake_Integrated_DAXGen {
         String daxFilename = args[0];
         String directory = args[1];
 		//Construct args for SGT_DAXGen:  need to add output filename
-		String[] sgtArgs = new String[args.length+1];
-		sgtArgs[0] = "CyberShake_SGT.dax";
-		for (int i=0; i<args.length; i++) {
-			if (args[i].equals("-rl")) {
-				//Translate from "rl" to "r"
-				sgtArgs[i+1] = "-r";
-			} else if (args[i].equals("-rf")){
-				//Translate from "rf" to "f"
-				sgtArgs[i+1] = "-f";
-			} else {
-				sgtArgs[i+1] = args[i];
-			}
+		ArrayList<String> sgtArgsList = new ArrayList<String>();
+		sgtArgsList.add("CyberShake_SGT.dax");
+		sgtArgsList.add(directory);
+		sgtArgsList.add("-r");
+		for (RunIDQuery riq: runIDQueries) {
+			sgtArgsList.add("" + riq.getRunID());
 		}
+		
+		String[] sgtArgs = sgtArgsList.toArray(new String[]{});
 		
 		long timestamp = System.currentTimeMillis();
 		ADAG topLevelDAX = new ADAG(DAX_FILENAME_PREFIX + "_" + timestamp, 0, 1);
