@@ -1,23 +1,25 @@
 package org.scec.cme.cybershake.dax3;
 
 public class PP_DAXParameters {
-	private static final int MAX_NUM_OF_DAXES = 200;
+	private static final int MAX_NUM_OF_DAXES = 100;
 	private static final int MAX_NUM_EMAILS = 5;
 	
 	private int numOfDAXes;
 	private int currentSGTRep;
 	private boolean databaseInsert;
-	private boolean useMemcached = false;
-	private boolean seisPSAexe = false;
+
+	//Defaults
+	private boolean seisPSAexe = true;
 	private boolean highFrequency = false;
+	//Maximum deterministic frequency
+	private double detFrequency = 0.5;
 	private double highFrequencyCutoff = 0.0;
 	private double maxHighFrequency = 10.0;
-	private boolean hfsynth = false;
-	private boolean mergePSA = false;
-	private boolean mergedMemcached = false;
+	private boolean hfsynth = true;
+	private boolean mergePSA = true;
 	
-	private boolean jbsimRVMem = false;
-	private boolean hfsynthRVMem = false;
+	private boolean jbsimRVMem = true;
+	private boolean hfsynthRVMem = true;
 		
 	private int numVarsPerDAX;
 	private int maxVarsPerDAX;
@@ -30,15 +32,15 @@ public class PP_DAXParameters {
 	
 	private boolean rvDB = false;
 	private boolean mpi_cluster = true;
-	private boolean zip = true;
+	private boolean zip = false;
 	private boolean separateZip = false;
-	private boolean dirHierarchy = false;
+	private boolean dirHierarchy = true;
 	
-	private boolean fileForward = false;
+	private boolean fileForward = true;
 	private boolean pipeForward = false;
 
-	private boolean extractSGTMPI = false;
-	private boolean singleExtractSGTMPI = false;
+	private boolean extractSGTMPI = true;
+	private boolean globalExtractSGTMPI = false;
 
 	public PP_DAXParameters() {
 		numOfDAXes = 1;
@@ -115,19 +117,11 @@ public class PP_DAXParameters {
 		return databaseInsert;
 	}
 
-	public boolean isUseMemcached() {
-		return useMemcached;
-	}
-
-	public void setUseMemcached(boolean useMemcached) {
-		this.useMemcached = useMemcached;
-	}
-
-	public void setMergedExe(boolean b) {
+	public void setSeisPSA(boolean b) {
 		this.seisPSAexe = b;
 	}
 	
-	public boolean isMergedExe() {
+	public boolean isSeisPSA() {
 		return this.seisPSAexe;
 	}
 
@@ -154,14 +148,6 @@ public class PP_DAXParameters {
 
 	public void setMaxHighFrequency(double maxHighFrequency) {
 		this.maxHighFrequency = maxHighFrequency;
-	}
-
-	public void setUseMergedMemcached(boolean b) {
-		this.mergedMemcached = b;
-	}
-
-	public boolean isMergedMemcached() {
-		return mergedMemcached;
 	}
 
 	public boolean isHfsynth() {
@@ -268,11 +254,19 @@ public class PP_DAXParameters {
 		this.extractSGTMPI = extractSGTMPI;
 	}
 
-	public boolean isSingleExtractSGTMPI() {
-		return singleExtractSGTMPI;
+	public boolean isGlobalExtractSGTMPI() {
+		return globalExtractSGTMPI;
 	}
 
-	public void setSingleExtractSGTMPI(boolean extractMPI) {
-		this.singleExtractSGTMPI = extractMPI;
+	public void setGlobalExtractSGTMPI(boolean extractMPI) {
+		this.globalExtractSGTMPI = extractMPI;
+	}
+
+	public double getDetFrequency() {
+		return detFrequency;
+	}
+
+	public void setDetFrequency(double detFrequency) {
+		this.detFrequency = detFrequency;
 	}
 }

@@ -131,52 +131,42 @@ public class CyberShake_PP_DAXGen {
         Options cmd_opts = new Options();
         Option help = new Option("h", "help", false, "Print help for CyberShake_PP_DAXGen");
         Option partition = OptionBuilder.withArgName("partitions").hasArg().withDescription("Number of partitions to create.").create("p");
-        Option jbsim_memcached = new Option("cj", "use memcached implementation of Jbsim3d");
-        Option seisPSA_memcached = new Option("cs", "use memcached implementation of seisPSA");
         Option no_insert = new Option("ni", "no-insert", false, "Don't insert ruptures into database (used for testing)");
-        Option seisPSA = new Option("ms", "Use a single executable for both synthesis and PSA");
-        Option hf_synth = new Option("mh", "Use a single executable for high-frequency srf2stoch and hfsim");
-        Option merge_psa = new Option("mb", "Use a single executable for merging broadband seismograms and PSA");
-        Option high_frequency = OptionBuilder.withArgName("frequency_cutoff").hasOptionalArg().withDescription("Lower cutoff in Hz for stochastic high-frequency seismograms (default 1.0)").create("hf");
+        Option no_seisPSA = new Option("ns", "no-seispsa", false, "Use separate executables for both synthesis and PSA");
+        Option no_hf_synth = new Option("nh", "no-hf-synth", false, "Use separate executables for high-frequency srf2stoch and hfsim, rather than hfsynth");
+        Option no_merge_psa = new Option("nm", "no-mergepsa", false, "Use separate executables for merging broadband seismograms and PSA, rather than mergePSA");
+        Option high_frequency = OptionBuilder.withArgName("high-frequency").hasOptionalArg().withDescription("Lower-bound frequency cutoff for stochastic high-frequency seismograms (default 1.0), required for high frequency run").create("hf");
         Option sqlIndex = new Option("q", "sql", false, "Create sqlite file containing (source, rupture, rv) to sub workflow mapping");
-        Option jbsim_rv_mem = new Option("jbmem", "Use the version of jbsim which uses in-memory rupture variations");
-        Option hfsynth_rv_mem = new Option("hfmem", "Use the version of hf_synth which uses in-memory rupture variations");
         Option awp = new Option("a", "awp", false, "Use AWP SGTs");
         Option no_mpi_cluster = new Option("nm", "no-mpi-cluster", false, "Do not use pegasus-mpi-cluster");
         Option zip = new Option("z", "zip", false, "Zip seismogram and PSA files before transferring.");
-        Option separate_zip = new Option("s", "separate-zip", false, "Run zip jobs as separate jobs at end of sub workflows.");
-        Option directory_hierarchy = new Option("dh", "Use directory hierarchy on compute resource for seismograms and PSA files.");
+        Option separate_zip = new Option("s", "separate-zip", false, "Run zip jobs as separate seismogram and PSA zip jobs.");
+        Option no_dir_hierarchy = new Option("nh", "no-hierarchy", false, "Use directory hierarchy on compute resource for seismograms and PSA files.");
         Option file_forward = new Option("ff", "file-forward", false, "Use file-forwarding option.  Requires PMC.");
-        Option pipe_forward = new Option("pf", "Use pipe-forwarding option.  Requires PMC.");
-        Option extract_sgt_mpi = new Option("em", "Use extract_sgt_mpi rather than jbsim3d in subwfs to perform extractions.");
-        Option single_extract_sgt_mpi = new Option("sem", "Use single-job MPI version of extract SGT.  Will be run as part of pre wf.");
+        Option no_forward = new Option("nf", "no-forward", false, "Use no forwarding.");
+        Option serial_extract = new Option("se", "serial-extract", false, "Use serial version of extraction code rather than extract SGT MPI.");
+        Option global_extract_sgt_mpi = new Option("ge", "global-extract-mpi", false, "Use 1 extract SGT MPI job, run as part of pre workflow.");
+        Option frequency = OptionBuilder.withArgName("frequency").hasArg().withDescription("Maximum frequency for deterministic simulation.").create("f");
         cmd_opts.addOption(help);
         cmd_opts.addOption(partition);
         cmd_opts.addOption(no_insert);
-        cmd_opts.addOption(hf_synth);
-        cmd_opts.addOption(merge_psa);
+        cmd_opts.addOption(no_hf_synth);
+        cmd_opts.addOption(no_merge_psa);
         cmd_opts.addOption(high_frequency);
         cmd_opts.addOption(sqlIndex);
-        cmd_opts.addOption(jbsim_rv_mem);
-        cmd_opts.addOption(hfsynth_rv_mem);
         cmd_opts.addOption(awp);
         cmd_opts.addOption(no_mpi_cluster);
-        cmd_opts.addOption(directory_hierarchy);
-        cmd_opts.addOption(extract_sgt_mpi);
-        cmd_opts.addOption(single_extract_sgt_mpi);
+        cmd_opts.addOption(no_dir_hierarchy);
+        cmd_opts.addOption(serial_extract);
+        cmd_opts.addOption(global_extract_sgt_mpi);
+        cmd_opts.addOption(frequency);
         OptionGroup forwardingGroup = new OptionGroup();
         forwardingGroup.addOption(file_forward);
-        forwardingGroup.addOption(pipe_forward);
+        forwardingGroup.addOption(no_forward);
         cmd_opts.addOptionGroup(forwardingGroup);
-        OptionGroup memcachedGroup = new OptionGroup();
-        memcachedGroup.addOption(jbsim_memcached);
-        memcachedGroup.addOption(seisPSA);
-        memcachedGroup.addOption(seisPSA_memcached);
-        cmd_opts.addOptionGroup(memcachedGroup);
-        OptionGroup zipGroup = new OptionGroup();
-        zipGroup.addOption(no_zip);
-        zipGroup.addOption(separate_zip);
-        cmd_opts.addOptionGroup(zipGroup);
+        cmd_opts.addOption(no_seisPSA);
+        cmd_opts.addOption(zip);
+        cmd_opts.addOption(separate_zip);
 
         CommandLineParser parser = new GnuParser();
         if (args.length<1) {
@@ -188,7 +178,7 @@ public class CyberShake_PP_DAXGen {
         try {
             line = parser.parse(cmd_opts, args);
         } catch (AlreadySelectedException ase) {
-        	System.err.println("Only 1 of mr, mm, mmr may be selected.");
+        	System.err.println("Only 1 of file-forward, no-forward may be selected.");
         	System.exit(3);
         } catch (ParseException pe) {
             pe.printStackTrace();
@@ -209,25 +199,12 @@ public class CyberShake_PP_DAXGen {
         if (line.hasOption(no_insert.getOpt())) {
         	pp_params.setInsert(false);
         }
-        if (line.hasOption(jbsim_memcached.getOpt())) {
-        	pp_params.setUseMemcached(true);
-        }
-        if (line.hasOption(seisPSA.getOpt())) {
-        	if (pp_params.isUseMemcached()) {
-        		System.out.println("Only 1 of -mm, -mr option is supported at this time.");
-        		System.exit(2);
-        	}
-        	pp_params.setMergedExe(true);
-        }
-        if (line.hasOption(seisPSA_memcached.getOpt())) {
-        	pp_params.setUseMergedMemcached(true);
+        if (line.hasOption(no_seisPSA.getOpt())) {
+        	pp_params.setSeisPSA(false);
         }
         if (line.hasOption(high_frequency.getOpt())) {
-        	if (pp_params.isMergedExe()) {
-        		System.out.println("Only 1 of -mr, -hf option is supported at this time.");
-        		System.exit(3);
-        	} else if (pp_params.isMergedMemcached()) {
-        		System.out.println("Only 1 of -mmr, -hf option is supported at this time.");
+        	if (pp_params.isSeisPSA()) {
+        		System.out.println("Can't use seisPSA with high-frequency, since we calculate PSA after merging.");
         		System.exit(3);
         	}
         	pp_params.setHighFrequency(true);
@@ -237,32 +214,16 @@ public class CyberShake_PP_DAXGen {
         		//use 1.0 as default
         		pp_params.setHighFrequencyCutoff(1.0);
         	}
-        	if (line.hasOption(hf_synth.getOpt())) {
-        		pp_params.setHfsynth(true);
+        	if (line.hasOption(no_hf_synth.getOpt())) {
+        		pp_params.setHfsynth(false);
         	}
-        	if (line.hasOption(merge_psa.getOpt())) {
+        	if (line.hasOption(no_merge_psa.getOpt())) {
         		pp_params.setMergePSA(true);
         	}
-        } else {
-        	//only running low frequency
-    		pp_params.setHighFrequencyCutoff(0.5);	
         }
+        
         if (line.hasOption(sqlIndex.getOpt())) {
         	pp_params.setRvDB(true);
-        }
-        if (line.hasOption(jbsim_rv_mem.getOpt())) {
-//        	if (pp_params.isMergedExe() || pp_params.isUseMemcached() || pp_params.isMergedMemcached()) {
-//        		System.err.println("Can't use in-memory rupture variations with a merged or memcached jbsim.");
-//        		System.exit(-3);
-//        	}
-        	pp_params.setJbsimRVMem(true);
-        }
-        if (line.hasOption(hfsynth_rv_mem.getOpt())) {
-        	if (pp_params.isHfsynth()==false || pp_params.isHighFrequency()==false) {
-        		System.err.println("Can't use in-memory rupture variations in HF_Synth if you're not running high frequency with HF_Synth.");
-        		System.exit(-4);
-        	}
-        	pp_params.setHfsynthRVMem(true);
         }
         if (line.hasOption(awp.getOpt())) {
         	pp_params.setUseAWP(true);
@@ -271,14 +232,18 @@ public class CyberShake_PP_DAXGen {
         if (line.hasOption(no_mpi_cluster.getOpt())) {
         	pp_params.setMPICluster(false);
         }
-        if (line.hasOption(no_zip.getOpt())) {
-        	pp_params.setZip(false);
+        if (line.hasOption(zip.getOpt())) {
+        	pp_params.setZip(true);
         }
         if (line.hasOption(separate_zip.getOpt())) {
         	pp_params.setSeparateZip(true);
+        	if (!pp_params.isZip()) {
+        		System.err.println("Separate zip option requires zip option.");
+        		System.exit(-5);
+        	}
         }
-        if (line.hasOption(directory_hierarchy.getOpt())) {
-        	pp_params.setDirHierarchy(true);
+        if (line.hasOption(no_dir_hierarchy.getOpt())) {
+        	pp_params.setDirHierarchy(false);
         }
 
         if (line.hasOption(file_forward.getOpt())) {
@@ -288,39 +253,26 @@ public class CyberShake_PP_DAXGen {
         		pp_params.setFileForward(true);
         		if (pp_params.isZip()) {
             		System.out.println("Since we are using file forwarding, turning off zipping.");
-            		System.out.println("Overriding directory hierarchy.");
             		pp_params.setZip(false);
             		pp_params.setSeparateZip(false);
-            		pp_params.setDirHierarchy(false);
             	}
         	}
-        } else if (line.hasOption(pipe_forward.getOpt())) {
-        	if (!pp_params.isMPICluster()) {
-        		System.err.println("Need to use pegasus-mpi-cluster in order to use pipe forwarding.  Ignoring pipe forwarding option.");
-        	} else {
-        		pp_params.setPipeForward(true);
-        		if (pp_params.isZip()) {
-            		System.out.println("Since we are using pipe forwarding, turning off zipping.");
-            		System.out.println("Overriding directory hierarchy.");
-            		pp_params.setZip(false);
-            		pp_params.setSeparateZip(false);
-            		pp_params.setDirHierarchy(false);
-            	}
-        	}
+        } else if (line.hasOption(no_forward.getOpt())) {
+        	pp_params.setPipeForward(false);
+        	pp_params.setFileForward(false);
         }
         
-        if (line.hasOption(extract_sgt_mpi.getOpt())) {
-        	System.out.println("Using extract_sgt_mpi instead of jbsim3d.");
-        	pp_params.setExtractSGTMPI(true);
+        if (line.hasOption(serial_extract.getOpt())) {
+        	System.out.println("Using jbsim3d instead of extract_sgt_mpi.");
+        	pp_params.setExtractSGTMPI(false);
         }
         
-        if (line.hasOption(single_extract_sgt_mpi.getOpt())) {
-        	if (pp_params.isDirHierarchy()) {
-        		System.err.println("Directory hierarchy together with extract_sgt_mpi is not supported yet.");
-        		System.exit(1);
-        	}
-        	System.out.println("Using single extract_sgt_mpi.");
-        	pp_params.setSingleExtractSGTMPI(true);
+        if (line.hasOption(global_extract_sgt_mpi.getOpt())) {
+        	pp_params.setGlobalExtractSGTMPI(true);
+        }
+        
+        if (line.hasOption(frequency.getOpt())) {
+        	pp_params.setDetFrequency(Double.parseDouble(line.getOptionValue("f")));
         }
         
         //Removing notifications
@@ -688,7 +640,7 @@ public class CyberShake_PP_DAXGen {
 
 			variationsSet.first();
 			
-			if (!params.isSingleExtractSGTMPI() && !params.isExtractSGTMPI()) {
+			if (!params.isGlobalExtractSGTMPI() && !params.isExtractSGTMPI()) {
 				//Insert extraction job
 				extractJob = createExtractJob(sourceIndex, rupIndex, numRupPoints, variationsSet.getString("Rup_Var_LFN"), count, currDax);
 				dax.addJob(extractJob);
@@ -702,7 +654,7 @@ public class CyberShake_PP_DAXGen {
 					sqlDB.addMapping(sourceIndex, rupIndex, rupvarcount, currDax);
 				}
 
-				if (params.isMergedExe() || params.isMergedMemcached()) {
+				if (params.isMergePSA()) {
 					//add 1 job for seis and PSA
 					Job seisPSAJob = createSeisPSAJob(sourceIndex, rupIndex, rupvarcount, numRupPoints, variationsSet.getString("Rup_Var_LFN"), count, currDax);
 					dax.addJob(seisPSAJob);
@@ -710,7 +662,7 @@ public class CyberShake_PP_DAXGen {
 						
 						
 						dax.addDependency(extractSGTMPIJob, seisPSAJob);
-					} else if (!params.isSingleExtractSGTMPI()) {
+					} else if (!params.isGlobalExtractSGTMPI()) {
 						//set up dependencies
 						dax.addDependency(extractJob, seisPSAJob);
 					}
@@ -725,7 +677,7 @@ public class CyberShake_PP_DAXGen {
 					//create and add seismogram synthesis
 					Job seismoJob = createSeismogramJob(sourceIndex, rupIndex, rupvarcount, numRupPoints, variationsSet.getString("Rup_Var_LFN"), count, currDax);
 					dax.addJob(seismoJob);
-					if (!params.isSingleExtractSGTMPI()) {
+					if (!params.isGlobalExtractSGTMPI()) {
 						dax.addDependency(extractJob, seismoJob);
 					}
 					//if HF jobs, add here
@@ -736,13 +688,13 @@ public class CyberShake_PP_DAXGen {
 							//add merged job
 							highFreqJob = createHFSynthJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
 							dax.addJob(highFreqJob);
-							if (!params.isSingleExtractSGTMPI()) {
+							if (!params.isGlobalExtractSGTMPI()) {
 								dax.addDependency(extractJob, highFreqJob);
 							}
 						} else {
 							Job stochJob = createStochJob(sourceIndex, rupIndex, rupvarcount, variationsSet.getString("Rup_Var_LFN"), count, currDax);
 							dax.addJob(stochJob);
-							if (!params.isSingleExtractSGTMPI()) {
+							if (!params.isGlobalExtractSGTMPI()) {
 								dax.addDependency(extractJob, stochJob);
 							}
 
@@ -1013,7 +965,7 @@ public class CyberShake_PP_DAXGen {
 				preDax.addJob(localVMJob);
 			}
       		
-      		if (params.isSingleExtractSGTMPI()) {
+      		if (params.isGlobalExtractSGTMPI()) {
       			Job extractMPIJob = new Job("Extract_SGT_MPI", NAMESPACE, EXTRACT_SGT_MPI_NAME, VERSION);
       			
       			extractMPIJob.addArgument(riq.getSiteName());
@@ -1256,10 +1208,7 @@ public class CyberShake_PP_DAXGen {
      	*
      	*/
         String id1 = "ID1_" + sourceIndex+"_"+rupIndex;
-        String name = EXTRACT_SGT_NAME;
-        if (params.isUseMemcached() || params.isMergedMemcached()) {
-        	name = EXTRACT_SGT_NAME + "_memcached";
-        }
+        String name = EXTRACT_SGT_NAME + "_memcached";
         if (params.isJbsimRVMem()) {
         	name = EXTRACT_SGT_NAME + "_rv_in_mem";
         }
@@ -1347,10 +1296,7 @@ public class CyberShake_PP_DAXGen {
 
 	private Job createSeismogramJob(int sourceIndex, int rupIndex, int rupvarcount, int numRupPoints, String rupVarLFN, int count, int currDax) {
 		String id2 = "ID2_" + sourceIndex+"_"+rupIndex+"_"+rupvarcount;
-		String name = SEISMOGRAM_SYNTHESIS_NAME;
-        if (params.isUseMemcached()) {
-        	name = SEISMOGRAM_SYNTHESIS_NAME + "_memcached";
-        }
+		String name = SEISMOGRAM_SYNTHESIS_NAME + "_memcached";
         if (params.isJbsimRVMem()) {
         	name = SEISMOGRAM_SYNTHESIS_NAME + "_rv_in_mem";
         }
@@ -1518,10 +1464,7 @@ public class CyberShake_PP_DAXGen {
 		//<profile namespace="pegasus" key="request_memory">100</profile>
 		String id2 = "ID2_" + sourceIndex+"_"+rupIndex+"_"+rupvarcount;
 		
-		String seisPSAName = SEIS_PSA_NAME;
-		if (params.isMergedMemcached()) {
-			seisPSAName = SEIS_PSA_MEMCACHED_NAME;
-		} 
+		String seisPSAName = SEIS_PSA_MEMCACHED_NAME;
 		if (params.isFileForward() || params.isPipeForward()) {
 			seisPSAName = SEIS_PSA_HEADER_NAME;
 		}
@@ -1637,7 +1580,7 @@ public class CyberShake_PP_DAXGen {
 			String dir = sourceIndex + "/" + rupIndex;
 			rupsgtx = new File(dir + "/" + riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfx.sgt");
 			rupsgty = new File(dir + "/" + riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfy.sgt");
-		} else if (params.isSingleExtractSGTMPI()) {
+		} else if (params.isGlobalExtractSGTMPI()) {
 			//Add pre directory and source dir to sub-sgt path
 			String dir = "../CyberShake_%s_pre_preDAX";
 			rupsgtx = new File(dir + "/" + sourceIndex + "/" + riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfx.sgt");
