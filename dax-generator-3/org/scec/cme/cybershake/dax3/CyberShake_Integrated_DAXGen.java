@@ -111,7 +111,7 @@ public class CyberShake_Integrated_DAXGen {
         Option help = new Option("h", "help", false, "Print help for CyberShake_Integrated_DAXGen");
         Option runIDFile = OptionBuilder.withArgName("runID_file").hasArg().withDescription("File containing list of Run IDs to use.").create("rf");
         Option runIDList = OptionBuilder.withArgName("runID_list").hasArgs().withDescription("List of Run IDs to use.").create("rl");
-        Option postProcessingArgs = OptionBuilder.withArgName("ppargs").hasArgs().withDescription("Arguments to pass through to post-processing.").create();
+        Option postProcessingArgs = OptionBuilder.withArgName("ppargs").hasArgs().withDescription("Arguments to pass through to post-processing.").withLongOpt("ppargs").create();
         OptionGroup runIDGroup = new OptionGroup();
         runIDGroup.addOption(runIDFile);
         runIDGroup.addOption(runIDList);
