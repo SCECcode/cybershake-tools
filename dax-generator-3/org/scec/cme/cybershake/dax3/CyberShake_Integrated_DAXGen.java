@@ -149,8 +149,8 @@ public class CyberShake_Integrated_DAXGen {
 
 		//Get post-processing arguments
 		String[] ppArgs = new String[0];
-		if (line.hasOption(postProcessingArgs.getOpt())) {
-			ppArgs = line.getOptionValues(postProcessingArgs.getOpt());
+		if (line.hasOption(postProcessingArgs.getLongOpt())) {
+			ppArgs = line.getOptionValues(postProcessingArgs.getLongOpt());
 		}
 		return ppArgs;
 	}
