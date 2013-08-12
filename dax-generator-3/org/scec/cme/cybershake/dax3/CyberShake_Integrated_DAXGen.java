@@ -98,6 +98,11 @@ public class CyberShake_Integrated_DAXGen {
 				}
 			}
 			String[] ppArgArray = ppArgs.toArray(new String[]{});
+			System.out.print("Post-processing args: ");
+			for (String a: ppArgArray) {
+				System.out.print(" " + a);
+			}
+			System.out.println();
 			ADAG topPPDax = CyberShake_PP_DAXGen.subMain(ppArgArray, false);
 			//Set up dependencies
 			String ppFileName = PP_DAX_FILENAME_PREFIX + "_" + runIDQueries.get(i).getSiteName() + DAX_FILENAME_EXTENSION;
