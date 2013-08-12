@@ -107,6 +107,7 @@ public class CyberShake_Integrated_DAXGen {
         runIDGroup.addOption(runIDFile);
         runIDGroup.addOption(runIDList);
         runIDGroup.setRequired(true);
+        cmd_opts.addOptionGroup(runIDGroup);
 
         String usageString = "CyberShake_Integrated_DAXGen <output filename> <destination directory> [options] [-f <runID file, one per line> | -r <runID1> <runID2> ... ]";
         CommandLineParser parser = new GnuParser();

@@ -777,6 +777,7 @@ public class CyberShake_PP_DAXGen {
 			ArrayList<RuptureEntry>[] bins = new ArrayList[params.getNumOfDAXes()];
 			int i, sourceIndex, rupIndex, numRupPoints, numVars;
 			double[] runtimes = new double[params.getNumOfDAXes()];
+			ruptureSet.first();
 			//Initialize bins
 			for (i=0; i<bins.length; i++) {
 				bins[i] = new ArrayList<RuptureEntry>();
