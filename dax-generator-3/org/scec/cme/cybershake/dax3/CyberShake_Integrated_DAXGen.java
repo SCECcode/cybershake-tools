@@ -73,7 +73,7 @@ public class CyberShake_Integrated_DAXGen {
 			//Avoid pruning of jobs
 			sgtDaxJobs[i].addArgument("--force");
 			//Force stage-out and registration
-			sgtDaxJobs[i].addArgument("--output-site bluewaters");
+//			sgtDaxJobs[i].addArgument("--output-site bluewaters");
 			topLevelDAX.addDAX(sgtDaxJobs[i]);
 		
 			File sgtDaxFile = new File(sgtDaxFileName);
