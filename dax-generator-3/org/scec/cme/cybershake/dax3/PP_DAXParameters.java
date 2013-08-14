@@ -36,8 +36,8 @@ public class PP_DAXParameters {
 	private boolean separateZip = false;
 	private boolean dirHierarchy = true;
 	
-	private boolean fileForward = true;
-	private boolean pipeForward = false;
+	private boolean fileForward = false;
+	private boolean pipeForward = true;
 
 	private boolean extractSGTMPI = true;
 	private boolean globalExtractSGTMPI = false;

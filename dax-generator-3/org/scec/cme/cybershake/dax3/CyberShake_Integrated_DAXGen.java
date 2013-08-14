@@ -38,12 +38,14 @@ public class CyberShake_Integrated_DAXGen {
 		//By this point we've checked to make sure these args exist
         String daxFilename = args[0];
         String directory = args[1];
+        String topLevelDAXName = DAX_FILENAME_PREFIX + "_" + timestamp;
 		//Construct args for SGT_DAXGen:  need to add output filename
 		ArrayList<String> sgtArgsList = new ArrayList<String>();
 		if (runIDQueries.size()>1) {
 			sgtArgsList.add("CyberShake_SGT_" + timestamp + ".dax");
 		} else {
 			sgtArgsList.add("CyberShake_SGT_" + runIDQueries.get(0).getSiteName() + ".dax");
+			topLevelDAXName = DAX_FILENAME_PREFIX + "_" + runIDQueries.get(0).getSiteName();
 		}
 		sgtArgsList.add(directory);
 		sgtArgsList.add("-r");
@@ -53,7 +55,7 @@ public class CyberShake_Integrated_DAXGen {
 		
 		String[] sgtArgs = sgtArgsList.toArray(new String[]{});
 
-		ADAG topLevelDAX = new ADAG(DAX_FILENAME_PREFIX + "_" + timestamp, 0, 1);
+		ADAG topLevelDAX = new ADAG(topLevelDAXName, 0, 1);
 		
 		//Print sgtArgs
 		System.out.print("Calling SGT DAXGen with args: ");
