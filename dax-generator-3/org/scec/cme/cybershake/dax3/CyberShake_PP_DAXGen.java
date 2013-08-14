@@ -409,9 +409,7 @@ public class CyberShake_PP_DAXGen {
 
 			//Write leftover jobs to file
 			if (params.isExtractSGTMPI()) {
-//				String dir = riq.getSiteName() + "_PP_dax" + "/" + "run_" + riq.getRunID();
-//				java.io.File javaFile = new java.io.File(dir + "/" + ruptureListFilename);
-				java.io.File javaFile = new java.io.File(ruptureListFilename);
+				java.io.File javaFile = new java.io.File(params.getPPDirectory() + "/" + ruptureListFilename);
 				String fullPath = "";
 				try {
 					fullPath = javaFile.getCanonicalPath();
@@ -583,8 +581,7 @@ public class CyberShake_PP_DAXGen {
 	}
 
 	public ADAG createNewDax(DAX preDax, int currDax, ADAG dax, ADAG topLevelDax, ArrayList<String> extractRuptures, String ruptureListFilename) {
-//		String dir = riq.getSiteName() + "_PP_dax" + "/" + "run_" + riq.getRunID();
-		java.io.File javaFile = new java.io.File(ruptureListFilename);
+		java.io.File javaFile = new java.io.File(params.getPPDirectory() + "/" + ruptureListFilename);
 		String fullPath = "";
 		try {
 			fullPath = javaFile.getCanonicalPath();
@@ -1078,44 +1075,6 @@ public class CyberShake_PP_DAXGen {
     	return notifyJob;
     }
  
-    
-    private Job[] addReplicate(ADAG dax, String site, int sgtReps) {
-    	String id = "SGT_Replicate_" + site + "_";
-    	
-    	File sgtXIn = new File(site + "_fx_" + riq.getRunID() + ".sgt");
-    	File sgtYIn = new File(site + "_fy_" + riq.getRunID() + ".sgt");
-
-    	Job[] replicateJobs = new Job[sgtReps];
-    	//one job for each copy
-    	for (int i=0; i<sgtReps; i++) {
-        	replicateJobs[i] = new Job(id+i, NAMESPACE, "SGT_Replicate", VERSION);
-    		
-        	replicateJobs[i].addArgument(sgtXIn);
-        	replicateJobs[i].addArgument(sgtYIn);
-
-        	replicateJobs[i].uses(sgtXIn, File.LINK.INPUT);
-        	replicateJobs[i].uses(sgtYIn, File.LINK.INPUT);
-    		
-    		File xFile = new File(sgtXIn + "." + i);
-    		File yFile = new File(sgtYIn + "." + i);
-    		
-    		xFile.setTransfer(File.TRANSFER.FALSE);
-    		yFile.setTransfer(File.TRANSFER.FALSE);
-    		
-    		xFile.setRegister(true);
-    		yFile.setRegister(true);
-
-    		replicateJobs[i].addArgument(xFile);
-    		replicateJobs[i].addArgument(yFile);
-    		
-    		replicateJobs[i].uses(xFile, File.LINK.OUTPUT);
-    		replicateJobs[i].uses(yFile, File.LINK.OUTPUT);
-    		
-        	dax.addJob(replicateJobs[i]);    		
-    	}
-    	    	
-    	return replicateJobs;
-    }
     
     private Job[] addZipJobs(ADAG dax, int daxValue) {
        	File zipSeisFile = new File("CyberShake_" + riq.getSiteName() + "_" + riq.getRunID() + "_" + daxValue + "_seismograms.zip");
