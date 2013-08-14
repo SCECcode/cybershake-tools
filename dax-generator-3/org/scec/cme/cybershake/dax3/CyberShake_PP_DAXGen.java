@@ -296,9 +296,9 @@ public class CyberShake_PP_DAXGen {
 
 			//Check to make sure RV model is consistent with in-memory choice
 			//since if we generate rupture variations in memory, we only support RV ID 4
-			if (riq.getRuptVarScenID()==3 && params.isJbsimRVMem()) {
-				System.err.println("Can't use in-memory rupture variations with rupture variation ID 3.");
-				System.exit(-4);
+			if (riq.getRuptVarScenID()==3) {
+				System.out.println("Disabling in-memory rupture variation generation, since it does not support rupture variation ID 3");
+				params.setJbsimRVMem(false);
 			}
 			
 			//populate DB with frequency info
@@ -1651,13 +1651,8 @@ public class CyberShake_PP_DAXGen {
      	
      	job2.uses(rupsgtx,File.LINK.INPUT);
 		job2.uses(rupsgty,File.LINK.INPUT);
-		if (params.isPipeForward()) {
-			if (rupvarcount==0) {
-				//rupvarcount==0 means that we only put this in once for each rupture
-				job2.uses(combinedSeisFile, File.LINK.OUTPUT);
-				job2.uses(combinedPeakValsFile, File.LINK.OUTPUT);
-			}
-		} else {
+		if (!params.isPipeForward() && !params.isFileForward()) {
+			//Combined files were already taken care of earlier if there's forwarding
 			job2.uses(seisFile, File.LINK.OUTPUT);
 			job2.uses(peakValsFile, File.LINK.OUTPUT);
 		}
