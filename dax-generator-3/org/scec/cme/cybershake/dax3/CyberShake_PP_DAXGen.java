@@ -100,6 +100,7 @@ public class CyberShake_PP_DAXGen {
     private RunIDQuery riq;
     private String localVMFilename;
     private Job localVMJob = null;
+    private CyberShake_ADAG_Container adagContainer = null;
 	
     //Class for load balancing
     private class RuptureEntry {
@@ -115,10 +116,85 @@ public class CyberShake_PP_DAXGen {
     }
       
     public static void main(String[] args) {
-    	subMain(args, true);
+    	CyberShake_ADAG_Container cont = subMain(args, true);
+    	
+    	//Create top-level DAX, set up dependencies, and populate with sub-workflows
+    	String siteName = cont.getRIQ().getSiteName();
+    	
+    	ADAG topLevelDax = new ADAG(DAX_FILENAME_PREFIX + siteName, 0, 1);
+    	
+    	//PRE workflow
+    	String preDAXFilename = cont.getFilename(cont.getPreWorkflow());
+    	DAX preD = new DAX("preDAX", preDAXFilename);
+		preD.addArgument("--force");
+		preD.addArgument("-q");
+		//Add the dax to the top-level dax like a job
+		topLevelDax.addDAX(preD);
+		//Create a file object
+		File preDFile = new File(preDAXFilename);
+		preDFile.addPhysicalFile("file://" + cont.getParams().getPPDirectory() + "/" + preDAXFilename, "local");
+		topLevelDax.addFile(preDFile);
+		
+		//subWfs
+		ArrayList<ADAG> subWfs = cont.getSubWorkflows();
+		for (int i=0; i<subWfs.size(); i++) {
+			String filename = cont.getFilename(subWfs.get(i));
+			DAX jDax = new DAX("dax_" + i, filename);
+			if (cont.getParams().isMPICluster()) {
+				jDax.addArgument("--cluster label");
+			} else {
+				jDax.addArgument("--cluster horizontal");
+			}
+			//Makes sure it doesn't prune workflow elements
+			jDax.addArgument("--force");
+			jDax.addArgument("-q");
+			//Force stage-out of zip files
+			jDax.addArgument("--output shock");
+			jDax.addArgument("--output-dir " + OUTPUT_DIR + "/" + siteName + "/" + cont.getRIQ().getRunID());
+			jDax.addProfile("dagman", "category", "subwf");
+			topLevelDax.addDAX(jDax);
+			topLevelDax.addDependency(preD, jDax);
+			File jDaxFile = new File(filename);
+			jDaxFile.addPhysicalFile("file://" + cont.getParams().getPPDirectory() + "/" + filename, "local");
+			topLevelDax.addFile(jDaxFile);
+		}
+		
+		//DB
+		String dbDAXFile = cont.getFilename(cont.getDBWorkflow());
+		DAX dbDax = new DAX("dbDax", dbDAXFile);
+		dbDax.addArgument("--force");
+		dbDax.addArgument("-q");
+		topLevelDax.addDAX(dbDax);
+		for (int i=0; i<subWfs.size(); i++) {
+			topLevelDax.addDependency("dax_" + i, "dbDax");
+		}	
+		File dbDaxFile = new File(dbDAXFile);
+		dbDaxFile.addPhysicalFile("file://" + cont.getParams().getPPDirectory() + "/" + dbDAXFile, "local");
+		topLevelDax.addFile(dbDaxFile);
+		
+		//Post
+		String postDAXFile = cont.getFilename(cont.getPostWorkflow());
+		DAX postD = new DAX("postDax", postDAXFile);
+		postD.addArgument("--force");
+		postD.addArgument("-q");
+		topLevelDax.addDAX(postD);
+		if (cont.getParams().getInsert()) {
+			topLevelDax.addDependency(dbDax, postD);
+		} else {
+			for (int i=0; i<subWfs.size(); i++) {
+				topLevelDax.addDependency("dax_" + i, "postDax");
+			}	
+		}
+		File postDFile = new File(postDAXFile);
+		postDFile.addPhysicalFile("file://" + cont.getParams().getPPDirectory() + "/" + postDAXFile, "local");
+		topLevelDax.addFile(postDFile);
+
+		String topLevelDaxName = DAX_FILENAME_PREFIX + siteName + DAX_FILENAME_EXTENSION;
+		topLevelDax.writeToFile(topLevelDaxName);
+		
     }
     
-    public static ADAG subMain(String[] args, boolean writeDAX) {
+    public static CyberShake_ADAG_Container subMain(String[] args, boolean writeDAX) {
     	PP_DAXParameters pp_params = new PP_DAXParameters();
     	int runID = parseCommandLine(args, pp_params);
     	
@@ -283,7 +359,8 @@ public class CyberShake_PP_DAXGen {
         return runID;
 	}
 
-	public ADAG makeDAX(int runID, PP_DAXParameters params, boolean writeDAX) {
+	public CyberShake_ADAG_Container makeDAX(int runID, PP_DAXParameters params, boolean writeDAX) {
+		adagContainer = new CyberShake_ADAG_Container(riq, params);
 		//Return preDAX so we can set up dependencies if needed
 		try {
 			this.params = params;
@@ -292,7 +369,7 @@ public class CyberShake_PP_DAXGen {
 			//bin the ruptures
 			ArrayList<RuptureEntry>[] bins = binRuptures(ruptureSet);
 
-			ADAG topLevelDax = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName(), 0, 1);
+//			ADAG topLevelDax = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName(), 0, 1);
 
 			//Check to make sure RV model is consistent with in-memory choice
 			//since if we generate rupture variations in memory, we only support RV ID 4
@@ -308,19 +385,20 @@ public class CyberShake_PP_DAXGen {
 			ADAG preDAX = makePreDAX(riq.getRunID(), riq.getSiteName());
 			String preDAXFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_pre" + DAX_FILENAME_EXTENSION;
 			preDAX.writeToFile(preDAXFile);
+			adagContainer.setPreWorkflow(preDAX, preDAXFile);
 
 			//The arguments here are daxname, the file that the DAX was written to.
 			//This file is also the LFN of the daxfile.  We need to create an LFN, PFN association
 			//so that the topLevelDax can find it when we plan.
-			DAX preD = new DAX("preDAX", preDAXFile);
-			preD.addArgument("--force");
-			preD.addArgument("-q");
+//			DAX preD = new DAX("preDAX", preDAXFile);
+//			preD.addArgument("--force");
+//			preD.addArgument("-q");
 			//Add the dax to the top-level dax like a job
-			topLevelDax.addDAX(preD);
+//			topLevelDax.addDAX(preD);
 			//Create a file object.
-			File preDFile = new File(preDAXFile);
-			preDFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + preDAXFile, "local");
-			topLevelDax.addFile(preDFile);
+//			File preDFile = new File(preDAXFile);
+//			preDFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + preDAXFile, "local");
+//			topLevelDax.addFile(preDFile);
 			
 			ruptureSet.first();
 		
@@ -389,9 +467,11 @@ public class CyberShake_PP_DAXGen {
 				if (i<bins.length-1) {
 					//Create next dax
 					if (params.isExtractSGTMPI()) {
-						dax = createNewDax(preD, i, dax, topLevelDax, extractRuptures, ruptureListFilename);
+//						dax = createNewDax(preD, i, dax, topLevelDax, extractRuptures, ruptureListFilename);
+						dax = createNewDax(i, dax, extractRuptures, ruptureListFilename);
 					} else {
-						dax = createNewDax(preD, i, dax, topLevelDax);
+//						dax = createNewDax(preD, i, dax, topLevelDax);
+						dax = createNewDax(i, dax);
 					}
 						
 					if (params.isZip()) {
@@ -432,22 +512,25 @@ public class CyberShake_PP_DAXGen {
 			//Write leftover jobs to file
 			String daxFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + currDax + DAX_FILENAME_EXTENSION;
 			dax.writeToFile(daxFile);
+			
+			adagContainer.addSubWorkflow(dax, daxFile);
+			
 			//Add to topLevelDax
-			DAX jDax = new DAX("dax_" + currDax, daxFile);
-			if (params.isMPICluster()) {
-				jDax.addArgument("--cluster label");
-			} else {
-				jDax.addArgument("--cluster horizontal");
-			}
-			jDax.addArgument("--force");
-			jDax.addArgument("-q");
-			jDax.addArgument("--output shock");
-			jDax.addArgument("--output-dir " + OUTPUT_DIR + "/" + riq.getSiteName() + "/" + riq.getRunID());
-			topLevelDax.addDAX(jDax);
-			topLevelDax.addDependency(preD, jDax);
-			File jDaxFile = new File(daxFile);
-			jDaxFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + daxFile, "local");
-			topLevelDax.addFile(jDaxFile);
+//			DAX jDax = new DAX("dax_" + currDax, daxFile);
+//			if (params.isMPICluster()) {
+//				jDax.addArgument("--cluster label");
+//			} else {
+//				jDax.addArgument("--cluster horizontal");
+//			}
+//			jDax.addArgument("--force");
+//			jDax.addArgument("-q");
+//			jDax.addArgument("--output shock");
+//			jDax.addArgument("--output-dir " + OUTPUT_DIR + "/" + riq.getSiteName() + "/" + riq.getRunID());
+//			topLevelDax.addDAX(jDax);
+//			topLevelDax.addDependency(preD, jDax);
+//			File jDaxFile = new File(daxFile);
+//			jDaxFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + daxFile, "local");
+//			topLevelDax.addFile(jDaxFile);
 			
 			// Add DAX for DB insertion/curve generation
 			DAX dbDax = null;
@@ -455,42 +538,49 @@ public class CyberShake_PP_DAXGen {
 				ADAG dbProductsDAX = genDBProductsDAX(currDax+1);
 				String dbDAXFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_DB_Products" + DAX_FILENAME_EXTENSION;
 				dbProductsDAX.writeToFile(dbDAXFile);
-				dbDax = new DAX("dbDax", dbDAXFile);
-				dbDax.addArgument("--force");
-				dbDax.addArgument("-q");
-				topLevelDax.addDAX(dbDax);
-				for (int i=0; i<=currDax; i++) {
-					topLevelDax.addDependency("dax_" + i, "dbDax");
-				}	
-				File dbDaxFile = new File(dbDAXFile);
-				dbDaxFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + dbDAXFile, "local");
-				topLevelDax.addFile(dbDaxFile);
+				
+				adagContainer.setDBWorkflow(dbProductsDAX, dbDAXFile);
+				
+//				dbDax = new DAX("dbDax", dbDAXFile);
+//				dbDax.addArgument("--force");
+//				dbDax.addArgument("-q");
+//				topLevelDax.addDAX(dbDax);
+//				for (int i=0; i<=currDax; i++) {
+//					topLevelDax.addDependency("dax_" + i, "dbDax");
+//				}	
+//				File dbDaxFile = new File(dbDAXFile);
+//				dbDaxFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + dbDAXFile, "local");
+//				topLevelDax.addFile(dbDaxFile);
 			}
 			
             // Final notifications
             ADAG postDAX = makePostDAX();
 			String postDAXFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_post" + DAX_FILENAME_EXTENSION;
 			postDAX.writeToFile(postDAXFile);
-			DAX postD = new DAX("postDax", postDAXFile);
-			postD.addArgument("--force");
-			postD.addArgument("-q");
-			topLevelDax.addDAX(postD);
-			if (params.getInsert()) {
-				topLevelDax.addDependency(dbDax, postD);
-			} else {
-				for (int i=0; i<=currDax; i++) {
-					topLevelDax.addDependency("dax_" + i, "postDax");
-				}	
-			}
-			File postDFile = new File(postDAXFile);
-			postDFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + postDAXFile, "local");
-			topLevelDax.addFile(postDFile);
-
-			if (writeDAX) {
-				String topLevelDaxName = DAX_FILENAME_PREFIX + riq.getSiteName() + DAX_FILENAME_EXTENSION;
-				topLevelDax.writeToFile(topLevelDaxName);
-			}
-			return topLevelDax;
+			
+			adagContainer.setPostWorkflow(postDAX, postDAXFile);
+			
+//			DAX postD = new DAX("postDax", postDAXFile);
+//			postD.addArgument("--force");
+//			postD.addArgument("-q");
+//			topLevelDax.addDAX(postD);
+//			if (params.getInsert()) {
+//				topLevelDax.addDependency(dbDax, postD);
+//			} else {
+//				for (int i=0; i<=currDax; i++) {
+//					topLevelDax.addDependency("dax_" + i, "postDax");
+//				}	
+//			}
+//			File postDFile = new File(postDAXFile);
+//			postDFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + postDAXFile, "local");
+//			topLevelDax.addFile(postDFile);
+//
+//			if (writeDAX) {
+//				String topLevelDaxName = DAX_FILENAME_PREFIX + riq.getSiteName() + DAX_FILENAME_EXTENSION;
+//				topLevelDax.writeToFile(topLevelDaxName);
+//			}
+//			return topLevelDax;
+			return adagContainer;
 		} catch (SQLException ex) {
 			ex.printStackTrace();
 			System.exit(1);
@@ -580,6 +670,29 @@ public class CyberShake_PP_DAXGen {
 		return extractSGTMPIJob;
 	}
 
+	public ADAG createNewDax(int currDax, ADAG dax, ArrayList<String> extractRuptures, String ruptureListFilename) {
+		java.io.File javaFile = new java.io.File(params.getPPDirectory() + "/" + ruptureListFilename);
+		String fullPath = "";
+		try {
+			fullPath = javaFile.getCanonicalPath();
+			BufferedWriter bw = new BufferedWriter(new FileWriter(javaFile));
+			bw.write(extractRuptures.size() + "\n");
+			for (String s: extractRuptures) {
+				bw.write(s + "\n");
+			}
+			bw.flush();
+			bw.close();
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
+			System.exit(3);
+		}
+		edu.isi.pegasus.planner.dax.File rupListFile = new File(ruptureListFilename);
+		rupListFile.addPhysicalFile("file://" + fullPath);
+		dax.addFile(rupListFile);
+		
+		return createNewDax(currDax, dax);
+	}
+	
 	public ADAG createNewDax(DAX preDax, int currDax, ADAG dax, ADAG topLevelDax, ArrayList<String> extractRuptures, String ruptureListFilename) {
 		java.io.File javaFile = new java.io.File(params.getPPDirectory() + "/" + ruptureListFilename);
 		String fullPath = "";
@@ -601,6 +714,36 @@ public class CyberShake_PP_DAXGen {
 		dax.addFile(rupListFile);
 		
 		return createNewDax(preDax, currDax, dax, topLevelDax);
+	}
+	
+	public ADAG createNewDax(int currDax, ADAG dax) {
+		System.out.println("Writing dax " + currDax);
+		String daxFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + currDax + DAX_FILENAME_EXTENSION;
+		dax.writeToFile(daxFile);
+		adagContainer.addSubWorkflow(dax, daxFile);
+		//Add to topLevelDax
+//		DAX jDax = new DAX("dax_" + currDax, daxFile);
+//		if (params.isMPICluster()) {
+//			jDax.addArgument("--cluster label");
+//		} else {
+//			jDax.addArgument("--cluster horizontal");
+//		}
+//		//Makes sure it doesn't prune workflow elements
+//		jDax.addArgument("--force");
+//		jDax.addArgument("-q");
+//		//Force stage-out of zip files
+//		jDax.addArgument("--output shock");
+//		jDax.addArgument("--output-dir " + OUTPUT_DIR + "/" + riq.getSiteName() + "/" + riq.getRunID());
+//		jDax.addProfile("dagman", "category", "subwf");
+//		topLevelDax.addDAX(jDax);
+//		topLevelDax.addDependency(preDax, jDax);
+//		File jDaxFile = new File(daxFile);
+//		jDaxFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + daxFile, "local");
+//		topLevelDax.addFile(jDaxFile);
+					
+		ADAG newDax = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + (currDax+1), currDax+1, params.getNumOfDAXes());
+		//create new set of zip jobs			
+		return newDax;
 	}
 	
 	public ADAG createNewDax(DAX preDax, int currDax, ADAG dax, ADAG topLevelDax) {
