@@ -55,7 +55,7 @@ public class CyberShake_Integrated_DAXGen {
 		
 		String[] sgtArgs = sgtArgsList.toArray(new String[]{});
 
-		ADAG topLevelDAX = new ADAG(topLevelDAXName, 0, 1);
+		ADAG topLevelDax = new ADAG(topLevelDAXName, 0, 1);
 		
 		//Print sgtArgs
 		System.out.print("Calling SGT DAXGen with args: ");
@@ -74,11 +74,11 @@ public class CyberShake_Integrated_DAXGen {
 			sgtDaxJobs[i].addArgument("--force");
 			//Force stage-out and registration
 //			sgtDaxJobs[i].addArgument("--output-site bluewaters");
-			topLevelDAX.addDAX(sgtDaxJobs[i]);
+			topLevelDax.addDAX(sgtDaxJobs[i]);
 		
 			File sgtDaxFile = new File(sgtDaxFileName);
 			sgtDaxFile.addPhysicalFile("file://" + directory + "/" + sgtDaxFileName, "local");
-			topLevelDAX.addFile(sgtDaxFile);
+			topLevelDax.addFile(sgtDaxFile);
 			
 			//create post-processing workflow for each
 			//Remove run argument - need to send <runID> <directory> <other args>
@@ -94,21 +94,86 @@ public class CyberShake_Integrated_DAXGen {
 				System.out.print(" " + a);
 			}
 			System.out.println();
-			ADAG topPPDax = CyberShake_PP_DAXGen.subMain(ppArgArray, false);
+			CyberShake_ADAG_Container cont = CyberShake_PP_DAXGen.subMain(ppArgArray, false);
 			//Set up dependencies
-			String ppFileName = PP_DAX_FILENAME_PREFIX + "_" + runIDQueries.get(i).getSiteName() + DAX_FILENAME_EXTENSION;
-			topPPDax.writeToFile(ppFileName);
-			DAX topPPDaxJob = new DAX("PP_" + runIDQueries.get(i).getSiteName(), ppFileName);
-			topPPDaxJob.addArgument("--output-site shock");
-			topPPDaxJob.addArgument("--output-dir " + PP_OUTPUT_DIR_ROOT + "/" + runIDQueries.get(i).getSiteName() + "/" + runIDQueries.get(i).getRunID());
-			topLevelDAX.addDAX(topPPDaxJob);
-			File ppDaxFile = new File(ppFileName);
-			ppDaxFile.addPhysicalFile("file://" + directory + "/" + ppFileName, "local");
-			topLevelDAX.addFile(ppDaxFile);
-			topLevelDAX.addDependency(sgtDaxJobs[i], topPPDaxJob);
+			
+	    	String siteName = cont.getRIQ().getSiteName();
+	    	
+	    	//PRE workflow
+	    	String preDAXFilename = cont.getFilename(cont.getPreWorkflow());
+	    	DAX preD = new DAX("preDAX", preDAXFilename);
+			preD.addArgument("--force");
+			preD.addArgument("-q");
+			//Add the dax to the top-level dax like a job
+			topLevelDax.addDAX(preD);
+			//Create a file object
+			File preDFile = new File(preDAXFilename);
+			preDFile.addPhysicalFile("file://" + cont.getParams().getPPDirectory() + "/" + preDAXFilename, "local");
+			topLevelDax.addFile(preDFile);
+			topLevelDax.addDependency(sgtDaxJobs[i], preD);
+			
+			//subWfs
+			ArrayList<ADAG> subWfs = cont.getSubWorkflows();
+			for (int j=0; j<subWfs.size(); j++) {
+				String filename = cont.getFilename(subWfs.get(i));
+				DAX jDax = new DAX("dax_" + j, filename);
+				if (cont.getParams().isMPICluster()) {
+					jDax.addArgument("--cluster label");
+				} else {
+					jDax.addArgument("--cluster horizontal");
+				}
+				//Makes sure it doesn't prune workflow elements
+				jDax.addArgument("--force");
+				jDax.addArgument("-q");
+				//Force stage-out of zip files
+				jDax.addArgument("--output shock");
+				jDax.addArgument("--output-dir " + PP_OUTPUT_DIR_ROOT + "/" + siteName + "/" + cont.getRIQ().getRunID());
+				jDax.addProfile("dagman", "category", "subwf");
+				topLevelDax.addDAX(jDax);
+				topLevelDax.addDependency(preD, jDax);
+				File jDaxFile = new File(filename);
+				jDaxFile.addPhysicalFile("file://" + cont.getParams().getPPDirectory() + "/" + filename, "local");
+				topLevelDax.addFile(jDaxFile);
+				topLevelDax.addDependency(sgtDaxJobs[i], jDax);
+			}
+			
+			//DB
+			String dbDAXFile = cont.getFilename(cont.getDBWorkflow());
+			DAX dbDax = new DAX("dbDax", dbDAXFile);
+			dbDax.addArgument("--force");
+			dbDax.addArgument("-q");
+			topLevelDax.addDAX(dbDax);
+			for (int j=0; j<subWfs.size(); j++) {
+				topLevelDax.addDependency("dax_" + j, "dbDax");
+			}	
+			File dbDaxFile = new File(dbDAXFile);
+			dbDaxFile.addPhysicalFile("file://" + cont.getParams().getPPDirectory() + "/" + dbDAXFile, "local");
+			topLevelDax.addFile(dbDaxFile);
+			
+			//Post
+			String postDAXFile = cont.getFilename(cont.getPostWorkflow());
+			DAX postD = new DAX("postDax", postDAXFile);
+			postD.addArgument("--force");
+			postD.addArgument("-q");
+			topLevelDax.addDAX(postD);
+			if (cont.getParams().getInsert()) {
+				topLevelDax.addDependency(dbDax, postD);
+			} else {
+				for (int j=0; j<subWfs.size(); j++) {
+					topLevelDax.addDependency("dax_" + j, "postDax");
+				}	
+			}
+			File postDFile = new File(postDAXFile);
+			postDFile.addPhysicalFile("file://" + cont.getParams().getPPDirectory() + "/" + postDAXFile, "local");
+			topLevelDax.addFile(postDFile);
+
+			String topLevelDaxName = DAX_FILENAME_PREFIX + siteName + DAX_FILENAME_EXTENSION;
+			topLevelDax.writeToFile(topLevelDaxName);
+			
+			System.gc();
 		}
 		//Write topLevelDAX using command-line arg as filename
-		topLevelDAX.writeToFile(daxFilename);
+		topLevelDax.writeToFile(daxFilename);
 	}
 	
 	private static String[] parseCommandLine(String[] args) {
