@@ -119,6 +119,8 @@ public class CyberShake_PP_DAXGen {
     	CyberShake_ADAG_Container cont = subMain(args, true);
     	
     	//Create top-level DAX, set up dependencies, and populate with sub-workflows
+    	System.out.println(cont);
+    	System.out.println(cont.getRIQ());
     	String siteName = cont.getRIQ().getSiteName();
     	
     	ADAG topLevelDax = new ADAG(DAX_FILENAME_PREFIX + siteName, 0, 1);
