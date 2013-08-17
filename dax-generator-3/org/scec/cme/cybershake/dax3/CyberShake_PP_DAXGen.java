@@ -363,7 +363,8 @@ public class CyberShake_PP_DAXGen {
 
 	public CyberShake_ADAG_Container makeDAX(int runID, PP_DAXParameters params, boolean writeDAX) {
 		adagContainer = new CyberShake_ADAG_Container(riq, params);
-		//Return preDAX so we can set up dependencies if needed
+    	System.out.println(adagContainer);
+    	System.out.println(adagContainer.getRIQ());
 		try {
 			this.params = params;
 			//Get parameters from DB and calculate number of variations
