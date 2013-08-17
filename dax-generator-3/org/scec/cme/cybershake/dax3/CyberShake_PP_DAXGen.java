@@ -119,8 +119,6 @@ public class CyberShake_PP_DAXGen {
     	CyberShake_ADAG_Container cont = subMain(args, true);
     	
     	//Create top-level DAX, set up dependencies, and populate with sub-workflows
-    	System.out.println(cont);
-    	System.out.println(cont.getRIQ());
     	String siteName = cont.getRIQ().getSiteName();
     	
     	ADAG topLevelDax = new ADAG(DAX_FILENAME_PREFIX + siteName, 0, 1);
@@ -362,9 +360,6 @@ public class CyberShake_PP_DAXGen {
 	}
 
 	public CyberShake_ADAG_Container makeDAX(int runID, PP_DAXParameters params, boolean writeDAX) {
-		adagContainer = new CyberShake_ADAG_Container(riq, params);
-    	System.out.println(adagContainer);
-    	System.out.println(adagContainer.getRIQ());
 		try {
 			this.params = params;
 			//Get parameters from DB and calculate number of variations
@@ -373,6 +368,7 @@ public class CyberShake_PP_DAXGen {
 			ArrayList<RuptureEntry>[] bins = binRuptures(ruptureSet);
 
 //			ADAG topLevelDax = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName(), 0, 1);
+			adagContainer = new CyberShake_ADAG_Container(riq, params);
 
 			//Check to make sure RV model is consistent with in-memory choice
 			//since if we generate rupture variations in memory, we only support RV ID 4
