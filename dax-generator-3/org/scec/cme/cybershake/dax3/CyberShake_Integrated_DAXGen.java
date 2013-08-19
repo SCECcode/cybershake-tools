@@ -167,7 +167,7 @@ public class CyberShake_Integrated_DAXGen {
 			postDFile.addPhysicalFile("file://" + cont.getParams().getPPDirectory() + "/" + postDAXFile, "local");
 			topLevelDax.addFile(postDFile);
 
-			String topLevelDaxName = DAX_FILENAME_PREFIX + siteName + DAX_FILENAME_EXTENSION;
+			String topLevelDaxName = DAX_FILENAME_PREFIX + "_" + siteName + DAX_FILENAME_EXTENSION;
 			topLevelDax.writeToFile(topLevelDaxName);
 			
 			System.gc();
