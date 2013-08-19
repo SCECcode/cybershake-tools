@@ -115,7 +115,7 @@ public class CyberShake_Integrated_DAXGen {
 			//subWfs
 			ArrayList<ADAG> subWfs = cont.getSubWorkflows();
 			for (int j=0; j<subWfs.size(); j++) {
-				String filename = cont.getFilename(subWfs.get(i));
+				String filename = cont.getFilename(subWfs.get(j));
 				DAX jDax = new DAX("dax_" + j, filename);
 				if (cont.getParams().isMPICluster()) {
 					jDax.addArgument("--cluster label");
