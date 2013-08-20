@@ -435,9 +435,9 @@ public class CyberShake_SGT_DAXGen {
 		
 		if (CUTOFF_DISTANCE <= 20) {
 			System.out.println("NOTE: Using cutoff distance=20 SGT params");
-			sgtGenJob.addProfile("globus", "maxWallTime", "360");
+			sgtGenJob.addProfile("globus", "maxWallTime", "60");
 			sgtGenJob.addProfile("globus", "host_count", "60");
-			sgtGenJob.addProfile("globus", "count", "240");
+			sgtGenJob.addProfile("globus", "count", "960");
 		} else {
 			sgtGenJob.addProfile("globus", "maxWallTime", "1200");
 			sgtGenJob.addProfile("globus", "host_count", "25");
