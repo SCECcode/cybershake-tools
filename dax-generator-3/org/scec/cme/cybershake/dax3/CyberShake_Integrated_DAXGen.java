@@ -18,6 +18,7 @@ import org.apache.commons.cli.ParseException;
 import edu.isi.pegasus.planner.dax.ADAG;
 import edu.isi.pegasus.planner.dax.DAX;
 import edu.isi.pegasus.planner.dax.File;
+import edu.isi.pegasus.planner.dax.Job;
 
 /* Creates a CyberShake workflow which consists of an SGT workflow and a PP workflow.
  */
@@ -80,6 +81,11 @@ public class CyberShake_Integrated_DAXGen {
 			sgtDaxFile.addPhysicalFile("file://" + directory + "/" + sgtDaxFileName, "local");
 			topLevelDax.addFile(sgtDaxFile);
 			
+			//Create get job ID job - since the last job in the SGT workflow clears out the Job ID
+			Job getJobIDJob = createJobIDJob(runIDQueries.get(i), directory);
+			topLevelDax.addJob(getJobIDJob);
+			topLevelDax.addDependency(sgtDaxJobs[i], getJobIDJob);
+			
 			//create post-processing workflow for each
 			//Remove run argument - need to send <runID> <directory> <other args>
 			ArrayList<String> ppArgs = new ArrayList<String>();
@@ -110,7 +116,8 @@ public class CyberShake_Integrated_DAXGen {
 			File preDFile = new File(preDAXFilename);
 			preDFile.addPhysicalFile("file://" + cont.getParams().getPPDirectory() + "/" + preDAXFilename, "local");
 			topLevelDax.addFile(preDFile);
-			topLevelDax.addDependency(sgtDaxJobs[i], preD);
+//			topLevelDax.addDependency(sgtDaxJobs[i], preD);
+			topLevelDax.addDependency(getJobIDJob, preD);
 			
 			//subWfs
 			ArrayList<ADAG> subWfs = cont.getSubWorkflows();
@@ -176,6 +183,16 @@ public class CyberShake_Integrated_DAXGen {
 		topLevelDax.writeToFile(daxFilename);
 	}
 	
+	private static Job createJobIDJob(RunIDQuery riq, String directory) {
+		String id = "SetJobID_" + riq.getSiteName() + "_" + riq.getRunID();
+		Job jobID = new Job(id, "scec", "SetJobID", "1.0");
+
+		jobID.addArgument(directory);
+		jobID.addArgument("" + riq.getRunID());
+		
+		return jobID;
+	}
+
 	private static String[] parseCommandLine(String[] args) {
 		//Only pull out integrated options; send most along to the SGT and PP generators
         Options cmd_opts = new Options();
