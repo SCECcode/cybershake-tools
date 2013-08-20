@@ -100,13 +100,13 @@ public class CyberShake_Integrated_DAXGen {
 				System.out.print(" " + a);
 			}
 			System.out.println();
-			CyberShake_ADAG_Container cont = CyberShake_PP_DAXGen.subMain(ppArgArray, false);
+			CyberShake_Workflow_Container cont = CyberShake_PP_DAXGen.subMain(ppArgArray, false);
 			//Set up dependencies
 			
 	    	String siteName = cont.getRIQ().getSiteName();
 	    	
 	    	//PRE workflow
-	    	String preDAXFilename = cont.getFilename(cont.getPreWorkflow());
+	    	String preDAXFilename = cont.getPreWorkflow();
 	    	DAX preD = new DAX("preDAX", preDAXFilename);
 			preD.addArgument("--force");
 			preD.addArgument("-q");
@@ -120,9 +120,9 @@ public class CyberShake_Integrated_DAXGen {
 			topLevelDax.addDependency(getJobIDJob, preD);
 			
 			//subWfs
-			ArrayList<ADAG> subWfs = cont.getSubWorkflows();
+			ArrayList<String> subWfs = cont.getSubWorkflows();
 			for (int j=0; j<subWfs.size(); j++) {
-				String filename = cont.getFilename(subWfs.get(j));
+				String filename = subWfs.get(j);
 				DAX jDax = new DAX("dax_" + j, filename);
 				if (cont.getParams().isMPICluster()) {
 					jDax.addArgument("--cluster label");
@@ -145,7 +145,7 @@ public class CyberShake_Integrated_DAXGen {
 			}
 			
 			//DB
-			String dbDAXFile = cont.getFilename(cont.getDBWorkflow());
+			String dbDAXFile = cont.getDBWorkflow();
 			DAX dbDax = new DAX("dbDax", dbDAXFile);
 			dbDax.addArgument("--force");
 			dbDax.addArgument("-q");
@@ -158,7 +158,7 @@ public class CyberShake_Integrated_DAXGen {
 			topLevelDax.addFile(dbDaxFile);
 			
 			//Post
-			String postDAXFile = cont.getFilename(cont.getPostWorkflow());
+			String postDAXFile = cont.getPostWorkflow();
 			DAX postD = new DAX("postDax", postDAXFile);
 			postD.addArgument("--force");
 			postD.addArgument("-q");

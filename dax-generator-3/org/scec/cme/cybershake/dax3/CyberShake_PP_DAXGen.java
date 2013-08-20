@@ -100,7 +100,7 @@ public class CyberShake_PP_DAXGen {
     private RunIDQuery riq;
     private String localVMFilename;
     private Job localVMJob = null;
-    private CyberShake_ADAG_Container adagContainer = null;
+    private CyberShake_Workflow_Container wfContainer = null;
 	
     //Class for load balancing
     private class RuptureEntry {
@@ -116,7 +116,7 @@ public class CyberShake_PP_DAXGen {
     }
       
     public static void main(String[] args) {
-    	CyberShake_ADAG_Container cont = subMain(args, true);
+    	CyberShake_Workflow_Container cont = subMain(args, true);
     	
     	//Create top-level DAX, set up dependencies, and populate with sub-workflows
     	String siteName = cont.getRIQ().getSiteName();
@@ -124,7 +124,7 @@ public class CyberShake_PP_DAXGen {
     	ADAG topLevelDax = new ADAG(DAX_FILENAME_PREFIX + siteName, 0, 1);
     	
     	//PRE workflow
-    	String preDAXFilename = cont.getFilename(cont.getPreWorkflow());
+    	String preDAXFilename = cont.getPreWorkflow();
     	DAX preD = new DAX("preDAX", preDAXFilename);
 		preD.addArgument("--force");
 		preD.addArgument("-q");
@@ -136,9 +136,9 @@ public class CyberShake_PP_DAXGen {
 		topLevelDax.addFile(preDFile);
 		
 		//subWfs
-		ArrayList<ADAG> subWfs = cont.getSubWorkflows();
+		ArrayList<String> subWfs = cont.getSubWorkflows();
 		for (int i=0; i<subWfs.size(); i++) {
-			String filename = cont.getFilename(subWfs.get(i));
+			String filename = subWfs.get(i);
 			DAX jDax = new DAX("dax_" + i, filename);
 			if (cont.getParams().isMPICluster()) {
 				jDax.addArgument("--cluster label");
@@ -160,7 +160,7 @@ public class CyberShake_PP_DAXGen {
 		}
 		
 		//DB
-		String dbDAXFile = cont.getFilename(cont.getDBWorkflow());
+		String dbDAXFile = cont.getDBWorkflow();
 		DAX dbDax = new DAX("dbDax", dbDAXFile);
 		dbDax.addArgument("--force");
 		dbDax.addArgument("-q");
@@ -173,7 +173,7 @@ public class CyberShake_PP_DAXGen {
 		topLevelDax.addFile(dbDaxFile);
 		
 		//Post
-		String postDAXFile = cont.getFilename(cont.getPostWorkflow());
+		String postDAXFile = cont.getPostWorkflow();
 		DAX postD = new DAX("postDax", postDAXFile);
 		postD.addArgument("--force");
 		postD.addArgument("-q");
@@ -194,7 +194,7 @@ public class CyberShake_PP_DAXGen {
 		
     }
     
-    public static CyberShake_ADAG_Container subMain(String[] args, boolean writeDAX) {
+    public static CyberShake_Workflow_Container subMain(String[] args, boolean writeDAX) {
     	PP_DAXParameters pp_params = new PP_DAXParameters();
     	int runID = parseCommandLine(args, pp_params);
     	
@@ -359,7 +359,7 @@ public class CyberShake_PP_DAXGen {
         return runID;
 	}
 
-	public CyberShake_ADAG_Container makeDAX(int runID, PP_DAXParameters params, boolean writeDAX) {
+	public CyberShake_Workflow_Container makeDAX(int runID, PP_DAXParameters params, boolean writeDAX) {
 		try {
 			this.params = params;
 			//Get parameters from DB and calculate number of variations
@@ -368,7 +368,7 @@ public class CyberShake_PP_DAXGen {
 			ArrayList<RuptureEntry>[] bins = binRuptures(ruptureSet);
 
 //			ADAG topLevelDax = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName(), 0, 1);
-			adagContainer = new CyberShake_ADAG_Container(riq, params);
+			wfContainer = new CyberShake_Workflow_Container(riq, params);
 
 			//Check to make sure RV model is consistent with in-memory choice
 			//since if we generate rupture variations in memory, we only support RV ID 4
@@ -384,7 +384,7 @@ public class CyberShake_PP_DAXGen {
 			ADAG preDAX = makePreDAX(riq.getRunID(), riq.getSiteName());
 			String preDAXFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_pre" + DAX_FILENAME_EXTENSION;
 			preDAX.writeToFile(preDAXFile);
-			adagContainer.setPreWorkflow(preDAX, preDAXFile);
+			wfContainer.setPreWorkflow(preDAXFile);
 
 			//The arguments here are daxname, the file that the DAX was written to.
 			//This file is also the LFN of the daxfile.  We need to create an LFN, PFN association
@@ -512,7 +512,7 @@ public class CyberShake_PP_DAXGen {
 			String daxFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + currDax + DAX_FILENAME_EXTENSION;
 			dax.writeToFile(daxFile);
 			
-			adagContainer.addSubWorkflow(dax, daxFile);
+			wfContainer.addSubWorkflow(daxFile);
 			
 			//Add to topLevelDax
 //			DAX jDax = new DAX("dax_" + currDax, daxFile);
@@ -538,7 +538,7 @@ public class CyberShake_PP_DAXGen {
 				String dbDAXFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_DB_Products" + DAX_FILENAME_EXTENSION;
 				dbProductsDAX.writeToFile(dbDAXFile);
 				
-				adagContainer.setDBWorkflow(dbProductsDAX, dbDAXFile);
+				wfContainer.setDBWorkflow(dbDAXFile);
 				
 //				dbDax = new DAX("dbDax", dbDAXFile);
 //				dbDax.addArgument("--force");
@@ -557,7 +557,7 @@ public class CyberShake_PP_DAXGen {
 			String postDAXFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_post" + DAX_FILENAME_EXTENSION;
 			postDAX.writeToFile(postDAXFile);
 			
-			adagContainer.setPostWorkflow(postDAX, postDAXFile);
+			wfContainer.setPostWorkflow(postDAXFile);
 			
 //			DAX postD = new DAX("postDax", postDAXFile);
 //			postD.addArgument("--force");
@@ -579,7 +579,7 @@ public class CyberShake_PP_DAXGen {
 //				topLevelDax.writeToFile(topLevelDaxName);
 //			}
 //			return topLevelDax;
-			return adagContainer;
+			return wfContainer;
 		} catch (SQLException ex) {
 			ex.printStackTrace();
 			System.exit(1);
@@ -719,7 +719,7 @@ public class CyberShake_PP_DAXGen {
 		System.out.println("Writing dax " + currDax);
 		String daxFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + currDax + DAX_FILENAME_EXTENSION;
 		dax.writeToFile(daxFile);
-		adagContainer.addSubWorkflow(dax, daxFile);
+		wfContainer.addSubWorkflow(daxFile);
 		//Add to topLevelDax
 //		DAX jDax = new DAX("dax_" + currDax, daxFile);
 //		if (params.isMPICluster()) {
