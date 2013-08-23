@@ -438,10 +438,6 @@ public class CyberShake_SGT_DAXGen {
 			sgtGenJob.addProfile("globus", "maxWallTime", "60");
 			sgtGenJob.addProfile("globus", "host_count", "60");
 			sgtGenJob.addProfile("globus", "count", "960");
-		} else {
-			sgtGenJob.addProfile("globus", "maxWallTime", "1200");
-			sgtGenJob.addProfile("globus", "host_count", "25");
-			sgtGenJob.addProfile("globus", "count", "400");
 		}
 		
 		return sgtGenJob;
