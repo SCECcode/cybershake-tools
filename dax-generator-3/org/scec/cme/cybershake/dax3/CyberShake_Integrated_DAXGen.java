@@ -116,7 +116,7 @@ public class CyberShake_Integrated_DAXGen {
 			File preDFile = new File(preDAXFilename);
 			preDFile.addPhysicalFile("file://" + cont.getParams().getPPDirectory() + "/" + preDAXFilename, "local");
 			topLevelDax.addFile(preDFile);
-//			topLevelDax.addDependency(sgtDaxJobs[i], preD);
+			topLevelDax.addDependency(sgtDaxJobs[i], preD);
 			topLevelDax.addDependency(getJobIDJob, preD);
 			
 			//subWfs
