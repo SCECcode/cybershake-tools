@@ -639,29 +639,32 @@ public class CyberShake_PP_DAXGen {
 			
 		Job extractSGTMPIJob = new Job("Extract_SGT_MPI_" + currDax, NAMESPACE, EXTRACT_SGT_MPI_NAME, VERSION);
 		
-		extractSGTMPIJob.addArgument(riq.getSiteName());
-		extractSGTMPIJob.addArgument("" + riq.getLat());
-		extractSGTMPIJob.addArgument("" + riq.getLon());
+		//Switch to flagged arguments
+		
+		extractSGTMPIJob.addArgument("--site " + riq.getSiteName());
+		extractSGTMPIJob.addArgument("--lat " + riq.getLat());
+		extractSGTMPIJob.addArgument("--lon " + riq.getLon());
 		
 		String sgtx=riq.getSiteName()+"_fx_" + riq.getRunID() + ".sgt";
         String sgty=riq.getSiteName()+"_fy_" + riq.getRunID() + ".sgt";
 		
         File sgtXFile = new File(sgtx);
         File sgtYFile = new File(sgty);
-        
+
         extractSGTMPIJob.uses(sgtXFile, LINK.INPUT);
         extractSGTMPIJob.uses(sgtYFile, LINK.INPUT);
 
-        extractSGTMPIJob.addArgument(sgtx);
-        extractSGTMPIJob.addArgument(sgty);
-		
-        extractSGTMPIJob.addArgument("" + riq.getErfID());
-
+	    extractSGTMPIJob.addArgument("--sgt-x " + sgtx);
+	    extractSGTMPIJob.addArgument("--sgt-y " + sgty);
+		 
+	    extractSGTMPIJob.addArgument("--erf-id " + riq.getErfID());
+	     
 		File ruptureListFile = new File(ruptureListFilename);
 		
 		ruptureListFile.setTransfer(TRANSFER.TRUE);
 		
-		extractSGTMPIJob.addArgument(ruptureListFile.getName());
+		extractSGTMPIJob.addArgument("--rup-list " + ruptureListFile.getName());
+
 		extractSGTMPIJob.uses(ruptureListFile, LINK.INPUT);
 		
 		dax.addJob(extractSGTMPIJob);
