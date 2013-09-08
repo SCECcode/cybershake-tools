@@ -1628,7 +1628,7 @@ public class CyberShake_PP_DAXGen {
 			job2.addArgument("source_id=" + sourceIndex);
 			job2.addArgument("rupture_id=" + rupIndex);
 			job2.addArgument("rup_var_id=" + rupvarcount);
-			job2.addArgument("det_max_freq=" + params.getHighFrequencyCutoff());
+			job2.addArgument("det_max_freq=" + params.getDetFrequency());
 			if (params.isHighFrequency()) {
 				job2.addArgument("stoch_max_freq=" + params.getMaxHighFrequency());
 			} else {
@@ -1658,7 +1658,7 @@ public class CyberShake_PP_DAXGen {
 			job2.addArgument("source_id=" + sourceIndex);
 			job2.addArgument("rupture_id=" + rupIndex);
 			job2.addArgument("rup_var_id=" + rupvarcount);
-			job2.addArgument("det_max_freq=" + params.getHighFrequencyCutoff());
+			job2.addArgument("det_max_freq=" + params.getDetFrequency());
 			if (params.isHighFrequency()) {
 				job2.addArgument("stoch_max_freq=" + params.getMaxHighFrequency());
 			} else {
