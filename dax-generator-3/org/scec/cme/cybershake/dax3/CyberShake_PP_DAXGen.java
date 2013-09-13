@@ -447,6 +447,7 @@ public class CyberShake_PP_DAXGen {
 					sourceIndex = currBin.get(j).sourceID;
 					rupIndex = currBin.get(j).ruptureID;
 					numRupPoints = currBin.get(j).numRupPoints;
+					System.out.println("source " + sourceIndex + ", rupture " + rupIndex + " has " + numRupPoints + " points.");
 
 					ResultSet variationsSet = getVariations(sourceIndex, rupIndex);
 						
