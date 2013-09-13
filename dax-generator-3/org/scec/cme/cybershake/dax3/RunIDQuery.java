@@ -172,6 +172,7 @@ public class RunIDQuery {
     		//Do 2nd query to get rupture surface spacing from ERF_ID
     		query = "SELECT ERF_Attr_Value from ERF_Metadata where ERF_ID=" + erfID + " and ERF_Attr_Name='Rupture Surface Resolution'";
     		res = dbc.selectData(query);
+			res.first();
     		if (res.getRow()==0) {
     			System.err.println("Couldn't find Rupture Surface Resolution for ERF_ID " + erfID + ".");
     			System.exit(1);
