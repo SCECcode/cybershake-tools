@@ -26,6 +26,7 @@ public class RunIDQuery {
 	private double lat;
 	private double lon;
 	private double vs30 = -1.0;
+	private double erfSpacing = 1.0;
 
 	private DBConnect dbc;
 
@@ -165,7 +166,19 @@ public class RunIDQuery {
     			System.err.println("More than one Run_ID matched Run_ID "  + runID + ", aborting.");
     			System.exit(4);
     		}
+    		
     		res.close();
+    		
+    		//Do 2nd query to get rupture surface spacing from ERF_ID
+    		query = "SELECT ERF_Attr_Value from ERF_Metadata where ERF_ID=" + erfID + " and ERF_Attr_Name='Rupture Surface Resolution'";
+    		res = dbc.selectData(query);
+    		if (res.getRow()==0) {
+    			System.err.println("Couldn't find Rupture Surface Resolution for ERF_ID " + erfID + ".");
+    			System.exit(1);
+    		}
+    		erfSpacing = res.getFloat("ERF_Attr_Value");
+    		res.close();
+    		
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -221,6 +234,10 @@ public class RunIDQuery {
 
 	public String getVelModelString() {
 		return velModelString;
+	}
+
+	public double getErfSpacing() {
+		return erfSpacing;
 	}
 
 }
