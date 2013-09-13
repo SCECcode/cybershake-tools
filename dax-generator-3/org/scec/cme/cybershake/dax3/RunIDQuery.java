@@ -175,6 +175,7 @@ public class RunIDQuery {
 			res.first();
     		if (res.getRow()==0) {
     			System.err.println("Couldn't find Rupture Surface Resolution for ERF_ID " + erfID + ".");
+    			System.err.println("Query: " + query);
     			System.exit(1);
     		}
     		erfSpacing = res.getFloat("ERF_Attr_Value");
