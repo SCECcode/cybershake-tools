@@ -1814,8 +1814,9 @@ public class CyberShake_PP_DAXGen {
 		double tolerance = 1.1;
 		//Total size is size for SGTs + size of rupture variation + seismogram
 		//Do calculation in MB
-		//3.5 MB is max RV size for 0.5 Hz
-		double rvMem = 3.5*(params.getHighFrequencyCutoff()/0.5)*(params.getHighFrequencyCutoff()/0.5);
+		//1 MB is max RV size for 0.5 Hz
+		//Scale based on erf spacing
+		double rvMem = (1.0/(riq.getErfSpacing()*riq.getErfSpacing()))*(params.getHighFrequencyCutoff()/0.5)*(params.getHighFrequencyCutoff()/0.5);
 		//double sgtMem = numComponents/(1024.0*1024.0) * (size_sgtmaster + numRupPoints*(size_sgtindex + size_sgtheader + 6*numSGTtimesteps*(params.getHighFrequencyCutoff()/0.5)*4));
 		//numComp + 1 b/c we have a read buffer now
 		double sgtMem = (numComponents+1)/(1024.0*1024.0) * (size_sgtmaster + numRupPoints*(size_sgtindex + size_sgtheader + 6*numSGTtimesteps*(params.getHighFrequencyCutoff()/0.5)*4));
