@@ -41,6 +41,9 @@ public class PP_DAXParameters {
 
 	private boolean extractSGTMPI = true;
 	private boolean globalExtractSGTMPI = false;
+	
+	//27 GB
+	private int seisPSAMemCutoff = 27*1024;
 
 	public PP_DAXParameters() {
 		numOfDAXes = 1;
@@ -268,5 +271,13 @@ public class PP_DAXParameters {
 
 	public void setDetFrequency(double detFrequency) {
 		this.detFrequency = detFrequency;
+	}
+
+	public int getSeisPSAMemCutoff() {
+		return seisPSAMemCutoff;
+	}
+
+	public void setSeisPSAMemCutoff(int seisPSAMemCutoff) {
+		this.seisPSAMemCutoff = seisPSAMemCutoff;
 	}
 }

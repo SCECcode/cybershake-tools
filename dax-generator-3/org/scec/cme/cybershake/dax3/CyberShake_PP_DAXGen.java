@@ -67,6 +67,7 @@ public class CyberShake_PP_DAXGen {
     private final static String SEIS_PSA_NAME = "Seis_PSA";
     private final static String SEIS_PSA_MEMCACHED_NAME = "Seis_PSA_memcached";
     private final static String SEIS_PSA_HEADER_NAME = "Seis_PSA_header";
+    private final static String SEIS_PSA_HIGH_MEM_NAME = "Seis_PSA_high_mem";
     private final static String LOCAL_VM_NAME = "Local_VM";
     private final static String STOCH_NAME = "srf2stoch";
     private final static String HIGH_FREQ_NAME = "HighFrequency";
@@ -77,11 +78,11 @@ public class CyberShake_PP_DAXGen {
     private final static String EXTRACT_SGT_MPI_AWP_NAME = "Extract_SGT_MPI_AWP";
 	
     //Simulation parameters
-    private final static String NUMTIMESTEPS = "3000";
-    private final static String LF_TIMESTEP = "0.1";
+    private static String NUMTIMESTEPS = "3000";
+    private static String LF_TIMESTEP = "0.1";
     private final static String SPECTRA_PERIOD1 = "all";
     private final static String FILTER_HIGHHZ = "5.0";
-    private final static String SEIS_LENGTH = "300.0";
+    private static String SEIS_LENGTH = "300.0";
     private final static String HF_DT = "0.025";
     
 	//Database
@@ -351,6 +352,10 @@ public class CyberShake_PP_DAXGen {
         
         if (line.hasOption(frequency.getOpt())) {
         	pp_params.setDetFrequency(Double.parseDouble(line.getOptionValue("f")));
+        	//Adjust a few parameters accordingly
+        	NUMTIMESTEPS = "" + (4000*pp_params.getDetFrequency());
+        	LF_TIMESTEP = "" + (0.05/pp_params.getDetFrequency());
+        	SEIS_LENGTH = "200.0";
         }
         
         //Removing notifications
@@ -1569,11 +1574,17 @@ public class CyberShake_PP_DAXGen {
 	
 	private Job createSeisPSAJob(int sourceIndex, int rupIndex, int rupvarcount, int numRupPoints, String rupVarLFN, int count, int currDax) {
 		//<profile namespace="pegasus" key="request_memory">100</profile>
+        int memNeeded = getSeisMem(numRupPoints) + getPSAMem();
+		
 		String id2 = "ID2_" + sourceIndex+"_"+rupIndex+"_"+rupvarcount;
 		
 		String seisPSAName = SEIS_PSA_MEMCACHED_NAME;
 		if (params.isFileForward() || params.isPipeForward()) {
 			seisPSAName = SEIS_PSA_HEADER_NAME;
+		}
+		if (memNeeded>params.getSeisPSAMemCutoff()) {
+			//Switch to high-mem nodes
+			seisPSAName = SEIS_PSA_HIGH_MEM_NAME;
 		}
 		
 		Job job2= new Job(id2, NAMESPACE, seisPSAName, VERSION);
@@ -1763,9 +1774,13 @@ public class CyberShake_PP_DAXGen {
 
 		job2.addProfile("globus", "maxWallTime", "2");
      	job2.addProfile("pegasus", "group", "" + count);
-        job2.addProfile("pegasus", "label", "" + currDax);
-
-        int memNeeded = getSeisMem(numRupPoints) + getPSAMem();
+     	
+     	if (memNeeded>params.getSeisPSAMemCutoff()) {
+            System.err.println("Source " + sourceIndex + ", rupture " + rupIndex + " requires " + memNeeded + " memory, which is more than the permitted " + params.getSeisPSAMemCutoff() + ".  Aborting.");
+            System.exit(4);
+     	} else {
+     		job2.addProfile("pegasus", "label", "" + currDax);
+     	}
         
         job2.addProfile("pegasus", "pmc_request_memory", "" + memNeeded);
 
