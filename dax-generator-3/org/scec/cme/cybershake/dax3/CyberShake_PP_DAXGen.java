@@ -447,7 +447,6 @@ public class CyberShake_PP_DAXGen {
 					sourceIndex = currBin.get(j).sourceID;
 					rupIndex = currBin.get(j).ruptureID;
 					numRupPoints = currBin.get(j).numRupPoints;
-					System.out.println("source " + sourceIndex + ", rupture " + rupIndex + " has " + numRupPoints + " points.");
 
 					ResultSet variationsSet = getVariations(sourceIndex, rupIndex);
 						
@@ -1806,6 +1805,7 @@ public class CyberShake_PP_DAXGen {
 	}
 	
 	private int getSeisMem(int numRupPoints) {
+		System.out.println("num points: " + numRupPoints);
 		//Estimate of memory in MB required from # of points
 		int size_sgtmaster = 32;
 		int size_sgtindex = 24;
