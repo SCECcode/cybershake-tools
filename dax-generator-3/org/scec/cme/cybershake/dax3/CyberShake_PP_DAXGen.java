@@ -1817,10 +1817,10 @@ public class CyberShake_PP_DAXGen {
 		//Do calculation in MB
 		//1 MB is max RV size for 0.5 Hz
 		//Scale based on erf spacing
-		double rvMem = (1.0/(riq.getErfSpacing()*riq.getErfSpacing()))*(params.getHighFrequencyCutoff()/0.5)*(params.getHighFrequencyCutoff()/0.5);
+		double rvMem = (1.0/(riq.getErfSpacing()*riq.getErfSpacing()))*(params.getDetFrequency()/0.5)*(params.getDetFrequency()/0.5);
 		//double sgtMem = numComponents/(1024.0*1024.0) * (size_sgtmaster + numRupPoints*(size_sgtindex + size_sgtheader + 6*numSGTtimesteps*(params.getHighFrequencyCutoff()/0.5)*4));
 		//numComp + 1 b/c we have a read buffer now
-		double sgtMem = (numComponents+1)/(1024.0*1024.0) * (size_sgtmaster + numRupPoints*(size_sgtindex + size_sgtheader + 6*numSGTtimesteps*(params.getHighFrequencyCutoff()/0.5)*4));
+		double sgtMem = (numComponents+1)/(1024.0*1024.0) * (size_sgtmaster + numRupPoints*(size_sgtindex + size_sgtheader + 6*numSGTtimesteps*(params.getDetFrequency()/0.5)*4));
 		double seisOut = Integer.parseInt(NUMTIMESTEPS)*numComponents*4/(1024.0*1024);
 
 		if (params.isHighFrequency()) {
