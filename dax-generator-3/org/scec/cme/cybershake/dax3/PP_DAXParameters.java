@@ -42,8 +42,8 @@ public class PP_DAXParameters {
 	private boolean extractSGTMPI = true;
 	private boolean globalExtractSGTMPI = false;
 	
-	//27 GB
-	private int seisPSAMemCutoff = 27*1024;
+	//BW has 56 GB permitted per node
+	private int seisPSAMemCutoff = 56*1024;
 
 	public PP_DAXParameters() {
 		numOfDAXes = 1;
