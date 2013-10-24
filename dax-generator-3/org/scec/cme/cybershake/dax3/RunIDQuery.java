@@ -33,6 +33,7 @@ public class RunIDQuery {
 	private final static int RWG_SGT_ID = 5;
 	private final static int AWP_SGT_ID = 6;
 	private final static int RWG_REVISED_SGT_ID = 7;
+	private final static int AWP_GPU_SGT_ID = 8;
 	
 	private final int CVMS_VEL_ID = 1;
 	private final int CVMH_11_2_VEL_ID = 2;
@@ -142,6 +143,8 @@ public class RunIDQuery {
     			sgtString = "awp";
     		} else if (sgtVarID==RWG_REVISED_SGT_ID) {
     			sgtString = "rwg3.0.3";
+    		} else if (sgtVarID==AWP_GPU_SGT_ID) {
+    			sgtString = "awp_gpu";
     		} else {
     			System.err.println("SGT variation ID " + sgtVarID + " can't be converted to a string representation.");
     			System.exit(2);
