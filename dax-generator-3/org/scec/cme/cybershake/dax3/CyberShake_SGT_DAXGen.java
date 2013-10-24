@@ -187,7 +187,7 @@ public class CyberShake_SGT_DAXGen {
 		Job updateEnd = addUpdate("SGT_START", "SGT_END");
 		workflowDAX.addJob(updateEnd);
 		
-		if (riq.getSgtString().equals("awp")) {
+		if (riq.getSgtString().contains("awp")) {
 			Job preAWP = addPreAWP();
 			workflowDAX.addJob(preAWP);
 			workflowDAX.addDependency(vMeshMerge, preAWP);
@@ -238,7 +238,9 @@ public class CyberShake_SGT_DAXGen {
 			//Dependencies for updateEnd job
 			workflowDAX.addDependency(nanTest, updateEnd);
 			workflowDAX.addDependency(sgtMerge, updateEnd);
-			
+		} else {
+			System.err.println("SGT string " + riq.getSgtString() + " does not contain rwg or awp, exiting.");
+			System.exit(1);
 		}
 		
 		return workflowDAX;
@@ -587,8 +589,12 @@ public class CyberShake_SGT_DAXGen {
 	}
 	
 	private Job addAWPSGTGen(String component) {
-		String id = "AWP_" + riq.getSiteName() + "_" + riq.getVelModelString() + "_" + component;
-		Job awpJob = new Job(id, NAMESPACE, "AWP", VERSION);
+		String jobname = "AWP";
+		if (riq.getSgtString().equals("awp_gpu")) {
+			jobname = "AWP_GPU";
+		}
+		String id = jobname + "_" + riq.getSiteName() + "_" + riq.getVelModelString() + "_" + component;
+		Job awpJob = new Job(id, NAMESPACE, jobname, VERSION);
 		
 		File in3DFile = new File("IN3D." + riq.getSiteName() + "." + component);
 		
