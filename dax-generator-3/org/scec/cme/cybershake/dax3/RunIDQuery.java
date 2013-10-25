@@ -161,7 +161,7 @@ public class RunIDQuery {
     		} else if (velModelID==HALFSPACE_VEL_ID) {
     			velModelString = "1D";
     		} else if (velModelID==CVMSI_4_26_VEL_ID) {
-    			velModelString = "cvmsi4.26";
+    			velModelString = "cvmsi";
     		} else {
     			System.err.println("Velocity model ID " + velModelID + " can't be converted to a string representation.");
     			System.exit(3);
