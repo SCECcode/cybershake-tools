@@ -24,7 +24,7 @@ def init():
     if ((argc != 2) and (argc != 6)):
         print "Usage: " + sys.argv[0] + " <site> [erf id] [sgt var id] [vel mod id] [rup var id]"
         print "Example: " + sys.argv[0] + " USC 34 5 1 3"
-        return 1
+        return -1
 
     # Parse command line args
     info.site = sys.argv[1]
@@ -56,7 +56,7 @@ def main():
     rm.useHTML(False)
     if (not rm.isValid()):
         print "Failed to instantiate run manager."
-        return 1
+        return -1
 
     rm.beginTransaction()
 
@@ -68,7 +68,7 @@ def main():
     if (run == None):
         print "Run insert failed."
         rm.rollbackTransaction()
-        return 1
+        return -1
 
     # Commit the changes
     rm.commitTransaction()
