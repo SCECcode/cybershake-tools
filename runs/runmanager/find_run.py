@@ -9,7 +9,7 @@ sys.path.append('/home/scec-02/cybershk/runs/runmanager/RunManager/')
 
 # General imports
 from RunManager import *
-from RLS import *
+from RC import *
 
 # Constants
 
@@ -78,34 +78,27 @@ def cloneLFNs(match, clone, awp):
 	lfns.append("%s_fx_%d.sgthead")
 	lfns.append("%s_fy_%d.sgthead")
 
-    rls = RLS()
+    rc = RC()
 
     for lfn in lfns:
         old_lfn = lfn % (match.getSite().getShortName(), match.getRunID())
         new_lfn = lfn % (clone.getSite().getShortName(), clone.getRunID())
 
         # Get PFN associated with this LFN
-        pfn_list = rls.getPFNs(old_lfn)
-        if ((pfn_list == None) or (len(pfn_list) == 0)):
+        entry_list = rc.getEntries(old_lfn)
+        if ((entry_list == None) or (len(entry_list) == 0)):
             print "Old LFN %s not found." % (old_lfn)
             return 1
 
-        # Take the first pfn in the list
-        pfn = pfn_list[0]
-
-        # Get this PFNs pool attributes
-        pool_list = rls.getPools(pfn)
-        if ((pool_list == None) or (len(pool_list) == 0)):
-            # Not the end of the world if no pool attribute
-            pool = None
-        else:
-            # Take the first pool attribute in the list
-            pool = pool_list[0]
+        # Take the first entry in the list
+        pfn = entry_list[0].pfn
+	pool = entry_list[0].pool
+	#OK if no pool attribute
 
         #print "pfn=%s, pool=%s" % (pfn, str(pool))
 
-        # Create new LFN for cloned run, do not assign a pool since pfn has one
-        if (rls.createLFN(new_lfn, pfn) != 0):
+        # Create new LFN for cloned run
+        if (rc.createLFN(new_lfn, pfn, pool=pool) != 0):
             print "Failed to create new LFN %s." % (new_lfn)
             return 1
 
