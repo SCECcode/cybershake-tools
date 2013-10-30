@@ -111,13 +111,14 @@ def checkExecErrors(rm, m):
             print "Found %d run(s)" % (len(matches))
             for run in matches:
                 print "Examining run %d (site %s)" % (run.getRunID(), run.getSite().getShortName())
-                if ((run.getJobID() == None) or (run.getJobID() == "")):
+		print "Run job id:  <%s>" % run.getJobID()
+                if (run.getJobID() == None) or (run.getJobID() == "") or (run.getJobID()=="Null"):
                     if (not run.getStatus() in ["Initial", "SGT Generated",]):
-                        sendMessage(run, m, \
-                                        "In the execution state '%s' with no Job ID assigned. Moved to state '%s'." % \
-                                        (run.getStatus(), e))
-                        print "Run %d is in an execution state with no JobID assigned" % (run.getRunID())
-                        run.setStatus(e)
+	            	sendMessage(run, m, \
+                                "In the execution state '%s' with no Job ID assigned. Moved to state '%s'." % \
+                                (run.getStatus(), e))
+        	        print "Run %d is in an execution state with no JobID assigned" % (run.getRunID())
+                	run.setStatus(e)
                         run.setComment("Inconsistent state detected")
                         update_list.append(run)
                 else:
