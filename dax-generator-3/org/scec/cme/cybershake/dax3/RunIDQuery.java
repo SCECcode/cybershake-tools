@@ -27,6 +27,7 @@ public class RunIDQuery {
 	private double lon;
 	private double vs30 = -1.0;
 	private double erfSpacing = 1.0;
+	private double frequency = 0.5;
 
 	private DBConnect dbc;
 
@@ -128,7 +129,7 @@ public class RunIDQuery {
 
 	private void populateRunIDInfo() {
 		try {
-			String query = "SELECT Site_ID, ERF_ID, SGT_Variation_ID, Rup_Var_Scenario_ID, Velocity_Model_ID FROM CyberShake_Runs WHERE Run_ID=" + runID;
+			String query = "SELECT Site_ID, ERF_ID, SGT_Variation_ID, Rup_Var_Scenario_ID, Velocity_Model_ID, Low_Frequency_Cutoff FROM CyberShake_Runs WHERE Run_ID=" + runID;
 			ResultSet res = dbc.selectData(query);
 			res.first();
     		if (res.getRow()==0) {
@@ -167,6 +168,8 @@ public class RunIDQuery {
     			System.exit(3);
     		}
 
+    		frequency = res.getDouble("Low_Frequency_Cutoff");
+    		
     		res.next();
     		if (!res.isAfterLast()) {
     			System.err.println("More than one Run_ID matched Run_ID "  + runID + ", aborting.");
@@ -246,6 +249,10 @@ public class RunIDQuery {
 
 	public double getErfSpacing() {
 		return erfSpacing;
+	}
+
+	public String getFrequencyString() {
+		return String.format("%0.1f", frequency);
 	}
 
 }

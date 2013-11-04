@@ -7,6 +7,8 @@ public class SGT_DAXParameters {
 	private String directory;
 	private ArrayList<RunIDQuery> runIDQueries;
 	
+	private boolean separateVelocityJobs = false;
+	
 	public SGT_DAXParameters(String filename) {
 		this.daxFilename = filename;
 		this.directory = ".";
@@ -30,6 +32,14 @@ public class SGT_DAXParameters {
 
 	public void setRunIDQueries(ArrayList<RunIDQuery> runIDQueries) {
 		this.runIDQueries = runIDQueries;
+	}
+
+	public boolean isSeparateVelocityJobs() {
+		return separateVelocityJobs;
+	}
+
+	public void setSeparateVelocityJobs(boolean separateVelocityJobs) {
+		this.separateVelocityJobs = separateVelocityJobs;
 	}
 	
 	
