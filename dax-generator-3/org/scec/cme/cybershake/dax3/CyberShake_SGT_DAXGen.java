@@ -80,9 +80,11 @@ public class CyberShake_SGT_DAXGen {
         runIDGroup.addOption(runIDFile);
         runIDGroup.addOption(runIDList);
         runIDGroup.setRequired(true);
+        Option splitVelocityJobs = new Option("sv", "split-velocity", false, "Use separate velocity generation and merge jobs (default is to use combined job)");
                 
         cmd_opts.addOption(help);
         cmd_opts.addOptionGroup(runIDGroup);
+        cmd_opts.addOption(splitVelocityJobs);
         
         String usageString = "CyberShake_SGT_DAXGen <output filename> <destination directory> [options] [-f <runID file, one per line> | -r <runID1> <runID2> ... ]";
         CommandLineParser parser = new GnuParser();
@@ -112,6 +114,11 @@ public class CyberShake_SGT_DAXGen {
 			runIDQueries = runIDsFromFile(line.getOptionValue(runIDFile.getOpt()));
 		} else {		
 			runIDQueries = runIDsFromArgs(line.getOptionValues(runIDList.getOpt()));
+		}
+		
+		if (line.hasOption(splitVelocityJobs.getOpt())) {
+			System.out.println("Using separate velocity generation and merge jobs.");
+			sgt_params.setSeparateVelocityJobs(true);
 		}
 		
 		sgt_params.setRunIDQueries(runIDQueries);
@@ -170,14 +177,27 @@ public class CyberShake_SGT_DAXGen {
 		workflowDAX.addJob(preCVM);
 		workflowDAX.addDependency(updateStart, preCVM);
 		
-		Job vMeshGen = addVMeshGen(riq.getVelModelID());
-		workflowDAX.addJob(vMeshGen);
-		workflowDAX.addDependency(preCVM, vMeshGen);
+		//Use for dependencies
+		Job velocityJob = null;
 		
-		Job vMeshMerge = addVMeshMerge();
-		workflowDAX.addJob(vMeshMerge);
-		workflowDAX.addDependency(vMeshGen, vMeshMerge);
-		workflowDAX.addDependency(preCVM, vMeshMerge);
+		if (sgt_params.isSeparateVelocityJobs()) {
+			Job vMeshGen = addVMeshGen(riq.getVelModelID());
+			workflowDAX.addJob(vMeshGen);
+			workflowDAX.addDependency(preCVM, vMeshGen);
+		
+			Job vMeshMerge = addVMeshMerge();
+			workflowDAX.addJob(vMeshMerge);
+			workflowDAX.addDependency(vMeshGen, vMeshMerge);
+			workflowDAX.addDependency(preCVM, vMeshMerge);
+			
+			velocityJob = vMeshMerge;
+		} else {
+			Job vMeshJob = addVMeshSingle();
+			workflowDAX.addJob(vMeshJob);
+			workflowDAX.addDependency(preCVM, vMeshJob);
+			
+			velocityJob = vMeshJob;
+		}
 
 		Job preSGT = addPreSGT();
 		workflowDAX.addJob(preSGT);
@@ -190,7 +210,7 @@ public class CyberShake_SGT_DAXGen {
 		if (riq.getSgtString().contains("awp")) {
 			Job preAWP = addPreAWP();
 			workflowDAX.addJob(preAWP);
-			workflowDAX.addDependency(vMeshMerge, preAWP);
+			workflowDAX.addDependency(velocityJob, preAWP);
 			workflowDAX.addDependency(preSGT, preAWP);
 			
 			Job sgtGenX = addAWPSGTGen("x");
@@ -221,8 +241,8 @@ public class CyberShake_SGT_DAXGen {
 			workflowDAX.addDependency(preCVM, sgtGenX);
 			workflowDAX.addDependency(preSGT, sgtGenY);
 			workflowDAX.addDependency(preCVM, sgtGenY);
-			workflowDAX.addDependency(vMeshMerge, sgtGenX);
-			workflowDAX.addDependency(vMeshMerge, sgtGenY);
+			workflowDAX.addDependency(velocityJob, sgtGenX);
+			workflowDAX.addDependency(velocityJob, sgtGenY);
 			
 			Job nanTest = addNanTest();
 			workflowDAX.addJob(nanTest);
@@ -303,6 +323,39 @@ public class CyberShake_SGT_DAXGen {
 		preCVMJob.uses(boundsFile, File.LINK.OUTPUT);
 		
 		return preCVMJob;
+	}
+	
+	private Job addVMeshSingle() {
+		String id = "UCVMMesh_" + riq.getSiteName();
+		Job vMeshJob = new Job(id, NAMESPACE, "UCVMMesh", VERSION);
+		
+		File gridoutFile = new File("gridout_" + riq.getSiteName());
+		File coordFile = new File("model_coords_GC_" + riq.getSiteName());
+		
+		vMeshJob.addArgument(riq.getSiteName());
+		vMeshJob.addArgument(gridoutFile);		
+		vMeshJob.addArgument(coordFile);
+		vMeshJob.addArgument(riq.getVelModelString());
+		
+		String sgtType = riq.getSgtString();
+		if (sgtType.contains("rwg")) {
+			vMeshJob.addArgument("rwg");
+		} else if (sgtType.contains("awp")) {
+			vMeshJob.addArgument("awp");
+		} else {
+			System.err.println("SGT type " + sgtType + " is not RWG or AWP.  Not sure what velocity mesh format to use, aborting.");
+			System.exit(1);
+		}
+		
+		vMeshJob.addArgument(riq.getFrequencyString());
+		
+		gridoutFile.setRegister(false);
+		coordFile.setRegister(false);
+		
+		vMeshJob.uses(gridoutFile, File.LINK.INPUT);
+		vMeshJob.uses(coordFile, File.LINK.INPUT);
+		
+		return vMeshJob;
 	}
 	
 	private Job addVMeshGen(int velID) {
@@ -574,12 +627,17 @@ public class CyberShake_SGT_DAXGen {
 		fdlocFile.setRegister(false);
 		cordFile.setRegister(false);
 		
-		preAWPJob.addArgument(riq.getSiteName());
-		preAWPJob.addArgument(gridoutFile);
-		preAWPJob.addArgument(mergeVelocityFile);
-		preAWPJob.addArgument(fdlocFile);
-		preAWPJob.addArgument(cordFile);
-
+		preAWPJob.addArgument("--site " + riq.getSiteName());
+		preAWPJob.addArgument("--gridout " + gridoutFile);
+		preAWPJob.addArgument("--fdloc " + fdlocFile);
+		preAWPJob.addArgument("--cordfile " + cordFile);
+		preAWPJob.addArgument("--frequency " + riq.getFrequencyString());
+		
+		//Only need to reformat velocity if we ran separate velocity jobs
+		if (sgt_params.isSeparateVelocityJobs()) {
+			preAWPJob.addArgument("--velocity-prefix " + mergeVelocityFile);
+		}
+		
 		preAWPJob.uses(gridoutFile, LINK.INPUT);
 		preAWPJob.uses(mergeVelocityFile, LINK.INPUT);
 		preAWPJob.uses(fdlocFile, LINK.INPUT);

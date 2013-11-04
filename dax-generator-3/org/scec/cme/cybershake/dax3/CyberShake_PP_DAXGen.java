@@ -1826,7 +1826,7 @@ public class CyberShake_PP_DAXGen {
 		if (params.isHighFrequency()) {
 			seisOut *= 0.1/Double.parseDouble(HF_DT);
 		}
-		System.out.println("Memory required: " + rvMem + " + " + sgtMem + " + " + seisOut);
+//		System.out.println("Memory required: " + rvMem + " + " + sgtMem + " + " + seisOut);
 		return (int)((sgtMem+rvMem+seisOut)*tolerance)+1;
 	}
 	
