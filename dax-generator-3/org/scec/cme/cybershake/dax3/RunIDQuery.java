@@ -252,7 +252,7 @@ public class RunIDQuery {
 	}
 
 	public String getFrequencyString() {
-		return String.format("%0.1f", frequency);
+		return String.format("%.1f", frequency);
 	}
 
 }
