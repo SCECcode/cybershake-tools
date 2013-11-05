@@ -349,6 +349,9 @@ public class CyberShake_SGT_DAXGen {
 		
 		vMeshJob.addArgument(riq.getFrequencyString());
 		
+		gridoutFile.setTransfer(File.TRANSFER.FALSE);
+		coordFile.setTransfer(File.TRANSFER.FALSE);
+		
 		gridoutFile.setRegister(false);
 		coordFile.setRegister(false);
 		
@@ -426,11 +429,17 @@ public class CyberShake_SGT_DAXGen {
 		File radiusFile = new File(riq.getSiteName() + ".radiusfile");
 		File sgtcordFile = new File(riq.getSiteName() + ".cordfile");
 		
+		modelboxFile.setTransfer(File.TRANSFER.FALSE);
+		gridoutFile.setTransfer(File.TRANSFER.FALSE);
+		coordFile.setTransfer(File.TRANSFER.FALSE);
 		fdlocFile.setTransfer(File.TRANSFER.FALSE);
 		faultlistFile.setTransfer(File.TRANSFER.FALSE);
 		radiusFile.setTransfer(File.TRANSFER.FALSE);
 		sgtcordFile.setTransfer(File.TRANSFER.FALSE);
 		
+		modelboxFile.setRegister(false);
+		gridoutFile.setRegister(false);
+		coordFile.setRegister(false);
 		fdlocFile.setRegister(false);
 		faultlistFile.setRegister(false);
 		radiusFile.setRegister(false);
@@ -478,6 +487,16 @@ public class CyberShake_SGT_DAXGen {
 		sgtGenJob.addArgument(fdlocFile);
 		sgtGenJob.addArgument(cordFile);
 		sgtGenJob.addArgument(component);
+		
+		gridoutFile.setTransfer(File.TRANSFER.FALSE);
+		modelboxFile.setTransfer(File.TRANSFER.FALSE);
+		fdlocFile.setTransfer(File.TRANSFER.FALSE);
+		cordFile.setTransfer(File.TRANSFER.FALSE);
+		
+		gridoutFile.setRegister(false);
+		modelboxFile.setRegister(false);
+		fdlocFile.setRegister(false);
+		cordFile.setRegister(false);
 		
 		sgtGenJob.uses(gridoutFile, File.LINK.INPUT);
 		sgtGenJob.uses(modelboxFile, File.LINK.INPUT);
