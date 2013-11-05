@@ -67,7 +67,8 @@ public class CyberShake_PP_DAXGen {
     private final static String SEIS_PSA_NAME = "Seis_PSA";
     private final static String SEIS_PSA_MEMCACHED_NAME = "Seis_PSA_memcached";
     private final static String SEIS_PSA_HEADER_NAME = "Seis_PSA_header";
-    private final static String SEIS_PSA_HIGH_MEM_NAME = "Seis_PSA_high_mem";
+    private final static String SEIS_PSA_HIGH_MEM_NODES_NAME = "Seis_PSA_high_mem";
+    private final static String SEIS_PSA_LARGE_MEM_NAME = "Seis_PSA_large_mem";
     private final static String LOCAL_VM_NAME = "Local_VM";
     private final static String STOCH_NAME = "srf2stoch";
     private final static String HIGH_FREQ_NAME = "HighFrequency";
@@ -84,6 +85,8 @@ public class CyberShake_PP_DAXGen {
     private final static String FILTER_HIGHHZ = "5.0";
     private static String SEIS_LENGTH = "300.0";
     private final static String HF_DT = "0.025";
+    //2 GB
+    private final static int LARGE_MEM_BUF = 2*1024;
     
 	//Database
     private final static String DB_SERVER = "focal.usc.edu";
@@ -226,6 +229,7 @@ public class CyberShake_PP_DAXGen {
         Option serial_extract = new Option("se", "serial-extract", false, "Use serial version of extraction code rather than extract SGT MPI.");
         Option global_extract_sgt_mpi = new Option("ge", "global-extract-mpi", false, "Use 1 extract SGT MPI job, run as part of pre workflow.");
         Option frequency = OptionBuilder.withArgName("frequency").hasArg().withDescription("Maximum frequency for deterministic simulation.").create("f");
+        Option large_mem = new Option("lm", "large-mem", false, "Use version of SeisPSA which can handle ruptures with large numbers of points.");
         cmd_opts.addOption(help);
         cmd_opts.addOption(partition);
         cmd_opts.addOption(no_insert);
@@ -239,6 +243,7 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(serial_extract);
         cmd_opts.addOption(global_extract_sgt_mpi);
         cmd_opts.addOption(frequency);
+        cmd_opts.addOption(large_mem);
         OptionGroup forwardingGroup = new OptionGroup();
         forwardingGroup.addOption(file_forward);
         forwardingGroup.addOption(no_forward);
@@ -356,6 +361,9 @@ public class CyberShake_PP_DAXGen {
         	NUMTIMESTEPS = "" + (int)(4000*pp_params.getDetFrequency());
         	LF_TIMESTEP = "" + (0.05/pp_params.getDetFrequency());
         	SEIS_LENGTH = "200.0";
+        }
+        if (line.hasOption(large_mem.getOpt())) {
+        	pp_params.setLargeMemSynth(true);
         }
         
         //Removing notifications
@@ -1582,9 +1590,12 @@ public class CyberShake_PP_DAXGen {
 		if (params.isFileForward() || params.isPipeForward()) {
 			seisPSAName = SEIS_PSA_HEADER_NAME;
 		}
-		if (memNeeded>params.getSeisPSAMemCutoff()) {
+		if (memNeeded>params.getSeisPSAMemCutoff() && !params.isLargeMemSynth()) {
 			//Switch to high-mem nodes
-			seisPSAName = SEIS_PSA_HIGH_MEM_NAME;
+			seisPSAName = SEIS_PSA_HIGH_MEM_NODES_NAME;
+		}
+		if (params.isLargeMemSynth()) {
+			seisPSAName = SEIS_PSA_LARGE_MEM_NAME;
 		}
 		
 		Job job2= new Job(id2, NAMESPACE, seisPSAName, VERSION);
@@ -1734,6 +1745,10 @@ public class CyberShake_PP_DAXGen {
 			job2.addArgument("seis_file=" + seisFile.getName());
 		}
 
+		if (params.isLargeMemSynth()) {
+			job2.addArgument(" max_buf_mb=" + LARGE_MEM_BUF);
+		}
+		
      	//PSA args
      	job2.addArgument("run_psa=1"); //include PSA part
        	job2.addArgument("simulation_out_pointsX=2"); //2 b/c 2 components
