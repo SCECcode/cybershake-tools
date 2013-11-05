@@ -20,6 +20,7 @@ public class PP_DAXParameters {
 	
 	private boolean jbsimRVMem = true;
 	private boolean hfsynthRVMem = true;
+	private boolean largeMemSynth = false;
 		
 	private int numVarsPerDAX;
 	private int maxVarsPerDAX;
@@ -279,5 +280,13 @@ public class PP_DAXParameters {
 
 	public void setSeisPSAMemCutoff(int seisPSAMemCutoff) {
 		this.seisPSAMemCutoff = seisPSAMemCutoff;
+	}
+
+	public boolean isLargeMemSynth() {
+		return largeMemSynth;
+	}
+
+	public void setLargeMemSynth(boolean largeMemSynth) {
+		this.largeMemSynth = largeMemSynth;
 	}
 }
