@@ -1805,7 +1805,7 @@ public class CyberShake_PP_DAXGen {
 	}
 	
 	private int getSeisMem(int numRupPoints) {
-		System.out.println("num points: " + numRupPoints);
+//		System.out.println("num points: " + numRupPoints);
 		//Estimate of memory in MB required from # of points
 		int size_sgtmaster = 32;
 		int size_sgtindex = 24;
