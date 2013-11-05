@@ -1835,7 +1835,12 @@ public class CyberShake_PP_DAXGen {
 		double rvMem = (1.0/(riq.getErfSpacing()*riq.getErfSpacing()))*(params.getDetFrequency()/0.5)*(params.getDetFrequency()/0.5);
 		//double sgtMem = numComponents/(1024.0*1024.0) * (size_sgtmaster + numRupPoints*(size_sgtindex + size_sgtheader + 6*numSGTtimesteps*(params.getHighFrequencyCutoff()/0.5)*4));
 		//numComp + 1 b/c we have a read buffer now
-		double sgtMem = (numComponents+1)/(1024.0*1024.0) * (size_sgtmaster + numRupPoints*(size_sgtindex + size_sgtheader + 6*numSGTtimesteps*(params.getDetFrequency()/0.5)*4));
+		double sgtMem = 0.0;
+		if (params.isLargeMemSynth()) {
+			sgtMem = LARGE_MEM_BUF + numRupPoints*172.0/(1024.0*1024.0); 
+		} else {
+			sgtMem = (numComponents+1)/(1024.0*1024.0) * (size_sgtmaster + numRupPoints*(size_sgtindex + size_sgtheader + 6*numSGTtimesteps*(params.getDetFrequency()/0.5)*4));
+		}
 		double seisOut = Integer.parseInt(NUMTIMESTEPS)*numComponents*4/(1024.0*1024);
 
 		if (params.isHighFrequency()) {
