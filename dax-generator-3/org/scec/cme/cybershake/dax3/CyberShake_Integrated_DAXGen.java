@@ -113,7 +113,7 @@ public class CyberShake_Integrated_DAXGen {
 	    	
 	    	//PRE workflow
 	    	String preDAXFilename = cont.getPreWorkflow();
-	    	DAX preD = new DAX("preDAX", preDAXFilename);
+	    	DAX preD = new DAX(cont.getRIQ().getSiteName() + "_preDAX", preDAXFilename);
 			preD.addArgument("--force");
 			preD.addArgument("-q");
 			//Add the dax to the top-level dax like a job
@@ -152,12 +152,12 @@ public class CyberShake_Integrated_DAXGen {
 			
 			//DB
 			String dbDAXFile = cont.getDBWorkflow();
-			DAX dbDax = new DAX("dbDax", dbDAXFile);
+			DAX dbDax = new DAX(cont.getRIQ().getSiteName() + "_dbDax", dbDAXFile);
 			dbDax.addArgument("--force");
 			dbDax.addArgument("-q");
 			topLevelDax.addDAX(dbDax);
 			for (int j=0; j<subWfs.size(); j++) {
-				topLevelDax.addDependency("dax_" + j, "dbDax");
+				topLevelDax.addDependency(cont.getRIQ().getSiteName() + "_dax_" + j, cont.getRIQ().getSiteName() + "_dbDax");
 			}	
 			File dbDaxFile = new File(dbDAXFile);
 			dbDaxFile.addPhysicalFile("file://" + cont.getParams().getPPDirectory() + "/" + dbDAXFile, "local");
@@ -165,7 +165,7 @@ public class CyberShake_Integrated_DAXGen {
 			
 			//Post
 			String postDAXFile = cont.getPostWorkflow();
-			DAX postD = new DAX("postDax", postDAXFile);
+			DAX postD = new DAX(cont.getRIQ().getSiteName() + "_postDax", postDAXFile);
 			postD.addArgument("--force");
 			postD.addArgument("-q");
 			topLevelDax.addDAX(postD);
@@ -173,7 +173,7 @@ public class CyberShake_Integrated_DAXGen {
 				topLevelDax.addDependency(dbDax, postD);
 			} else {
 				for (int j=0; j<subWfs.size(); j++) {
-					topLevelDax.addDependency("dax_" + j, "postDax");
+					topLevelDax.addDependency(cont.getRIQ().getSiteName() + "_dax_" + j, cont.getRIQ().getSiteName() + "_postDax");
 				}	
 			}
 			File postDFile = new File(postDAXFile);
