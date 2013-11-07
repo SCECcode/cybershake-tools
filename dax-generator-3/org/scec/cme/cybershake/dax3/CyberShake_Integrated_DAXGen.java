@@ -33,7 +33,7 @@ public class CyberShake_Integrated_DAXGen {
     private static ArrayList<RunIDQuery> runIDQueries;
 	
 	public static void main(String[] args) {
-		String[] cmdLinePPArgs = parseCommandLine(args);
+		ArrayList<String[]> cmdLineSubArgs = parseCommandLine(args);
 		
 		long timestamp = System.currentTimeMillis();
 		//By this point we've checked to make sure these args exist
@@ -49,6 +49,12 @@ public class CyberShake_Integrated_DAXGen {
 			topLevelDAXName = DAX_FILENAME_PREFIX + "_" + runIDQueries.get(0).getSiteName();
 		}
 		sgtArgsList.add(directory);
+		//Add --sgtargs arguments
+		for (String a: cmdLineSubArgs.get(0)) {
+			sgtArgsList.add(a);
+		}
+
+		//Add run ID arguments
 		sgtArgsList.add("-r");
 		for (RunIDQuery riq: runIDQueries) {
 			sgtArgsList.add("" + riq.getRunID());
@@ -91,7 +97,7 @@ public class CyberShake_Integrated_DAXGen {
 			ArrayList<String> ppArgs = new ArrayList<String>();
 			ppArgs.add(runIDQueries.get(i).getRunID() + "");
 			ppArgs.add(directory);
-			for (String a: cmdLinePPArgs) {
+			for (String a: cmdLineSubArgs.get(1)) {
 				ppArgs.add(a);
 			}
 			String[] ppArgArray = ppArgs.toArray(new String[]{});
@@ -193,12 +199,13 @@ public class CyberShake_Integrated_DAXGen {
 		return jobID;
 	}
 
-	private static String[] parseCommandLine(String[] args) {
+	private static ArrayList<String[]> parseCommandLine(String[] args) {
 		//Only pull out integrated options; send most along to the SGT and PP generators
         Options cmd_opts = new Options();
         Option help = new Option("h", "help", false, "Print help for CyberShake_Integrated_DAXGen");
         Option runIDFile = OptionBuilder.withArgName("runID_file").hasArg().withDescription("File containing list of Run IDs to use.").create("rf");
         Option runIDList = OptionBuilder.withArgName("runID_list").hasArgs().withDescription("List of Run IDs to use.").create("rl");
+        Option sgtArgs = OptionBuilder.withArgName("sgtargs").hasArgs().withDescription("Arguments to pass through to SGT workflow.").withLongOpt("sgtargs").create();
         Option postProcessingArgs = OptionBuilder.withArgName("ppargs").hasArgs().withDescription("Arguments to pass through to post-processing.").withLongOpt("ppargs").create();
         OptionGroup runIDGroup = new OptionGroup();
         runIDGroup.addOption(runIDFile);
@@ -207,6 +214,7 @@ public class CyberShake_Integrated_DAXGen {
         cmd_opts.addOption(help);
         cmd_opts.addOptionGroup(runIDGroup);
         cmd_opts.addOption(postProcessingArgs);
+        cmd_opts.addOption(sgtArgs);
 
         String usageString = "CyberShake_Integrated_DAXGen <output filename> <destination directory> [options] [-f <runID file, one per line> | -r <runID1> <runID2> ... ]";
         CommandLineParser parser = new GnuParser();
@@ -235,12 +243,23 @@ public class CyberShake_Integrated_DAXGen {
 			runIDQueries = runIDsFromArgs(line.getOptionValues(runIDList.getOpt()));
 		}
 
+		ArrayList<String[]> subArgs = new ArrayList<String[]>();
+		
+		String[] sgtArgStrings = null;
+		if (line.hasOption(sgtArgs.getLongOpt())) {
+			sgtArgStrings = line.getOptionValues(sgtArgs.getLongOpt());
+		}
+		subArgs.add(sgtArgStrings);
+		
 		//Get post-processing arguments
-		String[] ppArgs = new String[0];
+		String[] ppArgs = null;
 		if (line.hasOption(postProcessingArgs.getLongOpt())) {
 			ppArgs = line.getOptionValues(postProcessingArgs.getLongOpt());
 		}
-		return ppArgs;
+		
+		subArgs.add(ppArgs);
+		
+		return subArgs;
 	}
 
 	private static ArrayList<RunIDQuery> runIDsFromFile(String inputFile) {
