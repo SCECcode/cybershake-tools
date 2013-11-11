@@ -85,8 +85,8 @@ public class CyberShake_PP_DAXGen {
     private final static String FILTER_HIGHHZ = "5.0";
     private static String SEIS_LENGTH = "300.0";
     private final static String HF_DT = "0.025";
-    //2 GB
-    private final static int LARGE_MEM_BUF = 2*1024;
+    //1 GB for testing
+    private final static int LARGE_MEM_BUF = 1*1024;
     
 	//Database
     private final static String DB_SERVER = "focal.usc.edu";
