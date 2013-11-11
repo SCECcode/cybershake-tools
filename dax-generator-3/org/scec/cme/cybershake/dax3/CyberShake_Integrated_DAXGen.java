@@ -50,8 +50,10 @@ public class CyberShake_Integrated_DAXGen {
 		}
 		sgtArgsList.add(directory);
 		//Add --sgtargs arguments
-		for (String a: cmdLineSubArgs.get(0)) {
-			sgtArgsList.add(a);
+		if (cmdLineSubArgs.get(0)!=null) {
+			for (String a: cmdLineSubArgs.get(0)) {
+				sgtArgsList.add(a);
+			}
 		}
 
 		//Add run ID arguments
