@@ -628,8 +628,12 @@ public class CyberShake_SGT_DAXGen {
 	}
 	
 	private Job addPreAWP() {
-		String id = "PreAWP_" + riq.getSiteName() + "_" + riq.getVelModelString();
-		Job preAWPJob = new Job(id, NAMESPACE, "PreAWP", VERSION);
+		String jobname = "PreAWP";
+		if (riq.getSgtString().equals("awp_gpu")) {
+			jobname = "PreAWP_GPU";
+		}
+		String id = jobname + "_" + riq.getSiteName() + "_" + riq.getVelModelString();
+		Job preAWPJob = new Job(id, NAMESPACE, jobname, VERSION);
 		
 		File gridoutFile = new File("gridout_" + riq.getSiteName());
 		File mergeVelocityFile = new File("v_sgt-" + riq.getSiteName());
@@ -647,9 +651,9 @@ public class CyberShake_SGT_DAXGen {
 		cordFile.setRegister(false);
 		
 		preAWPJob.addArgument("--site " + riq.getSiteName());
-		preAWPJob.addArgument("--gridout " + gridoutFile);
-		preAWPJob.addArgument("--fdloc " + fdlocFile);
-		preAWPJob.addArgument("--cordfile " + cordFile);
+		preAWPJob.addArgument("--gridout " + gridoutFile.getName());
+		preAWPJob.addArgument("--fdloc " + fdlocFile.getName());
+		preAWPJob.addArgument("--cordfile " + cordFile.getName());
 		preAWPJob.addArgument("--frequency " + riq.getFrequencyString());
 		
 		//Only need to reformat velocity if we ran separate velocity jobs

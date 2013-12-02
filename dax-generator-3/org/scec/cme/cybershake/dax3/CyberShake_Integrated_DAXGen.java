@@ -28,6 +28,7 @@ public class CyberShake_Integrated_DAXGen {
     private final static String PP_DAX_FILENAME_PREFIX = "CyberShake";
     private final static String DAX_FILENAME_EXTENSION = ".dax";
     
+    private final static String SGT_OUTPUT_DIR_ROOT = "/projects/sciteam/jmz/CyberShake/data/SgtFiles";
     private final static String PP_OUTPUT_DIR_ROOT = "/home/scec-04/tera3d/CyberShake/data/PPFiles";
     
     private static ArrayList<RunIDQuery> runIDQueries;
@@ -83,6 +84,7 @@ public class CyberShake_Integrated_DAXGen {
 			sgtDaxJobs[i].addArgument("--force");
 			//Force stage-out and registration
 			sgtDaxJobs[i].addArgument("--output-site bluewaters");
+			sgtDaxJobs[i].addArgument("--output-dir " + SGT_OUTPUT_DIR_ROOT + "/" + runIDQueries.get(i).getSiteName());
 			topLevelDax.addDAX(sgtDaxJobs[i]);
 		
 			File sgtDaxFile = new File(sgtDaxFileName);
