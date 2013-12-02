@@ -230,6 +230,7 @@ public class CyberShake_PP_DAXGen {
         Option global_extract_sgt_mpi = new Option("ge", "global-extract-mpi", false, "Use 1 extract SGT MPI job, run as part of pre workflow.");
         Option frequency = OptionBuilder.withArgName("frequency").hasArg().withDescription("Maximum frequency for deterministic simulation.").create("f");
         Option large_mem = new Option("lm", "large-mem", false, "Use version of SeisPSA which can handle ruptures with large numbers of points.");
+        Option multi_rv = OptionBuilder.withArgName("factor").hasArg().withDescription("Use SeisPSA version which supports multiple synthesis tasks per invocation; number of seis_psa jobs per invocation.").create("mr");
         cmd_opts.addOption(help);
         cmd_opts.addOption(partition);
         cmd_opts.addOption(no_insert);
@@ -251,6 +252,7 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(no_seisPSA);
         cmd_opts.addOption(zip);
         cmd_opts.addOption(separate_zip);
+        cmd_opts.addOption(multi_rv);
 
         CommandLineParser parser = new GnuParser();
         if (args.length<1) {
