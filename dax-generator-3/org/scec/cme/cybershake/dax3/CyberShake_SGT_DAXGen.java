@@ -358,6 +358,10 @@ public class CyberShake_SGT_DAXGen {
 		vMeshJob.uses(gridoutFile, File.LINK.INPUT);
 		vMeshJob.uses(coordFile, File.LINK.INPUT);
 		
+		if (riq.getSiteName().equals("TEST")) {
+			vMeshJob.addProfile("globus", "count", "155");
+		}
+		
 		return vMeshJob;
 	}
 	
