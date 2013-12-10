@@ -831,6 +831,7 @@ public class CyberShake_PP_DAXGen {
 						ruptureVariationMap.put(rupvarcount, variationsSet.getString("Rup_Var_LFN"));
 						
 						if (ruptureVariationMap.size()==params.getMultiSeisPSAFactor() || variationsSet.isLast()) {
+							System.out.println("Creating multi RV job.");
 							seisPSAJob = createMultiSeisPSAJob(sourceIndex, rupIndex, ruptureVariationMap, numRupPoints, count, currDax, rvClusterIndex);
 							ruptureVariationMap.clear();
 							rvClusterIndex++;
