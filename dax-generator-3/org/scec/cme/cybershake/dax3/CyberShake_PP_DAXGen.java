@@ -835,6 +835,9 @@ public class CyberShake_PP_DAXGen {
 							seisPSAJob = createMultiSeisPSAJob(sourceIndex, rupIndex, ruptureVariationMap, numRupPoints, count, currDax, rvClusterIndex);
 							ruptureVariationMap.clear();
 							rvClusterIndex++;
+						} else {
+							//Don't want to add dependencies yet, didn't create a job
+							continue;
 						}
 						
 					} else {
