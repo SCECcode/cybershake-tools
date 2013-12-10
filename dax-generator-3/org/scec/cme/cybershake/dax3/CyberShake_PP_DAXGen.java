@@ -837,6 +837,8 @@ public class CyberShake_PP_DAXGen {
 							rvClusterIndex++;
 						} else {
 							//Don't want to add dependencies yet, didn't create a job
+							rupvarcount++;
+							variationsSet.next();
 							continue;
 						}
 						
