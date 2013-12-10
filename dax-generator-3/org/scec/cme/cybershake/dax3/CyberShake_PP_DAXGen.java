@@ -1636,8 +1636,8 @@ public class CyberShake_PP_DAXGen {
 			String lfn = ruptureVariationMap.get(rv_id);
 			System.out.println(lfn);
 			String[] pieces = lfn.split("-");
-			int slip_id = Integer.parseInt(pieces[0].split("s")[1]);
-			int hypo_id = Integer.parseInt(pieces[1].split("h")[1]);
+			int slip_id = Integer.parseInt(pieces[1].split("s")[1]);
+			int hypo_id = Integer.parseInt(pieces[2].split("h")[1]);
 			if (rup_var_string.length()>0) {
 				rup_var_string.append(";");
 			}
