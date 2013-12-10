@@ -43,6 +43,9 @@ public class PP_DAXParameters {
 	private boolean extractSGTMPI = true;
 	private boolean globalExtractSGTMPI = false;
 	
+	private boolean useMultiSeisPSA = false;
+	private int multiSeisPSAFactor = 1;
+	
 	//BW has 56 GB permitted per node
 	private int seisPSAMemCutoff = 56*1024;
 
@@ -288,5 +291,21 @@ public class PP_DAXParameters {
 
 	public void setLargeMemSynth(boolean largeMemSynth) {
 		this.largeMemSynth = largeMemSynth;
+	}
+
+	public boolean isUseMultiSeisPSA() {
+		return useMultiSeisPSA;
+	}
+
+	public void setUseMultiSeisPSA(boolean useMultiSeisPSA) {
+		this.useMultiSeisPSA = useMultiSeisPSA;
+	}
+
+	public int getMultiSeisPSAFactor() {
+		return multiSeisPSAFactor;
+	}
+
+	public void setMultiSeisPSAFactor(int multiSeisPSAFactor) {
+		this.multiSeisPSAFactor = multiSeisPSAFactor;
 	}
 }

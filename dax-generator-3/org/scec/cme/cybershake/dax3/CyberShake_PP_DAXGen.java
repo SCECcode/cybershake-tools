@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.apache.commons.cli.AlreadySelectedException;
 import org.apache.commons.cli.CommandLine;
@@ -69,6 +70,7 @@ public class CyberShake_PP_DAXGen {
     private final static String SEIS_PSA_HEADER_NAME = "Seis_PSA_header";
     private final static String SEIS_PSA_HIGH_MEM_NODES_NAME = "Seis_PSA_high_mem";
     private final static String SEIS_PSA_LARGE_MEM_NAME = "Seis_PSA_large_mem";
+    private final static String SEIS_PSA_MULTI_NAME = "Seis_PSA_multi";
     private final static String LOCAL_VM_NAME = "Local_VM";
     private final static String STOCH_NAME = "srf2stoch";
     private final static String HIGH_FREQ_NAME = "HighFrequency";
@@ -366,6 +368,11 @@ public class CyberShake_PP_DAXGen {
         }
         if (line.hasOption(large_mem.getOpt())) {
         	pp_params.setLargeMemSynth(true);
+        }
+        
+        if (line.hasOption(multi_rv.getOpt())) {
+        	pp_params.setUseMultiSeisPSA(true);
+        	pp_params.setMultiSeisPSAFactor(Integer.parseInt(line.getOptionValue("mr")));
         }
         
         //Removing notifications
@@ -807,25 +814,39 @@ public class CyberShake_PP_DAXGen {
 
 			int rupvarcount = 0;
 			//Iterate over variations
+			HashMap<Integer, String> ruptureVariationMap = null;
+			int rvClusterIndex = 0;
 			while (!variationsSet.isAfterLast()) {
 				//Add entry to SQL DB
 				if (params.isRvDB()) {
 					sqlDB.addMapping(sourceIndex, rupIndex, rupvarcount, currDax);
 				}
-
 				if (params.isMergePSA()) {
-					//add 1 job for seis and PSA
-					Job seisPSAJob = createSeisPSAJob(sourceIndex, rupIndex, rupvarcount, numRupPoints, variationsSet.getString("Rup_Var_LFN"), count, currDax);
-					dax.addJob(seisPSAJob);
+					Job seisPSAJob = null;
+					if (params.isUseMultiSeisPSA()) {
+						//Need to accumulate rupture variations
+						if (ruptureVariationMap == null) {
+							ruptureVariationMap = new HashMap<Integer, String>();
+						}
+						ruptureVariationMap.put(rupvarcount, variationsSet.getString("Rup_Var_LFN"));
+						
+						if (ruptureVariationMap.size()==params.getMultiSeisPSAFactor() || variationsSet.isLast()) {
+							seisPSAJob = createMultiSeisPSAJob(sourceIndex, rupIndex, ruptureVariationMap, numRupPoints, count, currDax, rvClusterIndex);
+							ruptureVariationMap.clear();
+							rvClusterIndex++;
+						}
+						
+					} else {
+						//add 1 job for seis and PSA
+						seisPSAJob = createSeisPSAJob(sourceIndex, rupIndex, rupvarcount, numRupPoints, variationsSet.getString("Rup_Var_LFN"), count, currDax);
+						dax.addJob(seisPSAJob);
+					}
 					if (params.isExtractSGTMPI()) {
-						
-						
 						dax.addDependency(extractSGTMPIJob, seisPSAJob);
-					} else if (!params.isGlobalExtractSGTMPI()) {
+						} else if (!params.isGlobalExtractSGTMPI()) {
 						//set up dependencies
 						dax.addDependency(extractJob, seisPSAJob);
 					}
-					
 					//make the zip jobs appropriate children
 					if (params.isZip()) {
 						for (Job zipJob: zipJobs) {
@@ -1581,6 +1602,170 @@ public class CyberShake_PP_DAXGen {
         return job3;
 	}
 	
+	private Job createMultiSeisPSAJob(int sourceIndex, int rupIndex, HashMap<Integer, String> ruptureVariationMap, int numRupPoints, int count, int currDax, int clusterIndex) {
+        int memNeeded = getSeisMem(numRupPoints) + getPSAMem();
+	
+		String id2 = "ID2_" + sourceIndex+"_"+rupIndex+"_"+clusterIndex;
+		
+		String seisPSAName = SEIS_PSA_MULTI_NAME;
+
+		Job job2= new Job(id2, NAMESPACE, seisPSAName, VERSION);
+
+		//Assemble rupture variation string
+		//rup_var_string is in form (<rv_id>,<slip_id>,<hypo_id>);(....)
+		ArrayList<File> seisFiles = new ArrayList<File>();
+		ArrayList<File> psaFiles = new ArrayList<File>();
+		StringBuffer rup_var_string = new StringBuffer("");
+		StringBuffer profileArg = new StringBuffer("");
+		File combinedSeisFile = new File(COMBINED_SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
+				sourceIndex + "_" + rupIndex + COMBINED_SEISMOGRAM_FILENAME_EXTENSION);
+		File combinedPSAFile = new File(COMBINED_PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
+				sourceIndex + "_" + rupIndex + COMBINED_PEAKVALS_FILENAME_EXTENSION);
+		if (params.isFileForward()) {
+			seisFiles.add(combinedSeisFile);
+			psaFiles.add(combinedPSAFile);
+		}
+		
+		for (int rv_id: ruptureVariationMap.keySet()) {
+			String lfn = ruptureVariationMap.get(rv_id);
+			String[] pieces = lfn.split("-");
+			int slip_id = Integer.parseInt(pieces[0].split("s")[1]);
+			int hypo_id = Integer.parseInt(pieces[0].split("h")[1]);
+			if (rup_var_string.length()>0) {
+				rup_var_string.append(";");
+			}
+			rup_var_string.append("(" + rv_id + "," + slip_id + "," + hypo_id + ")");
+			//If we're using file or pipe forwarding, we'll only have 1 seismogram and PSA file;  else we should record all the files
+			File seisFile, psaFile;
+			seisFile = psaFile = null;
+			if (!params.isFileForward() && !params.isPipeForward()) {
+				if (params.isDirHierarchy()) {
+					String dir = sourceIndex + "/" + rupIndex;
+					seisFile = new File(dir + "/" + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
+								sourceIndex + "_" + rupIndex + "_" + rv_id + SEISMOGRAM_FILENAME_EXTENSION);
+					psaFile = new File(dir + "/" + PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
+								sourceIndex + "_" + rupIndex + "_" + rv_id + PEAKVALS_FILENAME_EXTENSION);
+				} else {
+					seisFile = new File(SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
+							sourceIndex + "_" + rupIndex + "_" + rv_id + SEISMOGRAM_FILENAME_EXTENSION);
+					psaFile = new File(PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
+							sourceIndex + "_" + rupIndex + "_" + rv_id + PEAKVALS_FILENAME_EXTENSION);
+				}
+				seisFiles.add(seisFile);
+				psaFiles.add(psaFile);
+			} else if (params.isFileForward()) {
+				seisFile = new File(TMP_FS + "/" + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
+						sourceIndex + "_" + rupIndex + "_" + rv_id + SEISMOGRAM_FILENAME_EXTENSION);
+				psaFile = new File(TMP_FS + "/" + PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
+						sourceIndex + "_" + rupIndex + "_" + rv_id + PEAKVALS_FILENAME_EXTENSION);
+				profileArg.append(" -F " + seisFile.getName() + "=" + combinedSeisFile.getName() + " -F " + psaFile.getName() + "=" + combinedPSAFile.getName());
+			}
+		}
+		
+		if (params.isFileForward()) {
+			//Combine all -F arguments into a single profile
+	        job2.addProfile("pegasus", "pmc_task_arguments", profileArg.toString());
+		} else if (params.isPipeForward()) {
+			job2.addProfile("pegasus", "pmc_task_arguments", "-f " + SEISMOGRAM_ENV_VAR + "=" + combinedSeisFile.getName() + " -f " + PEAKVALS_ENV_VAR + "=" + combinedPSAFile.getName());
+    		job2.addArgument("pipe_fwd=1");
+		}
+
+		for (File sf: seisFiles) {
+			sf.setRegister(true);
+			sf.setTransfer(TRANSFER.TRUE);
+			job2.uses(sf, File.LINK.OUTPUT);
+		}
+		for (File pf: psaFiles) {
+			pf.setRegister(true);
+			pf.setTransfer(TRANSFER.TRUE);
+			job2.uses(pf, File.LINK.OUTPUT);
+		}
+		
+		//add source, rupture, rupture variation arguments
+		job2.addArgument("source_id=" + sourceIndex);
+		job2.addArgument("rupture_id=" + rupIndex);
+		job2.addArgument("num_rup_vars=" + ruptureVariationMap.size());
+		job2.addArgument("det_max_freq=" + params.getDetFrequency());
+		
+		if (params.isHighFrequency()) {
+			job2.addArgument("stoch_max_freq=" + params.getMaxHighFrequency());
+		} else {
+			job2.addArgument("stoch_max_freq=-1.0"); //signify no stochastic components
+		}
+			
+		job2.addArgument("num_rup_vars=" + params.getMultiSeisPSAFactor());
+		job2.addArgument("rup_vars=" + rup_var_string.toString());
+			
+		//synth args
+		job2.addArgument("stat="+riq.getSiteName());
+		job2.addArgument("slon="+riq.getLon());
+		job2.addArgument("slat="+riq.getLat());
+		job2.addArgument("extract_sgt=0");
+		job2.addArgument("outputBinary=1");
+		job2.addArgument("mergeOutput=1");
+		job2.addArgument("ntout="+NUMTIMESTEPS);
+        
+		File rupsgtx = new File(riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfx.sgt");
+		File rupsgty = new File(riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfy.sgt");
+		
+		if (params.isDirHierarchy()) {
+			//Add hierarchy to sub sgt path
+			String dir = sourceIndex + "/" + rupIndex;
+			rupsgtx = new File(dir + "/" + riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfx.sgt");
+			rupsgty = new File(dir + "/" + riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfy.sgt");
+		} else if (params.isGlobalExtractSGTMPI()) {
+			//Add pre directory and source dir to sub-sgt path
+			String dir = "../CyberShake_%s_pre_preDAX";
+			rupsgtx = new File(dir + "/" + sourceIndex + "/" + riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfx.sgt");
+			rupsgty = new File(dir + "/" + sourceIndex + "/" + riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfy.sgt");
+		}
+		
+		rupsgtx.setRegister(false);
+		rupsgtx.setTransfer(File.TRANSFER.FALSE);
+		rupsgty.setRegister(false);
+		rupsgty.setTransfer(File.TRANSFER.FALSE);
+		
+		File rup_geom_file = new File("e" + riq.getErfID() + "_rv" + riq.getRuptVarScenID() + "_" + sourceIndex + "_" + rupIndex + ".txt");
+		job2.uses(rup_geom_file, File.LINK.INPUT);
+		
+		job2.addArgument("sgt_xfile=" + rupsgtx.getName());
+		job2.addArgument("sgt_yfile=" + rupsgty.getName());
+
+		if (params.isLargeMemSynth()) {
+			job2.addArgument(" max_buf_mb=" + LARGE_MEM_BUF);
+		}
+		
+     	//PSA args
+     	job2.addArgument("run_psa=1"); //include PSA part
+       	job2.addArgument("simulation_out_pointsX=2"); //2 b/c 2 components
+    	job2.addArgument("simulation_out_pointsY=1"); //# of variations per seismogram
+    	job2.addArgument("simulation_out_timesamples="+NUMTIMESTEPS);// numTimeSteps
+    	job2.addArgument("simulation_out_timeskip="+ LF_TIMESTEP); //dt
+    	job2.addArgument("surfseis_rspectra_seismogram_units=cmpersec");
+    	job2.addArgument("surfseis_rspectra_output_units=cmpersec2");
+    	job2.addArgument("surfseis_rspectra_output_type=aa");
+    	job2.addArgument("surfseis_rspectra_period=" + SPECTRA_PERIOD1);
+    	job2.addArgument("surfseis_rspectra_apply_filter_highHZ="+FILTER_HIGHHZ);
+    	job2.addArgument("surfseis_rspectra_apply_byteswap=no");
+     	             	
+     	job2.uses(rupsgtx,File.LINK.INPUT);
+		job2.uses(rupsgty,File.LINK.INPUT);
+
+		job2.addProfile("globus", "maxWallTime", "2");
+     	job2.addProfile("pegasus", "group", "" + count);
+     	
+     	if (memNeeded>params.getSeisPSAMemCutoff()) {
+            System.err.println("Source " + sourceIndex + ", rupture " + rupIndex + " requires " + memNeeded + " memory, which is more than the permitted " + params.getSeisPSAMemCutoff() + ".  Aborting.");
+            System.exit(4);
+     	} else {
+     		job2.addProfile("pegasus", "label", "" + currDax);
+     	}
+        
+        job2.addProfile("pegasus", "pmc_request_memory", "" + memNeeded);
+
+		return job2;
+	}
+		
 	
 	private Job createSeisPSAJob(int sourceIndex, int rupIndex, int rupvarcount, int numRupPoints, String rupVarLFN, int count, int currDax) {
 		//<profile namespace="pegasus" key="request_memory">100</profile>
