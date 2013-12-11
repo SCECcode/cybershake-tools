@@ -1627,7 +1627,7 @@ public class CyberShake_PP_DAXGen {
 				sourceIndex + "_" + rupIndex + COMBINED_SEISMOGRAM_FILENAME_EXTENSION);
 		File combinedPSAFile = new File(COMBINED_PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
 				sourceIndex + "_" + rupIndex + COMBINED_PEAKVALS_FILENAME_EXTENSION);
-		if (params.isFileForward()) {
+		if (params.isFileForward() || params.isPipeForward()) {
 			seisFiles.add(combinedSeisFile);
 			psaFiles.add(combinedPSAFile);
 		}
