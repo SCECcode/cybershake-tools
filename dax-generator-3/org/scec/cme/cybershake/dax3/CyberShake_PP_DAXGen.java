@@ -1699,7 +1699,6 @@ public class CyberShake_PP_DAXGen {
 			job2.addArgument("stoch_max_freq=-1.0"); //signify no stochastic components
 		}
 			
-		job2.addArgument("num_rup_vars=" + params.getMultiSeisPSAFactor());
 		job2.addArgument("rup_vars=" + rup_var_string.toString());
 			
 		//synth args
