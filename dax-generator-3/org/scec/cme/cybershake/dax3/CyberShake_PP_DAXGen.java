@@ -1619,19 +1619,45 @@ public class CyberShake_PP_DAXGen {
 
 		//Assemble rupture variation string
 		//rup_var_string is in form (<rv_id>,<slip_id>,<hypo_id>);(....)
-		ArrayList<File> seisFiles = new ArrayList<File>();
-		ArrayList<File> psaFiles = new ArrayList<File>();
 		StringBuffer rup_var_string = new StringBuffer("");
 		StringBuffer profileArg = new StringBuffer("");
-		File combinedSeisFile = new File(COMBINED_SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
-				sourceIndex + "_" + rupIndex + COMBINED_SEISMOGRAM_FILENAME_EXTENSION);
-		File combinedPSAFile = new File(COMBINED_PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
-				sourceIndex + "_" + rupIndex + COMBINED_PEAKVALS_FILENAME_EXTENSION);
-		if (params.isFileForward() || params.isPipeForward()) {
-			seisFiles.add(combinedSeisFile);
-			psaFiles.add(combinedPSAFile);
+		File seisFile, psaFile, combinedSeisFile, combinedPsaFile;
+		seisFile = psaFile = combinedSeisFile = combinedPsaFile = null;
+		if (!params.isFileForward() && !params.isPipeForward()) {
+			if (params.isDirHierarchy()) {
+				String dir = sourceIndex + "/" + rupIndex;
+				seisFile = new File(dir + "/" + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
+							sourceIndex + "_" + rupIndex + SEISMOGRAM_FILENAME_EXTENSION);
+				psaFile = new File(dir + "/" + PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
+							sourceIndex + "_" + rupIndex + PEAKVALS_FILENAME_EXTENSION);
+			} else {
+				seisFile = new File(SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
+						sourceIndex + "_" + rupIndex + SEISMOGRAM_FILENAME_EXTENSION);
+				psaFile = new File(PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
+						sourceIndex + "_" + rupIndex + PEAKVALS_FILENAME_EXTENSION);
+			}
+		} else if (params.isFileForward()) {
+			seisFile = new File(TMP_FS + "/" + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
+					sourceIndex + "_" + rupIndex + SEISMOGRAM_FILENAME_EXTENSION);
+			psaFile = new File(TMP_FS + "/" + PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
+					sourceIndex + "_" + rupIndex + PEAKVALS_FILENAME_EXTENSION);
+			combinedSeisFile = new File(COMBINED_SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
+					sourceIndex + "_" + rupIndex + COMBINED_SEISMOGRAM_FILENAME_EXTENSION);
+			combinedPsaFile = new File(COMBINED_PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
+					sourceIndex + "_" + rupIndex + COMBINED_PEAKVALS_FILENAME_EXTENSION);
+			profileArg.append(" -F " + seisFile.getName() + "=" + combinedSeisFile.getName() + " -F " + psaFile.getName() + "=" + combinedPsaFile.getName());
+		} else if (params.isPipeForward()) {
+			seisFile = new File(SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
+					sourceIndex + "_" + rupIndex + SEISMOGRAM_FILENAME_EXTENSION);
+			psaFile = new File(PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
+					sourceIndex + "_" + rupIndex + PEAKVALS_FILENAME_EXTENSION);
+			combinedSeisFile = new File(COMBINED_SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
+					sourceIndex + "_" + rupIndex + COMBINED_SEISMOGRAM_FILENAME_EXTENSION);
+			combinedPsaFile = new File(COMBINED_PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
+					sourceIndex + "_" + rupIndex + COMBINED_PEAKVALS_FILENAME_EXTENSION);
+			//profile arg is set later
 		}
-		
+
 		for (int rv_id: ruptureVariationMap.keySet()) {
 			String lfn = ruptureVariationMap.get(rv_id);
 			String[] pieces = lfn.split("-");
@@ -1641,51 +1667,24 @@ public class CyberShake_PP_DAXGen {
 				rup_var_string.append(";");
 			}
 			rup_var_string.append("(" + rv_id + "," + slip_id + "," + hypo_id + ")");
-			//If we're using file or pipe forwarding, we'll only have 1 seismogram and PSA file;  else we should record all the files
-			File seisFile, psaFile;
-			seisFile = psaFile = null;
-			if (!params.isFileForward() && !params.isPipeForward()) {
-				if (params.isDirHierarchy()) {
-					String dir = sourceIndex + "/" + rupIndex;
-					seisFile = new File(dir + "/" + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
-								sourceIndex + "_" + rupIndex + "_" + rv_id + SEISMOGRAM_FILENAME_EXTENSION);
-					psaFile = new File(dir + "/" + PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
-								sourceIndex + "_" + rupIndex + "_" + rv_id + PEAKVALS_FILENAME_EXTENSION);
-				} else {
-					seisFile = new File(SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
-							sourceIndex + "_" + rupIndex + "_" + rv_id + SEISMOGRAM_FILENAME_EXTENSION);
-					psaFile = new File(PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
-							sourceIndex + "_" + rupIndex + "_" + rv_id + PEAKVALS_FILENAME_EXTENSION);
-				}
-				seisFiles.add(seisFile);
-				psaFiles.add(psaFile);
-			} else if (params.isFileForward()) {
-				seisFile = new File(TMP_FS + "/" + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
-						sourceIndex + "_" + rupIndex + "_" + rv_id + SEISMOGRAM_FILENAME_EXTENSION);
-				psaFile = new File(TMP_FS + "/" + PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
-						sourceIndex + "_" + rupIndex + "_" + rv_id + PEAKVALS_FILENAME_EXTENSION);
-				profileArg.append(" -F " + seisFile.getName() + "=" + combinedSeisFile.getName() + " -F " + psaFile.getName() + "=" + combinedPSAFile.getName());
-			}
+			//Always have just 1 output file; either with file/pipe fwding, or appended to in normal mode			}
 		}
 		
 		if (params.isFileForward()) {
 			//Combine all -F arguments into a single profile
 	        job2.addProfile("pegasus", "pmc_task_arguments", profileArg.toString());
 		} else if (params.isPipeForward()) {
-			job2.addProfile("pegasus", "pmc_task_arguments", "-f " + SEISMOGRAM_ENV_VAR + "=" + combinedSeisFile.getName() + " -f " + PEAKVALS_ENV_VAR + "=" + combinedPSAFile.getName());
+			job2.addProfile("pegasus", "pmc_task_arguments", "-f " + SEISMOGRAM_ENV_VAR + "=" + combinedSeisFile.getName() + " -f " + PEAKVALS_ENV_VAR + "=" + combinedPsaFile.getName());
     		job2.addArgument("pipe_fwd=1");
 		}
 
-		for (File sf: seisFiles) {
-			sf.setRegister(true);
-			sf.setTransfer(TRANSFER.TRUE);
-			job2.uses(sf, File.LINK.OUTPUT);
-		}
-		for (File pf: psaFiles) {
-			pf.setRegister(true);
-			pf.setTransfer(TRANSFER.TRUE);
-			job2.uses(pf, File.LINK.OUTPUT);
-		}
+		seisFile.setRegister(true);
+		seisFile.setTransfer(TRANSFER.TRUE);
+		job2.uses(seisFile, File.LINK.OUTPUT);
+
+		psaFile.setRegister(true);
+		psaFile.setTransfer(TRANSFER.TRUE);
+		job2.uses(psaFile, File.LINK.OUTPUT);
 		
 		//add source, rupture, rupture variation arguments
 		job2.addArgument("source_id=" + sourceIndex);
@@ -1731,11 +1730,14 @@ public class CyberShake_PP_DAXGen {
 		rupsgty.setTransfer(File.TRANSFER.FALSE);
 		
 		File rup_geom_file = new File("e" + riq.getErfID() + "_rv" + riq.getRuptVarScenID() + "_" + sourceIndex + "_" + rupIndex + ".txt");
+		job2.addArgument("rup_geom_file=" + rup_geom_file.getName());
 		job2.uses(rup_geom_file, File.LINK.INPUT);
 		
 		job2.addArgument("sgt_xfile=" + rupsgtx.getName());
 		job2.addArgument("sgt_yfile=" + rupsgty.getName());
 
+		job2.addArgument("seis_file=" + seisFile.getName());
+		
 		if (params.isLargeMemSynth()) {
 			job2.addArgument(" max_buf_mb=" + LARGE_MEM_BUF);
 		}
@@ -1752,7 +1754,8 @@ public class CyberShake_PP_DAXGen {
     	job2.addArgument("surfseis_rspectra_period=" + SPECTRA_PERIOD1);
     	job2.addArgument("surfseis_rspectra_apply_filter_highHZ="+FILTER_HIGHHZ);
     	job2.addArgument("surfseis_rspectra_apply_byteswap=no");
-     	             	
+     	job2.addArgument("out=" + psaFile.getName());             	
+    	
      	job2.uses(rupsgtx,File.LINK.INPUT);
 		job2.uses(rupsgty,File.LINK.INPUT);
 
