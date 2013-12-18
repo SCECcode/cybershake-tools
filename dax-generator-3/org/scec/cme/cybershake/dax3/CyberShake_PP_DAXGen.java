@@ -1736,7 +1736,11 @@ public class CyberShake_PP_DAXGen {
 		job2.addArgument("sgt_xfile=" + rupsgtx.getName());
 		job2.addArgument("sgt_yfile=" + rupsgty.getName());
 
-		job2.addArgument("seis_file=" + seisFile.getName());
+		if (params.isPipeForward()) {
+	     	job2.addArgument("seis_file=" + FD_PATH + "/$" + SEISMOGRAM_ENV_VAR);	
+		} else {
+			job2.addArgument("seis_file=" + seisFile.getName());
+		}
 		
 		if (params.isLargeMemSynth()) {
 			job2.addArgument(" max_buf_mb=" + LARGE_MEM_BUF);
@@ -1754,7 +1758,12 @@ public class CyberShake_PP_DAXGen {
     	job2.addArgument("surfseis_rspectra_period=" + SPECTRA_PERIOD1);
     	job2.addArgument("surfseis_rspectra_apply_filter_highHZ="+FILTER_HIGHHZ);
     	job2.addArgument("surfseis_rspectra_apply_byteswap=no");
-     	job2.addArgument("out=" + psaFile.getName());             	
+    	
+    	if (params.isPipeForward()) {
+        	job2.addArgument("out=" + FD_PATH + "/$" + PEAKVALS_ENV_VAR);
+    	} else {
+    		job2.addArgument("out=" + psaFile.getName());
+    	}
     	
      	job2.uses(rupsgtx,File.LINK.INPUT);
 		job2.uses(rupsgty,File.LINK.INPUT);
