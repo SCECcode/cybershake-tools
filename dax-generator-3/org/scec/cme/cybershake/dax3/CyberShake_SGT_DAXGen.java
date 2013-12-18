@@ -714,6 +714,9 @@ public class CyberShake_SGT_DAXGen {
 		File gridoutFile = new File("gridout_" + riq.getSiteName());
 		File in3DFile = new File("IN3D." + riq.getSiteName() + "." + component);
 		File awpMediaFile = new File("awp." + riq.getSiteName() + ".media");
+		if (sgt_params.isSeparateVelocityJobs()) {
+			awpMediaFile = new File("v_sgt-" + riq.getSiteName());
+		}
 		File headerFile = new File(riq.getSiteName() + "_f" + rwgComponent + "_" + riq.getRunID() + ".sgthead");
 		
 		awpStrainInFile.setTransfer(TRANSFER.FALSE);
