@@ -681,6 +681,12 @@ public class CyberShake_SGT_DAXGen {
 		String id = jobname + "_" + riq.getSiteName() + "_" + riq.getVelModelString() + "_" + component;
 		Job awpJob = new Job(id, NAMESPACE, jobname, VERSION);
 		
+		if (jobname.equals("AWP_GPU") && riq.getSiteName().equals("TEST")) {
+			//Use fewer cores
+			awpJob.addProfile("globus", "hostcount", "50");
+			awpJob.addProfile("globus", "count", "50");
+		}
+		
 		File in3DFile = new File("IN3D." + riq.getSiteName() + "." + component);
 		
 		in3DFile.setTransfer(TRANSFER.FALSE);
