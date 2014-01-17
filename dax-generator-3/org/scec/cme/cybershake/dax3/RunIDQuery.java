@@ -41,6 +41,8 @@ public class RunIDQuery {
 	private final int HALFSPACE_VEL_ID = 3;
 	private final int CVMH_11_9_VEL_ID = 4;
 	private final int CVMSI_4_26_VEL_ID = 5;
+	private final int HADLEY_KANAMORI_ID = 6;
+	private final int CVMH_11_9_NO_GTL_ID = 7;
 	
 	private final String HOSTNAME = "focal.usc.edu";
 	private final String DB_NAME = "CyberShake";
@@ -159,10 +161,15 @@ public class RunIDQuery {
     			velModelString = "cvmh11.2";
     		} else if (velModelID==CVMH_11_9_VEL_ID) {
     			velModelString = "cvmh";
-    		} else if (velModelID==HALFSPACE_VEL_ID) {
-    			velModelString = "1D";
+    		//Taking out halfspace for now, since is really 0D model 
+//    		} else if (velModelID==HALFSPACE_VEL_ID) {
+//    			velModelString = "1d";
     		} else if (velModelID==CVMSI_4_26_VEL_ID) {
     			velModelString = "cvmsi";
+    		} else if (velModelID==HADLEY_KANAMORI_ID) {
+    			velModelString = "hk";
+    		} else if (velModelID==CVMH_11_9_NO_GTL_ID) {
+    			velModelString = "cvmh_nogtl";
     		} else {
     			System.err.println("Velocity model ID " + velModelID + " can't be converted to a string representation.");
     			System.exit(3);
