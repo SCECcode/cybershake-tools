@@ -231,6 +231,15 @@ public class CyberShake_SGT_DAXGen {
 			workflowDAX.addDependency(sgtGenY, postAWPY);
 			workflowDAX.addDependency(postAWPX, updateEnd);
 			workflowDAX.addDependency(postAWPY, updateEnd);
+			
+			Job nanCheckX = addAWPNanCheck("x");
+			workflowDAX.addJob(nanCheckX);
+			Job nanCheckY = addAWPNanCheck("y");
+			workflowDAX.addJob(nanCheckY);
+			workflowDAX.addDependency(sgtGenX, nanCheckX);
+			workflowDAX.addDependency(sgtGenY, nanCheckY);
+			workflowDAX.addDependency(nanCheckX, updateEnd);
+			workflowDAX.addDependency(nanCheckY, updateEnd);
 		} else if (riq.getSgtString().contains("rwg")) {
 			Job sgtGenX = addRWGSGTGen("x");
 			workflowDAX.addJob(sgtGenX);
@@ -774,5 +783,19 @@ public class CyberShake_SGT_DAXGen {
 		postAWPJob.uses(md5OutFile, LINK.OUTPUT);
 		
 		return postAWPJob;
+	}
+	
+	private Job addAWPNanCheck(String component) {
+		String id = "AWP_NaN_Check_" + component;
+		Job awpJob = new Job(id, NAMESPACE, "AWP_NaN_Check", VERSION);
+		
+		File awpStrainInFile = new File("comp_" + component + "/output_sgt/awp-strain-" + riq.getSiteName() + "-f" + component);
+		awpStrainInFile.setTransfer(TRANSFER.FALSE);
+		awpStrainInFile.setRegister(false);
+		
+		awpJob.addArgument(awpStrainInFile.getName());
+		awpJob.uses(awpStrainInFile, LINK.INPUT);
+
+		return awpJob;
 	}
 }
