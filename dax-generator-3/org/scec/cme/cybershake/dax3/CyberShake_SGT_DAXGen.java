@@ -214,18 +214,19 @@ public class CyberShake_SGT_DAXGen {
 //			workflowDAX.addDependency(preSGT, preAWP);
 //			
 			//Changed so we parse the gridout file and then determine the number of processors
-			File genSGTDaxFile = new File(sgt_params.getDirectory() + "/AWP_SGT_" + riq.getSiteName() + ".dax");
+			File genSGTDaxFile = new File("AWP_SGT_" + riq.getSiteName() + ".dax");
 			Job genSGTDAX = addGenSGTDAX(genSGTDaxFile);
 			workflowDAX.addJob(genSGTDAX);
 			workflowDAX.addDependency(preCVM, genSGTDAX);
 			
-			DAX sgtDAX = new DAX("AWP_SGT_" + riq.getSiteName(), genSGTDaxFile.getName());
+			DAX sgtDAX = new DAX("AWP_SGT_" + riq.getSiteName(), sgt_params.getDirectory() + "/" + genSGTDaxFile.getName());
 			sgtDAX.addArgument("--force");
 			sgtDAX.addArgument("-o bluewaters");
 			sgtDAX.addArgument("--basename AWP_SGT_" + riq.getSiteName());
 			workflowDAX.addDAX(sgtDAX);
 //			workflowDAX.addDependency(preAWP, sgtDAX);
 			workflowDAX.addDependency(preCVM, sgtDAX);
+			workflowDAX.addDependency(genSGTDAX, sgtDAX);
 			
 //			Job sgtGenX = addAWPSGTGen("x");
 //			workflowDAX.addJob(sgtGenX);
