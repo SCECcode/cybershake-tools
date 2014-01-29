@@ -273,7 +273,7 @@ public class CyberShake_Integrated_DAXGen {
 			BufferedReader br = new BufferedReader(new FileReader(inputFile));
 			String entry = br.readLine();
 			while (entry!=null) {
-				runIDQueries.add(new RunIDQuery(Integer.parseInt(entry), false));
+				runIDQueries.add(new RunIDQuery(Integer.parseInt(entry)));
 			}
 			br.close();
 		} catch (IOException iex) {
@@ -288,7 +288,7 @@ public class CyberShake_Integrated_DAXGen {
 		ArrayList<RunIDQuery> runIDQueries = new ArrayList<RunIDQuery>();
 		
 		for (String runID: runIDs) {
-			runIDQueries.add(new RunIDQuery(Integer.parseInt(runID), false));
+			runIDQueries.add(new RunIDQuery(Integer.parseInt(runID)));
 		}
 		return runIDQueries;
 	}

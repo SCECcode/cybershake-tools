@@ -1055,7 +1055,7 @@ public class CyberShake_PP_DAXGen {
 
 	private ResultSet getParameters(int runID) {
 		//Populate RunID object
-   		riq = new RunIDQuery(runID, params.isHighFrequency());
+   		riq = new RunIDQuery(runID);
 		dbc = new DBConnect(DB_SERVER, DB, USER, PASS);
 
 		String stationName = riq.getSiteName();

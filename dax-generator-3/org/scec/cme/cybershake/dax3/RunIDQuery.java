@@ -28,6 +28,7 @@ public class RunIDQuery {
 	private double vs30 = -1.0;
 	private double erfSpacing = 1.0;
 	private double frequency = 0.5;
+	private double max_frequency = 0.5;
 
 	private DBConnect dbc;
 
@@ -50,12 +51,12 @@ public class RunIDQuery {
 	private final String USER = "cybershk_ro";
 	private final String PASS = "CyberShake2007";
 	
-	public RunIDQuery(int runID, boolean hf) {
+	public RunIDQuery(int runID) {
 		this.runID = runID;
 		dbc = new DBConnect(HOSTNAME, DB_NAME, USER, PASS);
 		populateRunIDInfo();
 		populateSiteInfo();
-		if (hf) {
+		if (max_frequency > frequency) {
 			retrieveVs30();
 		}
 		dbc.closeConnection();
@@ -132,7 +133,7 @@ public class RunIDQuery {
 
 	private void populateRunIDInfo() {
 		try {
-			String query = "SELECT Site_ID, ERF_ID, SGT_Variation_ID, Rup_Var_Scenario_ID, Velocity_Model_ID, Low_Frequency_Cutoff FROM CyberShake_Runs WHERE Run_ID=" + runID;
+			String query = "SELECT Site_ID, ERF_ID, SGT_Variation_ID, Rup_Var_Scenario_ID, Velocity_Model_ID, Low_Frequency_Cutoff, Max_Frequency FROM CyberShake_Runs WHERE Run_ID=" + runID;
 			ResultSet res = dbc.selectData(query);
 			res.first();
     		if (res.getRow()==0) {
@@ -179,6 +180,7 @@ public class RunIDQuery {
     		}
 
     		frequency = res.getDouble("Low_Frequency_Cutoff");
+    		max_frequency = res.getDouble("Max_Frequency");
     		
     		res.next();
     		if (!res.isAfterLast()) {
