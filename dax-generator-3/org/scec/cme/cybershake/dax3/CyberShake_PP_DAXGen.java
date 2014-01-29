@@ -946,20 +946,23 @@ public class CyberShake_PP_DAXGen {
 	}
 
 
-	private double estimateRuntime(int numVariations, int numRupturePoints) {
+	private double estimateRuntime(int numVariations, int numRupturePoints, double mag) {
 		//From Ranger estimates
 		//return numVariations*(0.45*Math.pow(1.00033, numRupturePoints));
 		//From Kraken estimates
-		double extractTime = 0.603*Math.pow(numRupturePoints, 0.839);
+		//double extractTime = 0.603*Math.pow(numRupturePoints, 0.839);
 		//2.0 is here because read_sgt is on average half the runtime
-		double seisPSATime = numVariations*(2.0*0.00129*Math.pow(numRupturePoints, 0.926));
-		return extractTime + seisPSATime;
+		//double seisPSATime = numVariations*(2.0*0.00129*Math.pow(numRupturePoints, 0.926));
+		//From Blue Waters estimates
+		return numVariations*Math.pow(((double)numRupturePoints)/6000.0, 1.588)*mag;
+		//return extractTime + seisPSATime;
 	}
 
 	private ArrayList<RuptureEntry>[] binRuptures(ResultSet ruptureSet) {
 		try {
 			ArrayList<RuptureEntry>[] bins = new ArrayList[params.getNumOfDAXes()];
 			int i, sourceIndex, rupIndex, numRupPoints, numVars;
+			double mag;
 			double[] runtimes = new double[params.getNumOfDAXes()];
 			ruptureSet.first();
 			//Initialize bins
@@ -968,10 +971,11 @@ public class CyberShake_PP_DAXGen {
 				sourceIndex = ruptureSet.getInt("Source_ID");
 				rupIndex = ruptureSet.getInt("Rupture_ID");
 				numRupPoints = ruptureSet.getInt("Num_Points");
+				mag = ruptureSet.getDouble("Mag");
 				ResultSet variationsSet = getNumVariations(sourceIndex, rupIndex);
 				numVars = variationsSet.getInt("count(*)");
 				bins[i].add(new RuptureEntry(sourceIndex, rupIndex, numRupPoints));
-				runtimes[i] = estimateRuntime(numVars, numRupPoints);
+				runtimes[i] = estimateRuntime(numVars, numRupPoints, mag);
 				ruptureSet.next();
 			}
 			while (!ruptureSet.isAfterLast()) {
@@ -986,10 +990,11 @@ public class CyberShake_PP_DAXGen {
 				sourceIndex = ruptureSet.getInt("Source_ID");
 				rupIndex = ruptureSet.getInt("Rupture_ID");
 				numRupPoints = ruptureSet.getInt("Num_Points");
+				mag = ruptureSet.getDouble("Mag");
 				ResultSet variationsSet = getNumVariations(sourceIndex, rupIndex);
 				numVars = variationsSet.getInt("count(*)");
 				bins[shortestBin].add(new RuptureEntry(sourceIndex, rupIndex, numRupPoints));
-				runtimes[shortestBin] += estimateRuntime(numVars, numRupPoints);
+				runtimes[shortestBin] += estimateRuntime(numVars, numRupPoints, mag);
 				ruptureSet.next();
 			}
 			for (i=0; i<bins.length; i++) {
@@ -1068,7 +1073,7 @@ public class CyberShake_PP_DAXGen {
 	
 	private ResultSet getRuptures(String stationName) {
 		//Sort on reverse # of points
-		String query = "select R.Source_ID, R.Rupture_ID, R.Num_Points " +
+		String query = "select R.Source_ID, R.Rupture_ID, R.Num_Points, R.Mag " +
 		"from CyberShake_Site_Ruptures SR, CyberShake_Sites S, Ruptures R " +
 		"where S.CS_Short_Name=\"" + stationName + "\" " +
 		"and SR.CS_Site_ID=S.CS_Site_ID " +
