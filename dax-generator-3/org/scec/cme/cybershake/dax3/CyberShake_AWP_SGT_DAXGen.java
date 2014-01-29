@@ -2,358 +2,169 @@ package org.scec.cme.cybershake.dax3;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-
-import org.apache.commons.cli.AlreadySelectedException;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.GnuParser;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.OptionBuilder;
-import org.apache.commons.cli.OptionGroup;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
 
 import edu.isi.pegasus.planner.dax.ADAG;
-import edu.isi.pegasus.planner.dax.DAX;
 import edu.isi.pegasus.planner.dax.File;
 import edu.isi.pegasus.planner.dax.Job;
 import edu.isi.pegasus.planner.dax.File.LINK;
 import edu.isi.pegasus.planner.dax.File.TRANSFER;
 
-public class CyberShake_AWP_SGT_DAXGen implements CyberShake_SGT {
-	//Constants
-    private final String DAX_FILENAME_PREFIX = "CyberShake_SGT";
-    private final String DAX_FILENAME_EXTENSION = ".dax";
-	private final String NAMESPACE = "scec";
-	private final String VERSION = "1.0";
-	
-	private double CUTOFF_DISTANCE = 200;
-	
-	private double SPACING = 0.2;
-	private int TIMESTEPS = 20000;
-	private double DT = 0.01;
-	private int TIME_SKIP = 10;
-	private double MOMENT = 1.0e20;
-	private double MAX_FREQ = 0.5;
-	
-	private RunIDQuery riq;
 
-	public CyberShake_AWP_SGT_DAXGen(RunIDQuery r) {
-		riq = r;
-	}
+public class CyberShake_AWP_SGT_DAXGen {
+	//Called as part of workflow to handle custom number of cores for each AWP SGT job
 	
-	public ADAG makeDAX(String velModel) {
-		ADAG workflowDAX = new ADAG(DAX_FILENAME_PREFIX + "_" + riq.getSiteName() + DAX_FILENAME_EXTENSION);
-		// Workflow jobs
-		Job updateStart = addUpdate("SGT_INIT", "SGT_START");
-		workflowDAX.addJob(updateStart);
-		Job preCVM = addPreAWPCVM();
-		workflowDAX.addJob(preCVM);
-		Job vMeshGen = addVMeshGen(velModel);
-		workflowDAX.addJob(vMeshGen);
-		Job preSGT = addPreAWPSGT();
-		workflowDAX.addJob(preSGT);
-		Job sgtGenX = addSGTGen("x");
-		workflowDAX.addJob(sgtGenX);
-		Job sgtGenY = addSGTGen("y");
-		workflowDAX.addJob(sgtGenY);
-		Job writeHeadX = addWriteHead("x");
-		workflowDAX.addJob(writeHeadX);
-		Job writeHeadY = addWriteHead("y");
-		workflowDAX.addJob(writeHeadY);
-		Job reformatX = addReformat("x");
-		workflowDAX.addJob(reformatX);
-		Job reformatY = addReformat("y");
-		workflowDAX.addJob(reformatY);
+	public static void main(String[] args) {
+		if (args.length<4) {
+			System.out.println("Usage: CyberShake_AWP_SGT_DAXGen <run id> <gridout file> <output dax file> ['separate']");
+			System.exit(-1);
+		}
 		
-		Job updateEnd = addUpdate("SGT_START", "SGT_END");
-		workflowDAX.addJob(updateEnd);
-
-		// Notification jobs
-		// Replace with Pegasus notifications!
-		Job notifypreCVM = addNotify("preCVM");
-		workflowDAX.addJob(notifypreCVM);
-		Job notifyvMeshGen = addNotify("vMeshGen");
-		workflowDAX.addJob(notifyvMeshGen);
-		Job notifysgtGenXY = addNotify("sgtGenXY");
-		workflowDAX.addJob(notifysgtGenXY);
+		int runID = Integer.parseInt(args[1]);
+		RunIDQuery riq = new RunIDQuery(runID);
+		String gridoutFilename = args[2];
+		String outputDAXFilename = args[3];
+		boolean separate = false;
+		if (args.length==5) {
+			separate = true;
+		}
 		
-		// Workflow dependencies
-		workflowDAX.addDependency(updateStart, preCVM);
-		workflowDAX.addDependency(preCVM, vMeshGen);
-		workflowDAX.addDependency(preCVM, preSGT);
-		workflowDAX.addDependency(preSGT, sgtGenX);
-		workflowDAX.addDependency(preCVM, sgtGenX);
-		workflowDAX.addDependency(preSGT, sgtGenY);
-		workflowDAX.addDependency(preCVM, sgtGenY);
-		workflowDAX.addDependency(vMeshGen, sgtGenX);
-		workflowDAX.addDependency(vMeshGen, sgtGenY);
-		workflowDAX.addDependency(preSGT, writeHeadX);
-		workflowDAX.addDependency(preSGT, writeHeadY);
-		workflowDAX.addDependency(sgtGenX, reformatX);
-		workflowDAX.addDependency(sgtGenY, reformatY);
-		workflowDAX.addDependency(reformatX, updateEnd);
-		workflowDAX.addDependency(reformatY, updateEnd);
-
-		// Notification dependencies
-		workflowDAX.addDependency(preCVM, notifypreCVM);
-		workflowDAX.addDependency(vMeshGen, notifyvMeshGen);
-		workflowDAX.addDependency(sgtGenX, notifysgtGenXY);
-		workflowDAX.addDependency(sgtGenY, notifysgtGenXY);
-				
-		return workflowDAX;
+		int[] dims = getVolume(gridoutFilename);
+		int[] procDims = getProcessors(dims, riq);
+		
+		ADAG sgtDAX = new ADAG("AWP_SGT_" + "_" + riq.getSiteName() + ".dax");
+		
+		Job preAWP = addPreAWP(riq, separate, procDims);
+		sgtDAX.addJob(preAWP);
+		
+		Job awpSGTxJob = addAWPSGTGen("x", riq);
+		sgtDAX.addJob(awpSGTxJob);
+		Job awpSGTyJob = addAWPSGTGen("y", riq);
+		sgtDAX.addJob(awpSGTyJob);
+		
+		sgtDAX.addDependency(preAWP, awpSGTxJob);
+		sgtDAX.addDependency(preAWP, awpSGTyJob);
+		
+		sgtDAX.writeToFile(outputDAXFilename);
 	}
 
-	private Job addUpdate(String from_state, String to_state) {
-		String id = "UpdateRun_" + to_state + "_" + riq.getSiteName();
-		Job updateJob = new Job(id, NAMESPACE, "UpdateRun", VERSION);
+	private static int[] getVolume(String gridoutFilename) {
+		int[] dims = new int[3];
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(gridoutFilename));
+			//2nd line has nx
+			br.readLine();
+			String line = br.readLine();
+			dims[0] = Integer.parseInt(line.split("=")[1]);
+			for (int i=0; i<dims[0]+1; i++) {
+				br.readLine();
+			}
+			line = br.readLine();
+			dims[1] = Integer.parseInt(line.split("=")[1]);
+			for (int i=0; i<dims[1]+1; i++) {
+				br.readLine();
+			}
+			line = br.readLine();
+			dims[2] = Integer.parseInt(line.split("=")[1]);
+			br.close();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			System.exit(1);
+		}
+		return dims;
+	}
 
-		updateJob.addArgument(riq.getRunID() + "");
-		updateJob.addArgument(from_state);
-		updateJob.addArgument(to_state);
-		
-		updateJob.addProfile("globus", "maxWallTime","5");
-		updateJob.addProfile("hints","executionPool", "shock");
-	
-		return updateJob;
-	}
-   
-	private Job addPreAWPCVM() {
-		String id = "PreAWPCVM_" + riq.getSiteName();
-		Job preCVMJob = new Job(id, NAMESPACE, "PreAWPCVM", VERSION);
-		
-		preCVMJob.addArgument(riq.getSiteName());
-		preCVMJob.addArgument(riq.getErfID() + "");
-		
-		File modelboxFile = new File(riq.getSiteName() + ".modelbox");
-		File gridfileFile = new File("gridfile_" + riq.getSiteName());
-		File gridoutFile = new File("gridout_" + riq.getSiteName());
-		File coordFile = new File("model_coords_GC_" + riq.getSiteName());
-		File paramFile = new File("model_params_GC_" + riq.getSiteName());
-		File boundsFile = new File("model_bounds_GC_" + riq.getSiteName());
-		
-		modelboxFile.setTransfer(File.TRANSFER.FALSE);
-		gridfileFile.setTransfer(File.TRANSFER.FALSE);
-		gridoutFile.setTransfer(File.TRANSFER.FALSE);
-		coordFile.setTransfer(File.TRANSFER.FALSE);
-		paramFile.setTransfer(File.TRANSFER.FALSE);
-		boundsFile.setTransfer(File.TRANSFER.FALSE);
-		
-		modelboxFile.setRegister(false);
-		gridfileFile.setRegister(false);
-		gridoutFile.setRegister(false);
-		coordFile.setRegister(false);
-		paramFile.setRegister(false);
-		boundsFile.setRegister(false);
-		
-		preCVMJob.addArgument(modelboxFile);
-		preCVMJob.addArgument(gridfileFile);
-		preCVMJob.addArgument(gridoutFile);
-		preCVMJob.addArgument(coordFile);
-		preCVMJob.addArgument(paramFile);
-		preCVMJob.addArgument(boundsFile);
-		
-		preCVMJob.uses(modelboxFile, File.LINK.OUTPUT);
-		preCVMJob.uses(gridfileFile, File.LINK.OUTPUT);
-		preCVMJob.uses(gridoutFile, File.LINK.OUTPUT);
-		preCVMJob.uses(coordFile, File.LINK.OUTPUT);
-		preCVMJob.uses(paramFile, File.LINK.OUTPUT);
-		preCVMJob.uses(boundsFile, File.LINK.OUTPUT);
-		
-		return preCVMJob;
-	}
-	
-	private Job addVMeshGen(String velModel) {
-		String id = "AWPMeshGen_" + riq.getSiteName();
-		Job vMeshGenJob = new Job(id, NAMESPACE, "AWPMeshGen", VERSION);
-		
-		File gridoutFile = new File("gridout_" + riq.getSiteName());
-		File coordFile = new File("model_coords_GC_" + riq.getSiteName());
-		File paramsFile = new File("model_params_GC_" + riq.getSiteName());
-		File mediaFile = new File("awp." + riq.getSiteName() + ".media");
-		
-		vMeshGenJob.addArgument(riq.getSiteName());
-		vMeshGenJob.addArgument(gridoutFile);		
-		vMeshGenJob.addArgument(coordFile);
-		vMeshGenJob.addArgument(paramsFile);
-		vMeshGenJob.addArgument(mediaFile);
-		
-		if (velModel.equals("cvms")) {
-			vMeshGenJob.addArgument("cvms");
-		} else if (velModel.equals("cvmh")) {
-			vMeshGenJob.addArgument("cvmh");			
+	private static int[] getProcessors(int[] dims, RunIDQuery riq) {
+		int [] procDims = new int[3];
+		if (riq.getSgtString().equals("awp")) {
+			//Choose core count so that each processor is responsible for 50x50x50 grid points
+			for (int i=0; i<3; i++) {
+				if (dims[i] % 50 != 0) {
+					System.err.println("One of the volume dimensions is " + dims[i] + " which is not divisible by 50.  Aborting.");
+					System.exit(3);
+				}
+				procDims[i] = dims[i] / 50;
+			}
+		} else if (riq.getSgtString().equals("awp_gpu")) {
+			//Choose core count so each processor is responsible for 200x200x200 grid points
+			for (int i=0; i<3; i++) {
+				if (dims[i] % 200 != 0) {
+					System.err.println("One of the volume dimensions is " + dims[i] + " which is not divisible by 200.  Aborting.");
+					System.exit(3);
+				}
+				procDims[i] = dims[i] / 200;
+			}
 		} else {
-			System.out.println(velModel + " is an invalid velocity model option, exiting.");
+			System.err.println("SGT string " + riq.getSgtString() + " is not 'awp' or 'awp_gpu', so we don't know what to do with it in CyberShake_AWP_SGT_DAXGen.");
 			System.exit(2);
 		}
 		
-		gridoutFile.setRegister(false);
-		coordFile.setRegister(false);
-		
-		vMeshGenJob.uses(gridoutFile, File.LINK.INPUT);
-		vMeshGenJob.uses(coordFile, File.LINK.INPUT);
-		vMeshGenJob.uses(paramsFile, File.LINK.INPUT);
-		vMeshGenJob.uses(mediaFile, File.LINK.OUTPUT);
-		
-		return vMeshGenJob;
+		return procDims;
 	}
 	
-	private Job addPreAWPSGT() {
-		String id = "PreAWPSGT_" + riq.getSiteName();
-		Job preSGTJob = new Job(id, NAMESPACE, "PreAWPSGT", VERSION);
+	private static Job addPreAWP(RunIDQuery riq, boolean separate, int[] procDims) {
+		String jobname = "PreAWP";
+		if (riq.getSgtString().equals("awp_gpu")) {
+			jobname = "PreAWP_GPU";
+		}
+		String id = jobname + "_" + riq.getSiteName() + "_" + riq.getVelModelString();
+		Job preAWPJob = new Job(id, "scec", jobname, "1.0");
 		
-		File modelboxFile = new File(riq.getSiteName() + ".modelbox");
 		File gridoutFile = new File("gridout_" + riq.getSiteName());
-		File coordFile = new File("model_coords_GC_" + riq.getSiteName());
+		File mergeVelocityFile = new File("v_sgt-" + riq.getSiteName());
 		File fdlocFile = new File(riq.getSiteName() + ".fdloc");
-		File faultlistFile = new File(riq.getSiteName() + ".faultlist");
-		File radiusFile = new File(riq.getSiteName() + ".radiusfile");
-		File sgtcordFile = new File(riq.getSiteName() + ".cordfile");
-		File awpcordFile = new File("awp." + riq.getSiteName() + ".cordfile");
-		
-		fdlocFile.setTransfer(File.TRANSFER.FALSE);
-		faultlistFile.setTransfer(File.TRANSFER.FALSE);
-		radiusFile.setTransfer(File.TRANSFER.FALSE);
-		sgtcordFile.setTransfer(File.TRANSFER.FALSE);
-		awpcordFile.setTransfer(File.TRANSFER.FALSE);
-		
+		File cordFile = new File(riq.getSiteName() + ".cordfile");
+
+		gridoutFile.setTransfer(TRANSFER.FALSE);
+		mergeVelocityFile.setTransfer(TRANSFER.FALSE);
+		fdlocFile.setTransfer(TRANSFER.FALSE);
+		cordFile.setTransfer(TRANSFER.FALSE);
+
+		gridoutFile.setRegister(false);
+		mergeVelocityFile.setRegister(false);
 		fdlocFile.setRegister(false);
-		faultlistFile.setRegister(false);
-		radiusFile.setRegister(false);
-		sgtcordFile.setRegister(false);
-		awpcordFile.setRegister(false);
+		cordFile.setRegister(false);
 		
-		preSGTJob.addArgument(riq.getSiteName());
-		preSGTJob.addArgument(riq.getErfID() + "");
-		preSGTJob.addArgument(modelboxFile);
-		preSGTJob.addArgument(gridoutFile);
-		preSGTJob.addArgument(coordFile);
-		preSGTJob.addArgument(fdlocFile);
-		preSGTJob.addArgument(faultlistFile);
-		preSGTJob.addArgument(radiusFile);
-		preSGTJob.addArgument(sgtcordFile);
-		preSGTJob.addArgument(awpcordFile);
+		preAWPJob.addArgument("--site " + riq.getSiteName());
+		preAWPJob.addArgument("--gridout " + gridoutFile.getName());
+		preAWPJob.addArgument("--fdloc " + fdlocFile.getName());
+		preAWPJob.addArgument("--cordfile " + cordFile.getName());
+		preAWPJob.addArgument("--frequency " + riq.getFrequencyString());
+		preAWPJob.addArgument("--px " + procDims[0]);
+		preAWPJob.addArgument("--py " + procDims[1]);
+		preAWPJob.addArgument("--pz " + procDims[2]);
 		
-		preSGTJob.uses(modelboxFile, File.LINK.INPUT);
-		preSGTJob.uses(gridoutFile, File.LINK.INPUT);
-		preSGTJob.uses(coordFile, File.LINK.INPUT);
-		preSGTJob.uses(fdlocFile, File.LINK.OUTPUT);
-		preSGTJob.uses(faultlistFile, File.LINK.OUTPUT);
-		preSGTJob.uses(radiusFile, File.LINK.OUTPUT);
-		preSGTJob.uses(sgtcordFile, File.LINK.OUTPUT);
-		preSGTJob.uses(awpcordFile, File.LINK.OUTPUT);
-		
-		return preSGTJob;
-	}
-	
-	private Job addSGTGen(String component) {
-		String id = "AWP_SGTGen_" + component + "_" + riq.getSiteName();
-		Job sgtGenJob = new Job(id, NAMESPACE, "AWP_SGTGen", VERSION);
-		
-		File sourceFile = new File("f" + component + "_src");
-		File cordFile = new File("awp." + riq.getSiteName() + ".cordfile");
-		
-		sgtGenJob.addArgument(riq.getSiteName());
-		
-		sgtGenJob.addArgument(sourceFile);
-		sgtGenJob.addArgument(cordFile);
-		sgtGenJob.addArgument(component);
-		
-		sgtGenJob.uses(sourceFile, File.LINK.INPUT);
-		sgtGenJob.uses(cordFile, File.LINK.INPUT);
-		
-		if (riq.getSiteName().equals("TEST")) {
-			CUTOFF_DISTANCE = 20;
+		//Only need to reformat velocity if we ran separate velocity jobs
+		if (separate) {
+			preAWPJob.addArgument("--velocity-prefix " + mergeVelocityFile);
 		}
 		
-		if (CUTOFF_DISTANCE <= 20) {
-			System.out.println("NOTE: Using cutoff distance=20 SGT params");
-			sgtGenJob.addProfile("globus", "maxWallTime", "360");
-			sgtGenJob.addProfile("globus", "host_count", "60");
-			sgtGenJob.addProfile("globus", "count", "240");
-		} else {
-			sgtGenJob.addProfile("globus", "maxWallTime", "1200");
-			sgtGenJob.addProfile("globus", "host_count", "25");
-			sgtGenJob.addProfile("globus", "count", "400");
+		preAWPJob.uses(gridoutFile, LINK.INPUT);
+		preAWPJob.uses(mergeVelocityFile, LINK.INPUT);
+		preAWPJob.uses(fdlocFile, LINK.INPUT);
+		preAWPJob.uses(cordFile, LINK.INPUT);
+		
+		return preAWPJob;
+	}
+	
+	private static Job addAWPSGTGen(String component, RunIDQuery riq) {
+		String jobname = "AWP";
+		if (riq.getSgtString().equals("awp_gpu")) {
+			jobname = "AWP_GPU";
 		}
+		String id = jobname + "_" + riq.getSiteName() + "_" + riq.getVelModelString() + "_" + component;
+		Job awpJob = new Job(id, "scec", jobname, "1.0");
 		
-		return sgtGenJob;
+		File in3DFile = new File("IN3D." + riq.getSiteName() + "." + component);
+		
+		in3DFile.setTransfer(TRANSFER.FALSE);
+		
+		in3DFile.setRegister(false);
+		
+		awpJob.addArgument(in3DFile);
+			
+		awpJob.uses(in3DFile, LINK.INPUT);
+			
+		return awpJob;
 	}
-
-	
-   private Job addWriteHead(String component) {
-	   String id = "WriteHead_" + component + "_" + riq.getSiteName();
-	   Job writeHeadJob = new Job(id, NAMESPACE, "WriteHead", VERSION);
-
-	   File modelboxFile = new File(riq.getSiteName() + ".modelbox");
-	   File cordFile = new File(riq.getSiteName() + ".cordfile");
-	   File fdlocFile = new File(riq.getSiteName() + ".fdloc");
-	   File gridoutFile = new File("gridout_" + riq.getSiteName());
-	   File velocityFile = new File("awp." + riq.getSiteName() + ".media");
-	   File headerFile = new File(riq.getSiteName() + "_f" + component + "_" + riq.getRunID() + ".sgthead");
-	   
-	   writeHeadJob.addArgument(modelboxFile.getName());
-	   writeHeadJob.addArgument(cordFile.getName());
-	   writeHeadJob.addArgument(fdlocFile.getName());
-	   writeHeadJob.addArgument(gridoutFile.getName());
-	   writeHeadJob.addArgument("" + SPACING);
-	   writeHeadJob.addArgument("" + TIMESTEPS);
-	   writeHeadJob.addArgument("" + DT);
-	   writeHeadJob.addArgument("" + TIME_SKIP);
-	   writeHeadJob.addArgument(component);
-	   writeHeadJob.addArgument("" + MOMENT);
-	   writeHeadJob.addArgument("" + MAX_FREQ);
-	   writeHeadJob.addArgument(velocityFile.getName());
-	   writeHeadJob.addArgument(headerFile.getName());
-	   
-	   headerFile.setRegister(true);
-	   headerFile.setTransfer(File.TRANSFER.TRUE);
-	   
-	   writeHeadJob.uses(modelboxFile, File.LINK.INPUT);
-	   writeHeadJob.uses(cordFile, File.LINK.INPUT);
-	   writeHeadJob.uses(fdlocFile, File.LINK.INPUT);
-	   writeHeadJob.uses(gridoutFile, File.LINK.INPUT);
-	   writeHeadJob.uses(velocityFile, File.LINK.INPUT);
-	   writeHeadJob.uses(headerFile, File.LINK.OUTPUT);
-	   
-	   return writeHeadJob;
-	}
-	
-
-    private Job addReformat(String component) {
-    	String id = "ReformatAWP_" + component + "_" + riq.getSiteName();
-    	Job reformatJob = new Job(id, NAMESPACE, "ReformatAWP", VERSION);
-    	
-    	File sgt = new File(riq.getSiteName() + "_AWP_f" + component + "_" + riq.getRunID() + ".sgt");
-    	File sgt_out = new File(riq.getSiteName() + "_f" + component + "_" + riq.getRunID() + ".sgt");
-    	
-    	reformatJob.addArgument(sgt.getName());
-    	int timestepsInSGT = TIMESTEPS/TIME_SKIP;
-    	reformatJob.addArgument("" + timestepsInSGT);
-    	reformatJob.addArgument(sgt_out.getName());
-    	
-    	sgt_out.setRegister(true);
-    	sgt_out.setTransfer(TRANSFER.TRUE);
-    	
-    	reformatJob.uses(sgt, LINK.INPUT);
-    	reformatJob.uses(sgt_out, LINK.OUTPUT);
-    	
-    	return reformatJob;
-   	}
-
-   
-	private Job addNotify(String stage) {
-		String id = "CyberShakeNotify_" + stage + "_" + riq.getSiteName();
-		Job notifyJob = new Job(id, NAMESPACE, "CyberShakeNotify", VERSION);
 		
-		notifyJob.addArgument(riq.getRunID() + "");
-		notifyJob.addArgument("SGT");		
-		notifyJob.addArgument(stage);
-		
-		notifyJob.addProfile("globus", "maxWallTime", "5");
-		
-		return notifyJob;
-	}
 }

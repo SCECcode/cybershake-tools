@@ -131,7 +131,7 @@ public class CyberShake_SGT_DAXGen {
 			BufferedReader br = new BufferedReader(new FileReader(inputFile));
 			String entry = br.readLine();
 			while (entry!=null) {
-				runIDQueries.add(new RunIDQuery(Integer.parseInt(entry), false));
+				runIDQueries.add(new RunIDQuery(Integer.parseInt(entry)));
 			}
 			br.close();
 		} catch (IOException iex) {
@@ -146,7 +146,7 @@ public class CyberShake_SGT_DAXGen {
 		ArrayList<RunIDQuery> runIDQueries = new ArrayList<RunIDQuery>();
 		
 		for (String runID: runIDs) {
-			runIDQueries.add(new RunIDQuery(Integer.parseInt(runID), false));
+			runIDQueries.add(new RunIDQuery(Integer.parseInt(runID)));
 		}
 		return runIDQueries;
 	}
@@ -208,27 +208,43 @@ public class CyberShake_SGT_DAXGen {
 		workflowDAX.addJob(updateEnd);
 		
 		if (riq.getSgtString().contains("awp")) {
-			Job preAWP = addPreAWP();
-			workflowDAX.addJob(preAWP);
-			workflowDAX.addDependency(velocityJob, preAWP);
-			workflowDAX.addDependency(preSGT, preAWP);
+//			Job preAWP = addPreAWP();
+//			workflowDAX.addJob(preAWP);
+//			workflowDAX.addDependency(velocityJob, preAWP);
+//			workflowDAX.addDependency(preSGT, preAWP);
+//			
+			//Changed so we parse the gridout file and then determine the number of processors
+			File genSGTDaxFile = new File(sgt_params.getDirectory() + "/AWP_SGT_" + riq.getSiteName() + ".dax");
+			Job genSGTDAX = addGenSGTDAX(genSGTDaxFile);
+			workflowDAX.addJob(genSGTDAX);
+			workflowDAX.addDependency(preCVM, genSGTDAX);
 			
-			Job sgtGenX = addAWPSGTGen("x");
-			workflowDAX.addJob(sgtGenX);
-			Job sgtGenY = addAWPSGTGen("y");
-			workflowDAX.addJob(sgtGenY);
+			DAX sgtDAX = new DAX("AWP_SGT_" + riq.getSiteName(), genSGTDaxFile.getName());
+			sgtDAX.addArgument("--force");
+			sgtDAX.addArgument("-o bluewaters");
+			sgtDAX.addArgument("--basename AWP_SGT_" + riq.getSiteName());
+			workflowDAX.addDAX(sgtDAX);
+//			workflowDAX.addDependency(preAWP, sgtDAX);
+			workflowDAX.addDependency(preCVM, sgtDAX);
 			
-			workflowDAX.addDependency(preAWP, sgtGenX);
-			workflowDAX.addDependency(preCVM, sgtGenX);
-			workflowDAX.addDependency(preAWP, sgtGenY);
-			workflowDAX.addDependency(preCVM, sgtGenY);
+//			Job sgtGenX = addAWPSGTGen("x");
+//			workflowDAX.addJob(sgtGenX);
+//			Job sgtGenY = addAWPSGTGen("y");
+//			workflowDAX.addJob(sgtGenY);
+//			
+//			workflowDAX.addDependency(preAWP, sgtGenX);
+//			workflowDAX.addDependency(preCVM, sgtGenX);
+//			workflowDAX.addDependency(preAWP, sgtGenY);
+//			workflowDAX.addDependency(preCVM, sgtGenY);
 			
 			Job postAWPX = addPostAWP("x");
 			workflowDAX.addJob(postAWPX);
 			Job postAWPY = addPostAWP("y");
 			workflowDAX.addJob(postAWPY);
-			workflowDAX.addDependency(sgtGenX, postAWPX);
-			workflowDAX.addDependency(sgtGenY, postAWPY);
+//			workflowDAX.addDependency(sgtGenX, postAWPX);
+//			workflowDAX.addDependency(sgtGenY, postAWPY);
+			workflowDAX.addDependency(sgtDAX, postAWPX);
+			workflowDAX.addDependency(sgtDAX, postAWPY);
 			workflowDAX.addDependency(postAWPX, updateEnd);
 			workflowDAX.addDependency(postAWPY, updateEnd);
 			
@@ -236,8 +252,10 @@ public class CyberShake_SGT_DAXGen {
 			workflowDAX.addJob(nanCheckX);
 			Job nanCheckY = addAWPNanCheck("y");
 			workflowDAX.addJob(nanCheckY);
-			workflowDAX.addDependency(sgtGenX, nanCheckX);
-			workflowDAX.addDependency(sgtGenY, nanCheckY);
+//			workflowDAX.addDependency(sgtGenX, nanCheckX);
+//			workflowDAX.addDependency(sgtGenY, nanCheckY);
+			workflowDAX.addDependency(sgtDAX, nanCheckX);
+			workflowDAX.addDependency(sgtDAX, nanCheckY);
 			workflowDAX.addDependency(nanCheckX, updateEnd);
 			workflowDAX.addDependency(nanCheckY, updateEnd);
 		} else if (riq.getSgtString().contains("rwg")) {
@@ -275,7 +293,32 @@ public class CyberShake_SGT_DAXGen {
 		return workflowDAX;
 	}
 	
-   private Job addUpdate(String from_state, String to_state) {
+	
+	private Job addGenSGTDAX(File daxFile) {
+		//Runs a job which creates a DAX for running the SGT jobs
+		String id = "GenSGTDax_" + riq.getSiteName();
+		Job genSGTDAXJob = new Job(id, NAMESPACE, "GenSGTDax", VERSION);
+
+		File gridoutFile = new File("gridout_" + riq.getSiteName());
+		
+		genSGTDAXJob.addArgument("" + riq.getRunID());
+		genSGTDAXJob.addArgument(gridoutFile.getName());
+		genSGTDAXJob.addArgument(daxFile.getName());
+		if (sgt_params.isSeparateVelocityJobs()) {
+			genSGTDAXJob.addArgument("separate");
+		}
+		genSGTDAXJob.uses(gridoutFile, LINK.INPUT);
+		genSGTDAXJob.uses(daxFile, LINK.OUTPUT);
+		
+		daxFile.setRegister(false);
+		daxFile.setTransfer(TRANSFER.TRUE);
+		
+		genSGTDAXJob.addProfile("hints", "executionPool", "local");
+		
+		return genSGTDAXJob;
+	}
+
+  private Job addUpdate(String from_state, String to_state) {
 		String id = "UpdateRun_" + to_state + "_" + riq.getSiteName();
 		Job updateJob = new Job(id, NAMESPACE, "UpdateRun", VERSION);
 
@@ -305,14 +348,22 @@ public class CyberShake_SGT_DAXGen {
 		
 		modelboxFile.setTransfer(File.TRANSFER.FALSE);
 		gridfileFile.setTransfer(File.TRANSFER.FALSE);
-		gridoutFile.setTransfer(File.TRANSFER.FALSE);
+		if (riq.getSgtString().contains("awp")) {
+			gridoutFile.setTransfer(File.TRANSFER.TRUE);
+		} else {
+			gridoutFile.setTransfer(File.TRANSFER.FALSE);
+		}
 		coordFile.setTransfer(File.TRANSFER.FALSE);
 		paramFile.setTransfer(File.TRANSFER.FALSE);
 		boundsFile.setTransfer(File.TRANSFER.FALSE);
 		
 		modelboxFile.setRegister(false);
 		gridfileFile.setRegister(false);
-		gridoutFile.setRegister(false);
+		if (riq.getSgtString().contains("awp")) {
+			gridoutFile.setRegister(true);
+		} else {
+			gridoutFile.setRegister(false);
+		}
 		coordFile.setRegister(false);
 		paramFile.setRegister(false);
 		boundsFile.setRegister(false);
@@ -323,6 +374,9 @@ public class CyberShake_SGT_DAXGen {
 		preCVMJob.addArgument(coordFile);
 		preCVMJob.addArgument(paramFile);
 		preCVMJob.addArgument(boundsFile);
+		if (riq.getSgtString().contains("gpu")) {
+			preCVMJob.addArgument("-gpu");
+		}
 		
 		preCVMJob.uses(modelboxFile, File.LINK.OUTPUT);
 		preCVMJob.uses(gridfileFile, File.LINK.OUTPUT);
@@ -342,7 +396,7 @@ public class CyberShake_SGT_DAXGen {
 		File coordFile = new File("model_coords_GC_" + riq.getSiteName());
 		
 		vMeshJob.addArgument(riq.getSiteName());
-		vMeshJob.addArgument(gridoutFile);		
+		vMeshJob.addArgument(gridoutFile);
 		vMeshJob.addArgument(coordFile);
 		vMeshJob.addArgument(riq.getVelModelString());
 		
