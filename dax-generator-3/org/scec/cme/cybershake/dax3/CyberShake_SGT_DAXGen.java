@@ -229,6 +229,8 @@ public class CyberShake_SGT_DAXGen {
 			workflowDAX.addDAX(sgtDAX);
 //			workflowDAX.addDependency(preAWP, sgtDAX);
 			workflowDAX.addDependency(preCVM, sgtDAX);
+			workflowDAX.addDependency(velocityJob, genSGTDAX);
+			workflowDAX.addDependency(preSGT, sgtDAX);
 			workflowDAX.addDependency(genSGTDAX, sgtDAX);
 			
 //			Job sgtGenX = addAWPSGTGen("x");
