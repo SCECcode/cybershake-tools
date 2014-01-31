@@ -36,9 +36,9 @@ public class CyberShake_AWP_SGT_DAXGen {
 		Job preAWP = addPreAWP(riq, separate, procDims);
 		sgtDAX.addJob(preAWP);
 		
-		Job awpSGTxJob = addAWPSGTGen("x", riq);
+		Job awpSGTxJob = addAWPSGTGen("x", riq, procDims);
 		sgtDAX.addJob(awpSGTxJob);
-		Job awpSGTyJob = addAWPSGTGen("y", riq);
+		Job awpSGTyJob = addAWPSGTGen("y", riq, procDims);
 		sgtDAX.addJob(awpSGTyJob);
 		
 		sgtDAX.addDependency(preAWP, awpSGTxJob);
@@ -49,17 +49,20 @@ public class CyberShake_AWP_SGT_DAXGen {
 
 	private static int[] getVolume(String gridoutFilename) {
 		int[] dims = new int[3];
+		//Have to swap X and Y for AWP, since gridout has RWG X and RWG Y
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(gridoutFilename));
 			//2nd line has nx
 			br.readLine();
 			String line = br.readLine();
-			dims[0] = Integer.parseInt(line.split("=")[1]);
+			//This is the AWP Y
+			dims[1] = Integer.parseInt(line.split("=")[1]);
 			for (int i=0; i<dims[0]+1; i++) {
 				br.readLine();
 			}
 			line = br.readLine();
-			dims[1] = Integer.parseInt(line.split("=")[1]);
+			//This is AWP X
+			dims[0] = Integer.parseInt(line.split("=")[1]);
 			for (int i=0; i<dims[1]+1; i++) {
 				br.readLine();
 			}
@@ -146,7 +149,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		return preAWPJob;
 	}
 	
-	private static Job addAWPSGTGen(String component, RunIDQuery riq) {
+	private static Job addAWPSGTGen(String component, RunIDQuery riq, int[] procDims) {
 		String jobname = "AWP";
 		if (riq.getSgtString().equals("awp_gpu")) {
 			jobname = "AWP_GPU";
@@ -161,9 +164,19 @@ public class CyberShake_AWP_SGT_DAXGen {
 		in3DFile.setRegister(false);
 		
 		awpJob.addArgument(in3DFile);
-			
+		
 		awpJob.uses(in3DFile, LINK.INPUT);
-			
+		
+		int cores = procDims[0]*procDims[1]*procDims[2];
+		int hosts = cores/32;
+		if (riq.getSgtString().equals("awp_gpu")) {
+			hosts = cores;
+		}
+		
+		awpJob.addProfile("globus", "host_count", "" + hosts);
+		awpJob.addProfile("globus", "count", "" + cores);
+		awpJob.addProfile("pegasus", "cores", "" + cores);
+		
 		return awpJob;
 	}
 		
