@@ -14,7 +14,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 	//Called as part of workflow to handle custom number of cores for each AWP SGT job
 	
 	public static void main(String[] args) {
-		if (args.length<4) {
+		if (args.length<3) {
 			System.out.println("Usage: CyberShake_AWP_SGT_DAXGen <run id> <gridout file> <output dax file> ['separate']");
 			System.exit(-1);
 		}
