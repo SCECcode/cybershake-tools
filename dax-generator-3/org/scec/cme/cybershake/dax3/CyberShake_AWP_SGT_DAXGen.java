@@ -118,10 +118,10 @@ public class CyberShake_AWP_SGT_DAXGen {
 		File cordFile = new File(riq.getSiteName() + ".cordfile");
 
 		//All these must be true b/c we're running these jobs in a sub-directory of the dir they were created in
-		gridoutFile.setTransfer(TRANSFER.FALSE);
-		mergeVelocityFile.setTransfer(TRANSFER.FALSE);
-		fdlocFile.setTransfer(TRANSFER.FALSE);
-		cordFile.setTransfer(TRANSFER.FALSE);
+		gridoutFile.setTransfer(TRANSFER.TRUE);
+		mergeVelocityFile.setTransfer(TRANSFER.TRUE);
+		fdlocFile.setTransfer(TRANSFER.TRUE);
+		cordFile.setTransfer(TRANSFER.TRUE);
 
 		gridoutFile.setRegister(false);
 		mergeVelocityFile.setRegister(false);
