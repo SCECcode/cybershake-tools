@@ -218,6 +218,7 @@ public class CyberShake_SGT_DAXGen {
 			Job genSGTDAX = addGenSGTDAX(genSGTDaxFile);
 			workflowDAX.addJob(genSGTDAX);
 			workflowDAX.addDependency(preCVM, genSGTDAX);
+			workflowDAX.addDependency(preSGT, genSGTDAX);
 			
 			DAX sgtDAX = new DAX("AWP_SGT_" + riq.getSiteName(), genSGTDaxFile.getName());
 			sgtDAX.addArgument("--force");
