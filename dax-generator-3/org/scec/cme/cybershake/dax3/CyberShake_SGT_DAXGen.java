@@ -360,11 +360,7 @@ public class CyberShake_SGT_DAXGen {
 		
 		modelboxFile.setRegister(false);
 		gridfileFile.setRegister(false);
-		if (riq.getSgtString().contains("awp")) {
-			gridoutFile.setRegister(true);
-		} else {
-			gridoutFile.setRegister(false);
-		}
+		gridoutFile.setRegister(false);
 		coordFile.setRegister(false);
 		paramFile.setRegister(false);
 		boundsFile.setRegister(false);
