@@ -112,16 +112,15 @@ public class CyberShake_AWP_SGT_DAXGen {
 		String id = jobname + "_" + riq.getSiteName() + "_" + riq.getVelModelString();
 		Job preAWPJob = new Job(id, "scec", jobname, "1.0");
 		
-		File gridoutFile = new File("gridout_" + riq.getSiteName());
-		File mergeVelocityFile = new File("v_sgt-" + riq.getSiteName());
-		File fdlocFile = new File(riq.getSiteName() + ".fdloc");
-		File cordFile = new File(riq.getSiteName() + ".cordfile");
+		File gridoutFile = new File("../gridout_" + riq.getSiteName());
+		File mergeVelocityFile = new File("../v_sgt-" + riq.getSiteName());
+		File fdlocFile = new File("../" + riq.getSiteName() + ".fdloc");
+		File cordFile = new File("../" + riq.getSiteName() + ".cordfile");
 
-		//All these must be true b/c we're running these jobs in a sub-directory of the dir they were created in
-		gridoutFile.setTransfer(TRANSFER.TRUE);
-		mergeVelocityFile.setTransfer(TRANSFER.TRUE);
-		fdlocFile.setTransfer(TRANSFER.TRUE);
-		cordFile.setTransfer(TRANSFER.TRUE);
+		gridoutFile.setTransfer(TRANSFER.FALSE);
+		mergeVelocityFile.setTransfer(TRANSFER.FALSE);
+		fdlocFile.setTransfer(TRANSFER.FALSE);
+		cordFile.setTransfer(TRANSFER.FALSE);
 
 		gridoutFile.setRegister(false);
 		mergeVelocityFile.setRegister(false);
