@@ -217,7 +217,9 @@ public class CyberShake_SGT_DAXGen {
 			File genSGTDaxFile = new File("AWP_SGT_" + riq.getSiteName() + ".dax");
 			Job genSGTDAX = addGenSGTDAX(genSGTDaxFile);
 			workflowDAX.addJob(genSGTDAX);
+			//To pick up gridout as a dependency
 			workflowDAX.addDependency(preCVM, genSGTDAX);
+			workflowDAX.addDependency(velocityJob, genSGTDAX);
 			workflowDAX.addDependency(preSGT, genSGTDAX);
 			
 			DAX sgtDAX = new DAX("AWP_SGT_" + riq.getSiteName(), genSGTDaxFile.getName());
