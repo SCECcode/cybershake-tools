@@ -19,10 +19,10 @@ public class CyberShake_AWP_SGT_DAXGen {
 			System.exit(-1);
 		}
 		
-		int runID = Integer.parseInt(args[1]);
+		int runID = Integer.parseInt(args[0]);
 		RunIDQuery riq = new RunIDQuery(runID);
-		String gridoutFilename = args[2];
-		String outputDAXFilename = args[3];
+		String gridoutFilename = args[1];
+		String outputDAXFilename = args[2];
 		boolean separate = false;
 		if (args.length==5) {
 			separate = true;
