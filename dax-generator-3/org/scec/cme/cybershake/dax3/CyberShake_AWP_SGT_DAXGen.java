@@ -57,13 +57,13 @@ public class CyberShake_AWP_SGT_DAXGen {
 			String line = br.readLine();
 			//This is the AWP Y
 			dims[1] = Integer.parseInt(line.split("=")[1]);
-			for (int i=0; i<dims[0]+1; i++) {
+			for (int i=0; i<dims[1]+1; i++) {
 				br.readLine();
 			}
 			line = br.readLine();
 			//This is AWP X
 			dims[0] = Integer.parseInt(line.split("=")[1]);
-			for (int i=0; i<dims[1]+1; i++) {
+			for (int i=0; i<dims[0]+1; i++) {
 				br.readLine();
 			}
 			line = br.readLine();

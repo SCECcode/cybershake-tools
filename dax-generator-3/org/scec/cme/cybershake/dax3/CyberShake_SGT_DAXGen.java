@@ -303,7 +303,7 @@ public class CyberShake_SGT_DAXGen {
 		File gridoutFile = new File("gridout_" + riq.getSiteName());
 		
 		genSGTDAXJob.addArgument("" + riq.getRunID());
-		genSGTDAXJob.addArgument(sgt_params.getDirectory() + "/" + gridoutFile.getName());
+		genSGTDAXJob.addArgument(gridoutFile.getName());
 		genSGTDAXJob.addArgument(daxFile.getName());
 		if (sgt_params.isSeparateVelocityJobs()) {
 			genSGTDAXJob.addArgument("separate");
