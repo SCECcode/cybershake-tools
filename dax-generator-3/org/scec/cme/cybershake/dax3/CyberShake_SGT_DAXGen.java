@@ -769,7 +769,7 @@ public class CyberShake_SGT_DAXGen {
 		String id = "PostAWP_" + riq.getSiteName() + "_" + riq.getVelModelString() + "_" + component;
 		Job postAWPJob = new Job(id, NAMESPACE, "PostAWP", VERSION);
 		
-		File awpStrainInFile = new File("comp_" + component + "/output_sgt/awp-strain-" + riq.getSiteName() + "-f" + component);
+		File awpStrainInFile = new File("AWP_SGT_" + riq.getSiteName() + "comp_" + component + "/output_sgt/awp-strain-" + riq.getSiteName() + "-f" + component);
 		//We swap the component value in the output file, because AWP X = RWG Y
 		String rwgComponent = "z";
 		if (component.equals("x")) {
