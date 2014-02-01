@@ -112,10 +112,10 @@ public class CyberShake_AWP_SGT_DAXGen {
 		String id = jobname + "_" + riq.getSiteName() + "_" + riq.getVelModelString();
 		Job preAWPJob = new Job(id, "scec", jobname, "1.0");
 		
-		File gridoutFile = new File("../gridout_" + riq.getSiteName());
-		File mergeVelocityFile = new File("../v_sgt-" + riq.getSiteName());
-		File fdlocFile = new File("../" + riq.getSiteName() + ".fdloc");
-		File cordFile = new File("../" + riq.getSiteName() + ".cordfile");
+		File gridoutFile = new File("gridout_" + riq.getSiteName());
+		File mergeVelocityFile = new File("v_sgt-" + riq.getSiteName());
+		File fdlocFile = new File(riq.getSiteName() + ".fdloc");
+		File cordFile = new File(riq.getSiteName() + ".cordfile");
 
 		gridoutFile.setTransfer(TRANSFER.FALSE);
 		mergeVelocityFile.setTransfer(TRANSFER.FALSE);
@@ -162,17 +162,20 @@ public class CyberShake_AWP_SGT_DAXGen {
 		in3DFile.setTransfer(TRANSFER.FALSE);
 		
 		in3DFile.setRegister(false);
-		
-		awpJob.addArgument(in3DFile);
-		
-		awpJob.uses(in3DFile, LINK.INPUT);
-		
+
 		int cores = procDims[0]*procDims[1]*procDims[2];
 		int hosts = cores/32;
 		if (riq.getSgtString().equals("awp_gpu")) {
 			hosts = cores;
 		}
 		
+		if (riq.getSgtString().equals("awp")) {
+			awpJob.addArgument("" + cores);
+		}
+		awpJob.addArgument(in3DFile);
+		
+		awpJob.uses(in3DFile, LINK.INPUT);
+				
 		awpJob.addProfile("globus", "host_count", "" + hosts);
 		awpJob.addProfile("globus", "count", "" + cores);
 		awpJob.addProfile("pegasus", "cores", "" + cores);
