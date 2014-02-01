@@ -215,6 +215,7 @@ public class CyberShake_SGT_DAXGen {
 //			
 			//Changed so we parse the gridout file and then determine the number of processors
 			File genSGTDaxFile = new File("AWP_SGT_" + riq.getSiteName() + ".dax");
+			genSGTDaxFile.setRegister(false);
 			Job genSGTDAX = addGenSGTDAX(genSGTDaxFile);
 			workflowDAX.addJob(genSGTDAX);
 			//To pick up gridout as a dependency
