@@ -112,10 +112,10 @@ public class CyberShake_AWP_SGT_DAXGen {
 		String id = jobname + "_" + riq.getSiteName() + "_" + riq.getVelModelString();
 		Job preAWPJob = new Job(id, "scec", jobname, "1.0");
 		
-		File gridoutFile = new File("gridout_" + riq.getSiteName());
-		File mergeVelocityFile = new File("v_sgt-" + riq.getSiteName());
-		File fdlocFile = new File(riq.getSiteName() + ".fdloc");
-		File cordFile = new File(riq.getSiteName() + ".cordfile");
+		File gridoutFile = new File("../gridout_" + riq.getSiteName());
+		File mergeVelocityFile = new File("../v_sgt-" + riq.getSiteName());
+		File fdlocFile = new File("../" + riq.getSiteName() + ".fdloc");
+		File cordFile = new File("../" + riq.getSiteName() + ".cordfile");
 
 		gridoutFile.setTransfer(TRANSFER.FALSE);
 		mergeVelocityFile.setTransfer(TRANSFER.FALSE);

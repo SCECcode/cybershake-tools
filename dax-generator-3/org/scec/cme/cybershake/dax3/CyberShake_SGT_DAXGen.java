@@ -769,7 +769,9 @@ public class CyberShake_SGT_DAXGen {
 		String id = "PostAWP_" + riq.getSiteName() + "_" + riq.getVelModelString() + "_" + component;
 		Job postAWPJob = new Job(id, NAMESPACE, "PostAWP", VERSION);
 		
-		File awpStrainInFile = new File("AWP_SGT_" + riq.getSiteName() + "comp_" + component + "/output_sgt/awp-strain-" + riq.getSiteName() + "-f" + component);
+		String awpSubdir = "AWP_SGT_" + riq.getSiteName();
+		
+		File awpStrainInFile = new File(awpSubdir + "/comp_" + component + "/output_sgt/awp-strain-" + riq.getSiteName() + "-f" + component);
 		//We swap the component value in the output file, because AWP X = RWG Y
 		String rwgComponent = "z";
 		if (component.equals("x")) {
@@ -783,7 +785,7 @@ public class CyberShake_SGT_DAXGen {
 		File cordFile = new File(riq.getSiteName() + ".cordfile");
 		File fdlocFile = new File(riq.getSiteName() + ".fdloc");
 		File gridoutFile = new File("gridout_" + riq.getSiteName());
-		File in3DFile = new File("IN3D." + riq.getSiteName() + "." + component);
+		File in3DFile = new File(awpSubdir + "/IN3D." + riq.getSiteName() + "." + component);
 		File awpMediaFile = new File("awp." + riq.getSiteName() + ".media");
 		if (sgt_params.isSeparateVelocityJobs()) {
 			awpMediaFile = new File("v_sgt-" + riq.getSiteName());
@@ -845,7 +847,9 @@ public class CyberShake_SGT_DAXGen {
 		String id = "AWP_NaN_Check_" + component;
 		Job awpJob = new Job(id, NAMESPACE, "AWP_NaN_Check", VERSION);
 		
-		File awpStrainInFile = new File("comp_" + component + "/output_sgt/awp-strain-" + riq.getSiteName() + "-f" + component);
+		String awpSubdir = "AWP_SGT_" + riq.getSiteName();
+		
+		File awpStrainInFile = new File(awpSubdir + "/comp_" + component + "/output_sgt/awp-strain-" + riq.getSiteName() + "-f" + component);
 		awpStrainInFile.setTransfer(TRANSFER.FALSE);
 		awpStrainInFile.setRegister(false);
 		
