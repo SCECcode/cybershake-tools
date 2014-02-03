@@ -164,7 +164,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		in3DFile.setRegister(false);
 
 		int cores = procDims[0]*procDims[1]*procDims[2];
-		int hosts = cores/32;
+		int hosts = (int)Math.ceil(((double)cores)/32);
 		if (riq.getSgtString().equals("awp_gpu")) {
 			hosts = cores;
 		}
