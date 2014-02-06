@@ -32,7 +32,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		int[] dims = getVolume(gridoutFilename);
 		int[] procDims = getProcessors(dims);
 		
-		ADAG sgtDAX = new ADAG("AWP_SGT_" + "_" + riq.getSiteName() + ".dax");
+		ADAG sgtDAX = new ADAG("AWP_SGT_" + riq.getSiteName() + ".dax");
 		
 		Job velocityJob = null;
 		
@@ -69,16 +69,21 @@ public class CyberShake_AWP_SGT_DAXGen {
 		sgtDAX.addDependency(preAWP, awpSGTy);
 		
 		Job postAWPX = addPostAWP("x", separateVelJobs);
+		sgtDAX.addJob(postAWPX);
 		sgtDAX.addDependency(awpSGTx, postAWPX);
 		Job postAWPY = addPostAWP("y", separateVelJobs);
+		sgtDAX.addJob(postAWPY);
 		sgtDAX.addDependency(awpSGTy, postAWPY);
 		
 		Job nanCheckX = addAWPNanCheck("x");
+		sgtDAX.addJob(nanCheckX);
 		sgtDAX.addDependency(awpSGTx, nanCheckX);
 		Job nanCheckY = addAWPNanCheck("y");
+		sgtDAX.addJob(nanCheckY);
 		sgtDAX.addDependency(awpSGTx, nanCheckY);
 		
 		Job updateEnd = addUpdate("SGT_START", "SGT_END");
+		sgtDAX.addJob(updateEnd);
 		sgtDAX.addDependency(postAWPX, updateEnd);
 		sgtDAX.addDependency(postAWPY, updateEnd);
 		sgtDAX.addDependency(postAWPX, updateEnd);
