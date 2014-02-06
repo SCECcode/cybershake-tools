@@ -17,6 +17,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
 import edu.isi.pegasus.planner.dax.ADAG;
+import edu.isi.pegasus.planner.dax.AbstractJob;
 import edu.isi.pegasus.planner.dax.DAX;
 import edu.isi.pegasus.planner.dax.File;
 import edu.isi.pegasus.planner.dax.Job;
@@ -65,6 +66,13 @@ public class CyberShake_SGT_DAXGen {
 		}
 	}
 		
+	//Put all the SGT jobs into topLevelDax
+	public static ArrayList<AbstractJob> subMain(String[] args, ADAG topLevelDax) {
+		parseCommandLine(args);
+		
+		return makeWorkflows(topLevelDax);
+	}
+	
 	public static ADAG[] subMain(String[] args) {
 		parseCommandLine(args);
 
@@ -151,6 +159,16 @@ public class CyberShake_SGT_DAXGen {
 		return runIDQueries;
 	}
 		
+	public static ArrayList<AbstractJob> makeWorkflows(ADAG topLevelDax) {
+		//Put all jobs into topLevelDax
+		ArrayList<AbstractJob> finalJobs = new ArrayList<AbstractJob>();
+		for (int i=0; i<sgt_params.getRunIDQueries().size(); i++) {
+			CyberShake_SGT_DAXGen sd = new CyberShake_SGT_DAXGen(sgt_params.getRunIDQueries().get(i));
+			finalJobs.add(sd.makeDAX(topLevelDax));
+		}
+		return finalJobs;
+	}
+	
 	public static ADAG[] makeWorkflows() {
 		//Create a DAX for each site
 		ADAG[] daxes = new ADAG[sgt_params.getRunIDQueries().size()];
@@ -169,6 +187,11 @@ public class CyberShake_SGT_DAXGen {
 	
 	public ADAG makeDAX() {
 		ADAG workflowDAX = new ADAG(DAX_FILENAME_PREFIX + "_" + riq.getSiteName() + DAX_FILENAME_EXTENSION);
+		makeDAX(workflowDAX);
+		return workflowDAX;
+	}
+	
+	public AbstractJob makeDAX(ADAG workflowDAX) {
 		// Workflow jobs
 		Job updateStart = addUpdate("SGT_INIT", "SGT_START");
 		workflowDAX.addJob(updateStart);
@@ -177,95 +200,60 @@ public class CyberShake_SGT_DAXGen {
 		workflowDAX.addJob(preCVM);
 		workflowDAX.addDependency(updateStart, preCVM);
 		
-		//Use for dependencies
-		Job velocityJob = null;
-		
-		if (sgt_params.isSeparateVelocityJobs()) {
-			Job vMeshGen = addVMeshGen(riq.getVelModelID());
-			workflowDAX.addJob(vMeshGen);
-			workflowDAX.addDependency(preCVM, vMeshGen);
-		
-			Job vMeshMerge = addVMeshMerge();
-			workflowDAX.addJob(vMeshMerge);
-			workflowDAX.addDependency(vMeshGen, vMeshMerge);
-			workflowDAX.addDependency(preCVM, vMeshMerge);
-			
-			velocityJob = vMeshMerge;
-		} else {
-			Job vMeshJob = addVMeshSingle();
-			workflowDAX.addJob(vMeshJob);
-			workflowDAX.addDependency(preCVM, vMeshJob);
-			
-			velocityJob = vMeshJob;
-		}
-
-		Job preSGT = addPreSGT();
-		workflowDAX.addJob(preSGT);
-		workflowDAX.addDependency(preCVM, preSGT);
-
-		//This job is the very last; create here so we can define dependencies 
-		Job updateEnd = addUpdate("SGT_START", "SGT_END");
-		workflowDAX.addJob(updateEnd);
+		//For returning
+		AbstractJob lastJob = null;
 		
 		if (riq.getSgtString().contains("awp")) {
-//			Job preAWP = addPreAWP();
-//			workflowDAX.addJob(preAWP);
-//			workflowDAX.addDependency(velocityJob, preAWP);
-//			workflowDAX.addDependency(preSGT, preAWP);
-//			
-			//Changed so we parse the gridout file and then determine the number of processors
+			//Create extra workflow so we can dynamically select the # of cores
 			File genSGTDaxFile = new File("AWP_SGT_" + riq.getSiteName() + ".dax");
 			genSGTDaxFile.setRegister(false);
 			Job genSGTDAX = addGenSGTDAX(genSGTDaxFile);
 			workflowDAX.addJob(genSGTDAX);
 			//To pick up gridout as a dependency
 			workflowDAX.addDependency(preCVM, genSGTDAX);
-			workflowDAX.addDependency(velocityJob, genSGTDAX);
-			workflowDAX.addDependency(preSGT, genSGTDAX);
 			
 			DAX sgtDAX = new DAX("AWP_SGT_" + riq.getSiteName(), genSGTDaxFile.getName());
 			sgtDAX.addArgument("--force");
 			sgtDAX.addArgument("-o bluewaters");
 			sgtDAX.addArgument("--basename AWP_SGT_" + riq.getSiteName());
 			workflowDAX.addDAX(sgtDAX);
-//			workflowDAX.addDependency(preAWP, sgtDAX);
 			workflowDAX.addDependency(preCVM, sgtDAX);
-			workflowDAX.addDependency(velocityJob, genSGTDAX);
-			workflowDAX.addDependency(preSGT, sgtDAX);
 			workflowDAX.addDependency(genSGTDAX, sgtDAX);
 			
-//			Job sgtGenX = addAWPSGTGen("x");
-//			workflowDAX.addJob(sgtGenX);
-//			Job sgtGenY = addAWPSGTGen("y");
-//			workflowDAX.addJob(sgtGenY);
-//			
-//			workflowDAX.addDependency(preAWP, sgtGenX);
-//			workflowDAX.addDependency(preCVM, sgtGenX);
-//			workflowDAX.addDependency(preAWP, sgtGenY);
-//			workflowDAX.addDependency(preCVM, sgtGenY);
+			lastJob = sgtDAX;
+
+		} else if (riq.getSgtString().contains("rwg")){
+			//RWG
+			//Use for dependencies
+			Job velocityJob = null;
+		
+			if (sgt_params.isSeparateVelocityJobs()) {
+				Job vMeshGen = addVMeshGen(riq.getVelModelID());
+				workflowDAX.addJob(vMeshGen);
+				workflowDAX.addDependency(preCVM, vMeshGen);
+				
+				Job vMeshMerge = addVMeshMerge();
+				workflowDAX.addJob(vMeshMerge);
+				workflowDAX.addDependency(vMeshGen, vMeshMerge);
+				workflowDAX.addDependency(preCVM, vMeshMerge);
 			
-			Job postAWPX = addPostAWP("x");
-			workflowDAX.addJob(postAWPX);
-			Job postAWPY = addPostAWP("y");
-			workflowDAX.addJob(postAWPY);
-//			workflowDAX.addDependency(sgtGenX, postAWPX);
-//			workflowDAX.addDependency(sgtGenY, postAWPY);
-			workflowDAX.addDependency(sgtDAX, postAWPX);
-			workflowDAX.addDependency(sgtDAX, postAWPY);
-			workflowDAX.addDependency(postAWPX, updateEnd);
-			workflowDAX.addDependency(postAWPY, updateEnd);
+				velocityJob = vMeshMerge;
+			} else {
+				Job vMeshJob = addVMeshSingle();
+				workflowDAX.addJob(vMeshJob);
+				workflowDAX.addDependency(preCVM, vMeshJob);
 			
-			Job nanCheckX = addAWPNanCheck("x");
-			workflowDAX.addJob(nanCheckX);
-			Job nanCheckY = addAWPNanCheck("y");
-			workflowDAX.addJob(nanCheckY);
-//			workflowDAX.addDependency(sgtGenX, nanCheckX);
-//			workflowDAX.addDependency(sgtGenY, nanCheckY);
-			workflowDAX.addDependency(sgtDAX, nanCheckX);
-			workflowDAX.addDependency(sgtDAX, nanCheckY);
-			workflowDAX.addDependency(nanCheckX, updateEnd);
-			workflowDAX.addDependency(nanCheckY, updateEnd);
-		} else if (riq.getSgtString().contains("rwg")) {
+				velocityJob = vMeshJob;
+			}
+
+			Job preSGT = addPreSGT();
+			workflowDAX.addJob(preSGT);
+			workflowDAX.addDependency(preCVM, preSGT);
+
+			//This job is the very last; create here so we can define dependencies 
+			Job updateEnd = addUpdate("SGT_START", "SGT_END");
+			workflowDAX.addJob(updateEnd);
+		
 			Job sgtGenX = addRWGSGTGen("x");
 			workflowDAX.addJob(sgtGenX);
 			Job sgtGenY = addRWGSGTGen("y");
@@ -292,12 +280,14 @@ public class CyberShake_SGT_DAXGen {
 			//Dependencies for updateEnd job
 			workflowDAX.addDependency(nanTest, updateEnd);
 			workflowDAX.addDependency(sgtMerge, updateEnd);
+			
+			lastJob = updateEnd;
 		} else {
 			System.err.println("SGT string " + riq.getSgtString() + " does not contain rwg or awp, exiting.");
 			System.exit(1);
 		}
 		
-		return workflowDAX;
+		return lastJob;
 	}
 	
 	
