@@ -198,8 +198,8 @@ public class CyberShake_AWP_SGT_DAXGen {
 		File radiusFile = new File(riq.getSiteName() + ".radiusfile");
 		File sgtcordFile = new File(riq.getSiteName() + ".cordfile");
 		
-		modelboxFile.setTransfer(File.TRANSFER.FALSE);
-		gridoutFile.setTransfer(File.TRANSFER.FALSE);
+		modelboxFile.setTransfer(File.TRANSFER.TRUE);
+		gridoutFile.setTransfer(File.TRANSFER.TRUE);
 		coordFile.setTransfer(File.TRANSFER.FALSE);
 		fdlocFile.setTransfer(File.TRANSFER.FALSE);
 		faultlistFile.setTransfer(File.TRANSFER.FALSE);
