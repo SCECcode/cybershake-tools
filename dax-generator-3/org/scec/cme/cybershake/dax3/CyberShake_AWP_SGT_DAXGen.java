@@ -255,9 +255,9 @@ public class CyberShake_AWP_SGT_DAXGen {
 		File cordFile = new File(riq.getSiteName() + ".cordfile");
 
 		gridoutFile.setTransfer(TRANSFER.TRUE);
-		mergeVelocityFile.setTransfer(TRANSFER.TRUE);
-		fdlocFile.setTransfer(TRANSFER.TRUE);
-		cordFile.setTransfer(TRANSFER.TRUE);
+		mergeVelocityFile.setTransfer(TRANSFER.FALSE);
+		fdlocFile.setTransfer(TRANSFER.FALSE);
+		cordFile.setTransfer(TRANSFER.FALSE);
 
 		gridoutFile.setRegister(false);
 		mergeVelocityFile.setRegister(false);
