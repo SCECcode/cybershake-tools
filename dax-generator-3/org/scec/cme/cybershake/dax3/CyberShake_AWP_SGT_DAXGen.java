@@ -205,7 +205,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		
 		modelboxFile.setTransfer(File.TRANSFER.TRUE);
 		gridoutFile.setTransfer(File.TRANSFER.TRUE);
-		coordFile.setTransfer(File.TRANSFER.FALSE);
+		coordFile.setTransfer(File.TRANSFER.TRUE);
 		fdlocFile.setTransfer(File.TRANSFER.FALSE);
 		faultlistFile.setTransfer(File.TRANSFER.FALSE);
 		radiusFile.setTransfer(File.TRANSFER.FALSE);
