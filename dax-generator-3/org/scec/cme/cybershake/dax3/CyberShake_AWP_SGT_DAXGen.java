@@ -496,9 +496,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		String id = "AWP_NaN_Check_" + component;
 		Job awpJob = new Job(id, "scec", "AWP_NaN_Check", "1.0");
 		
-		String awpSubdir = "AWP_SGT_" + riq.getSiteName();
-		
-		File awpStrainInFile = new File(awpSubdir + "/comp_" + component + "/output_sgt/awp-strain-" + riq.getSiteName() + "-f" + component);
+		File awpStrainInFile = new File("comp_" + component + "/output_sgt/awp-strain-" + riq.getSiteName() + "-f" + component);
 		awpStrainInFile.setTransfer(TRANSFER.FALSE);
 		awpStrainInFile.setRegister(false);
 		
