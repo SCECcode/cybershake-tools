@@ -346,7 +346,7 @@ public class CyberShake_SGT_DAXGen {
 		modelboxFile.setTransfer(File.TRANSFER.FALSE);
 		gridfileFile.setTransfer(File.TRANSFER.FALSE);
 		if (riq.getSgtString().contains("awp")) {
-			gridoutFile.setTransfer(File.TRANSFER.TRUE);
+			gridoutFile.setTransfer(File.TRANSFER.FALSE);
 		} else {
 			gridoutFile.setTransfer(File.TRANSFER.FALSE);
 		}
