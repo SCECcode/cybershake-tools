@@ -172,7 +172,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 			}
 		} else if (riq.getSgtString().equals("awp_gpu")) {
 			//Choose core count to be 10 x 10; each processor must be responsible for an even chunk, so each dim must be divisible by 20
-			for (int i=0; i<3; i++) {
+			for (int i=0; i<2; i++) {
 				if (dims[i] % 20 != 0) {
 					System.err.println("One of the volume dimensions is " + dims[i] + " which is not divisible by 20.  Aborting.");
 					System.exit(3);
