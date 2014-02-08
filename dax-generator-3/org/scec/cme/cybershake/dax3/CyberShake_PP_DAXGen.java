@@ -1459,13 +1459,13 @@ public class CyberShake_PP_DAXGen {
         
 		
 		File seisFile = new File(SEISMOGRAM_FILENAME_PREFIX + 
-			riq.getSiteName() + "_" + sourceIndex + "_" + rupIndex +
+			riq.getSiteName() + "_" + riq.getRunID() + "_" + sourceIndex + "_" + rupIndex +
 			"_"+ rupvarcount + SEISMOGRAM_FILENAME_EXTENSION);                            
 		
 		if (params.isHighFrequency()) {
 			//add 'lf' to file names
 			seisFile = new File(SEISMOGRAM_FILENAME_PREFIX + 
-					riq.getSiteName() + "_" + sourceIndex + "_" + rupIndex +
+					riq.getSiteName() + "_" + riq.getRunID() + "_" + sourceIndex + "_" + rupIndex +
 					"_"+ rupvarcount + "_lf" + SEISMOGRAM_FILENAME_EXTENSION);    
 		}
 		
@@ -1485,7 +1485,7 @@ public class CyberShake_PP_DAXGen {
 
 		if (params.isDirHierarchy()) {
 			seisFile = new File(sourceIndex + "/" + rupIndex + "/" + SEISMOGRAM_FILENAME_PREFIX + 
-			riq.getSiteName() + "_" + sourceIndex + "_" + rupIndex +
+			riq.getSiteName() + "_" + riq.getRunID() + "_" + sourceIndex + "_" + rupIndex +
 			"_"+ rupvarcount + SEISMOGRAM_FILENAME_EXTENSION);
 			
 			rupsgtx = new File(sourceIndex + "/" + rupIndex + "/" + riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfx.sgt");
@@ -1553,11 +1553,11 @@ public class CyberShake_PP_DAXGen {
     	if (params.isDirHierarchy()) {
 			String dir = sourceIndex + "/" + rupIndex;
     		seisFile = new File(dir+ "/" + SEISMOGRAM_FILENAME_PREFIX +
-    	   			riq.getSiteName() + "_" + sourceIndex + "_" + rupIndex +
+    	   			riq.getSiteName() + "_" + riq.getRunID() + "_" + sourceIndex + "_" + rupIndex +
     	   			"_"+rupvarcount+  SEISMOGRAM_FILENAME_EXTENSION);  
     			
 	    	peakValsFile = new File(dir + "/" + PEAKVALS_FILENAME_PREFIX +
-    	    			riq.getSiteName() + "_" + sourceIndex + "_" + rupIndex +
+    	    			riq.getSiteName() + "_" + riq.getRunID() + "_" + sourceIndex + "_" + rupIndex +
     	    			"_"+rupvarcount+ PEAKVALS_FILENAME_EXTENSION);
     	}
     	
@@ -1632,34 +1632,34 @@ public class CyberShake_PP_DAXGen {
 			if (params.isDirHierarchy()) {
 				String dir = sourceIndex + "/" + rupIndex;
 				seisFile = new File(dir + "/" + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
-							sourceIndex + "_" + rupIndex + SEISMOGRAM_FILENAME_EXTENSION);
+						riq.getRunID() + "_" + sourceIndex + "_" + rupIndex + SEISMOGRAM_FILENAME_EXTENSION);
 				psaFile = new File(dir + "/" + PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
-							sourceIndex + "_" + rupIndex + PEAKVALS_FILENAME_EXTENSION);
+						riq.getRunID() + "_" + sourceIndex + "_" + rupIndex + PEAKVALS_FILENAME_EXTENSION);
 			} else {
 				seisFile = new File(SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
-						sourceIndex + "_" + rupIndex + SEISMOGRAM_FILENAME_EXTENSION);
+						riq.getRunID() + "_" + sourceIndex + "_" + rupIndex + SEISMOGRAM_FILENAME_EXTENSION);
 				psaFile = new File(PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
-						sourceIndex + "_" + rupIndex + PEAKVALS_FILENAME_EXTENSION);
+						riq.getRunID() + "_" + sourceIndex + "_" + rupIndex + PEAKVALS_FILENAME_EXTENSION);
 			}
 		} else if (params.isFileForward()) {
 			seisFile = new File(TMP_FS + "/" + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
-					sourceIndex + "_" + rupIndex + SEISMOGRAM_FILENAME_EXTENSION);
+					riq.getRunID() + "_" + sourceIndex + "_" + rupIndex + SEISMOGRAM_FILENAME_EXTENSION);
 			psaFile = new File(TMP_FS + "/" + PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
-					sourceIndex + "_" + rupIndex + PEAKVALS_FILENAME_EXTENSION);
+					riq.getRunID() + "_" + sourceIndex + "_" + rupIndex + PEAKVALS_FILENAME_EXTENSION);
 			combinedSeisFile = new File(COMBINED_SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
-					sourceIndex + "_" + rupIndex + COMBINED_SEISMOGRAM_FILENAME_EXTENSION);
+					riq.getRunID() + "_" + sourceIndex + "_" + rupIndex + COMBINED_SEISMOGRAM_FILENAME_EXTENSION);
 			combinedPsaFile = new File(COMBINED_PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
-					sourceIndex + "_" + rupIndex + COMBINED_PEAKVALS_FILENAME_EXTENSION);
+					riq.getRunID() + "_" + sourceIndex + "_" + rupIndex + COMBINED_PEAKVALS_FILENAME_EXTENSION);
 			profileArg.append(" -F " + seisFile.getName() + "=" + combinedSeisFile.getName() + " -F " + psaFile.getName() + "=" + combinedPsaFile.getName());
 		} else if (params.isPipeForward()) {
 			seisFile = new File(SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
-					sourceIndex + "_" + rupIndex + SEISMOGRAM_FILENAME_EXTENSION);
+					riq.getRunID() + "_" + sourceIndex + "_" + rupIndex + SEISMOGRAM_FILENAME_EXTENSION);
 			psaFile = new File(PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
-					sourceIndex + "_" + rupIndex + PEAKVALS_FILENAME_EXTENSION);
+					riq.getRunID() + "_" + sourceIndex + "_" + rupIndex + PEAKVALS_FILENAME_EXTENSION);
 			combinedSeisFile = new File(COMBINED_SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
-					sourceIndex + "_" + rupIndex + COMBINED_SEISMOGRAM_FILENAME_EXTENSION);
+					riq.getRunID() + "_" + sourceIndex + "_" + rupIndex + COMBINED_SEISMOGRAM_FILENAME_EXTENSION);
 			combinedPsaFile = new File(COMBINED_PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
-					sourceIndex + "_" + rupIndex + COMBINED_PEAKVALS_FILENAME_EXTENSION);
+					riq.getRunID() + "_" + sourceIndex + "_" + rupIndex + COMBINED_PEAKVALS_FILENAME_EXTENSION);
 			//profile arg is set later
 		}
 
