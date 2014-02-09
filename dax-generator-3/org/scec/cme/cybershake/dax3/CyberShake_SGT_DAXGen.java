@@ -207,6 +207,7 @@ public class CyberShake_SGT_DAXGen {
 			//Create extra workflow so we can dynamically select the # of cores
 			File genSGTDaxFile = new File("AWP_SGT_" + riq.getSiteName() + ".dax");
 			genSGTDaxFile.setRegister(false);
+			genSGTDaxFile.setTransfer(TRANSFER.FALSE);
 			Job genSGTDAX = addGenSGTDAX(genSGTDaxFile);
 			workflowDAX.addJob(genSGTDAX);
 			//To pick up gridout as a dependency
