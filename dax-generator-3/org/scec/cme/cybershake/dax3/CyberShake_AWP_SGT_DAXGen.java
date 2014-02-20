@@ -80,7 +80,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		sgtDAX.addDependency(awpSGTx, nanCheckX);
 		Job nanCheckY = addAWPNanCheck("y");
 		sgtDAX.addJob(nanCheckY);
-		sgtDAX.addDependency(awpSGTx, nanCheckY);
+		sgtDAX.addDependency(awpSGTy, nanCheckY);
 		
 		Job updateEnd = addUpdate("SGT_START", "SGT_END");
 		sgtDAX.addJob(updateEnd);
