@@ -86,8 +86,8 @@ public class CyberShake_AWP_SGT_DAXGen {
 		sgtDAX.addJob(updateEnd);
 		sgtDAX.addDependency(postAWPX, updateEnd);
 		sgtDAX.addDependency(postAWPY, updateEnd);
-		sgtDAX.addDependency(postAWPX, updateEnd);
-		sgtDAX.addDependency(postAWPX, updateEnd);
+		sgtDAX.addDependency(nanCheckX, updateEnd);
+		sgtDAX.addDependency(nanCheckY, updateEnd);
 		
 		sgtDAX.writeToFile(outputDAXFilename);
 		
