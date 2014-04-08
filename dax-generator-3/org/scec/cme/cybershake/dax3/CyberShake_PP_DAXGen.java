@@ -615,7 +615,13 @@ public class CyberShake_PP_DAXGen {
 		6.sgthead --header-y SGRTT_fy_336.sgthead --erf-id 35 --rup-list SGRTT_rupture_list.txt */
 		if (params.isUseAWP()) {
 	       	 //Use AWP SGTs;  need to include headers as arguments
-	  		 Job extractSGTMPIJob = new Job("Extract_SGT_MPI_AWP_" + currDax, NAMESPACE, EXTRACT_SGT_MPI_AWP_NAME, VERSION);
+			 Job extractSGTMPIJob = null;
+			 if (riq.getRuptVarScenID()==5) {
+				 //Use version linked with RupGen-api-3.3.1
+				 extractSGTMPIJob = new Job("Extract_SGT_MPI_AWP_" + currDax, NAMESPACE, EXTRACT_SGT_MPI_AWP_NAME, "3.3.1");	 
+			 } else {
+				 extractSGTMPIJob = new Job("Extract_SGT_MPI_AWP_" + currDax, NAMESPACE, EXTRACT_SGT_MPI_AWP_NAME, VERSION);
+			 }
 			
 	 		 extractSGTMPIJob.addArgument("--site " + riq.getSiteName());
 			 extractSGTMPIJob.addArgument("--lat " + riq.getLat());
@@ -658,8 +664,15 @@ public class CyberShake_PP_DAXGen {
 	         
 	         return extractSGTMPIJob;
 		}
-			
-		Job extractSGTMPIJob = new Job("Extract_SGT_MPI_" + currDax, NAMESPACE, EXTRACT_SGT_MPI_NAME, VERSION);
+		
+		Job extractSGTMPIJob = null;
+		if (riq.getRuptVarScenID()==5) {
+			 //Use version linked with RupGen-api-3.3.1
+			 extractSGTMPIJob = new Job("Extract_SGT_MPI_AWP_" + currDax, NAMESPACE, EXTRACT_SGT_MPI_NAME, "3.3.1");	 
+		} else {
+			 extractSGTMPIJob = new Job("Extract_SGT_MPI_AWP_" + currDax, NAMESPACE, EXTRACT_SGT_MPI_NAME, VERSION);
+		}
+		extractSGTMPIJob = new Job("Extract_SGT_MPI_" + currDax, NAMESPACE, EXTRACT_SGT_MPI_NAME, VERSION);
 		
 		//Switch to flagged arguments
 		
@@ -1807,7 +1820,12 @@ public class CyberShake_PP_DAXGen {
 			seisPSAName = SEIS_PSA_LARGE_MEM_NAME;
 		}
 		
-		Job job2= new Job(id2, NAMESPACE, seisPSAName, VERSION);
+		Job job2 = null;
+		if (riq.getRuptVarScenID()==5) {
+			job2 = new Job(id2, NAMESPACE, seisPSAName, "3.3.1");
+		} else {
+			job2 = new Job(id2, NAMESPACE, seisPSAName, VERSION);
+		}
         
 		File seisFile = null;
 		File peakValsFile = null;
@@ -1932,15 +1950,24 @@ public class CyberShake_PP_DAXGen {
 		
 		if (params.isJbsimRVMem()) {
 			//Don't use rupture file;  instead, use source/rupture/slip/hypo arguments
-			//43_0.txt.variation-s0000-h0000
-			String[] pieces = rupVarLFN.split("-");
-			int slip = Integer.parseInt(pieces[1].substring(1));
-			int hypo = Integer.parseInt(pieces[2].substring(1));
+			int slip = -2;
+			int hypo = -2;
+			if (riq.getRuptVarScenID()==5) {
+				//43_0.txt.variation-r000000
+				String[] pieces = rupVarLFN.split("-");
+				slip = Integer.parseInt(pieces[1].substring(1));
+				hypo = 0;
+			} else {
+				//43_0.txt.variation-s0000-h0000
+				String[] pieces = rupVarLFN.split("-");
+				slip = Integer.parseInt(pieces[1].substring(1));
+				hypo = Integer.parseInt(pieces[2].substring(1));
+			}
 			job2.addArgument("slip=" + slip);
 			job2.addArgument("hypo=" + hypo);
- 			File rup_geom_file = new File("e" + riq.getErfID() + "_rv" + riq.getRuptVarScenID() + "_" + sourceIndex + "_" + rupIndex + ".txt");
- 			job2.addArgument("rup_geom_file=" + rup_geom_file.getName());
- 			job2.uses(rup_geom_file, File.LINK.INPUT);
+			File rup_geom_file = new File("e" + riq.getErfID() + "_rv" + riq.getRuptVarScenID() + "_" + sourceIndex + "_" + rupIndex + ".txt");
+			job2.addArgument("rup_geom_file=" + rup_geom_file.getName());
+			job2.uses(rup_geom_file, File.LINK.INPUT);
 		} else {
 			job2.addArgument("rupmodfile=" + rupVarFile.getName());
 	     	job2.uses(rupVarFile,File.LINK.INPUT);   
