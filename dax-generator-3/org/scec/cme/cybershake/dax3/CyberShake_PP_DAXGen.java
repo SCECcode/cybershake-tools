@@ -1835,31 +1835,31 @@ public class CyberShake_PP_DAXGen {
 		if (params.isDirHierarchy()) {
 			String dir = sourceIndex + "/" + rupIndex;
 			seisFile = new File(dir + "/" +
-					SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
+					SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() + "_" + 
 					sourceIndex + "_" + rupIndex + "_" + rupvarcount + SEISMOGRAM_FILENAME_EXTENSION);
 			
 			peakValsFile = new File(dir + "/" +
-					PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
+					PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() + "_" +
 					sourceIndex + "_" + rupIndex + "_" + rupvarcount + PEAKVALS_FILENAME_EXTENSION);
 		} else {
 			seisFile = new File(SEISMOGRAM_FILENAME_PREFIX + 
-					riq.getSiteName() + "_" + sourceIndex + "_" + rupIndex +
+					riq.getSiteName() + "_" + riq.getRunID() + "_" + sourceIndex + "_" + rupIndex +
 					"_"+ rupvarcount + SEISMOGRAM_FILENAME_EXTENSION);                            
 			
 			peakValsFile = new File(PEAKVALS_FILENAME_PREFIX +
-	    			riq.getSiteName() + "_" + sourceIndex + "_" + rupIndex +
+	    			riq.getSiteName() + "_" + riq.getRunID() + "_" + sourceIndex + "_" + rupIndex +
 	    			"_"+rupvarcount+ PEAKVALS_FILENAME_EXTENSION);
 		}
 		
 		if (params.isFileForward()) {
 			//Can overwrite dir hierarchy, since /tmp filesystem is node-local
-			seisFile = new File(TMP_FS + "/" + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
+			seisFile = new File(TMP_FS + "/" + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() + "_" +
 					sourceIndex + "_" + rupIndex + "_" + rupvarcount + SEISMOGRAM_FILENAME_EXTENSION);
-			combinedSeisFile = new File(COMBINED_SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
+			combinedSeisFile = new File(COMBINED_SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() + "_" +
 					sourceIndex + "_" + rupIndex + COMBINED_SEISMOGRAM_FILENAME_EXTENSION);
-			peakValsFile = new File(TMP_FS + "/" + PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
+			peakValsFile = new File(TMP_FS + "/" + PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() + "_" +
 					sourceIndex + "_" + rupIndex + "_" + rupvarcount + PEAKVALS_FILENAME_EXTENSION);
-			combinedPeakValsFile = new File(COMBINED_PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
+			combinedPeakValsFile = new File(COMBINED_PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() + "_" +
 					sourceIndex + "_" + rupIndex + COMBINED_PEAKVALS_FILENAME_EXTENSION);
 			
 			//Combine all -F arguments into a single profile
@@ -1885,9 +1885,9 @@ public class CyberShake_PP_DAXGen {
 			}
 	    } else if (params.isPipeForward()) {
 			//Can overwrite dir hierarchy - no intermediate files
-			combinedSeisFile = new File(COMBINED_SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
+			combinedSeisFile = new File(COMBINED_SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() + "_" +
 					sourceIndex + "_" + rupIndex + COMBINED_SEISMOGRAM_FILENAME_EXTENSION);
-			combinedPeakValsFile = new File(COMBINED_PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
+			combinedPeakValsFile = new File(COMBINED_PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() + "_" +
 					sourceIndex + "_" + rupIndex + COMBINED_PEAKVALS_FILENAME_EXTENSION);
 			
 			//Combine all -f arguments into a single profile
