@@ -257,10 +257,8 @@ public class CyberShake_SGT_DAXGen {
 		
 			Job sgtGenX = addRWGSGTGen("x");
 			workflowDAX.addJob(sgtGenX);
-			returnJobs.add(sgtGenX);
 			Job sgtGenY = addRWGSGTGen("y");
 			workflowDAX.addJob(sgtGenY);
-			returnJobs.add(sgtGenY);
 			
 			workflowDAX.addDependency(preSGT, sgtGenX);
 			workflowDAX.addDependency(preCVM, sgtGenX);
@@ -279,6 +277,7 @@ public class CyberShake_SGT_DAXGen {
 			workflowDAX.addJob(sgtMerge);
 			workflowDAX.addDependency(sgtGenX, sgtMerge);
 			workflowDAX.addDependency(sgtGenY, sgtMerge);
+			returnJobs.add(sgtMerge);
 
 			//Dependencies for updateEnd job
 			workflowDAX.addDependency(nanTest, updateEnd);
