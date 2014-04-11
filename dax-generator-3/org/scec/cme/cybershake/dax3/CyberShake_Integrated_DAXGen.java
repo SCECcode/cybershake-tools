@@ -86,7 +86,7 @@ public class CyberShake_Integrated_DAXGen {
 			for (AbstractJob job : jobRefs) {
 				if (job.getName().contains("Update")) {
 					lastJob = job;
-				} else if (job.getName().contains("SGT")) {
+				} else if (job.getName().contains("Merge")) {
 					sgtJobs.add(job);
 				}
 			}
