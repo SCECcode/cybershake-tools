@@ -67,7 +67,7 @@ public class CyberShake_SGT_DAXGen {
 	}
 		
 	//Put all the SGT jobs into topLevelDax
-	public static ArrayList<AbstractJob> subMain(String[] args, ADAG topLevelDax) {
+	public static ArrayList<ArrayList<AbstractJob>> subMain(String[] args, ADAG topLevelDax) {
 		parseCommandLine(args);
 		
 		return makeWorkflows(topLevelDax);
@@ -159,9 +159,9 @@ public class CyberShake_SGT_DAXGen {
 		return runIDQueries;
 	}
 		
-	public static ArrayList<AbstractJob> makeWorkflows(ADAG topLevelDax) {
+	public static ArrayList<ArrayList<AbstractJob>> makeWorkflows(ADAG topLevelDax) {
 		//Put all jobs into topLevelDax
-		ArrayList<AbstractJob> finalJobs = new ArrayList<AbstractJob>();
+		ArrayList<ArrayList<AbstractJob>> finalJobs = new ArrayList<ArrayList<AbstractJob>>();
 		for (int i=0; i<sgt_params.getRunIDQueries().size(); i++) {
 			CyberShake_SGT_DAXGen sd = new CyberShake_SGT_DAXGen(sgt_params.getRunIDQueries().get(i));
 			finalJobs.add(sd.makeDAX(topLevelDax));
@@ -191,7 +191,7 @@ public class CyberShake_SGT_DAXGen {
 		return workflowDAX;
 	}
 	
-	public AbstractJob makeDAX(ADAG workflowDAX) {
+	public ArrayList<AbstractJob> makeDAX(ADAG workflowDAX) {
 		// Workflow jobs
 		Job updateStart = addUpdate("SGT_INIT", "SGT_START");
 		workflowDAX.addJob(updateStart);
@@ -201,7 +201,7 @@ public class CyberShake_SGT_DAXGen {
 		workflowDAX.addDependency(updateStart, preCVM);
 		
 		//For returning
-		AbstractJob lastJob = null;
+		ArrayList<AbstractJob> returnJobs = new ArrayList<AbstractJob>();
 		
 		if (riq.getSgtString().contains("awp")) {
 			//Create extra workflow so we can dynamically select the # of cores
@@ -221,7 +221,7 @@ public class CyberShake_SGT_DAXGen {
 			workflowDAX.addDependency(preCVM, sgtDAX);
 			workflowDAX.addDependency(genSGTDAX, sgtDAX);
 			
-			lastJob = sgtDAX;
+			returnJobs.add(sgtDAX);
 
 		} else if (riq.getSgtString().contains("rwg")){
 			//RWG
@@ -257,8 +257,10 @@ public class CyberShake_SGT_DAXGen {
 		
 			Job sgtGenX = addRWGSGTGen("x");
 			workflowDAX.addJob(sgtGenX);
+			returnJobs.add(sgtGenX);
 			Job sgtGenY = addRWGSGTGen("y");
 			workflowDAX.addJob(sgtGenY);
+			returnJobs.add(sgtGenY);
 			
 			workflowDAX.addDependency(preSGT, sgtGenX);
 			workflowDAX.addDependency(preCVM, sgtGenX);
@@ -282,13 +284,13 @@ public class CyberShake_SGT_DAXGen {
 			workflowDAX.addDependency(nanTest, updateEnd);
 			workflowDAX.addDependency(sgtMerge, updateEnd);
 			
-			lastJob = updateEnd;
+			returnJobs.add(updateEnd);
 		} else {
 			System.err.println("SGT string " + riq.getSgtString() + " does not contain rwg or awp, exiting.");
 			System.exit(1);
 		}
 		
-		return lastJob;
+		return returnJobs;
 	}
 	
 	

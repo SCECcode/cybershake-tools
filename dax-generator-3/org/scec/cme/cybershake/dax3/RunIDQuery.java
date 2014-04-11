@@ -29,6 +29,7 @@ public class RunIDQuery {
 	private double erfSpacing = 1.0;
 	private double frequency = 0.5;
 	private double max_frequency = 0.5;
+	private int numComponents = 2; 
 
 	private DBConnect dbc;
 
@@ -265,6 +266,14 @@ public class RunIDQuery {
 
 	public String getFrequencyString() {
 		return String.format("%.1f", frequency);
+	}
+
+	public int getNumComponents() {
+		return numComponents;
+	}
+
+	public void setNumComponents(int numComponents) {
+		this.numComponents = numComponents;
 	}
 
 }
