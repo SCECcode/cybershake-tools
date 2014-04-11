@@ -85,7 +85,7 @@ public class CyberShake_Integrated_DAXGen {
 			ArrayList<AbstractJob> sgtJobs = new ArrayList<AbstractJob>();
 			for (AbstractJob job : jobRefs) {
 				if (job.getName().contains("Update")) {
-					lastJob = null;
+					lastJob = job;
 				} else if (job.getName().contains("SGT")) {
 					sgtJobs.add(job);
 				}
