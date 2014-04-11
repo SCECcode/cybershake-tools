@@ -78,8 +78,20 @@ public class CyberShake_Integrated_DAXGen {
 		if (runIDQueries.size()==1) {
 			//If only 1 site, then remove a layer of the hierarchy and put SGT jobs right into top-level DAX
 			
-			//Abstract b/c could be AWP SGT workflow, or UpdateEnd
-			AbstractJob lastJob = CyberShake_SGT_DAXGen.subMain(sgtArgs, topLevelDax).get(0);
+			//Only 1 arrayList since there's only 1 site, so use that
+			ArrayList<AbstractJob> jobRefs = CyberShake_SGT_DAXGen.subMain(sgtArgs, topLevelDax).get(0);
+			//Get the update job
+			AbstractJob lastJob = null;
+			ArrayList<AbstractJob> sgtJobs = new ArrayList<AbstractJob>();
+			for (AbstractJob job : jobRefs) {
+				if (job.getName().contains("Update")) {
+					lastJob = null;
+				} else if (job.getName().contains("SGT")) {
+					sgtJobs.add(job);
+				}
+			}
+			
+			
 			//Create get job ID job - since the last job in the SGT workflow clears out the Job ID
 			Job getJobIDJob = createJobIDJob(runIDQueries.get(0), directory);
 			topLevelDax.addJob(getJobIDJob);
@@ -116,6 +128,12 @@ public class CyberShake_Integrated_DAXGen {
 			preDFile.addPhysicalFile("file://" + cont.getParams().getPPDirectory() + "/" + preDAXFilename, "local");
 			topLevelDax.addFile(preDFile);
 			topLevelDax.addDependency(getJobIDJob, preD);
+			//If we didn't use the AWP sub-SGT workflow, then the SGT jobs are in the top-level wf, and the PRE workflow needs to be a child of them to pick up the SGT files
+			if (runIDQueries.get(0).getSgtString().contains("rwg")) {
+				for (AbstractJob sgtJob : sgtJobs) {
+					topLevelDax.addDependency(sgtJob, preD);
+				}
+			}
 			
 			//subWfs
 			ArrayList<String> subWfs = cont.getSubWorkflows();
