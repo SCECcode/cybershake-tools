@@ -46,6 +46,8 @@ public class PP_DAXParameters {
 	private boolean useMultiSeisPSA = false;
 	private int multiSeisPSAFactor = 1;
 	
+	private boolean sourceForward = false;
+	
 	//BW has 56 GB permitted per node
 	private int seisPSAMemCutoff = 56*1024;
 
@@ -307,5 +309,13 @@ public class PP_DAXParameters {
 
 	public void setMultiSeisPSAFactor(int multiSeisPSAFactor) {
 		this.multiSeisPSAFactor = multiSeisPSAFactor;
+	}
+
+	public boolean isSourceForward() {
+		return sourceForward;
+	}
+
+	public void setSourceForward(boolean sourceForward) {
+		this.sourceForward = sourceForward;
 	}
 }

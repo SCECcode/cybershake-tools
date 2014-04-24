@@ -87,8 +87,8 @@ public class CyberShake_PP_DAXGen {
     private final static String FILTER_HIGHHZ = "5.0";
     private static String SEIS_LENGTH = "300.0";
     private final static String HF_DT = "0.025";
-    //1 GB for testing
-    private final static int LARGE_MEM_BUF = 1*1024;
+
+    private final static int LARGE_MEM_BUF = 2*1024;
     
 	//Database
     private final static String DB_SERVER = "focal.usc.edu";
@@ -107,6 +107,7 @@ public class CyberShake_PP_DAXGen {
     private String localVMFilename;
     private Job localVMJob = null;
     private CyberShake_Workflow_Container wfContainer = null;
+
 	
     //Class for load balancing
     private class RuptureEntry {
@@ -233,6 +234,7 @@ public class CyberShake_PP_DAXGen {
         Option frequency = OptionBuilder.withArgName("frequency").hasArg().withDescription("Maximum frequency for deterministic simulation.").create("f");
         Option large_mem = new Option("lm", "large-mem", false, "Use version of SeisPSA which can handle ruptures with large numbers of points.");
         Option multi_rv = OptionBuilder.withArgName("factor").hasArg().withDescription("Use SeisPSA version which supports multiple synthesis tasks per invocation; number of seis_psa jobs per invocation.").create("mr");
+        Option source_forward = new Option("sf", "source-forward", false, "Aggregate files at the source level instead of the default rupture level.");
         cmd_opts.addOption(help);
         cmd_opts.addOption(partition);
         cmd_opts.addOption(no_insert);
@@ -250,6 +252,7 @@ public class CyberShake_PP_DAXGen {
         OptionGroup forwardingGroup = new OptionGroup();
         forwardingGroup.addOption(file_forward);
         forwardingGroup.addOption(no_forward);
+        forwardingGroup.addOption(source_forward);
         cmd_opts.addOptionGroup(forwardingGroup);
         cmd_opts.addOption(no_seisPSA);
         cmd_opts.addOption(zip);
@@ -375,6 +378,10 @@ public class CyberShake_PP_DAXGen {
         	pp_params.setMultiSeisPSAFactor(Integer.parseInt(line.getOptionValue("mr")));
         }
         
+        if (line.hasOption(source_forward.getOpt())) {
+        	pp_params.setSourceForward(true);
+        }
+        
         //Removing notifications
         pp_params.setNotifyGroupSize(pp_params.getNumOfDAXes()+1);
         
@@ -449,7 +456,7 @@ public class CyberShake_PP_DAXGen {
 			if (params.isRvDB()) {
 	        	sqlDB = new RuptureVariationDB(riq.getSiteName(), riq.getRunID());
 			}
-			
+					
 			//loop over bins
 			ArrayList<RuptureEntry> currBin;
 			for (int i=0; i<bins.length; i++) {
@@ -482,7 +489,10 @@ public class CyberShake_PP_DAXGen {
 				        rupsgtyFile.setTransfer(File.TRANSFER.FALSE);
 				        rupsgtyFile.setRegister(false);
 					}
+
+					if (params.isSourceForward()) {
 						
+					}
 					addRupture(dax, variationsSet, sourceIndex, rupIndex, numRupPoints, count, i, zipJobs, extractSGTMPIJob);						
 				}
 				if (i<bins.length-1) {
@@ -1861,7 +1871,7 @@ public class CyberShake_PP_DAXGen {
 					sourceIndex + "_" + rupIndex + "_" + rupvarcount + PEAKVALS_FILENAME_EXTENSION);
 			combinedPeakValsFile = new File(COMBINED_PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() + "_" +
 					sourceIndex + "_" + rupIndex + COMBINED_PEAKVALS_FILENAME_EXTENSION);
-			
+		
 			//Combine all -F arguments into a single profile
 	        job2.addProfile("pegasus", "pmc_task_arguments", "-F " + seisFile.getName() + "=" + combinedSeisFile.getName() + " -F " + peakValsFile.getName() + "=" + combinedPeakValsFile.getName());
 
@@ -1884,11 +1894,18 @@ public class CyberShake_PP_DAXGen {
 				job2.addArgument("stoch_max_freq=-1.0"); //signify no stochastic components
 			}
 	    } else if (params.isPipeForward()) {
-			//Can overwrite dir hierarchy - no intermediate files
-			combinedSeisFile = new File(COMBINED_SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() + "_" +
+			//Can overwrite dir hierarchy - no intermediate files	    	
+			if (params.isSourceForward()) {
+				combinedSeisFile = new File(COMBINED_SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() + "_" +
+						sourceIndex + "_" + currDax + COMBINED_SEISMOGRAM_FILENAME_EXTENSION);
+				combinedPeakValsFile = new File(COMBINED_PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() + "_" +
+						sourceIndex + "_" + currDax+ COMBINED_PEAKVALS_FILENAME_EXTENSION);
+			} else {
+				combinedSeisFile = new File(COMBINED_SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() + "_" +
 					sourceIndex + "_" + rupIndex + COMBINED_SEISMOGRAM_FILENAME_EXTENSION);
-			combinedPeakValsFile = new File(COMBINED_PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() + "_" +
+				combinedPeakValsFile = new File(COMBINED_PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() + "_" +
 					sourceIndex + "_" + rupIndex + COMBINED_PEAKVALS_FILENAME_EXTENSION);
+			}
 			
 			//Combine all -f arguments into a single profile
 	        job2.addProfile("pegasus", "pmc_task_arguments", "-f " + SEISMOGRAM_ENV_VAR + "=" + combinedSeisFile.getName() + " -f " + PEAKVALS_ENV_VAR + "=" + combinedPeakValsFile.getName());
