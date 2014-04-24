@@ -29,7 +29,7 @@ public class RunIDQuery {
 	private double erfSpacing = 1.0;
 	private double frequency = 0.5;
 	private double max_frequency = 0.5;
-	private int numComponents = 2; 
+	private int numComponents = 2;
 
 	private DBConnect dbc;
 
