@@ -1969,7 +1969,7 @@ public class CyberShake_PP_DAXGen {
 			//Don't use rupture file;  instead, use source/rupture/slip/hypo arguments
 			int slip = -2;
 			int hypo = -2;
-			if (riq.getRuptVarScenID()==5) {
+			if (riq.getRuptVarScenID()==5 || riq.getRuptVarScenID()==6) {
 				//43_0.txt.variation-r000000
 				String[] pieces = rupVarLFN.split("-");
 				slip = Integer.parseInt(pieces[1].substring(1));
