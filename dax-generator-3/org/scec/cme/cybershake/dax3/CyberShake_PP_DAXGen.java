@@ -626,7 +626,7 @@ public class CyberShake_PP_DAXGen {
 		if (params.isUseAWP()) {
 	       	 //Use AWP SGTs;  need to include headers as arguments
 			 Job extractSGTMPIJob = null;
-			 if (riq.getRuptVarScenID()==5) {
+			 if (riq.getRuptVarScenID()==5 || riq.getRuptVarScenID()==6) {
 				 //Use version linked with RupGen-api-3.3.1
 				 extractSGTMPIJob = new Job("Extract_SGT_MPI_AWP_" + currDax, NAMESPACE, EXTRACT_SGT_MPI_AWP_NAME, "3.3.1");	 
 			 } else {
@@ -676,7 +676,7 @@ public class CyberShake_PP_DAXGen {
 		}
 		
 		Job extractSGTMPIJob = null;
-		if (riq.getRuptVarScenID()==5) {
+		if (riq.getRuptVarScenID()==5 || riq.getRuptVarScenID()==6) {
 			 //Use version linked with RupGen-api-3.3.1
 			 extractSGTMPIJob = new Job("Extract_SGT_MPI_AWP_" + currDax, NAMESPACE, EXTRACT_SGT_MPI_NAME, "3.3.1");	 
 		} else {
@@ -1831,7 +1831,7 @@ public class CyberShake_PP_DAXGen {
 		}
 		
 		Job job2 = null;
-		if (riq.getRuptVarScenID()==5) {
+		if (riq.getRuptVarScenID()==5 || riq.getRuptVarScenID()==6) {
 			job2 = new Job(id2, NAMESPACE, seisPSAName, "3.3.1");
 		} else {
 			job2 = new Job(id2, NAMESPACE, seisPSAName, VERSION);
@@ -2000,6 +2000,12 @@ public class CyberShake_PP_DAXGen {
 
 		if (params.isLargeMemSynth()) {
 			job2.addArgument(" max_buf_mb=" + LARGE_MEM_BUF);
+		}
+		
+		if (riq.getRuptVarScenID()==5) {
+			job2.addArgument("rupture_spacing=random");
+		} else if (riq.getRuptVarScenID()==6) {
+			job2.addArgument("rupture_spacing=uniform");
 		}
 		
      	//PSA args
