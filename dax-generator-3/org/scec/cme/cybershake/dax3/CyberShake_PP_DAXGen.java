@@ -2097,7 +2097,8 @@ public class CyberShake_PP_DAXGen {
 		//numComp + 1 b/c we have a read buffer now
 		double sgtMem = 0.0;
 		if (params.isLargeMemSynth()) {
-			sgtMem = LARGE_MEM_BUF + numRupPoints*172.0/(1024.0*1024.0); 
+			//That 4/3 is there because we read the data into a raw buffer first
+			sgtMem = LARGE_MEM_BUF*4.0/3.0 + numRupPoints*172.0/(1024.0*1024.0); 
 		} else {
 			sgtMem = (numComponents+1)/(1024.0*1024.0) * (size_sgtmaster + numRupPoints*(size_sgtindex + size_sgtheader + 6*numSGTtimesteps*(params.getDetFrequency()/0.5)*4));
 		}
