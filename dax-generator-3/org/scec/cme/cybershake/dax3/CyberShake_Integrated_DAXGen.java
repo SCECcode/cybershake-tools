@@ -84,7 +84,12 @@ public class CyberShake_Integrated_DAXGen {
 			AbstractJob lastJob = null;
 			ArrayList<AbstractJob> sgtJobs = new ArrayList<AbstractJob>();
 			for (AbstractJob job : jobRefs) {
-				if (job.getName().contains("Update")) {
+				if (runIDQueries.get(0).getSgtString().contains("awp")) {
+					//there is no update job, since in AWP we have the SGT generation job instead
+					if (job.getName().equals("AWP_SGT_" + runIDQueries.get(0).getSiteName() + ".dax")) {
+						lastJob = job;
+					}
+				} else if (job.getName().contains("Update")) {
 					lastJob = job;
 				} else if (job.getName().contains("Merge")) {
 					sgtJobs.add(job);
