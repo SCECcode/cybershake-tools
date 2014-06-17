@@ -3,6 +3,15 @@ package org.scec.cme.cybershake.dax3;
 import java.io.BufferedReader;
 import java.io.FileReader;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionBuilder;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
 import edu.isi.pegasus.planner.dax.ADAG;
 import edu.isi.pegasus.planner.dax.File;
 import edu.isi.pegasus.planner.dax.Job;
@@ -20,17 +29,72 @@ public class CyberShake_AWP_SGT_DAXGen {
 			System.exit(-1);
 		}
 		
-		int runID = Integer.parseInt(args[0]);
+		Options cmd_opts = new Options();
+		
+        Option runIDopt = OptionBuilder.withArgName("runID").hasArg().withDescription("Run_ID").create("r");
+        Option gridoutFile = OptionBuilder.withArgName("gridout").hasArg().withDescription("gridout_file").create("gf");
+        Option outputDAX = OptionBuilder.withArgName("output").hasArg().withDescription("output DAX filename").create("o");
+        Option separateVelJobsOpt = new Option("sv", "split-velocity", false, "Use separate velocity generation and merge jobs (default is to use combined job)");
+        Option maxSGTCores = OptionBuilder.withArgName("maxCores").hasArg().withDescription("maximum number of cores for SGT jobs").create("mc");
+
+        cmd_opts.addOption(runIDopt);
+        cmd_opts.addOption(gridoutFile);
+        cmd_opts.addOption(outputDAX);
+        cmd_opts.addOption(separateVelJobsOpt);
+        cmd_opts.addOption(maxSGTCores);
+        
+        String usageString = "CyberShake_AWP_SGT_DAXGen [options]";
+        CommandLineParser parser = new GnuParser();
+        if (args.length<4) {
+        	HelpFormatter formatter = new HelpFormatter();
+        	formatter.printHelp(usageString, cmd_opts);
+            System.exit(1);
+        }
+        
+        CommandLine line = null;
+        try {
+            line = parser.parse(cmd_opts, args);
+        } catch (ParseException pe) {
+            pe.printStackTrace();
+            System.exit(2);
+        }
+        
+        int runID = -1;
+        if (line.hasOption(runIDopt.getOpt())) {
+        	runID = Integer.parseInt(line.getOptionValue(runIDopt.getOpt()));
+        } else {
+        	System.err.println("Run ID must be provided.");
+        	System.exit(1);
+        }
 		riq = new RunIDQuery(runID);
-		String gridoutFilename = args[1];
-		String outputDAXFilename = args[2];
+		
+		String gridoutFilename = "";		
+		if (line.hasOption(gridoutFile.getOpt())) {
+        	gridoutFilename = gridoutFile.getOpt();
+        } else {
+        	System.err.println("gridout file must be provided.");
+        	System.exit(2);
+        }
+        
+		String outputDAXFilename = "";
+		if (line.hasOption(outputDAX.getOpt())) {
+			outputDAXFilename = outputDAX.getOpt();
+        } else {
+        	System.err.println("output DAX file must be provided.");
+        	System.exit(3);
+        }
+
 		boolean separateVelJobs = false;
-		if (args.length==5) {
+		if (line.hasOption(separateVelJobsOpt.getOpt())) {
 			separateVelJobs = true;
+		}
+		int maxCores = -1;
+		if (line.hasOption(maxSGTCores.getOpt())) {
+			maxCores = Integer.parseInt(line.getOptionValue(maxSGTCores.getOpt()));
 		}
 		
 		int[] dims = getVolume(gridoutFilename);
-		int[] procDims = getProcessors(dims);
+		int[] procDims = getProcessors(dims, maxCores);
 		
 		ADAG sgtDAX = new ADAG("AWP_SGT_" + riq.getSiteName() + ".dax");
 		
@@ -122,52 +186,88 @@ public class CyberShake_AWP_SGT_DAXGen {
 		return dims;
 	}
 
-	private static int[] getProcessors(int[] dims) {
+	private static int[] getProcessors(int[] dims, int maxCores) {
 		int [] procDims = new int[3];
 		if (riq.getSgtString().equals("awp")) {
-			//We would like each processor responsible for 64x64x50 ideally; if not, then 64x50x50; if not, then something around 64 x 50 x 50.
-			//Z-dimension can always be 50
-			if (dims[2] % 50 != 0) {
-				System.err.println("Z-dimension is " + dims[2] + " which is not divisible by 50, aborting.");
-			}
-			procDims[2] = dims[2] / 50;
-			//First, see if one/both of the dimensions is divisible by 64
-			boolean x_by_64 = ((dims[0] % 64) == 0);
-			boolean y_by_64 = ((dims[1] % 64) == 0);
-			if (x_by_64 || y_by_64) {
-				//We can at least do 64x50x50
-				if (x_by_64) {
-					procDims[0] = dims[0] / 64;
-				} else {
-					procDims[0] = dims[0] / 50;
+			if (maxCores<0) {
+				//We would like each processor responsible for 64x64x50 ideally; if not, then 64x50x50; if not, then something around 64 x 50 x 50.
+				//Z-dimension can always be 50
+				if (dims[2] % 50 != 0) {
+					System.err.println("Z-dimension is " + dims[2] + " which is not divisible by 50, aborting.");
 				}
-				if (y_by_64) {
-					procDims[1] = dims[1] / 64;
+				procDims[2] = dims[2] / 50;
+				//First, see if one/both of the dimensions is divisible by 64
+				boolean x_by_64 = ((dims[0] % 64) == 0);
+				boolean y_by_64 = ((dims[1] % 64) == 0);
+				if (x_by_64 || y_by_64) {
+					//We can at least do 64x50x50
+					if (x_by_64) {
+						procDims[0] = dims[0] / 64;
+					} else {
+						procDims[0] = dims[0] / 50;
+					}
+					if (y_by_64) {
+						procDims[1] = dims[1] / 64;
+					} else {
+						procDims[1] = dims[1] / 50;
+					}
 				} else {
-					procDims[1] = dims[1] / 50;
+					//Walk up/down from 64 on both X and Y
+					int xTest = 63;
+					int yTest = 63;
+					int adjust = 2;
+				
+					//Eventually we'll get to 50, which we know will work
+					while ((dims[0] % xTest)!=0 && (dims[1] % yTest)!=0) {
+						//Change both
+						adjust = (int)Math.copySign(adjust+1, -1*adjust);
+						xTest += adjust;
+						yTest += adjust;
+					}
+					if ((dims[0] % xTest)==0) {
+						procDims[0] = dims[0] / xTest;
+						procDims[1] = dims[1] / 50;
+					} else if ((dims[1] % yTest)==0) {
+						procDims[0] = dims[0] / 50;
+						procDims[1] = dims[1] / yTest;
+					} else {
+						System.err.println("Weird error condition:  we thought either " + dims[0] + " was divisible by " + xTest + " or " + dims[1] + " was divisible by " + yTest + ", but we were tragically wrong.");
+						System.exit(2);
+					}
 				}
 			} else {
-				//Walk up/down from 64 on both X and Y
-				int xTest = 63;
-				int yTest = 63;
-				int adjust = 2;
-				
-				//Eventually we'll get to 50, which we know will work
-				while ((dims[0] % xTest)!=0 && (dims[1] % yTest)!=0) {
-					//Change both
-					adjust = (int)Math.copySign(adjust+1, -1*adjust);
-					xTest += adjust;
-					yTest += adjust;
+				//Don't want to exceed max cores total
+				//Assume 2 in Z-dimension
+				if (dims[2] % 100 !=0) {
+					System.err.println("Z-dimension is " + dims[2] + " which is not divisible by 50, aborting.");
 				}
-				if ((dims[0] % xTest)==0) {
-					procDims[0] = dims[0] / xTest;
-					procDims[1] = dims[1] / 50;
-				} else if ((dims[1] % yTest)==0) {
-					procDims[0] = dims[0] / 50;
-					procDims[1] = dims[1] / yTest;
+				procDims[2] = dims[2]/100;
+				
+				int xyCores = maxCores / procDims[2];
+				//See what procDims[0] = procDims[1] = 50 would be
+				int xTest = dims[0]/50;
+				int yTest = dims[1]/50;
+				int xyTest = xTest*yTest;
+				if (xyTest<xyCores) {
+					procDims[0] = xTest;
+					procDims[1] = yTest;
 				} else {
-					System.err.println("Weird error condition:  we thought either " + dims[0] + " was divisible by " + xTest + " or " + dims[1] + " was divisible by " + yTest + ", but we were tragically wrong.");
-					System.exit(2);
+					double scale = ((double)xyCores)/xyTest;
+					xTest = (int)(scale*xTest);
+					yTest = (int)(scale*yTest);
+					//Find a workable x value
+					int adjust = 1;
+					while (dims[0] % xTest != 0) {
+						xTest += adjust;
+						adjust = (int)Math.copySign(adjust+1, -1*adjust);
+					}
+					//Find y-value
+					yTest = (int)(xyCores / xTest);
+					while (dims[1] % yTest != 0) {
+						yTest--;
+					}
+					procDims[0] = xTest;
+					procDims[1] = yTest;
 				}
 			}
 		} else if (riq.getSgtString().equals("awp_gpu")) {
