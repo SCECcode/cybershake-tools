@@ -89,10 +89,12 @@ public class CyberShake_SGT_DAXGen {
         runIDGroup.addOption(runIDList);
         runIDGroup.setRequired(true);
         Option splitVelocityJobs = new Option("sv", "split-velocity", false, "Use separate velocity generation and merge jobs (default is to use combined job)");
-                
+        Option maxCores = OptionBuilder.withArgName("max_cores").hasArg().withDescription("Maximum number of cores to use for AWP SGT code.").create("mc"); 
+       
         cmd_opts.addOption(help);
         cmd_opts.addOptionGroup(runIDGroup);
         cmd_opts.addOption(splitVelocityJobs);
+        cmd_opts.addOption(maxCores);
         
         String usageString = "CyberShake_SGT_DAXGen <output filename> <destination directory> [options] [-f <runID file, one per line> | -r <runID1> <runID2> ... ]";
         CommandLineParser parser = new GnuParser();
@@ -127,6 +129,10 @@ public class CyberShake_SGT_DAXGen {
 		if (line.hasOption(splitVelocityJobs.getOpt())) {
 			System.out.println("Using separate velocity generation and merge jobs.");
 			sgt_params.setSeparateVelocityJobs(true);
+		}
+		
+		if (line.hasOption(maxCores.getOpt())) {
+			sgt_params.setMaxSGTCores(Integer.parseInt(line.getOptionValue(maxCores.getOpt())));
 		}
 		
 		sgt_params.setRunIDQueries(runIDQueries);
@@ -300,11 +306,14 @@ public class CyberShake_SGT_DAXGen {
 
 		File gridoutFile = new File("gridout_" + riq.getSiteName());
 		
-		genSGTDAXJob.addArgument("" + riq.getRunID());
-		genSGTDAXJob.addArgument(gridoutFile.getName());
-		genSGTDAXJob.addArgument(daxFile.getName());
+		genSGTDAXJob.addArgument("-r " + riq.getRunID());
+		genSGTDAXJob.addArgument("-gf " + gridoutFile.getName());
+		genSGTDAXJob.addArgument("-o " + daxFile.getName());
 		if (sgt_params.isSeparateVelocityJobs()) {
-			genSGTDAXJob.addArgument("separate");
+			genSGTDAXJob.addArgument("-sv");
+		}
+		if (sgt_params.getMaxSGTCores()!=-1) {
+			genSGTDAXJob.addArgument("-mc " + sgt_params.getMaxSGTCores());
 		}
 		genSGTDAXJob.uses(gridoutFile, LINK.INPUT);
 		genSGTDAXJob.uses(daxFile, LINK.OUTPUT);

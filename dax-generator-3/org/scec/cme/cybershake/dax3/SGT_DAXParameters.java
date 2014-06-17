@@ -5,6 +5,7 @@ import java.util.ArrayList;
 public class SGT_DAXParameters {
 	private String daxFilename;
 	private String directory;
+	private int maxCores = -1;
 	private ArrayList<RunIDQuery> runIDQueries;
 	
 	private boolean separateVelocityJobs = false;
@@ -40,6 +41,14 @@ public class SGT_DAXParameters {
 
 	public void setSeparateVelocityJobs(boolean separateVelocityJobs) {
 		this.separateVelocityJobs = separateVelocityJobs;
+	}
+
+	public int getMaxSGTCores() {
+		return this.maxCores;
+	}
+	
+	public void setMaxSGTCores(int maxCores) {
+		this.maxCores = maxCores;
 	}
 	
 	
