@@ -70,7 +70,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		
 		String gridoutFilename = "";		
 		if (line.hasOption(gridoutFile.getOpt())) {
-        	gridoutFilename = gridoutFile.getOpt();
+        	gridoutFilename = line.getOptionValue(gridoutFile.getOpt());
         } else {
         	System.err.println("gridout file must be provided.");
         	System.exit(2);
@@ -78,7 +78,7 @@ public class CyberShake_AWP_SGT_DAXGen {
         
 		String outputDAXFilename = "";
 		if (line.hasOption(outputDAX.getOpt())) {
-			outputDAXFilename = outputDAX.getOpt();
+			outputDAXFilename = line.getOptionValue(outputDAX.getOpt());
         } else {
         	System.err.println("output DAX file must be provided.");
         	System.exit(3);
