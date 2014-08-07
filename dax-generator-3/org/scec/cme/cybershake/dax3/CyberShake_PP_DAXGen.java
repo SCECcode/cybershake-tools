@@ -88,7 +88,7 @@ public class CyberShake_PP_DAXGen {
     private static String SEIS_LENGTH = "300.0";
     private final static String HF_DT = "0.025";
 
-    private final static int LARGE_MEM_BUF = 2*1024;
+    private final static int LARGE_MEM_BUF = 1*1024;
     
 	//Database
     private final static String DB_SERVER = "focal.usc.edu";
@@ -678,11 +678,10 @@ public class CyberShake_PP_DAXGen {
 		Job extractSGTMPIJob = null;
 		if (riq.getRuptVarScenID()==5 || riq.getRuptVarScenID()==6) {
 			 //Use version linked with RupGen-api-3.3.1
-			 extractSGTMPIJob = new Job("Extract_SGT_MPI_AWP_" + currDax, NAMESPACE, EXTRACT_SGT_MPI_NAME, "3.3.1");	 
+			 extractSGTMPIJob = new Job("Extract_SGT_MPI_" + currDax, NAMESPACE, EXTRACT_SGT_MPI_NAME, "3.3.1");	 
 		} else {
-			 extractSGTMPIJob = new Job("Extract_SGT_MPI_AWP_" + currDax, NAMESPACE, EXTRACT_SGT_MPI_NAME, VERSION);
+			 extractSGTMPIJob = new Job("Extract_SGT_MPI_" + currDax, NAMESPACE, EXTRACT_SGT_MPI_NAME, VERSION);
 		}
-		extractSGTMPIJob = new Job("Extract_SGT_MPI_" + currDax, NAMESPACE, EXTRACT_SGT_MPI_NAME, VERSION);
 		
 		//Switch to flagged arguments
 		
