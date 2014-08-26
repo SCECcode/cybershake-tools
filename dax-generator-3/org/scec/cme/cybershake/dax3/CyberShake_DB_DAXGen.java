@@ -342,6 +342,13 @@ public class CyberShake_DB_DAXGen {
 		String periods = "10,5,3";
 		if (params.isHighFrequency()) {
 			periods = periods + ",2,1,0.5,0.2,0.1";
+		} else {
+			if (params.getMaxHighFrequency()>=1.0) {
+				periods = periods + ",2,1";
+			}
+			if (params.getMaxHighFrequency()>=2.0) {
+				periods = periods + ",0.5";
+			}
 		}
 		job.addArgument("-periods " + periods);
 		
