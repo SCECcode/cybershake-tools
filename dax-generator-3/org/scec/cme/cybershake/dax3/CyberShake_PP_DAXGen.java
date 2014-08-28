@@ -1908,7 +1908,9 @@ public class CyberShake_PP_DAXGen {
 			
 			//Combine all -f arguments into a single profile
 	        job2.addProfile("pegasus", "pmc_task_arguments", "-f " + SEISMOGRAM_ENV_VAR + "=" + combinedSeisFile.getName() + " -f " + PEAKVALS_ENV_VAR + "=" + combinedPeakValsFile.getName());
-			
+	        //Add priority, so tasks are executed longest-first
+	        job2.addProfile("pegasus", "pmc_priority", "" + numRupPoints);
+	        
 			if (rupvarcount==0) {
 				combinedSeisFile.setRegister(true);
 				combinedSeisFile.setTransfer(TRANSFER.TRUE);
