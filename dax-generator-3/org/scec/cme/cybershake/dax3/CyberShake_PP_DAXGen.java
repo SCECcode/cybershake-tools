@@ -365,7 +365,9 @@ public class CyberShake_PP_DAXGen {
         if (line.hasOption(frequency.getOpt())) {
         	pp_params.setDetFrequency(Double.parseDouble(line.getOptionValue("f")));
         	//Adjust a few parameters accordingly
-        	NUMTIMESTEPS = "" + (int)(6000*pp_params.getDetFrequency());
+        	if (pp_params.getDetFrequency()==1.0) {
+        		NUMTIMESTEPS = "8000";
+        	}
         	LF_TIMESTEP = "" + (0.05/pp_params.getDetFrequency());
         	SEIS_LENGTH = "300.0";
         }
