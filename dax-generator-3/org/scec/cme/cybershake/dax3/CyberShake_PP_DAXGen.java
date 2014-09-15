@@ -1947,6 +1947,7 @@ public class CyberShake_PP_DAXGen {
 		job2.addArgument("outputBinary=1");
 		job2.addArgument("mergeOutput=1");
 		job2.addArgument("ntout="+NUMTIMESTEPS);
+		job2.addArgument("dtout="+LF_TIMESTEP);
         
 		File rupsgtx = new File(riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfx.sgt");
 		File rupsgty = new File(riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfy.sgt");
