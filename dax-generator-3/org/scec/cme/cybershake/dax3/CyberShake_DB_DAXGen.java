@@ -273,6 +273,13 @@ public class CyberShake_DB_DAXGen {
 		String periods = CURVE_CALC_PERIODS;
 		if (params.isHighFrequency()) {
 			periods += ",1,0.5,0.2,0.1";
+		} else {
+			if (params.getMaxHighFrequency()>=1.0) {
+				periods = periods + ",2,1";
+			}
+			if (params.getMaxHighFrequency()>=2.0) {
+				periods = periods + ",0.5";
+			}
 		}
 		job.addArgument("--period " + periods);
 		job.addArgument("--output-dir " + outputDir);
