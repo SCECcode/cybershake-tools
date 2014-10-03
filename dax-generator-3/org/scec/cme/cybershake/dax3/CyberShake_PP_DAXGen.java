@@ -1051,7 +1051,7 @@ public class CyberShake_PP_DAXGen {
 		if (params.isHighFrequency()) {
 			update += params.getMaxHighFrequency() + ", Low_Frequency_Cutoff=" + params.getHighFrequencyCutoff();
 		} else {
-			update += "0.5, Low_Frequency_Cutoff=0.5";
+			update += params.getDetFrequency() + ", Low_Frequency_Cutoff=" + params.getDetFrequency();
 		}
 		update += " where Run_ID=" + riq.getRunID();
 		dbc.insertData(update);
