@@ -274,10 +274,10 @@ public class CyberShake_DB_DAXGen {
 		if (params.isHighFrequency()) {
 			periods += ",1,0.5,0.2,0.1";
 		} else {
-			if (params.getMaxHighFrequency()>=1.0) {
+			if (params.getDetFrequency()>=1.0) {
 				periods = periods + ",2,1";
 			}
-			if (params.getMaxHighFrequency()>=2.0) {
+			if (params.getDetFrequency()>=2.0) {
 				periods = periods + ",0.5";
 			}
 		}
