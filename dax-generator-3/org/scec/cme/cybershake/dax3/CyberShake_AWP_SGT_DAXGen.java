@@ -578,6 +578,10 @@ public class CyberShake_AWP_SGT_DAXGen {
 		postAWPJob.addArgument(riq.getRunID() + "");
 		postAWPJob.addArgument(headerFile);
 
+		if (riq.getFrequency()>0.5) {
+			postAWPJob.addArgument(riq.getFrequency() + "");
+		}
+		
 		postAWPJob.uses(awpStrainInFile, LINK.INPUT);
 		postAWPJob.uses(awpStrainOutFile, LINK.OUTPUT);
 		postAWPJob.uses(modelboxFile, LINK.INPUT);

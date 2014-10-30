@@ -267,6 +267,10 @@ public class RunIDQuery {
 	public String getFrequencyString() {
 		return String.format("%.1f", frequency);
 	}
+	
+	public double getFrequency() {
+		return frequency;
+	}
 
 	public int getNumComponents() {
 		return numComponents;
