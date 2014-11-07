@@ -41,16 +41,21 @@ public class CyberShake_PP_DAXGen {
     private final static String SEISMOGRAM_FILENAME_EXTENSION = ".grm";
     private final static String PEAKVALS_FILENAME_PREFIX = "PeakVals_";
     private final static String PEAKVALS_FILENAME_EXTENSION = ".bsa";
+    private final static String ROTD_FILENAME_PREFIX = "RotD_";
+    private final static String ROTD_FILENAME_EXTENSION = ".rotd";
 	private final static String COMBINED_SEISMOGRAM_FILENAME_PREFIX = "Seismogram_";
     private final static String COMBINED_SEISMOGRAM_FILENAME_EXTENSION = ".grm";
     private final static String COMBINED_PEAKVALS_FILENAME_PREFIX = "PeakVals_";
     private final static String COMBINED_PEAKVALS_FILENAME_EXTENSION = ".bsa";
+    private final static String COMBINED_ROTD_FILENAME_PREFIX = "RotD_";
+    private final static String COMBINED_ROTD_FILENAME_EXTENSION = ".rotd";
     
 //  private final static String TMP_FS = "/lustre/scratch/tera3d/tmp";
     private final static String TMP_FS = "/dev/shm";
     private final static String FD_PATH = "/proc/self/fd";
     private final static String SEISMOGRAM_ENV_VAR = "GRM";
     private final static String PEAKVALS_ENV_VAR = "PSA";
+    private final static String ROTD_ENV_VAR = "ROTD";
     //Output directory for Study 13.4
 //    private final static String OUTPUT_DIR = "/home/scec-02/tera3d/CyberShake2007/data/PPFiles";
     private final static String OUTPUT_DIR = "/home/scec-04/tera3d/CyberShake/data/PPFiles";
@@ -235,6 +240,7 @@ public class CyberShake_PP_DAXGen {
         Option large_mem = new Option("lm", "large-mem", false, "Use version of SeisPSA which can handle ruptures with large numbers of points.");
         Option multi_rv = OptionBuilder.withArgName("factor").hasArg().withDescription("Use SeisPSA version which supports multiple synthesis tasks per invocation; number of seis_psa jobs per invocation.").create("mr");
         Option source_forward = new Option("sf", "source-forward", false, "Aggregate files at the source level instead of the default rupture level.");
+        Option rotd = new Option("r", "rotd", false, "Calculate RotD50, the RotD50 angle, and RotD100 for rupture variations and insert them into the database.");
         cmd_opts.addOption(help);
         cmd_opts.addOption(partition);
         cmd_opts.addOption(no_insert);
@@ -258,6 +264,7 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(zip);
         cmd_opts.addOption(separate_zip);
         cmd_opts.addOption(multi_rv);
+        cmd_opts.addOption(rotd);
 
         CommandLineParser parser = new GnuParser();
         if (args.length<1) {
@@ -382,6 +389,13 @@ public class CyberShake_PP_DAXGen {
         
         if (line.hasOption(source_forward.getOpt())) {
         	pp_params.setSourceForward(true);
+        }
+        
+        if (line.hasOption(rotd.getOpt())) {
+        	pp_params.setCalculateRotD(true);
+        	if (!pp_params.isLargeMemSynth()) {
+        		System.err.println("Currently RotD calculation is only supported if using large mem version of SeisPSA.");
+        	}
         }
         
         //Removing notifications
@@ -1643,6 +1657,9 @@ public class CyberShake_PP_DAXGen {
 		String id2 = "ID2_" + sourceIndex+"_"+rupIndex+"_"+clusterIndex;
 		
 		String seisPSAName = SEIS_PSA_MULTI_NAME;
+		if (params.isLargeMemSynth()) {
+			seisPSAName = SEIS_PSA_LARGE_MEM_NAME;
+		}
 
 		Job job2= new Job(id2, NAMESPACE, seisPSAName, VERSION);
 
@@ -1651,7 +1668,9 @@ public class CyberShake_PP_DAXGen {
 		StringBuffer rup_var_string = new StringBuffer("");
 		StringBuffer profileArg = new StringBuffer("");
 		File seisFile, psaFile, combinedSeisFile, combinedPsaFile;
+		File rotdFile, combinedRotDFile;
 		seisFile = psaFile = combinedSeisFile = combinedPsaFile = null;
+		rotdFile = combinedRotDFile = null;
 		if (!params.isFileForward() && !params.isPipeForward()) {
 			if (params.isDirHierarchy()) {
 				String dir = sourceIndex + "/" + rupIndex;
@@ -1659,11 +1678,19 @@ public class CyberShake_PP_DAXGen {
 						riq.getRunID() + "_" + sourceIndex + "_" + rupIndex + SEISMOGRAM_FILENAME_EXTENSION);
 				psaFile = new File(dir + "/" + PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
 						riq.getRunID() + "_" + sourceIndex + "_" + rupIndex + PEAKVALS_FILENAME_EXTENSION);
+				if (params.isCalculateRotD()) {
+					rotdFile = new File(dir + "/" + ROTD_FILENAME_PREFIX + riq.getSiteName() + "_" +
+						riq.getRunID() + "_" + sourceIndex + "_" + rupIndex + ROTD_FILENAME_EXTENSION);
+				}
 			} else {
 				seisFile = new File(SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
 						riq.getRunID() + "_" + sourceIndex + "_" + rupIndex + SEISMOGRAM_FILENAME_EXTENSION);
 				psaFile = new File(PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
 						riq.getRunID() + "_" + sourceIndex + "_" + rupIndex + PEAKVALS_FILENAME_EXTENSION);
+				if (params.isCalculateRotD()) {
+					rotdFile = new File(ROTD_FILENAME_PREFIX + riq.getSiteName() + "_" +
+						riq.getRunID() + "_" + sourceIndex + "_" + rupIndex + ROTD_FILENAME_EXTENSION);
+				}
 			}
 		} else if (params.isFileForward()) {
 			seisFile = new File(TMP_FS + "/" + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
@@ -1675,6 +1702,16 @@ public class CyberShake_PP_DAXGen {
 			combinedPsaFile = new File(COMBINED_PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
 					riq.getRunID() + "_" + sourceIndex + "_" + rupIndex + COMBINED_PEAKVALS_FILENAME_EXTENSION);
 			profileArg.append(" -F " + seisFile.getName() + "=" + combinedSeisFile.getName() + " -F " + psaFile.getName() + "=" + combinedPsaFile.getName());
+			
+			if (params.isCalculateRotD()) {
+				rotdFile = new File(TMP_FS + "/" + ROTD_FILENAME_PREFIX + riq.getSiteName() + "_" +
+						riq.getRunID() + "_" + sourceIndex + "_" + rupIndex + ROTD_FILENAME_EXTENSION);
+				combinedRotDFile = new File(TMP_FS + "/" + COMBINED_ROTD_FILENAME_PREFIX + riq.getSiteName() + "_" +
+						riq.getRunID() + "_" + sourceIndex + "_" + rupIndex + COMBINED_ROTD_FILENAME_EXTENSION);
+				profileArg.append(" -F " + rotdFile.getName() + "=" + combinedRotDFile.getName());
+			}
+
+			
 		} else if (params.isPipeForward()) {
 			seisFile = new File(SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
 					riq.getRunID() + "_" + sourceIndex + "_" + rupIndex + SEISMOGRAM_FILENAME_EXTENSION);
@@ -1684,6 +1721,12 @@ public class CyberShake_PP_DAXGen {
 					riq.getRunID() + "_" + sourceIndex + "_" + rupIndex + COMBINED_SEISMOGRAM_FILENAME_EXTENSION);
 			combinedPsaFile = new File(COMBINED_PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
 					riq.getRunID() + "_" + sourceIndex + "_" + rupIndex + COMBINED_PEAKVALS_FILENAME_EXTENSION);
+			if (params.isCalculateRotD()) {
+				rotdFile = new File(ROTD_FILENAME_PREFIX + riq.getSiteName() + "_" +
+						riq.getRunID() + "_" + sourceIndex + "_" + rupIndex + ROTD_FILENAME_EXTENSION);
+				combinedRotDFile = new File(COMBINED_ROTD_FILENAME_PREFIX + riq.getSiteName() + "_" +
+						riq.getRunID() + "_" + sourceIndex + "_" + rupIndex + COMBINED_ROTD_FILENAME_EXTENSION);
+			}
 			//profile arg is set later
 		}
 
@@ -1703,7 +1746,11 @@ public class CyberShake_PP_DAXGen {
 			//Combine all -F arguments into a single profile
 	        job2.addProfile("pegasus", "pmc_task_arguments", profileArg.toString());
 		} else if (params.isPipeForward()) {
-			job2.addProfile("pegasus", "pmc_task_arguments", "-f " + SEISMOGRAM_ENV_VAR + "=" + combinedSeisFile.getName() + " -f " + PEAKVALS_ENV_VAR + "=" + combinedPsaFile.getName());
+			String pmcTaskArgString = "-f " + SEISMOGRAM_ENV_VAR + "=" + combinedSeisFile.getName() + " -f " + PEAKVALS_ENV_VAR + "=" + combinedPsaFile.getName();
+			if (params.isCalculateRotD()) {
+				pmcTaskArgString += " -f " + ROTD_ENV_VAR + "=" + combinedRotDFile.getName();
+			}
+			job2.addProfile("pegasus", "pmc_task_arguments", pmcTaskArgString);
     		job2.addArgument("pipe_fwd=1");
 		}
 
@@ -1792,6 +1839,16 @@ public class CyberShake_PP_DAXGen {
         	job2.addArgument("out=" + FD_PATH + "/$" + PEAKVALS_ENV_VAR);
     	} else {
     		job2.addArgument("out=" + psaFile.getName());
+    	}
+
+    	if (params.isCalculateRotD()) {
+    		//Add pipe forwarding and rotd arguments
+    		job2.addArgument("rotd=1");
+    		if (params.isPipeForward()) {
+    			job2.addArgument("rotd_out=" + FD_PATH + "/$" + ROTD_ENV_VAR);
+    		} else {
+    			job2.addArgument("rotd_out=" + rotdFile.getName());
+    		}
     	}
     	
      	job2.uses(rupsgtx,File.LINK.INPUT);
