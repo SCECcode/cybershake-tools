@@ -48,6 +48,8 @@ public class PP_DAXParameters {
 	
 	private boolean sourceForward = false;
 	
+	private boolean calculateRotD = false;
+	
 	//BW has 56 GB permitted per node
 	private int seisPSAMemCutoff = 56*1024;
 
@@ -317,5 +319,13 @@ public class PP_DAXParameters {
 
 	public void setSourceForward(boolean sourceForward) {
 		this.sourceForward = sourceForward;
+	}
+
+	public boolean isCalculateRotD() {
+		return calculateRotD;
+	}
+
+	public void setCalculateRotD(boolean calculateRotD) {
+		this.calculateRotD = calculateRotD;
 	}
 }
