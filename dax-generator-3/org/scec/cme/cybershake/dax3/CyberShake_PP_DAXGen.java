@@ -1784,6 +1784,7 @@ public class CyberShake_PP_DAXGen {
 		job2.addArgument("outputBinary=1");
 		job2.addArgument("mergeOutput=1");
 		job2.addArgument("ntout="+NUMTIMESTEPS);
+		job2.addArgument("dtout="+LF_TIMESTEP);
         
 		File rupsgtx = new File(riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfx.sgt");
 		File rupsgty = new File(riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfy.sgt");
@@ -1843,7 +1844,7 @@ public class CyberShake_PP_DAXGen {
 
     	if (params.isCalculateRotD()) {
     		//Add pipe forwarding and rotd arguments
-    		job2.addArgument("rotd=1");
+    		job2.addArgument("run_rotd=1");
     		if (params.isPipeForward()) {
     			job2.addArgument("rotd_out=" + FD_PATH + "/$" + ROTD_ENV_VAR);
     		} else {
