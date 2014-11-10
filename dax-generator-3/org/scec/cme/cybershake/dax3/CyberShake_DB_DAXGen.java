@@ -35,6 +35,9 @@ public class CyberShake_DB_DAXGen {
 	public static final String CURVE_OUTPUT_TYPES = "pdf,png";
 	public static final double CURVE_DEFAULT_VS30 = 760;
 	
+	public static final String ROTD_CALC_PERIODS = "2,3,4,5,7.5,10";
+	public static final String ROTD_OUTPUT_TYPES = "pdf,png,csv";
+	
 	//DB info
 	public static final String DB_SERVER = "focal";
 	
@@ -142,11 +145,19 @@ public class CyberShake_DB_DAXGen {
 		}
 				
 		// Add workflow jobs
+		Job rotDJob = null;
 		Job insertJob = createDBInsertionJob();
 		dax.addJob(insertJob);
 		//If we needed to add local zip jobs, add dependency on PSA zip
 		if (!params.isZip() && !(params.isFileForward() || params.isPipeForward())) {
 			dax.addDependency(zipPSAJob, insertJob);
+		}
+		
+		if (params.isCalculateRotD()) {
+			rotDJob = createRotDInsertionJob();
+			dax.addJob(rotDJob);
+			//Make this a child of insertJob to avoid having both insertion jobs hit the DB at the same time
+			dax.addDependency(insertJob, rotDJob);
 		}
 		
 		Job dbCheckJob = createDBCheckJob();
@@ -177,6 +188,9 @@ public class CyberShake_DB_DAXGen {
 		
 		// check is a child of insert
 		dax.addDependency(insertJob, dbCheckJob);
+		if (params.isCalculateRotD()) {
+			dax.addDependency(rotDJob, dbCheckJob);
+		}
 		
 		// curve calc is a child of check
 		if (DO_CURVE_GEN) {
@@ -203,6 +217,53 @@ public class CyberShake_DB_DAXGen {
 	}
 	
 	
+	private Job createRotDInsertionJob() {
+		String id = DB_PREFIX + "Load_Amps_RotD" + "_" + riq.getSiteName();
+		Job job = new Job(id, CyberShake_PP_DAXGen.NAMESPACE, DB_INSERT_NAME, CyberShake_PP_DAXGen.VERSION);
+		
+		if (transferZipFiles) {
+			for (int i=0; i<numDAXes; i++) {
+				File zipFile = new File("CyberShake_" + riq.getSiteName() + "_" + riq.getRunID() + "_" + i + "_PSA.zip");
+				zipFile.setRegister(false);
+				job.uses(zipFile, File.LINK.INPUT);
+			}
+		}
+		/* Not sure that this is used
+		 * } else {
+			File zipFile = new File("CyberShake_" + riq.getSiteName() + "_" + riq.getRunID() +  "_PSA.zip");
+			zipFile.setRegister(false);
+			job.uses(zipFile, File.LINK.INPUT);
+		}*/
+		
+		job.addArgument("-server " + DB_SERVER);
+		if (transferZipFiles) {
+			job.addArgument("-z");
+		}
+		//For RotD files
+		job.addArgument("-r");
+		
+		job.addArgument("-p " + filesDir);
+
+		job.addArgument("-run " + riq.getRunID());
+		String periods = "10,5,3";
+		if (params.isHighFrequency()) {
+			periods = periods + ",2,1,0.5,0.2,0.1";
+		} else {
+			if (params.getMaxHighFrequency()>=1.0) {
+				periods = periods + ",2,1";
+			}
+			if (params.getMaxHighFrequency()>=2.0) {
+				periods = periods + ",0.5";
+			}
+		}
+		job.addArgument("-periods " + periods);
+		
+		job.addProfile("globus", "maxWallTime","60");
+		job.addProfile("hints","executionPool", "shock");
+		
+		return job;
+	}
+
 	private Job createDisaggJob() {
 		//./disagg_plot_wrapper.sh --run-id 247 --period 3 --probs 4.0e-4 --imls 0.2,0.5 --output-dir /tmp
 		String id = DISAGG_NAME + "_" + riq.getSiteName();

@@ -1762,6 +1762,12 @@ public class CyberShake_PP_DAXGen {
 		psaFile.setTransfer(TRANSFER.TRUE);
 		job2.uses(psaFile, File.LINK.OUTPUT);
 		
+		if (params.isCalculateRotD()) {
+			rotdFile.setRegister(true);
+			rotdFile.setTransfer(TRANSFER.TRUE);
+			job2.uses(rotdFile, File.LINK.OUTPUT);
+		}
+		
 		//add source, rupture, rupture variation arguments
 		job2.addArgument("source_id=" + sourceIndex);
 		job2.addArgument("rupture_id=" + rupIndex);
