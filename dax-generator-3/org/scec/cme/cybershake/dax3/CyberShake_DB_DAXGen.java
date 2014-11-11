@@ -88,8 +88,8 @@ public class CyberShake_DB_DAXGen {
 		transferZipFiles = transferZip;
 		this.numDAXes = numDAXes;
 		params = new PP_DAXParameters();
-		params.setHighFrequency(highFreq);
-		params.setHighFrequencyCutoff(highFreqCutoff);
+		params.setStochastic(highFreq);
+		params.setStochasticCutoff(highFreqCutoff);
 		if (params.isFileForward() || params.isPipeForward()){
 			this.filesDir = STORAGE_DIR + "/" + r.getSiteName() + "/" + r.getRunID();
 		} else {
@@ -254,13 +254,13 @@ public class CyberShake_DB_DAXGen {
 
 		job.addArgument("-run " + riq.getRunID());
 		String periods = "10,7.5,5,4,3,2";
-		if (params.isHighFrequency()) {
+		if (params.isStochastic()) {
 			periods = periods + ",1,0.5,0.2,0.1";
 		} else {
-			if (params.getMaxHighFrequency()>=1.0) {
+			if (params.getDetFrequency()>=1.0) {
 				periods = periods + ",1";
 			}
-			if (params.getMaxHighFrequency()>=2.0) {
+			if (params.getDetFrequency()>=2.0) {
 				periods = periods + ",0.5";
 			}
 		}
@@ -340,7 +340,7 @@ public class CyberShake_DB_DAXGen {
 		//Comment this out until we update so that we can use Velocity_Model_ID=4 data
 		job.addArgument("--atten-rel-file " + CURVE_ATTEN_REL_XML_FILES);
 		String periods = CURVE_CALC_PERIODS;
-		if (params.isHighFrequency()) {
+		if (params.isStochastic()) {
 			periods += ",1,0.5,0.2,0.1";
 		} else {
 			if (params.getDetFrequency()>=1.0) {
@@ -382,7 +382,7 @@ public class CyberShake_DB_DAXGen {
 		//Comment this out until we update so that we can use Velocity_Model_ID=4 data
 		job.addArgument("--atten-rel-file " + CURVE_ATTEN_REL_XML_FILES);
 		String periods = ROTD_CALC_PERIODS;
-		if (params.isHighFrequency()) {
+		if (params.isStochastic()) {
 			periods += ",1,0.5,0.2,0.1";
 		} else {
 			if (params.getDetFrequency()>=1.0) {
@@ -458,13 +458,13 @@ public class CyberShake_DB_DAXGen {
 
 		job.addArgument("-run " + riq.getRunID());
 		String periods = "10,5,3";
-		if (params.isHighFrequency()) {
+		if (params.isStochastic()) {
 			periods = periods + ",2,1,0.5,0.2,0.1";
 		} else {
-			if (params.getMaxHighFrequency()>=1.0) {
+			if (params.getDetFrequency()>=1.0) {
 				periods = periods + ",2,1";
 			}
-			if (params.getMaxHighFrequency()>=2.0) {
+			if (params.getDetFrequency()>=2.0) {
 				periods = periods + ",0.5";
 			}
 		}

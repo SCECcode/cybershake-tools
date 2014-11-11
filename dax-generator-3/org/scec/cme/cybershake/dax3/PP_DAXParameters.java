@@ -10,11 +10,11 @@ public class PP_DAXParameters {
 
 	//Defaults
 	private boolean seisPSAexe = true;
-	private boolean highFrequency = false;
+	private boolean stochastic = false;
 	//Maximum deterministic frequency
 	private double detFrequency = 0.5;
-	private double highFrequencyCutoff = 0.0;
-	private double maxHighFrequency = 10.0;
+	private double stochasticCutoff = 0.0;
+	private double stochasticFrequency = 10.0;
 	private boolean hfsynth = true;
 	private boolean mergePSA = true;
 	
@@ -136,29 +136,29 @@ public class PP_DAXParameters {
 		return this.seisPSAexe;
 	}
 
-	public boolean isHighFrequency() {
-		return highFrequency;
+	public boolean isStochastic() {
+		return stochastic;
 	}
 
-	public void setHighFrequency(boolean highFrequency) {
-		this.highFrequency = highFrequency;
+	public void setStochastic(boolean stochastic) {
+		this.stochastic = stochastic;
 	}
 
-	public double getHighFrequencyCutoff() {
-		return highFrequencyCutoff;
+	public double getStochasticCutoff() {
+		return stochasticCutoff;
 	}
 
-	public void setHighFrequencyCutoff(double highFrequencyCutoff) {
-		System.out.println("Setting HF cutoff to " + highFrequencyCutoff);
-		this.highFrequencyCutoff = highFrequencyCutoff;
+	public void setStochasticCutoff(double stochasticCutoff) {
+		System.out.println("Setting stochastic cutoff to " + stochasticCutoff);
+		this.stochasticCutoff = stochasticCutoff;
 	}
 
-	public double getMaxHighFrequency() {
-		return maxHighFrequency;
+	public double getStochasticFrequency() {
+		return stochasticFrequency;
 	}
 
-	public void setMaxHighFrequency(double maxHighFrequency) {
-		this.maxHighFrequency = maxHighFrequency;
+	public void setStochasticFrequency(double stochasticFrequency) {
+		this.stochasticFrequency = stochasticFrequency;
 	}
 
 	public boolean isHfsynth() {

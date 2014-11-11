@@ -305,12 +305,12 @@ public class CyberShake_PP_DAXGen {
         		System.out.println("Can't use seisPSA with high-frequency, since we calculate PSA after merging.");
         		System.exit(3);
         	}
-        	pp_params.setHighFrequency(true);
+        	pp_params.setStochastic(true);
         	if (line.getOptionValue("hf")!=null) {
-        		pp_params.setHighFrequencyCutoff(Double.parseDouble(line.getOptionValue("hf")));
+        		pp_params.setStochasticCutoff(Double.parseDouble(line.getOptionValue("hf")));
         	} else {
         		//use 1.0 as default
-        		pp_params.setHighFrequencyCutoff(1.0);
+        		pp_params.setStochasticCutoff(1.0);
         	}
         	if (line.hasOption(no_hf_synth.getOpt())) {
         		pp_params.setHfsynth(false);
@@ -906,7 +906,7 @@ public class CyberShake_PP_DAXGen {
 					}
 					//if HF jobs, add here
 					Job mergeJob = null;
-					if (params.isHighFrequency()) {
+					if (params.isStochastic()) {
 						Job highFreqJob = null;
 						if (params.isHfsynth()) {
 							//add merged job
@@ -1062,8 +1062,8 @@ public class CyberShake_PP_DAXGen {
 		}
 		DBConnect dbc = new DBConnect(DB_SERVER, DB, "cybershk", pass);
 		String update = "update CyberShake_Runs set Max_Frequency=";
-		if (params.isHighFrequency()) {
-			update += params.getMaxHighFrequency() + ", Low_Frequency_Cutoff=" + params.getHighFrequencyCutoff();
+		if (params.isStochastic()) {
+			update += params.getStochasticFrequency() + ", Low_Frequency_Cutoff=" + params.getStochasticCutoff();
 		} else {
 			update += params.getDetFrequency() + ", Low_Frequency_Cutoff=" + params.getDetFrequency();
 		}
@@ -1187,7 +1187,7 @@ public class CyberShake_PP_DAXGen {
       		//preDax.addDependency(checkSgtXJob, notifyJob);
       		//preDax.addDependency(checkSgtYJob, notifyJob);
 	    	
-			if (params.isHighFrequency()) {
+			if (params.isStochastic()) {
 				//create local velocity model file for everyone to use
 				String vmFile = getVM();
 				localVMFilename = vmFile + ".local";
@@ -1500,7 +1500,7 @@ public class CyberShake_PP_DAXGen {
 			riq.getSiteName() + "_" + riq.getRunID() + "_" + sourceIndex + "_" + rupIndex +
 			"_"+ rupvarcount + SEISMOGRAM_FILENAME_EXTENSION);                            
 		
-		if (params.isHighFrequency()) {
+		if (params.isStochastic()) {
 			//add 'lf' to file names
 			seisFile = new File(SEISMOGRAM_FILENAME_PREFIX + 
 					riq.getSiteName() + "_" + riq.getRunID() + "_" + sourceIndex + "_" + rupIndex +
@@ -1608,9 +1608,9 @@ public class CyberShake_PP_DAXGen {
     	String numtimesteps = NUMTIMESTEPS;
     	String timestep = LF_TIMESTEP;
     	
-    	if (params.isHighFrequency()) {
+    	if (params.isStochastic()) {
     		//need to use HF values, since LF was resampled to HF
-    		highFilter = ""+ params.getMaxHighFrequency();
+    		highFilter = ""+ params.getStochasticFrequency();
     		numtimesteps = ""+ (int)Math.round(Double.parseDouble(SEIS_LENGTH)/Double.parseDouble(HF_DT));
     		timestep = HF_DT;
     	}
@@ -1774,8 +1774,8 @@ public class CyberShake_PP_DAXGen {
 		job2.addArgument("num_rup_vars=" + ruptureVariationMap.size());
 		job2.addArgument("det_max_freq=" + params.getDetFrequency());
 		
-		if (params.isHighFrequency()) {
-			job2.addArgument("stoch_max_freq=" + params.getMaxHighFrequency());
+		if (params.isStochastic()) {
+			job2.addArgument("stoch_max_freq=" + params.getStochasticFrequency());
 		} else {
 			job2.addArgument("stoch_max_freq=-1.0"); //signify no stochastic components
 		}
@@ -1953,8 +1953,8 @@ public class CyberShake_PP_DAXGen {
 			job2.addArgument("rupture_id=" + rupIndex);
 			job2.addArgument("rup_var_id=" + rupvarcount);
 			job2.addArgument("det_max_freq=" + params.getDetFrequency());
-			if (params.isHighFrequency()) {
-				job2.addArgument("stoch_max_freq=" + params.getMaxHighFrequency());
+			if (params.isStochastic()) {
+				job2.addArgument("stoch_max_freq=" + params.getStochasticFrequency());
 			} else {
 				job2.addArgument("stoch_max_freq=-1.0"); //signify no stochastic components
 			}
@@ -1992,8 +1992,8 @@ public class CyberShake_PP_DAXGen {
 			job2.addArgument("rupture_id=" + rupIndex);
 			job2.addArgument("rup_var_id=" + rupvarcount);
 			job2.addArgument("det_max_freq=" + params.getDetFrequency());
-			if (params.isHighFrequency()) {
-				job2.addArgument("stoch_max_freq=" + params.getMaxHighFrequency());
+			if (params.isStochastic()) {
+				job2.addArgument("stoch_max_freq=" + params.getStochasticFrequency());
 			} else {
 				job2.addArgument("stoch_max_freq=-1.0"); //signify no stochastic components
 			}
@@ -2137,12 +2137,12 @@ public class CyberShake_PP_DAXGen {
 		int sgt_timesteps = 2000;
 		int numComponents = 3;
 		double tolerance = 1.1;
-		double rvMem = 3.5*1024*1024*(params.getHighFrequencyCutoff()/0.5)*(params.getHighFrequencyCutoff()/0.5);
+		double rvMem = 3.5*1024*1024*(params.getStochasticCutoff()/0.5)*(params.getStochasticCutoff()/0.5);
 		//Save about 500,000 pts per SGT set for 0.5 Hz
-		int numSGTpts = (int)(500000*(params.getHighFrequencyCutoff()/0.5)*(params.getHighFrequencyCutoff()/0.5));
+		int numSGTpts = (int)(500000*(params.getStochasticCutoff()/0.5)*(params.getStochasticCutoff()/0.5));
 		double sgtpars = numComponents * (size_sgtmaster + numSGTpts*size_sgtindex);
 		double sgtparams = size_sgtparams * numSGTpts * numComponents;
-		double sgt_subset = numComponents * (size_sgtmaster + numRupPoints*(size_sgtindex + size_sgtheader + 6*4*sgt_timesteps*(params.getHighFrequencyCutoff()/0.5)));
+		double sgt_subset = numComponents * (size_sgtmaster + numRupPoints*(size_sgtindex + size_sgtheader + 6*4*sgt_timesteps*(params.getStochasticCutoff()/0.5)));
 		return (int)(Math.ceil(tolerance*(rvMem + sgtpars + sgtparams + sgt_subset)/(1024*1024)));
 	}
 	
@@ -2171,7 +2171,7 @@ public class CyberShake_PP_DAXGen {
 		}
 		double seisOut = Integer.parseInt(NUMTIMESTEPS)*numComponents*4/(1024.0*1024);
 
-		if (params.isHighFrequency()) {
+		if (params.isStochastic()) {
 			seisOut *= 0.1/Double.parseDouble(HF_DT);
 		}
 //		System.out.println("Memory required: " + rvMem + " + " + sgtMem + " + " + seisOut);
@@ -2181,7 +2181,7 @@ public class CyberShake_PP_DAXGen {
 	private int getPSAMem() {
 		int numComponents = 3;
 		//Need to read in all seismograms
-		if (params.isHighFrequency()) {
+		if (params.isStochastic()) {
 			//Extra factor of 4 for smaller dt
 			return (int)(Math.ceil(Integer.parseInt(NUMTIMESTEPS)*numComponents*4*4/(1024*1024)));
 		} else {
@@ -2303,7 +2303,7 @@ public class CyberShake_PP_DAXGen {
 		
 		int hf_nt = (int)Math.round(Double.parseDouble(SEIS_LENGTH)/Double.parseDouble(HF_DT));
 		
-		job.addArgument("freq=" + params.getHighFrequencyCutoff());
+		job.addArgument("freq=" + params.getStochasticCutoff());
 		job.addArgument("lf_seis=" + lfSeisFile.getName());
 		job.addArgument("hf_seis=" + hfSeisFile.getName());
 		job.addArgument("outfile=" + mergedFile.getName());
@@ -2429,7 +2429,7 @@ public class CyberShake_PP_DAXGen {
 
 		int hf_nt = (int)Math.round(Double.parseDouble(SEIS_LENGTH)/Double.parseDouble(HF_DT));
 		
-		job.addArgument("freq=" + params.getHighFrequencyCutoff());
+		job.addArgument("freq=" + params.getStochasticCutoff());
 		job.addArgument("lf_seis=" + lfSeisFile.getName());
 		job.addArgument("hf_seis=" + hfSeisFile.getName());
 		job.addArgument("outfile=" + mergedFile.getName());
@@ -2445,7 +2445,7 @@ public class CyberShake_PP_DAXGen {
     	job.addArgument("surfseis_rspectra_output_units=cmpersec2");
     	job.addArgument("surfseis_rspectra_output_type=aa");
     	job.addArgument("surfseis_rspectra_period=" + SPECTRA_PERIOD1);
-    	job.addArgument("surfseis_rspectra_apply_filter_highHZ="+params.getMaxHighFrequency());
+    	job.addArgument("surfseis_rspectra_apply_filter_highHZ="+params.getStochasticFrequency());
     	job.addArgument("surfseis_rspectra_apply_byteswap=no");
     	job.addArgument("out=" + psaFile.getName());
 		
