@@ -168,8 +168,17 @@ public class CyberShake_DB_DAXGen {
 		if (DO_CURVE_GEN) {
 			curveCalcJob = createCurveCalcJob();
 			dax.addJob(curveCalcJob);
+			dax.addDependency(dbCheckJob, curveCalcJob);
+			if (params.isCalculateRotD()) {
+				Job rotdCalcJob = createRotDCurveCalcJob();
+				dax.addJob(rotdCalcJob);
+				dax.addDependency(dbCheckJob, rotdCalcJob);
+			}
+			
 			disaggJob = createDisaggJob();
 			dax.addJob(disaggJob);
+			dax.addDependency(curveCalcJob, disaggJob);
+
 		}
 		Job reportJob = createDBReportJob();
 		dax.addJob(reportJob);
@@ -194,8 +203,7 @@ public class CyberShake_DB_DAXGen {
 		
 		// curve calc is a child of check
 		if (DO_CURVE_GEN) {
-			dax.addDependency(dbCheckJob, curveCalcJob);
-			dax.addDependency(curveCalcJob, disaggJob);
+
 		}
 		
 
@@ -245,12 +253,12 @@ public class CyberShake_DB_DAXGen {
 		job.addArgument("-p " + filesDir);
 
 		job.addArgument("-run " + riq.getRunID());
-		String periods = "10,5,3";
+		String periods = "10,7.5,5,4,3,2";
 		if (params.isHighFrequency()) {
-			periods = periods + ",2,1,0.5,0.2,0.1";
+			periods = periods + ",1,0.5,0.2,0.1";
 		} else {
 			if (params.getMaxHighFrequency()>=1.0) {
-				periods = periods + ",2,1";
+				periods = periods + ",1";
 			}
 			if (params.getMaxHighFrequency()>=2.0) {
 				periods = periods + ",0.5";
@@ -362,6 +370,48 @@ public class CyberShake_DB_DAXGen {
 		return job;
 	}
 
+	private Job createRotDCurveCalcJob() {
+		String id = DB_PREFIX + "Curve_Calc_RotD" + "_" + riq.getSiteName();
+		Job job = new Job(id, CyberShake_PP_DAXGen.NAMESPACE, CURVE_CALC_NAME, CyberShake_PP_DAXGen.VERSION);
+		
+		String outputDir = CURVE_OUTPUT_DIR_PREFIX + riq.getSiteName();
+		
+		job.addArgument("--site " + riq.getSiteName());
+		job.addArgument("--run-id " + riq.getRunID());
+		job.addArgument("--erf-file " + CURVE_ERF_XML_FILE);
+		//Comment this out until we update so that we can use Velocity_Model_ID=4 data
+		job.addArgument("--atten-rel-file " + CURVE_ATTEN_REL_XML_FILES);
+		String periods = ROTD_CALC_PERIODS;
+		if (params.isHighFrequency()) {
+			periods += ",1,0.5,0.2,0.1";
+		} else {
+			if (params.getDetFrequency()>=1.0) {
+				periods = periods + ",1";
+			}
+			if (params.getDetFrequency()>=2.0) {
+				periods = periods + ",0.5";
+			}
+		}
+		job.addArgument("--period " + periods);
+		job.addArgument("--output-dir " + outputDir);
+		job.addArgument("--type " + ROTD_OUTPUT_TYPES);
+		// this makes it calculate and the add the curve without prompting if needed
+		job.addArgument("--force-add RotD100:1,1.5");
+		
+		// db password file
+		job.addArgument("--password-file " + DB_PASS_FILE);
+		job.addArgument("--vs30 " + CURVE_DEFAULT_VS30);
+		if (!DO_CURVE_PLOT) {
+			// this makes it just calculate the curve, without plotting
+			job.addArgument("--calc-only");
+		}
+		
+		job.addProfile("globus", "maxWallTime", "15");
+		job.addProfile("hints","executionPool", "local");
+		
+		return job;
+	}
+	
 	private Job createDBCheckJob() {
 		String id = DB_PREFIX + "DB_Check" + "_" + riq.getSiteName();
 		Job job = new Job(id, CyberShake_PP_DAXGen.NAMESPACE, DB_CHECK_NAME, CyberShake_PP_DAXGen.VERSION);
