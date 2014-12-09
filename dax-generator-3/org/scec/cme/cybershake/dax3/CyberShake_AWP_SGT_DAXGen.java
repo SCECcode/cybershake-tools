@@ -271,16 +271,30 @@ public class CyberShake_AWP_SGT_DAXGen {
 				}
 			}
 		} else if (riq.getSgtString().equals("awp_gpu")) {
-			//Choose core count to be 10 x 10; each processor must be responsible for an even chunk, so each dim must be divisible by 20
-			for (int i=0; i<2; i++) {
-				if (dims[i] % 20 != 0) {
-					System.err.println("One of the volume dimensions is " + dims[i] + " which is not divisible by 20.  Aborting.");
+			if (riq.getFrequency()<1.0) {
+				//Choose core count to be 10 x 10; each processor must be responsible for an even chunk, so each dim must be divisible by 20
+				for (int i=0; i<2; i++) {
+					if (dims[i] % 20 != 0) {
+						System.err.println("One of the volume dimensions is " + dims[i] + " which is not divisible by 20.  Aborting.");
+						System.exit(3);
+					}
+				}
+				procDims[0] = 10;
+				procDims[1] = 10;
+				procDims[2] = 1;
+			} else {
+				if (dims[0] % 80 != 0) {
+					System.err.println("One of the volume dimensions is " + dims[0] + " which is not divisible by 80.  Aborting.");
 					System.exit(3);
 				}
+				if (dims[1] % 40 != 0) {
+					System.err.println("One of the volume dimensions is " + dims[1] + " which is not divisible by 40.  Aborting.");
+					System.exit(3);
+				}
+				procDims[0] = 40;
+				procDims[1] = 20;
+				procDims[2] = 1;
 			}
-			procDims[0] = 10;
-			procDims[1] = 10;
-			procDims[2] = 1;
 		} else {
 			System.err.println("SGT string " + riq.getSgtString() + " is not 'awp' or 'awp_gpu', so we don't know what to do with it in CyberShake_AWP_SGT_DAXGen.");
 			System.exit(2);
@@ -328,6 +342,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		preSGTJob.addArgument(faultlistFile);
 		preSGTJob.addArgument(radiusFile);
 		preSGTJob.addArgument(sgtcordFile);
+		preSGTJob.addArgument(riq.getFrequencyString());
 		
 		preSGTJob.uses(modelboxFile, File.LINK.INPUT);
 		preSGTJob.uses(gridoutFile, File.LINK.INPUT);

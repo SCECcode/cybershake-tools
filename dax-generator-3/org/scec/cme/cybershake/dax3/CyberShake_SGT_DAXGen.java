@@ -89,8 +89,8 @@ public class CyberShake_SGT_DAXGen {
         runIDGroup.addOption(runIDList);
         runIDGroup.setRequired(true);
         Option splitVelocityJobs = new Option("sv", "split-velocity", false, "Use separate velocity generation and merge jobs (default is to use combined job)");
-        Option maxCores = OptionBuilder.withArgName("max_cores").hasArg().withDescription("Maximum number of cores to use for AWP SGT code.").create("mc"); 
-       
+        Option maxCores = OptionBuilder.withArgName("max_cores").hasArg().withDescription("Maximum number of cores to use for AWP SGT code.").create("mc");
+        
         cmd_opts.addOption(help);
         cmd_opts.addOptionGroup(runIDGroup);
         cmd_opts.addOption(splitVelocityJobs);
@@ -134,7 +134,7 @@ public class CyberShake_SGT_DAXGen {
 		if (line.hasOption(maxCores.getOpt())) {
 			sgt_params.setMaxSGTCores(Integer.parseInt(line.getOptionValue(maxCores.getOpt())));
 		}
-		
+				
 		sgt_params.setRunIDQueries(runIDQueries);
 	}
 
@@ -378,6 +378,7 @@ public class CyberShake_SGT_DAXGen {
 		preCVMJob.addArgument(coordFile);
 		preCVMJob.addArgument(paramFile);
 		preCVMJob.addArgument(boundsFile);
+		preCVMJob.addArgument("-frequency " + riq.getFrequencyString());
 		if (riq.getSgtString().contains("gpu")) {
 			preCVMJob.addArgument("-gpu");
 		}
