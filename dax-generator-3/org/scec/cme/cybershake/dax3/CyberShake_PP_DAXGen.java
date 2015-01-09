@@ -1731,10 +1731,18 @@ public class CyberShake_PP_DAXGen {
 		}
 
 		for (int rv_id: ruptureVariationMap.keySet()) {
+			//If we are using ERF 36, we now just have an overall variation in the LFN string, not a slip/hypo breakdown
 			String lfn = ruptureVariationMap.get(rv_id);
 			String[] pieces = lfn.split("-");
-			int slip_id = Integer.parseInt(pieces[1].split("s")[1]);
-			int hypo_id = Integer.parseInt(pieces[2].split("h")[1]);
+			int slip_id, hypo_id;
+			slip_id = hypo_id = 0;
+			if (riq.getErfID()==36) {
+				//Use overall variation ID as the slip id, set hypo ID to 0
+				slip_id = Integer.parseInt(pieces[1].split("r")[1]);
+			} else {
+				slip_id = Integer.parseInt(pieces[1].split("s")[1]);
+				hypo_id = Integer.parseInt(pieces[2].split("h")[1]);
+			}
 			if (rup_var_string.length()>0) {
 				rup_var_string.append(";");
 			}
