@@ -1661,8 +1661,13 @@ public class CyberShake_PP_DAXGen {
 			seisPSAName = SEIS_PSA_LARGE_MEM_NAME;
 		}
 
-		Job job2= new Job(id2, NAMESPACE, seisPSAName, VERSION);
-
+		Job job2 = null;
+		if (riq.getRuptVarScenID()==5 || riq.getRuptVarScenID()==6) {
+			job2 = new Job(id2, NAMESPACE, seisPSAName, "3.3.1");
+		} else {
+			job2 = new Job(id2, NAMESPACE, seisPSAName, VERSION);
+		}
+		
 		//Assemble rupture variation string
 		//rup_var_string is in form (<rv_id>,<slip_id>,<hypo_id>);(....)
 		StringBuffer rup_var_string = new StringBuffer("");
