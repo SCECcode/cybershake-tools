@@ -64,6 +64,7 @@ public class CyberShake_PP_DAXGen {
     private final static String UPDATERUN_NAME = "UpdateRun";
     private final static String CYBERSHAKE_NOTIFY_NAME = "CyberShakeNotify";
     private final static String CHECK_SGT_NAME = "CheckSgt";
+    private final static String CHECK_SGT_NO_SUMS_NAME = "CheckSgtNoSums";
     private final static String ZIP_SEIS_NAME = "ZipSeismograms";
     private final static String ZIP_PSA_NAME = "ZipPeakSA";
     private final static String ZIP_COMBINED_NAME = "ZipCombined";
@@ -1177,23 +1178,18 @@ public class CyberShake_PP_DAXGen {
 	    
       		// Create update run state job
       		Job updateJob = addUpdate(preDax, runid, "PP_INIT", "PP_START");
-	   
-      		Job checkSgtXJob = null;
-      		Job checkSgtYJob = null;
       		
-      		if (!params.isSkipMD5()) {
-      			// Create CheckSGT jobs for X, Y components
-      			checkSgtXJob = addCheck(preDax, stationName, "x");
-      			checkSgtYJob = addCheck(preDax, stationName, "y");
+      		// Create CheckSGT jobs for X, Y components
+      		Job	checkSgtXJob = addCheck(preDax, stationName, "x");
+      		Job	checkSgtYJob = addCheck(preDax, stationName, "y");
 	    
-      			// Create Notify job
-      			//Skip notify
-      			//Job notifyJob = addNotify(preDax, stationName, CHECK_SGT_NAME, 0, 0);
+  			// Create Notify job
+  			//Skip notify
+  			//Job notifyJob = addNotify(preDax, stationName, CHECK_SGT_NAME, 0, 0);
 	    
-      			/// Make md5 check jobs children of update job
-      			preDax.addDependency(updateJob, checkSgtXJob);
-      			preDax.addDependency(updateJob, checkSgtYJob);
-      		}
+  			/// Make md5 check jobs children of update job
+  			preDax.addDependency(updateJob, checkSgtXJob);
+  			preDax.addDependency(updateJob, checkSgtYJob);
 
       		// Make notify job child of the two md5 check jobs
       		//preDax.addDependency(checkSgtXJob, notifyJob);
@@ -1234,10 +1230,8 @@ public class CyberShake_PP_DAXGen {
       			
       			preDax.addJob(extractMPIJob);
       			
-      			if (!params.isSkipMD5()) {
-      				preDax.addDependency(checkSgtXJob, extractMPIJob);
-      				preDax.addDependency(checkSgtYJob, extractMPIJob);
-      			}
+				preDax.addDependency(checkSgtXJob, extractMPIJob);
+  				preDax.addDependency(checkSgtYJob, extractMPIJob);
       		}
 	    
       		// Save the DAX
@@ -1268,7 +1262,13 @@ public class CyberShake_PP_DAXGen {
     
     private Job addCheck(ADAG dax, String site, String component) {
 		String id = CHECK_SGT_NAME + "_" + site + "_" + component;
-		Job checkJob = new Job(id, NAMESPACE, CHECK_SGT_NAME, VERSION);
+		Job checkJob = null;
+		//We do it this way to preserve the file dependencies, so the right transfers and symlinks occur
+		if (params.isSkipMD5()) {
+			checkJob = new Job(id, NAMESPACE, CHECK_SGT_NO_SUMS_NAME, VERSION);			
+		} else {
+			checkJob = new Job(id, NAMESPACE, CHECK_SGT_NAME, VERSION);
+		}
 
 		File sgtFile = new File(site + "_f" + component + "_" + riq.getRunID() + ".sgt");
 		File sgtmd5File = new File(site + "_f" + component + "_" + riq.getRunID() + ".sgt.md5");
