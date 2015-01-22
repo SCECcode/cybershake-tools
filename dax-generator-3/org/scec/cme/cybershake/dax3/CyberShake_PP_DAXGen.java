@@ -241,6 +241,7 @@ public class CyberShake_PP_DAXGen {
         Option multi_rv = OptionBuilder.withArgName("factor").hasArg().withDescription("Use SeisPSA version which supports multiple synthesis tasks per invocation; number of seis_psa jobs per invocation.").create("mr");
         Option source_forward = new Option("sf", "source-forward", false, "Aggregate files at the source level instead of the default rupture level.");
         Option rotd = new Option("r", "rotd", false, "Calculate RotD50, the RotD50 angle, and RotD100 for rupture variations and insert them into the database.");
+        Option skip_md5 = new Option("k", "skip-md5", false, "Skip md5 checksum step.  This option should only be used when debugging.");
         cmd_opts.addOption(help);
         cmd_opts.addOption(partition);
         cmd_opts.addOption(no_insert);
@@ -265,6 +266,7 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(separate_zip);
         cmd_opts.addOption(multi_rv);
         cmd_opts.addOption(rotd);
+        cmd_opts.addOption(skip_md5);
 
         CommandLineParser parser = new GnuParser();
         if (args.length<1) {
@@ -396,6 +398,10 @@ public class CyberShake_PP_DAXGen {
         	if (!pp_params.isLargeMemSynth()) {
         		System.err.println("Currently RotD calculation is only supported if using large mem version of SeisPSA.");
         	}
+        }
+        
+        if (line.hasOption(skip_md5.getOpt())) {
+        	pp_params.setSkipMD5(true);
         }
         
         //Removing notifications
@@ -1170,18 +1176,23 @@ public class CyberShake_PP_DAXGen {
 	    
       		// Create update run state job
       		Job updateJob = addUpdate(preDax, runid, "PP_INIT", "PP_START");
+	   
+      		Job checkSgtXJob = null;
+      		Job checkSgtYJob = null;
+      		
+      		if (!params.isSkipMD5()) {
+      			// Create CheckSGT jobs for X, Y components
+      			checkSgtXJob = addCheck(preDax, stationName, "x");
+      			checkSgtYJob = addCheck(preDax, stationName, "y");
 	    
-      		// Create CheckSGT jobs for X, Y components
-      		Job checkSgtXJob = addCheck(preDax, stationName, "x");
-      		Job checkSgtYJob = addCheck(preDax, stationName, "y");
+      			// Create Notify job
+      			//Skip notify
+      			//Job notifyJob = addNotify(preDax, stationName, CHECK_SGT_NAME, 0, 0);
 	    
-      		// Create Notify job
-      		//Skip notify
-      		//Job notifyJob = addNotify(preDax, stationName, CHECK_SGT_NAME, 0, 0);
-	    
-      		/// Make md5 check jobs children of update job
-      		preDax.addDependency(updateJob, checkSgtXJob);
-      		preDax.addDependency(updateJob, checkSgtYJob);
+      			/// Make md5 check jobs children of update job
+      			preDax.addDependency(updateJob, checkSgtXJob);
+      			preDax.addDependency(updateJob, checkSgtYJob);
+      		}
 
       		// Make notify job child of the two md5 check jobs
       		//preDax.addDependency(checkSgtXJob, notifyJob);
@@ -1222,8 +1233,10 @@ public class CyberShake_PP_DAXGen {
       			
       			preDax.addJob(extractMPIJob);
       			
-      			preDax.addDependency(checkSgtXJob, extractMPIJob);
-      			preDax.addDependency(checkSgtYJob, extractMPIJob);
+      			if (!params.isSkipMD5()) {
+      				preDax.addDependency(checkSgtXJob, extractMPIJob);
+      				preDax.addDependency(checkSgtYJob, extractMPIJob);
+      			}
       		}
 	    
       		// Save the DAX
