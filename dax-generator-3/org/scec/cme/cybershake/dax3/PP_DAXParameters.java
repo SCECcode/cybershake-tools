@@ -50,6 +50,8 @@ public class PP_DAXParameters {
 	
 	private boolean calculateRotD = false;
 	
+	private boolean skipMD5 = false;
+	
 	//BW has 56 GB permitted per node
 	private int seisPSAMemCutoff = 56*1024;
 
@@ -327,5 +329,13 @@ public class PP_DAXParameters {
 
 	public void setCalculateRotD(boolean calculateRotD) {
 		this.calculateRotD = calculateRotD;
+	}
+
+	public boolean isSkipMD5() {
+		return skipMD5;
+	}
+
+	public void setSkipMD5(boolean skipMD5) {
+		this.skipMD5 = skipMD5;
 	}
 }
