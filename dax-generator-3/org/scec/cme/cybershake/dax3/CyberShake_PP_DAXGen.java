@@ -2202,7 +2202,12 @@ public class CyberShake_PP_DAXGen {
 			seisOut *= 0.1/Double.parseDouble(HF_DT);
 		}
 //		System.out.println("Memory required: " + rvMem + " + " + sgtMem + " + " + seisOut);
-		return (int)((sgtMem+rvMem+seisOut)*tolerance)+1;
+		int multiRVfactor = 1;
+		if (params.isUseMultiSeisPSA()) {
+			multiRVfactor = params.getMultiSeisPSAFactor();
+		}
+		
+		return (int)((sgtMem+multiRVfactor*rvMem+seisOut)*tolerance)+1;
 	}
 	
 	private int getPSAMem() {
