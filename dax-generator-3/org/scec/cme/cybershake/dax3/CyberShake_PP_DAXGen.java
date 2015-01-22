@@ -402,6 +402,7 @@ public class CyberShake_PP_DAXGen {
         
         if (line.hasOption(skip_md5.getOpt())) {
         	pp_params.setSkipMD5(true);
+        	System.out.println("Skipping md5 sums, beware!");
         }
         
         //Removing notifications
