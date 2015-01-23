@@ -1808,6 +1808,12 @@ public class CyberShake_PP_DAXGen {
 		}
 			
 		job2.addArgument("rup_vars=" + rup_var_string.toString());
+		
+		if (riq.getRuptVarScenID()==5) {
+			job2.addArgument("rupture_spacing=random");
+		} else if (riq.getRuptVarScenID()==6) {
+			job2.addArgument("rupture_spacing=uniform");
+		}
 			
 		//synth args
 		job2.addArgument("stat="+riq.getSiteName());
