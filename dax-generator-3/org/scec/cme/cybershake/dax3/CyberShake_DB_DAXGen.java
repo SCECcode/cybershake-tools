@@ -36,7 +36,7 @@ public class CyberShake_DB_DAXGen {
 	public static final double CURVE_DEFAULT_VS30 = 760;
 	
 	public static final String ROTD_CALC_PERIODS = "2,3,4,5,7.5,10";
-	public static final String ROTD_OUTPUT_TYPES = "pdf,png,csv";
+	public static final String ROTD_OUTPUT_TYPES = "pdf,png";
 	
 	//DB info
 	public static final String DB_SERVER = "focal";
@@ -170,9 +170,11 @@ public class CyberShake_DB_DAXGen {
 			dax.addJob(curveCalcJob);
 			dax.addDependency(dbCheckJob, curveCalcJob);
 			if (params.isCalculateRotD()) {
+				Job rotdCheckJob = createDBCheckRotDJob();
+				dax.addJob(rotdCheckJob);
 				Job rotdCalcJob = createRotDCurveCalcJob();
 				dax.addJob(rotdCalcJob);
-				dax.addDependency(dbCheckJob, rotdCalcJob);
+				dax.addDependency(rotdCheckJob, rotdCalcJob);
 			}
 			
 			disaggJob = createDisaggJob();
@@ -203,10 +205,8 @@ public class CyberShake_DB_DAXGen {
 		
 		// curve calc is a child of check
 		if (DO_CURVE_GEN) {
-
-		}
-		
-
+			
+		}		
 		
 		// report is a child of check
 		dax.addDependency(dbCheckJob, reportJob);
@@ -249,7 +249,8 @@ public class CyberShake_DB_DAXGen {
 		}
 		//For RotD files
 		job.addArgument("-r");
-		
+		//Convert to cm/s^2
+		job.addArgument("-c");
 		job.addArgument("-p " + filesDir);
 
 		job.addArgument("-run " + riq.getRunID());
@@ -396,7 +397,7 @@ public class CyberShake_DB_DAXGen {
 		job.addArgument("--output-dir " + outputDir);
 		job.addArgument("--type " + ROTD_OUTPUT_TYPES);
 		// this makes it calculate and the add the curve without prompting if needed
-		job.addArgument("--force-add RotD100:1,1.5");
+		job.addArgument("--force-add");
 		
 		// db password file
 		job.addArgument("--password-file " + DB_PASS_FILE);
@@ -416,11 +417,45 @@ public class CyberShake_DB_DAXGen {
 		String id = DB_PREFIX + "DB_Check" + "_" + riq.getSiteName();
 		Job job = new Job(id, CyberShake_PP_DAXGen.NAMESPACE, DB_CHECK_NAME, CyberShake_PP_DAXGen.VERSION);
 		
-		job.addArgument(riq.getRunID() + "");
+		job.addArgument("-r " + riq.getRunID());
 		
 		String outFile = DB_CHECK_OUTFILE_DIR + DB_CHECK_OUTFILE_PREFIX + riq.getSiteName();
 		
-		job.addArgument(outFile);
+		job.addArgument("-o " + outFile);
+		job.addArgument("-c geometric");
+		String periods = "10,5,3";
+		if (params.getDetFrequency()>=1.0) {
+			periods += ",2";
+		}
+		if (params.getDetFrequency()>=1.5) {
+			periods += ",1";
+		}
+		job.addArgument("-p " + periods);
+		
+		job.addProfile("globus", "maxWallTime", "15");
+		job.addProfile("hints","executionPool", "local");
+		
+		return job;
+	}
+	
+	private Job createDBCheckRotDJob() {
+		String id = DB_PREFIX + "DB_Check" + "_" + riq.getSiteName();
+		Job job = new Job(id, CyberShake_PP_DAXGen.NAMESPACE, DB_CHECK_NAME, CyberShake_PP_DAXGen.VERSION);
+		
+		job.addArgument("-r " + riq.getRunID());
+		
+		String outFile = DB_CHECK_OUTFILE_DIR + DB_CHECK_OUTFILE_PREFIX + "RotD_" +  riq.getSiteName();
+		
+		job.addArgument("-o " + outFile);
+		job.addArgument("-c rotd");
+		String periods = "10,5,3";
+		if (params.getDetFrequency()>=1.0) {
+			periods += ",2";
+		}
+		if (params.getDetFrequency()>=1.5) {
+			periods += ",1";
+		}
+		job.addArgument("-p " + periods);
 		
 		job.addProfile("globus", "maxWallTime", "15");
 		job.addProfile("hints","executionPool", "local");

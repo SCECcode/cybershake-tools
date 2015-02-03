@@ -2186,14 +2186,16 @@ public class CyberShake_PP_DAXGen {
 		int size_sgtindex = 24;
 		int size_sgtheader = 128;
 		int numComponents = 3;
-		int numSGTtimesteps = 2000;
+		int numSGTtimesteps = (int)(2000*params.getDetFrequency()/0.5);
 		double tolerance = 1.1;
 		//Total size is size for SGTs + size of rupture variation + seismogram
 		//Do calculation in MB
 		//1 MB is max RV size for 0.5 Hz
 		double rvMem = 14.8 * Math.log10(numRupPoints) * Math.pow(numRupPoints, 1.14) / (1024.0*1024.0);
-		//Largest RV is 75 mb, so cap if larger
+		//Largest RV at dt=0.1 is 75 mb, so cap if larger
 		rvMem = Math.min(rvMem, 80.0);
+		//Adjust rv mem based on dt, since that affects the dt of the SRF too
+		rvMem *= 1.75*0.1/Double.parseDouble(LF_TIMESTEP);
 		//double sgtMem = numComponents/(1024.0*1024.0) * (size_sgtmaster + numRupPoints*(size_sgtindex + size_sgtheader + 6*numSGTtimesteps*(params.getHighFrequencyCutoff()/0.5)*4));
 		//numComp + 1 b/c we have a read buffer now
 		double sgtMem = 0.0;
