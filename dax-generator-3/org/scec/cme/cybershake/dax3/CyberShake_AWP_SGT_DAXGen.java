@@ -36,12 +36,14 @@ public class CyberShake_AWP_SGT_DAXGen {
         Option outputDAX = OptionBuilder.withArgName("output").hasArg().withDescription("output DAX filename").create("o");
         Option separateVelJobsOpt = new Option("sv", "split-velocity", false, "Use separate velocity generation and merge jobs (default is to use combined job)");
         Option maxSGTCores = OptionBuilder.withArgName("maxCores").hasArg().withDescription("maximum number of cores for SGT jobs").create("mc");
+        Option separateMD5Jobs = new Option("sm", "separate-md5", false, "Run md5 jobs separately from PostAWP jobs (default is to combine).");
 
         cmd_opts.addOption(runIDopt);
         cmd_opts.addOption(gridoutFile);
         cmd_opts.addOption(outputDAX);
         cmd_opts.addOption(separateVelJobsOpt);
         cmd_opts.addOption(maxSGTCores);
+        cmd_opts.addOption(separateMD5Jobs);
         
         String usageString = "CyberShake_AWP_SGT_DAXGen [options]";
         CommandLineParser parser = new GnuParser();
@@ -95,6 +97,12 @@ public class CyberShake_AWP_SGT_DAXGen {
 		
 		int[] dims = getVolume(gridoutFilename);
 		int[] procDims = getProcessors(dims, maxCores);
+
+		boolean separateMD5 = false;
+		
+		if (line.hasOption(separateMD5Jobs.getOpt())) {
+			separateMD5 = true;
+		}
 		
 		ADAG sgtDAX = new ADAG("AWP_SGT_" + riq.getSiteName() + ".dax");
 		
@@ -132,13 +140,13 @@ public class CyberShake_AWP_SGT_DAXGen {
 		sgtDAX.addDependency(preAWP, awpSGTx);
 		sgtDAX.addDependency(preAWP, awpSGTy);
 		
-		Job postAWPX = addPostAWP("x", separateVelJobs);
+		Job postAWPX = addPostAWP("x", separateVelJobs, separateMD5);
 		sgtDAX.addJob(postAWPX);
 		sgtDAX.addDependency(awpSGTx, postAWPX);
-		Job postAWPY = addPostAWP("y", separateVelJobs);
+		Job postAWPY = addPostAWP("y", separateVelJobs, separateMD5);
 		sgtDAX.addJob(postAWPY);
 		sgtDAX.addDependency(awpSGTy, postAWPY);
-		
+				
 		Job nanCheckX = addAWPNanCheck("x");
 		sgtDAX.addJob(nanCheckX);
 		sgtDAX.addDependency(awpSGTx, nanCheckX);
@@ -148,8 +156,18 @@ public class CyberShake_AWP_SGT_DAXGen {
 		
 		Job updateEnd = addUpdate("SGT_START", "SGT_END");
 		sgtDAX.addJob(updateEnd);
-		sgtDAX.addDependency(postAWPX, updateEnd);
-		sgtDAX.addDependency(postAWPY, updateEnd);
+		
+		if (separateMD5) {
+			Job md5X = addMD5("x");
+			Job md5Y = addMD5("y");
+			sgtDAX.addJob(md5X);
+			sgtDAX.addJob(md5Y);
+			sgtDAX.addDependency(md5X, updateEnd);
+			sgtDAX.addDependency(md5Y, updateEnd);
+		} else {		
+			sgtDAX.addDependency(postAWPX, updateEnd);
+			sgtDAX.addDependency(postAWPY, updateEnd);
+		}
 		sgtDAX.addDependency(nanCheckX, updateEnd);
 		sgtDAX.addDependency(nanCheckY, updateEnd);
 		
@@ -531,7 +549,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		return vMeshMergeJob;
 	}
 	
-	private static Job addPostAWP(String component, boolean separate) {
+	private static Job addPostAWP(String component, boolean separateVel, boolean separateMD5) {
 		String id = "PostAWP_" + riq.getSiteName() + "_" + riq.getVelModelString() + "_" + component;
 		Job postAWPJob = new Job(id, "scec", "PostAWP", "1.0");
 		
@@ -544,14 +562,13 @@ public class CyberShake_AWP_SGT_DAXGen {
 			rwgComponent = "x";
 		}
 		File awpStrainOutFile = new File(riq.getSiteName() + "_f" + rwgComponent + "_" + riq.getRunID() + ".sgt");
-		File md5OutFile = new File(awpStrainOutFile.getName() + ".md5");
 		File modelboxFile = new File(riq.getSiteName() + ".modelbox");
 		File cordFile = new File(riq.getSiteName() + ".cordfile");
 		File fdlocFile = new File(riq.getSiteName() + ".fdloc");
 		File gridoutFile = new File("gridout_" + riq.getSiteName());
 		File in3DFile = new File("IN3D." + riq.getSiteName() + "." + component);
 		File awpMediaFile = new File("awp." + riq.getSiteName() + ".media");
-		if (separate) {
+		if (separateVel) {
 			awpMediaFile = new File("v_sgt-" + riq.getSiteName());
 		}
 		File headerFile = new File(riq.getSiteName() + "_f" + rwgComponent + "_" + riq.getRunID() + ".sgthead");
@@ -566,7 +583,13 @@ public class CyberShake_AWP_SGT_DAXGen {
 		
 		awpStrainOutFile.setTransfer(TRANSFER.TRUE);
 		headerFile.setTransfer(TRANSFER.TRUE);
-		md5OutFile.setTransfer(TRANSFER.TRUE);
+		
+		if (!separateMD5) {
+			File md5OutFile = new File(awpStrainOutFile.getName() + ".md5");
+			md5OutFile.setTransfer(TRANSFER.TRUE);
+			md5OutFile.setRegister(true);
+			postAWPJob.uses(md5OutFile, LINK.OUTPUT);
+		}
 		
 		awpStrainInFile.setRegister(false);
 		modelboxFile.setRegister(false);
@@ -578,7 +601,6 @@ public class CyberShake_AWP_SGT_DAXGen {
 		
 		awpStrainOutFile.setRegister(true);
 		headerFile.setRegister(true);
-		md5OutFile.setRegister(true);
 
 		postAWPJob.addArgument(riq.getSiteName());
 		postAWPJob.addArgument(awpStrainInFile);
@@ -606,11 +628,38 @@ public class CyberShake_AWP_SGT_DAXGen {
 		postAWPJob.uses(in3DFile, LINK.INPUT);
 		postAWPJob.uses(awpMediaFile, LINK.INPUT);
 		postAWPJob.uses(headerFile, LINK.OUTPUT);
-		postAWPJob.uses(md5OutFile, LINK.OUTPUT);
 		
 		return postAWPJob;
 	}
 
+	private static Job addMD5(String component) {
+		String id = "MD5_" + component;
+		Job md5Job = new Job(id, "scec", "MD5", "1.0");
+
+		//We swap the component value in the output file, because AWP X = RWG Y
+		String rwgComponent = "z";
+		if (component.equals("x")) {
+			rwgComponent = "y";
+		} else if (component.equals("y")) {
+			rwgComponent = "x";
+		}
+		File awpStrainOutFile = new File(riq.getSiteName() + "_f" + rwgComponent + "_" + riq.getRunID() + ".sgt");
+		md5Job.addArgument(awpStrainOutFile.getName());
+		
+		File md5File = new File(awpStrainOutFile.getName() + ".md5");
+		
+		awpStrainOutFile.setRegister(false);
+		awpStrainOutFile.setTransfer(TRANSFER.FALSE);
+		md5File.setRegister(true);
+		md5File.setTransfer(TRANSFER.TRUE);
+		
+		md5Job.uses(awpStrainOutFile, LINK.INPUT);
+		md5Job.uses(md5File, LINK.OUTPUT);
+		
+		return md5Job;
+	}
+
+	
 	private static Job addAWPNanCheck(String component) {
 		String id = "AWP_NaN_Check_" + component;
 		Job awpJob = new Job(id, "scec", "AWP_NaN_Check", "1.0");

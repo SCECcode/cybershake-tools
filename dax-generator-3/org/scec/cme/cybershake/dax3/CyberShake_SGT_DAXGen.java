@@ -90,11 +90,13 @@ public class CyberShake_SGT_DAXGen {
         runIDGroup.setRequired(true);
         Option splitVelocityJobs = new Option("sv", "split-velocity", false, "Use separate velocity generation and merge jobs (default is to use combined job)");
         Option maxCores = OptionBuilder.withArgName("max_cores").hasArg().withDescription("Maximum number of cores to use for AWP SGT code.").create("mc");
+        Option separateMD5Jobs = new Option("sm", "separate-md5", false, "Run md5 jobs separately from PostAWP jobs (default is to combine).");
         
         cmd_opts.addOption(help);
         cmd_opts.addOptionGroup(runIDGroup);
         cmd_opts.addOption(splitVelocityJobs);
         cmd_opts.addOption(maxCores);
+        cmd_opts.addOption(separateMD5Jobs);
         
         String usageString = "CyberShake_SGT_DAXGen <output filename> <destination directory> [options] [-f <runID file, one per line> | -r <runID1> <runID2> ... ]";
         CommandLineParser parser = new GnuParser();
@@ -135,6 +137,10 @@ public class CyberShake_SGT_DAXGen {
 			sgt_params.setMaxSGTCores(Integer.parseInt(line.getOptionValue(maxCores.getOpt())));
 		}
 				
+		if (line.hasOption(separateMD5Jobs.getOpt())) {
+			sgt_params.setSeparateMD5Jobs(true);
+		}
+		
 		sgt_params.setRunIDQueries(runIDQueries);
 	}
 
@@ -315,6 +321,10 @@ public class CyberShake_SGT_DAXGen {
 		if (sgt_params.getMaxSGTCores()!=-1) {
 			genSGTDAXJob.addArgument("-mc " + sgt_params.getMaxSGTCores());
 		}
+		if (sgt_params.isSeparateMD5Jobs()==true) {
+			genSGTDAXJob.addArgument("-sm");
+		}
+		
 		genSGTDAXJob.uses(gridoutFile, LINK.INPUT);
 		genSGTDAXJob.uses(daxFile, LINK.OUTPUT);
 		
