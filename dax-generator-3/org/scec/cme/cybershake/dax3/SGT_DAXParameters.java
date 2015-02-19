@@ -9,6 +9,7 @@ public class SGT_DAXParameters {
 	private ArrayList<RunIDQuery> runIDQueries;
 	
 	private boolean separateVelocityJobs = false;
+	private boolean separateMD5Jobs = false;
 	
 	public SGT_DAXParameters(String filename) {
 		this.daxFilename = filename;
@@ -49,6 +50,14 @@ public class SGT_DAXParameters {
 	
 	public void setMaxSGTCores(int maxCores) {
 		this.maxCores = maxCores;
+	}
+
+	public boolean isSeparateMD5Jobs() {
+		return separateMD5Jobs;
+	}
+
+	public void setSeparateMD5Jobs(boolean separateMD5Jobs) {
+		this.separateMD5Jobs = separateMD5Jobs;
 	}
 	
 	
