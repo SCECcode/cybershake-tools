@@ -166,7 +166,10 @@ public class CyberShake_PP_DAXGen {
 			jDax.addArgument("--output-dir " + OUTPUT_DIR + "/" + siteName + "/" + cont.getRIQ().getRunID());
 			jDax.addProfile("dagman", "category", "subwf");
 			topLevelDax.addDAX(jDax);
-			topLevelDax.addDependency(preD, jDax);
+			//Only add a dependency if we're not using the no-blocking MD5 sums
+			if (cont.getParams().isNonblockingMD5()==false) {
+				topLevelDax.addDependency(preD, jDax);
+			}
 			File jDaxFile = new File(filename);
 			jDaxFile.addPhysicalFile("file://" + cont.getParams().getPPDirectory() + "/" + filename, "local");
 			topLevelDax.addFile(jDaxFile);
@@ -243,6 +246,8 @@ public class CyberShake_PP_DAXGen {
         Option source_forward = new Option("sf", "source-forward", false, "Aggregate files at the source level instead of the default rupture level.");
         Option rotd = new Option("r", "rotd", false, "Calculate RotD50, the RotD50 angle, and RotD100 for rupture variations and insert them into the database.");
         Option skip_md5 = new Option("k", "skip-md5", false, "Skip md5 checksum step.  This option should only be used when debugging.");
+        Option nonblocking_md5 = new Option("nb", "nonblocking-md5", false, "Move md5 checksum step out of the critical path. Entire workflow will still abort on error.");
+        
         cmd_opts.addOption(help);
         cmd_opts.addOption(partition);
         cmd_opts.addOption(no_insert);
@@ -268,6 +273,7 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(multi_rv);
         cmd_opts.addOption(rotd);
         cmd_opts.addOption(skip_md5);
+        cmd_opts.addOption(nonblocking_md5);
 
         CommandLineParser parser = new GnuParser();
         if (args.length<1) {
@@ -404,6 +410,10 @@ public class CyberShake_PP_DAXGen {
         if (line.hasOption(skip_md5.getOpt())) {
         	pp_params.setSkipMD5(true);
         	System.out.println("Skipping md5 sums, beware!");
+        }
+        
+        if (line.hasOption(nonblocking_md5.getOpt())) {
+        	pp_params.setNonblockingMD5(true);
         }
         
         //Removing notifications
@@ -1299,6 +1309,11 @@ public class CyberShake_PP_DAXGen {
 		sgtmd5out.setRegister(true);
 		checkJob.addUses(sgtout);
 		checkJob.addUses(sgtmd5out);*/
+		
+		if (params.isNonblockingMD5()) {
+			//Add abort profiles so entire workflow will abort if this fails
+			checkJob.addProfile("DAGMan", "ABORT-DAG-ON", "1 RETURN 1");
+		}
 		
 		dax.addJob(checkJob);
 		
