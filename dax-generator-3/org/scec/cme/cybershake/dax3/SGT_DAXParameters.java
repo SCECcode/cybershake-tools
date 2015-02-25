@@ -10,6 +10,7 @@ public class SGT_DAXParameters {
 	
 	private boolean separateVelocityJobs = false;
 	private boolean separateMD5Jobs = false;
+	private boolean handoffJob = false;
 	
 	public SGT_DAXParameters(String filename) {
 		this.daxFilename = filename;
@@ -58,6 +59,14 @@ public class SGT_DAXParameters {
 
 	public void setSeparateMD5Jobs(boolean separateMD5Jobs) {
 		this.separateMD5Jobs = separateMD5Jobs;
+	}
+
+	public boolean isHandoffJob() {
+		return handoffJob;
+	}
+
+	public void setHandoffJob(boolean handoffJob) {
+		this.handoffJob = handoffJob;
 	}
 	
 	

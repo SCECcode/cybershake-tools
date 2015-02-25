@@ -37,6 +37,7 @@ public class CyberShake_AWP_SGT_DAXGen {
         Option separateVelJobsOpt = new Option("sv", "split-velocity", false, "Use separate velocity generation and merge jobs (default is to use combined job)");
         Option maxSGTCores = OptionBuilder.withArgName("maxCores").hasArg().withDescription("maximum number of cores for SGT jobs").create("mc");
         Option separateMD5Jobs = new Option("sm", "separate-md5", false, "Run md5 jobs separately from PostAWP jobs (default is to combine).");
+        Option handoffJobOpt = new Option("d", "handoff", false, "Run handoff job, which puts SGT into pending file on shock when completed.");
 
         cmd_opts.addOption(runIDopt);
         cmd_opts.addOption(gridoutFile);
@@ -44,6 +45,7 @@ public class CyberShake_AWP_SGT_DAXGen {
         cmd_opts.addOption(separateVelJobsOpt);
         cmd_opts.addOption(maxSGTCores);
         cmd_opts.addOption(separateMD5Jobs);
+        cmd_opts.addOption(handoffJobOpt);
         
         String usageString = "CyberShake_AWP_SGT_DAXGen [options]";
         CommandLineParser parser = new GnuParser();
@@ -90,6 +92,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		if (line.hasOption(separateVelJobsOpt.getOpt())) {
 			separateVelJobs = true;
 		}
+		
 		int maxCores = -1;
 		if (line.hasOption(maxSGTCores.getOpt())) {
 			maxCores = Integer.parseInt(line.getOptionValue(maxSGTCores.getOpt()));
@@ -99,10 +102,15 @@ public class CyberShake_AWP_SGT_DAXGen {
 		int[] procDims = getProcessors(dims, maxCores);
 
 		boolean separateMD5 = false;
-		
 		if (line.hasOption(separateMD5Jobs.getOpt())) {
 			separateMD5 = true;
 		}
+		
+		boolean handoffJob = false;
+		if (line.hasOption(handoffJobOpt.getOpt())) {
+				handoffJob = true;
+		}
+		
 		
 		ADAG sgtDAX = new ADAG("AWP_SGT_" + riq.getSiteName() + ".dax");
 		
@@ -171,9 +179,20 @@ public class CyberShake_AWP_SGT_DAXGen {
 		sgtDAX.addDependency(nanCheckX, updateEnd);
 		sgtDAX.addDependency(nanCheckY, updateEnd);
 		
+		if (handoffJob==true) {
+			Job handoff = addHandoff();
+			sgtDAX.addJob(handoff);
+			sgtDAX.addDependency(postAWPX, handoff);
+			sgtDAX.addDependency(postAWPY, handoff);
+			sgtDAX.addDependency(nanCheckX, handoff);
+			sgtDAX.addDependency(nanCheckY, handoff);
+			sgtDAX.addDependency(handoff, updateEnd);
+		}
+		
 		sgtDAX.writeToFile(outputDAXFilename);
 		
 	}
+
 
 	private static int[] getVolume(String gridoutFilename) {
 		int[] dims = new int[3];
@@ -672,6 +691,15 @@ public class CyberShake_AWP_SGT_DAXGen {
 		awpJob.uses(awpStrainInFile, LINK.INPUT);
 
 		return awpJob;
+	}
+	
+	private static Job addHandoff() {
+		String id = "Handoff";
+		Job handoffJob = new Job(id, "scec", "Handoff", "1.0");
+		
+		handoffJob.addArgument("-r " + riq.getRunID());
+		
+		return handoffJob;
 	}
 	
 	 private static Job addUpdate(String from_state, String to_state) {
