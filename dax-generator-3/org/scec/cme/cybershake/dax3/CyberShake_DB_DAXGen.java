@@ -398,6 +398,7 @@ public class CyberShake_DB_DAXGen {
 		job.addArgument("--type " + ROTD_OUTPUT_TYPES);
 		// this makes it calculate and the add the curve without prompting if needed
 		job.addArgument("--force-add");
+		job.addArgument("--cmp RotD100");
 		
 		// db password file
 		job.addArgument("--password-file " + DB_PASS_FILE);

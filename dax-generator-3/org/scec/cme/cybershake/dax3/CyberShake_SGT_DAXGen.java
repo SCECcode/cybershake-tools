@@ -236,6 +236,7 @@ public class CyberShake_SGT_DAXGen {
 			sgtDAX.addArgument("--force");
 			sgtDAX.addArgument("-o bluewaters");
 			sgtDAX.addArgument("--basename AWP_SGT_" + riq.getSiteName());
+			sgtDAX.addArgument("--cleanup inplace");
 			workflowDAX.addDAX(sgtDAX);
 			workflowDAX.addDependency(preCVM, sgtDAX);
 			workflowDAX.addDependency(genSGTDAX, sgtDAX);
