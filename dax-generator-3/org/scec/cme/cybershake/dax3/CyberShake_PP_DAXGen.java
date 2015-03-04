@@ -770,6 +770,24 @@ public class CyberShake_PP_DAXGen {
 				int slips = ruptures.getInt("count(*)");
 				int rupture_pts = ruptures.getInt("R.Num_Points");
 				bw.write(rupture_path + " " + slips + " 1 " + rupture_pts + "\n");
+				//Also add this to Pegasus file management
+				File seisFile = new File(SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
+						riq.getRunID() + "_" + source_id + "_" + rupture_id + SEISMOGRAM_FILENAME_EXTENSION);
+				seisFile.setRegister(true);
+				seisFile.setTransfer(TRANSFER.TRUE);
+				directSynthJob.uses(seisFile, LINK.OUTPUT);
+				File psaFile = new File(PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
+						riq.getRunID() + "_" + source_id + "_" + rupture_id + PEAKVALS_FILENAME_EXTENSION);
+				psaFile.setRegister(true);
+				psaFile.setTransfer(TRANSFER.TRUE);
+				directSynthJob.uses(psaFile, LINK.OUTPUT);
+				if (params.isCalculateRotD()) {
+					File rotdFile = new File(ROTD_FILENAME_PREFIX + riq.getSiteName() + "_" +
+						riq.getRunID() + "_" + source_id + "_" + rupture_id + ROTD_FILENAME_EXTENSION);
+					rotdFile.setRegister(true);
+					rotdFile.setTransfer(TRANSFER.TRUE);
+					directSynthJob.uses(rotdFile, LINK.OUTPUT);
+				}
 				ruptures.next();
 			}
 			bw.flush();
@@ -811,8 +829,12 @@ public class CyberShake_PP_DAXGen {
 		directSynthJob.addArgument("det_max_freq=" + params.getDetFrequency());
 		directSynthJob.addArgument("stoch_max_freq=" + params.getStochasticFrequency());
 		directSynthJob.addArgument("run_psa=1");
-		//We're going to assume we always run RotD for now
-		directSynthJob.addArgument("run_rotd=1");
+		
+		if (params.isCalculateRotD()) {
+			directSynthJob.addArgument("run_rotd=1");
+		} else {
+			directSynthJob.addArgument("run_rotd=0");
+		}
 		directSynthJob.addArgument("dtout=" + LF_TIMESTEP);
 		directSynthJob.addArgument("simulation_out_pointsX=2");
 		directSynthJob.addArgument("simulation_out_pointsY=1");
