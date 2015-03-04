@@ -53,6 +53,8 @@ public class PP_DAXParameters {
 	private boolean skipMD5 = false;
 	private boolean nonblockingMD5 = false;
 	
+	private boolean useDirectSynth = false;
+	
 	//BW has 56 GB permitted per node
 	private int seisPSAMemCutoff = 56*1024;
 
@@ -346,5 +348,13 @@ public class PP_DAXParameters {
 
 	public void setNonblockingMD5(boolean nonblockingMD5) {
 		this.nonblockingMD5 = nonblockingMD5;
+	}
+
+	public boolean isUseDirectSynth() {
+		return useDirectSynth;
+	}
+
+	public void setUseDirectSynth(boolean useDirectSynth) {
+		this.useDirectSynth = useDirectSynth;
 	}
 }

@@ -85,6 +85,7 @@ public class CyberShake_PP_DAXGen {
     private final static String MERGE_PSA_NAME = "MergePSA";
     private final static String EXTRACT_SGT_MPI_NAME = "Extract_SGT_MPI";
     private final static String EXTRACT_SGT_MPI_AWP_NAME = "Extract_SGT_MPI_AWP";
+    private final static String DIRECT_SYNTH_NAME = "DirectSynth";
 	
     //Simulation parameters
     private static String NUMTIMESTEPS = "3000";
@@ -102,8 +103,12 @@ public class CyberShake_PP_DAXGen {
     private final static String USER = "cybershk_ro";
     private final static String PASS = "CyberShake2007";
     private final static String pass_file = "focal.txt";
-    private static DBConnect dbc;
+    private static DBConnect dbc = null;
      
+    //DirectSynth parameters
+    private static int DEBUG_FLAG = 0;
+    private static int NUM_SGT_HANDLERS = 1376;
+    
     //SQLite DB
     private RuptureVariationDB sqlDB = null;
     
@@ -114,7 +119,6 @@ public class CyberShake_PP_DAXGen {
     private Job localVMJob = null;
     private CyberShake_Workflow_Container wfContainer = null;
 
-	
     //Class for load balancing
     private class RuptureEntry {
     	int sourceID;
@@ -247,6 +251,8 @@ public class CyberShake_PP_DAXGen {
         Option rotd = new Option("r", "rotd", false, "Calculate RotD50, the RotD50 angle, and RotD100 for rupture variations and insert them into the database.");
         Option skip_md5 = new Option("k", "skip-md5", false, "Skip md5 checksum step.  This option should only be used when debugging.");
         Option nonblocking_md5 = new Option("nb", "nonblocking-md5", false, "Move md5 checksum step out of the critical path. Entire workflow will still abort on error.");
+        Option directSynth = new Option("ds", "direct-synth", false, "Use DirectSynth code instead of extract_sgt and SeisPSA to perform post-processing.");
+        Option debug = new Option("d", "debug", false, "Debug flag.");
         
         cmd_opts.addOption(help);
         cmd_opts.addOption(partition);
@@ -274,6 +280,8 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(rotd);
         cmd_opts.addOption(skip_md5);
         cmd_opts.addOption(nonblocking_md5);
+        cmd_opts.addOption(directSynth);
+        cmd_opts.addOption(debug);
 
         CommandLineParser parser = new GnuParser();
         if (args.length<1) {
@@ -416,6 +424,14 @@ public class CyberShake_PP_DAXGen {
         	pp_params.setNonblockingMD5(true);
         }
         
+        if (line.hasOption(directSynth.getOpt())) {
+        	pp_params.setUseDirectSynth(true);
+        }
+        
+        if (line.hasOption(debug.getOpt())) {
+        	DEBUG_FLAG = 1;
+        }
+        
         //Removing notifications
         pp_params.setNotifyGroupSize(pp_params.getNumOfDAXes()+1);
         
@@ -425,10 +441,6 @@ public class CyberShake_PP_DAXGen {
 	public CyberShake_Workflow_Container makeDAX(int runID, PP_DAXParameters params, boolean writeDAX) {
 		try {
 			this.params = params;
-			//Get parameters from DB and calculate number of variations
-			ResultSet ruptureSet = getParameters(runID);
-			//bin the ruptures
-			ArrayList<RuptureEntry>[] bins = binRuptures(ruptureSet);
 
 //			ADAG topLevelDax = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName(), 0, 1);
 			wfContainer = new CyberShake_Workflow_Container(riq, params);
@@ -462,124 +474,141 @@ public class CyberShake_PP_DAXGen {
 //			preDFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + preDAXFile, "local");
 //			topLevelDax.addFile(preDFile);
 			
-			ruptureSet.first();
-		
-			int sourceIndex, rupIndex, numRupPoints;
-			int count = 0;
-			int localRupCount = 0;
-
 			int currDax = 0;
-			ADAG dax = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + currDax, currDax, params.getNumOfDAXes());
-  	    
-			Job[] zipJobs = null;
 			
-			if (params.isZip()) {
-			}
-			
-			Job extractSGTMPIJob = null;
-			ArrayList<String> extractRuptures = null;
-			String ruptureListFilename = null;
-			if (params.isExtractSGTMPI()) {
-				ruptureListFilename = "rupture_file_list_" + riq.getSiteName() + "_" + currDax;
-				extractRuptures = new ArrayList<String>();
-				extractSGTMPIJob = addExtractSGTMPIJob(dax, currDax, ruptureListFilename);
-			}
-			
-			int numVarsInDAX = 0;
+			if (params.isUseDirectSynth()) {
+				ADAG dax = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName() + "_Synth");
+				addDirectSynth(dax);
+				//Write leftover jobs to file
+				String daxFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_Synth_" + DAX_FILENAME_EXTENSION;
+				dax.writeToFile(daxFile);
 
-			if (params.isRvDB()) {
-	        	sqlDB = new RuptureVariationDB(riq.getSiteName(), riq.getRunID());
-			}
-					
-			//loop over bins
-			ArrayList<RuptureEntry> currBin;
-			for (int i=0; i<bins.length; i++) {
-				currBin = bins[i];
-				for (int j=0; j<currBin.size(); j++) {
-					count++;
-					if (count%100==0) {
-						System.out.println("Added " + count + " ruptures.");
-						System.gc();
-					}
+				wfContainer.addSubWorkflow(daxFile);
+				currDax++;
+			} else {
+				//Get parameters from DB and calculate number of variations
+				ResultSet ruptureSet = getParameters(runID);
+				//bin the ruptures
+				ArrayList<RuptureEntry>[] bins = binRuptures(ruptureSet);
+				
+				ruptureSet.first();
+		
+				int sourceIndex, rupIndex, numRupPoints;
+				int count = 0;
+				int localRupCount = 0;
 
-					sourceIndex = currBin.get(j).sourceID;
-					rupIndex = currBin.get(j).ruptureID;
-					numRupPoints = currBin.get(j).numRupPoints;
+				ADAG dax = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + currDax, currDax, params.getNumOfDAXes());
 
-					ResultSet variationsSet = getVariations(sourceIndex, rupIndex);
-						
-					if (params.isExtractSGTMPI()) {
-						//Add file to list of rupture files to use
-						String rup_geom_filename = "e" + riq.getErfID() + "_rv" + riq.getRuptVarScenID() + "_" + sourceIndex + "_" + rupIndex + ".txt";
-						extractRuptures.add(rup_geom_filename);
-							
-						//Add extracted SGT files as used by extractSGTMPI job
-						//In same working dir, so don't need to be transferred
-						File rupsgtxFile = new File(riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfx.sgt");
-				        rupsgtxFile.setTransfer(File.TRANSFER.FALSE);
-				        rupsgtxFile.setRegister(false);
-				        
-				        File rupsgtyFile = new File(riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfy.sgt");
-				        rupsgtyFile.setTransfer(File.TRANSFER.FALSE);
-				        rupsgtyFile.setRegister(false);
-					}
+				Job[] zipJobs = null;
 
-					if (params.isSourceForward()) {
-						
-					}
-					addRupture(dax, variationsSet, sourceIndex, rupIndex, numRupPoints, count, i, zipJobs, extractSGTMPIJob);						
+				if (params.isZip()) {
 				}
-				if (i<bins.length-1) {
-					//Create next dax
-					if (params.isExtractSGTMPI()) {
-//						dax = createNewDax(preD, i, dax, topLevelDax, extractRuptures, ruptureListFilename);
-						dax = createNewDax(i, dax, extractRuptures, ruptureListFilename);
-					} else {
-//						dax = createNewDax(preD, i, dax, topLevelDax);
-						dax = createNewDax(i, dax);
-					}
-						
-					if (params.isZip()) {
-						zipJobs = addZipJobs(dax, i+1);
-					}
-						
-					if (params.isExtractSGTMPI()) {
-						extractRuptures.clear();
-						ruptureListFilename = "rupture_file_list_" + riq.getSiteName() + "_" + (i+1);
-						extractSGTMPIJob = addExtractSGTMPIJob(dax, i+1, ruptureListFilename);
-					}
-				}
-				currDax = bins.length-1;
-			}
 
-			//Write leftover jobs to file
-			if (params.isExtractSGTMPI()) {
-				java.io.File javaFile = new java.io.File(params.getPPDirectory() + "/" + ruptureListFilename);
-				String fullPath = "";
-				try {
-					fullPath = javaFile.getCanonicalPath();
-					BufferedWriter bw = new BufferedWriter(new FileWriter(javaFile));
-					bw.write(extractRuptures.size() + "\n");
-					for (String s: extractRuptures) {
-						bw.write(s + "\n");
-					}
-					bw.flush();
-					bw.close();
-				} catch (IOException ioe) {
-					ioe.printStackTrace();
-					System.exit(3);
+				Job extractSGTMPIJob = null;
+				ArrayList<String> extractRuptures = null;
+				String ruptureListFilename = null;
+				if (params.isExtractSGTMPI()) {
+					ruptureListFilename = "rupture_file_list_" + riq.getSiteName() + "_" + currDax;
+					extractRuptures = new ArrayList<String>();
+					extractSGTMPIJob = addExtractSGTMPIJob(dax, currDax, ruptureListFilename);
 				}
-				edu.isi.pegasus.planner.dax.File rupListFile = new File(ruptureListFilename);
-				rupListFile.addPhysicalFile("file://" + fullPath);
-				dax.addFile(rupListFile);
+
+				int numVarsInDAX = 0;
+
+				if (params.isRvDB()) {
+					sqlDB = new RuptureVariationDB(riq.getSiteName(), riq.getRunID());
+				}
+
+				//loop over bins
+				ArrayList<RuptureEntry> currBin;
+				for (int i=0; i<bins.length; i++) {
+					currBin = bins[i];
+					for (int j=0; j<currBin.size(); j++) {
+						count++;
+						if (count%100==0) {
+							System.out.println("Added " + count + " ruptures.");
+							System.gc();
+						}
+
+						sourceIndex = currBin.get(j).sourceID;
+						rupIndex = currBin.get(j).ruptureID;
+						numRupPoints = currBin.get(j).numRupPoints;
+
+						ResultSet variationsSet = getVariations(sourceIndex, rupIndex);
+
+						if (params.isExtractSGTMPI()) {
+							//Add file to list of rupture files to use
+							String rup_geom_filename = "e" + riq.getErfID() + "_rv" + riq.getRuptVarScenID() + "_" + sourceIndex + "_" + rupIndex + ".txt";
+							extractRuptures.add(rup_geom_filename);
+
+							//Add extracted SGT files as used by extractSGTMPI job
+							//In same working dir, so don't need to be transferred
+							File rupsgtxFile = new File(riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfx.sgt");
+							rupsgtxFile.setTransfer(File.TRANSFER.FALSE);
+							rupsgtxFile.setRegister(false);
+
+							File rupsgtyFile = new File(riq.getSiteName() + "_"+sourceIndex+"_"+rupIndex +"_subfy.sgt");
+							rupsgtyFile.setTransfer(File.TRANSFER.FALSE);
+							rupsgtyFile.setRegister(false);
+						}
+
+						if (params.isSourceForward()) {
+
+						}
+						addRupture(dax, variationsSet, sourceIndex, rupIndex, numRupPoints, count, i, zipJobs, extractSGTMPIJob);						
+					}
+					if (i<bins.length-1) {
+						//Create next dax
+						if (params.isExtractSGTMPI()) {
+							//						dax = createNewDax(preD, i, dax, topLevelDax, extractRuptures, ruptureListFilename);
+							dax = createNewDax(i, dax, extractRuptures, ruptureListFilename);
+						} else {
+							//						dax = createNewDax(preD, i, dax, topLevelDax);
+							dax = createNewDax(i, dax);
+						}
+
+						if (params.isZip()) {
+							zipJobs = addZipJobs(dax, i+1);
+						}
+
+						if (params.isExtractSGTMPI()) {
+							extractRuptures.clear();
+							ruptureListFilename = "rupture_file_list_" + riq.getSiteName() + "_" + (i+1);
+							extractSGTMPIJob = addExtractSGTMPIJob(dax, i+1, ruptureListFilename);
+						}
+					}
+					currDax = bins.length-1;
+				}
+
+				//Write leftover jobs to file
+				if (params.isExtractSGTMPI()) {
+					java.io.File javaFile = new java.io.File(params.getPPDirectory() + "/" + ruptureListFilename);
+					String fullPath = "";
+					try {
+						fullPath = javaFile.getCanonicalPath();
+						BufferedWriter bw = new BufferedWriter(new FileWriter(javaFile));
+						bw.write(extractRuptures.size() + "\n");
+						for (String s: extractRuptures) {
+							bw.write(s + "\n");
+						}
+						bw.flush();
+						bw.close();
+					} catch (IOException ioe) {
+						ioe.printStackTrace();
+						System.exit(3);
+					}
+					edu.isi.pegasus.planner.dax.File rupListFile = new File(ruptureListFilename);
+					rupListFile.addPhysicalFile("file://" + fullPath);
+					dax.addFile(rupListFile);
+				}
+
+				//Write leftover jobs to file
+				String daxFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + currDax + DAX_FILENAME_EXTENSION;
+				dax.writeToFile(daxFile);
+
+				wfContainer.addSubWorkflow(daxFile);
+			
 			}
-			
-			//Write leftover jobs to file
-			String daxFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_" + currDax + DAX_FILENAME_EXTENSION;
-			dax.writeToFile(daxFile);
-			
-			wfContainer.addSubWorkflow(daxFile);
-			
 			//Add to topLevelDax
 //			DAX jDax = new DAX("dax_" + currDax, daxFile);
 //			if (params.isMPICluster()) {
@@ -653,6 +682,156 @@ public class CyberShake_PP_DAXGen {
 		return null;
 	}
 			
+	private void addDirectSynth(ADAG dax) {
+		/*stat=$stat slon=$slon slat=$slat \
+        sgt_handlers=32 run_id=0 \
+		debug=1 max_buf_mb=1024 \
+		rupture_spacing=random \
+        ntout=3000 \
+		rup_list_file=rupture_file_list.txt \
+        sgt_xfile=TEST_fx_3831.sgt \
+        sgt_yfile=TEST_fy_3831.sgt \
+		x_header=TEST_fx_3831.sgthead \
+		y_header=TEST_fy_3831.sgthead \
+        det_max_freq=0.5 stoch_max_freq=-1.0 \
+        run_psa=1 dtout=0.1 pipe_fwd=1\
+        simulation_out_pointsX=2 \
+        simulation_out_pointsY=1 \
+        simulation_out_timesamples=3000 \
+        simulation_out_timeskip=0.1 \
+        surfseis_rspectra_seismogram_units=cmpersec \
+        surfseis_rspectra_output_units=cmpersec2 \
+        surfseis_rspectra_output_type=aa \
+        surfseis_rspectra_period=all \
+        surfseis_rspectra_apply_filter_highHZ=5.0 \
+        surfseis_rspectra_apply_byteswap=no \
+		run_rotd=1*/
+		
+		//Query for needed info from DB
+		if (dbc==null) {
+			dbc = new DBConnect(DB_SERVER, DB, USER, PASS);
+		}
+		String query = "select SR.Source_ID, SR.Rupture_ID, R.Num_Points, count(*) " +
+			"from CyberShake_Site_Ruptures SR, CyberShake_Sites S, Ruptures R, Rupture_Variations V " +
+			"where S.CS_Short_Name='" + riq.getSiteName() + "' and S.CS_Site_ID=SR.CS_Site_ID " +
+			"and SR.ERF_ID=" + riq.getErfID() + " and R.ERF_ID=" + riq.getErfID() + " " + 
+			"and V.ERF_ID=" + riq.getErfID() + " and V.Rup_Var_Scenario_ID=" + riq.getRuptVarScenID() + " " +
+			"and SR.Source_ID=R.Source_ID and R.Source_ID=V.Source_ID and SR.Rupture_ID=R.Rupture_ID " +
+			"and R.Rupture_ID=V.Rupture_ID group by V.Source_ID, V.Rupture_ID";
+		ResultSet ruptures = dbc.selectData(query);
+		try {
+			ruptures.first();
+		 	if (ruptures.getRow()==0) {
+	      	    System.err.println("No ruptures found for site " + riq.getSiteName() + ", aborting.");
+	      	    System.exit(1);
+	      	}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.exit(2);
+		}
+		
+		Job directSynthJob = new Job("DirectSynth", NAMESPACE, DIRECT_SYNTH_NAME, "1.0");
+		
+		directSynthJob.addArgument(riq.getSiteName());
+		directSynthJob.addArgument("slat=" + riq.getLat());
+		directSynthJob.addArgument("slon=" + riq.getLon());
+		if (riq.getSiteName().equals("TEST")) {
+			NUM_SGT_HANDLERS = 32;
+		}
+		directSynthJob.addArgument("sgt_handlers=" + NUM_SGT_HANDLERS);
+		directSynthJob.addArgument("run_id=" + riq.getRunID());
+		directSynthJob.addArgument("debug=" + DEBUG_FLAG);
+		directSynthJob.addArgument("max_buf_mb=" + LARGE_MEM_BUF);
+		
+		if (riq.getRuptVarScenID()==5) {
+			directSynthJob.addArgument("rupture_spacing=random");
+		} else if (riq.getRuptVarScenID()==6) {
+			directSynthJob.addArgument("rupture_spacing=uniform");
+		}
+		
+		directSynthJob.addArgument("ntout=" + NUMTIMESTEPS);
+		
+		String rup_list_file = "rupture_file_list_" + riq.getSiteName();
+		java.io.File javaFile = new java.io.File(params.getPPDirectory() + "/" + rup_list_file);
+		String fullPath = "";
+		try {
+			//Get number of ruptures
+			ruptures.last();
+			int rupture_count = ruptures.getRow();
+			ruptures.first();
+			fullPath = javaFile.getCanonicalPath();
+			BufferedWriter bw = new BufferedWriter(new FileWriter(javaFile));
+			bw.write(rupture_count + "\n");
+			// <path to rupture geometry file> <#slips> <#hypos> <#points>
+			while (!ruptures.isAfterLast()) {
+				int source_id = ruptures.getInt("SR.Source_ID");
+				int rupture_id = ruptures.getInt("SR.Rupture_ID");
+				String rupture_path = "e" + riq.getErfID() + "_rv" + riq.getRuptVarScenID() + "_" + source_id + "_" + rupture_id + ".txt";
+				int slips = ruptures.getInt("count(*)");
+				int rupture_pts = ruptures.getInt("R.Num_Points");
+				bw.write(rupture_path + " " + slips + " 1 " + rupture_pts + "\n");
+				ruptures.next();
+			}
+			bw.flush();
+			bw.close();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+			System.exit(3);
+		} catch (SQLException sqe) {
+			sqe.printStackTrace();
+			System.exit(4);
+		}
+		
+		edu.isi.pegasus.planner.dax.File rupListFile = new File(rup_list_file);
+		rupListFile.addPhysicalFile("file://" + fullPath);
+		dax.addFile(rupListFile);
+		
+		directSynthJob.addArgument("rup_list_file=" + rup_list_file);
+		
+        File sgt_xfile = new File(riq.getSiteName()+"_fx_" + riq.getRunID() + ".sgt");
+        File sgt_yfile = new File(riq.getSiteName()+"_fy_" + riq.getRunID() + ".sgt");
+        sgt_xfile.setTransfer(TRANSFER.TRUE);
+        sgt_yfile.setTransfer(TRANSFER.TRUE);
+        sgt_xfile.setRegister(false);
+        sgt_yfile.setRegister(false);
+        
+		directSynthJob.addArgument("sgt_xfile=" + sgt_xfile.getName());
+		directSynthJob.addArgument("sgt_yfile=" + sgt_yfile.getName());
+		
+        File sgt_x_header = new File(riq.getSiteName()+"_fx_" + riq.getRunID() + ".sgthead");
+        File sgt_y_header = new File(riq.getSiteName()+"_fy_" + riq.getRunID() + ".sgthead");
+		
+        sgt_x_header.setTransfer(TRANSFER.TRUE);
+        sgt_y_header.setTransfer(TRANSFER.TRUE);
+        sgt_x_header.setRegister(false);
+        sgt_y_header.setRegister(false);
+		
+		directSynthJob.addArgument("x_header=" + sgt_x_header.getName());
+		directSynthJob.addArgument("y_header=" + sgt_y_header.getName());
+		directSynthJob.addArgument("det_max_freq=" + params.getDetFrequency());
+		directSynthJob.addArgument("stoch_max_freq=" + params.getStochasticFrequency());
+		directSynthJob.addArgument("run_psa=1");
+		//We're going to assume we always run RotD for now
+		directSynthJob.addArgument("run_rotd=1");
+		directSynthJob.addArgument("dtout=" + LF_TIMESTEP);
+		directSynthJob.addArgument("simulation_out_pointsX=2");
+		directSynthJob.addArgument("simulation_out_pointsY=1");
+		directSynthJob.addArgument("simulation_out_timesamples=" + NUMTIMESTEPS);
+		directSynthJob.addArgument("simulation_out_timeskip=" + LF_TIMESTEP);
+		directSynthJob.addArgument("surfseis_rspectra_seismogram_units=cmpersec");
+		directSynthJob.addArgument("surfseis_rspectra_output_units=cmpersec2");
+		directSynthJob.addArgument("surfseis_rspectra_output_type=aa");
+		directSynthJob.addArgument("surfseis_rspectra_period=all");
+		directSynthJob.addArgument("surfseis_rspectra_apply_filter_highHZ=5.0");
+		directSynthJob.addArgument("surfseis_rspectra_apply_ybyteswap=no");
+		
+		directSynthJob.uses(sgt_xfile, LINK.INPUT);
+		directSynthJob.uses(sgt_yfile, LINK.INPUT);
+		directSynthJob.uses(sgt_x_header, LINK.INPUT);
+		directSynthJob.uses(sgt_y_header, LINK.INPUT);
+
+	}
+
 	private Job addExtractSGTMPIJob(ADAG dax, int currDax, String ruptureListFilename) {
 		/*--site SGRTT --l
 		at 34.1321 --lon -117.9495 --sgt-x SGRTT_fxraw_336.sgt --sgt-y SGRTT_fyraw_336.sgt --header-x SGRTT_fx_33
