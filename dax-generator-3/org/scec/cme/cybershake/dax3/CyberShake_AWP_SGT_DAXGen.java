@@ -510,8 +510,8 @@ public class CyberShake_AWP_SGT_DAXGen {
 		
 		vMeshJob.addArgument(riq.getFrequencyString());
 		
-		gridoutFile.setTransfer(File.TRANSFER.FALSE);
-		coordFile.setTransfer(File.TRANSFER.FALSE);
+		gridoutFile.setTransfer(File.TRANSFER.TRUE);
+		coordFile.setTransfer(File.TRANSFER.TRUE);
 		
 		gridoutFile.setRegister(false);
 		coordFile.setRegister(false);
