@@ -402,19 +402,22 @@ public class CyberShake_AWP_SGT_DAXGen {
 		Job preAWPJob = new Job(id, "scec", jobname, "1.0");
 		
 		File gridoutFile = new File("gridout_" + riq.getSiteName());
-		File mergeVelocityFile = new File("v_sgt-" + riq.getSiteName());
 		File fdlocFile = new File(riq.getSiteName() + ".fdloc");
 		File cordFile = new File(riq.getSiteName() + ".cordfile");
+		File in3dXFile = new File("IN3D." + riq.getSiteName() + ".x");
+		File in3dYFile = new File("IN3D." + riq.getSiteName() + ".y");
 
 		gridoutFile.setTransfer(TRANSFER.TRUE);
-		mergeVelocityFile.setTransfer(TRANSFER.FALSE);
 		fdlocFile.setTransfer(TRANSFER.FALSE);
 		cordFile.setTransfer(TRANSFER.FALSE);
+		in3dXFile.setTransfer(TRANSFER.FALSE);
+		in3dYFile.setTransfer(TRANSFER.FALSE);
 
 		gridoutFile.setRegister(false);
-		mergeVelocityFile.setRegister(false);
 		fdlocFile.setRegister(false);
 		cordFile.setRegister(false);
+		in3dXFile.setRegister(false);
+		in3dYFile.setRegister(false);
 		
 		preAWPJob.addArgument("--site " + riq.getSiteName());
 		preAWPJob.addArgument("--gridout " + gridoutFile.getName());
@@ -427,13 +430,19 @@ public class CyberShake_AWP_SGT_DAXGen {
 		
 		//Only need to reformat velocity if we ran separate velocity jobs
 		if (separate) {
+			File mergeVelocityFile = new File("v_sgt-" + riq.getSiteName());
+			mergeVelocityFile.setTransfer(TRANSFER.FALSE);
+			mergeVelocityFile.setRegister(false);
+			preAWPJob.uses(mergeVelocityFile, LINK.INPUT);
+
 			preAWPJob.addArgument("--velocity-prefix " + mergeVelocityFile);
 		}
 		
 		preAWPJob.uses(gridoutFile, LINK.INPUT);
-		preAWPJob.uses(mergeVelocityFile, LINK.INPUT);
 		preAWPJob.uses(fdlocFile, LINK.INPUT);
 		preAWPJob.uses(cordFile, LINK.INPUT);
+		preAWPJob.uses(in3dXFile, LINK.OUTPUT);
+		preAWPJob.uses(in3dYFile, LINK.OUTPUT);
 		
 		return preAWPJob;
 	}
@@ -463,7 +472,12 @@ public class CyberShake_AWP_SGT_DAXGen {
 		}
 		awpJob.addArgument(in3DFile);
 		
+		File awpStrainFile = new File("comp_" + component + "/output_sgt/awp-strain-" + riq.getSiteName() + "-f" + component);
+		awpStrainFile.setTransfer(TRANSFER.FALSE);
+		awpStrainFile.setRegister(false);
+		
 		awpJob.uses(in3DFile, LINK.INPUT);
+		awpJob.uses(awpStrainFile, LINK.OUTPUT);
 				
 		awpJob.addProfile("globus", "host_count", "" + hosts);
 		awpJob.addProfile("globus", "count", "" + cores);
@@ -505,6 +519,13 @@ public class CyberShake_AWP_SGT_DAXGen {
 		vMeshJob.uses(gridoutFile, File.LINK.INPUT);
 		vMeshJob.uses(coordFile, File.LINK.INPUT);
 		
+		File awpMediaFile = new File("awp." + riq.getSiteName() + ".media");
+		
+		awpMediaFile.setTransfer(TRANSFER.FALSE);
+		awpMediaFile.setRegister(false);
+		
+		vMeshJob.uses(awpMediaFile, LINK.OUTPUT);
+				
 		if (riq.getSiteName().equals("TEST")) {
 			vMeshJob.addProfile("globus", "count", "155");
 		}
@@ -592,13 +613,14 @@ public class CyberShake_AWP_SGT_DAXGen {
 		}
 		File headerFile = new File(riq.getSiteName() + "_f" + rwgComponent + "_" + riq.getRunID() + ".sgthead");
 		
-		awpStrainInFile.setTransfer(TRANSFER.FALSE);
-		modelboxFile.setTransfer(TRANSFER.FALSE);
-		cordFile.setTransfer(TRANSFER.FALSE);
-		fdlocFile.setTransfer(TRANSFER.FALSE);
-		gridoutFile.setTransfer(TRANSFER.FALSE);
-		in3DFile.setTransfer(TRANSFER.FALSE);
-		awpMediaFile.setTransfer(TRANSFER.FALSE);
+		awpStrainInFile.setTransfer(TRANSFER.TRUE);
+		modelboxFile.setTransfer(TRANSFER.TRUE);
+		cordFile.setTransfer(TRANSFER.TRUE);
+		fdlocFile.setTransfer(TRANSFER.TRUE);
+		gridoutFile.setTransfer(TRANSFER.TRUE);
+		in3DFile.setTransfer(TRANSFER.TRUE);
+		//Changing to true to facilitate cleanup
+		awpMediaFile.setTransfer(TRANSFER.TRUE);
 		
 		awpStrainOutFile.setTransfer(TRANSFER.TRUE);
 		headerFile.setTransfer(TRANSFER.TRUE);
