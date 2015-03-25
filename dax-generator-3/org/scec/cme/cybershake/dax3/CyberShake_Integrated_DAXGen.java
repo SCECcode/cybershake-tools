@@ -353,7 +353,9 @@ public class CyberShake_Integrated_DAXGen {
         	HelpFormatter formatter = new HelpFormatter();
         	formatter.printHelp(usageString, cmd_opts);
         	//Get help messages from SGT and PP dax generation, too
+        	System.out.println("SGT DAX Generator arguments:");
         	CyberShake_SGT_DAXGen.main(new String[]{"-h"});
+        	System.out.println("SGT DAX Generator arguments:");
         	CyberShake_PP_DAXGen.main(new String[]{"-h"});
             System.exit(1);
         }

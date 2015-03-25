@@ -284,7 +284,7 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(debug);
 
         CommandLineParser parser = new GnuParser();
-        if (args.length<1) {
+        if (args.length<=1) {
         	HelpFormatter formatter = new HelpFormatter();
         	formatter.printHelp(usageString, cmd_opts);
             System.exit(1);
