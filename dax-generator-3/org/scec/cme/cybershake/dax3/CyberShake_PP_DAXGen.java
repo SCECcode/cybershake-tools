@@ -217,6 +217,10 @@ public class CyberShake_PP_DAXGen {
     public static CyberShake_Workflow_Container subMain(String[] args, boolean writeDAX) {
     	PP_DAXParameters pp_params = new PP_DAXParameters();
     	int runID = parseCommandLine(args, pp_params);
+    	if (runID<0) {
+    		//This indicates an error
+    		System.exit(runID);
+    	}
     	
         CyberShake_PP_DAXGen daxGen = new CyberShake_PP_DAXGen();
         return daxGen.makeDAX(runID, pp_params, writeDAX);
@@ -287,22 +291,22 @@ public class CyberShake_PP_DAXGen {
         if (args.length<=1) {
         	HelpFormatter formatter = new HelpFormatter();
         	formatter.printHelp(usageString, cmd_opts);
-            System.exit(1);
+            return -1;
         }
         CommandLine line = null;
         try {
             line = parser.parse(cmd_opts, args);
         } catch (AlreadySelectedException ase) {
         	System.err.println("Only 1 of file-forward, no-forward may be selected.");
-        	System.exit(3);
+        	return -3;
         } catch (ParseException pe) {
             pe.printStackTrace();
-            System.exit(2);
+            return -2;
         }
         if (line.hasOption(help.getOpt())) {
         	HelpFormatter formatter = new HelpFormatter();
         	formatter.printHelp(usageString, cmd_opts);
-            System.exit(1);
+            return -1;
         }
         
         int runID = Integer.parseInt(args[0]);
@@ -320,7 +324,7 @@ public class CyberShake_PP_DAXGen {
         if (line.hasOption(high_frequency.getOpt())) {
         	if (pp_params.isSeisPSA()) {
         		System.out.println("Can't use seisPSA with high-frequency, since we calculate PSA after merging.");
-        		System.exit(3);
+        		return -4;
         	}
         	pp_params.setStochastic(true);
         	if (line.getOptionValue("hf")!=null) {
@@ -354,7 +358,7 @@ public class CyberShake_PP_DAXGen {
         	pp_params.setSeparateZip(true);
         	if (!pp_params.isZip()) {
         		System.err.println("Separate zip option requires zip option.");
-        		System.exit(-5);
+        		return -5;
         	}
         }
         if (line.hasOption(no_dir_hierarchy.getOpt())) {

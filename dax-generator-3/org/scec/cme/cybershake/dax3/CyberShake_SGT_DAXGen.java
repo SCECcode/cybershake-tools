@@ -74,12 +74,14 @@ public class CyberShake_SGT_DAXGen {
 	}
 	
 	public static ADAG[] subMain(String[] args) {
-		parseCommandLine(args);
-
+		int rc = parseCommandLine(args);
+		if (rc!=0) {
+			System.exit(rc);
+		}
 		return makeWorkflows();
 	} 
 	
-	public static void parseCommandLine(String[] args) {
+	public static int parseCommandLine(String[] args) {
         Options cmd_opts = new Options();
         Option help = new Option("h", "help", false, "Print help for CyberShake_SGT_DAXGen");
         Option runIDFile = OptionBuilder.withArgName("runID_file").hasArg().withDescription("File containing list of Run IDs to use.").create("f");
@@ -106,7 +108,7 @@ public class CyberShake_SGT_DAXGen {
         if (args.length<4) {
         	HelpFormatter formatter = new HelpFormatter();
         	formatter.printHelp(usageString, cmd_opts);
-            System.exit(1);
+            return 1;
         }
         
         CommandLine line = null;
@@ -114,7 +116,7 @@ public class CyberShake_SGT_DAXGen {
             line = parser.parse(cmd_opts, args);
         } catch (ParseException pe) {
             pe.printStackTrace();
-            System.exit(2);
+            return 2;
         }
                 
 		String outputFilename = args[0]; 
@@ -149,6 +151,7 @@ public class CyberShake_SGT_DAXGen {
 		}
 		
 		sgt_params.setRunIDQueries(runIDQueries);
+		return 0;
 	}
 
 	public static ArrayList<RunIDQuery> runIDsFromFile(String inputFile) {
