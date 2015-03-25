@@ -211,6 +211,11 @@ public class RunIDQuery {
 			e.printStackTrace();
 		}
 	}
+	
+	//Return true if we are using an AWP code
+	public boolean isAWPSGT() {
+		return sgtString.contains("awp");
+	}
 
 	public int getRunID() {
 		return runID;

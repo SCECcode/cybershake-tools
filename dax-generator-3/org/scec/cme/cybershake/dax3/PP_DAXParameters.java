@@ -25,8 +25,6 @@ public class PP_DAXParameters {
 	private int numVarsPerDAX;
 	private int maxVarsPerDAX;
 	
-	private boolean useAWP = false;
-
 	private int notifyGroupSize;
 	
 	private String ppDirectory;
@@ -206,14 +204,6 @@ public class PP_DAXParameters {
 		this.hfsynthRVMem = hfsynthRVMem;
 	}	
 	
-	public boolean isUseAWP() {
-		return useAWP;
-	}
-
-	public void setUseAWP(boolean useAWP) {
-		this.useAWP = useAWP;
-	}
-
 	public void setMPICluster(boolean b) {
 		mpi_cluster = b;
 	}

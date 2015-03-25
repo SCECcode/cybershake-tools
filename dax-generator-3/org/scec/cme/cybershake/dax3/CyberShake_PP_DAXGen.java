@@ -239,7 +239,6 @@ public class CyberShake_PP_DAXGen {
         Option no_merge_psa = new Option("nm", "no-mergepsa", false, "Use separate executables for merging broadband seismograms and PSA, rather than mergePSA");
         Option high_frequency = OptionBuilder.withArgName("high-frequency").hasOptionalArg().withDescription("Lower-bound frequency cutoff for stochastic high-frequency seismograms (default 1.0), required for high frequency run").create("hf");
         Option sqlIndex = new Option("q", "sql", false, "Create sqlite file containing (source, rupture, rv) to sub workflow mapping");
-        Option awp = new Option("a", "awp", false, "Use AWP SGTs");
         Option no_mpi_cluster = new Option("nc", "no-mpi-cluster", false, "Do not use pegasus-mpi-cluster");
         Option zip = new Option("z", "zip", false, "Zip seismogram and PSA files before transferring.");
         Option separate_zip = new Option("s", "separate-zip", false, "Run zip jobs as separate seismogram and PSA zip jobs.");
@@ -265,7 +264,6 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(no_merge_psa);
         cmd_opts.addOption(high_frequency);
         cmd_opts.addOption(sqlIndex);
-        cmd_opts.addOption(awp);
         cmd_opts.addOption(no_mpi_cluster);
         cmd_opts.addOption(no_dir_hierarchy);
         cmd_opts.addOption(serial_extract);
@@ -343,9 +341,6 @@ public class CyberShake_PP_DAXGen {
         
         if (line.hasOption(sqlIndex.getOpt())) {
         	pp_params.setRvDB(true);
-        }
-        if (line.hasOption(awp.getOpt())) {
-        	pp_params.setUseAWP(true);
         }
         
         if (line.hasOption(no_mpi_cluster.getOpt())) {
@@ -862,7 +857,7 @@ public class CyberShake_PP_DAXGen {
 		/*--site SGRTT --l
 		at 34.1321 --lon -117.9495 --sgt-x SGRTT_fxraw_336.sgt --sgt-y SGRTT_fyraw_336.sgt --header-x SGRTT_fx_33
 		6.sgthead --header-y SGRTT_fy_336.sgthead --erf-id 35 --rup-list SGRTT_rupture_list.txt */
-		if (params.isUseAWP()) {
+		if (riq.isAWPSGT()) {
 	       	 //Use AWP SGTs;  need to include headers as arguments
 			 Job extractSGTMPIJob = null;
 			 if (riq.getRuptVarScenID()==5 || riq.getRuptVarScenID()==6) {
@@ -1496,7 +1491,7 @@ public class CyberShake_PP_DAXGen {
 		checkJob.uses(sgtmd5File, File.LINK.INOUT);
 		//If using AWP files, then also add sgthead files to uses.
 		//They're not actually used by the job, but this forces them to be transferred in.
-		if (params.isUseAWP()) {
+		if (riq.isAWPSGT()) {
 			File sgtHeadFile = new File(site + "_f" + component + "_" + riq.getRunID() + ".sgthead"); 
 			checkJob.uses(sgtHeadFile, File.LINK.INOUT);
 			sgtHeadFile.setRegister(true);
@@ -1682,7 +1677,7 @@ public class CyberShake_PP_DAXGen {
          job1.addArgument("extract_sgt_xfile=" + rupsgtxFile.getName());
          job1.addArgument("extract_sgt_yfile=" + rupsgtyFile.getName());
          
-         if (params.isUseAWP()) {
+         if (riq.isAWPSGT()) {
         	 //Use AWP SGTs;  need to include headers as arguments
         	 String sgtheadx = riq.getSiteName()+"_fx_" + riq.getRunID() + ".sgthead";
         	 String sgtheady = riq.getSiteName()+"_fy_" + riq.getRunID() + ".sgthead";
