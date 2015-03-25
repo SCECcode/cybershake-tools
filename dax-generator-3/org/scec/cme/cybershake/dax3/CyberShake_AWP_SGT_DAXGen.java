@@ -662,6 +662,12 @@ public class CyberShake_AWP_SGT_DAXGen {
 		postAWPJob.addArgument(component);
 		postAWPJob.addArgument(riq.getRunID() + "");
 		postAWPJob.addArgument(headerFile);
+		if (separateMD5) {
+			postAWPJob.addArgument("-n");
+		}
+		if (riq.getSourceFrequency()!=riq.getFrequency()) {
+			postAWPJob.addArgument("-sf " + riq.getSourceFrequency());
+		}
 
 		if (riq.getFrequency()>0.5) {
 			postAWPJob.addArgument(riq.getFrequency() + "");
