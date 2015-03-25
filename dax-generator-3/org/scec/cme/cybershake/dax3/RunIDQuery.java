@@ -30,7 +30,8 @@ public class RunIDQuery {
 	private double frequency = 0.5;
 	private double max_frequency = 0.5;
 	private int numComponents = 2;
-
+	private double sourceFrequency;
+	
 	private DBConnect dbc;
 
 	private final static int RWG_SGT_ID = 5;
@@ -134,7 +135,9 @@ public class RunIDQuery {
 
 	private void populateRunIDInfo() {
 		try {
-			String query = "SELECT Site_ID, ERF_ID, SGT_Variation_ID, Rup_Var_Scenario_ID, Velocity_Model_ID, Low_Frequency_Cutoff, Max_Frequency FROM CyberShake_Runs WHERE Run_ID=" + runID;
+			String query = "SELECT Site_ID, ERF_ID, SGT_Variation_ID, Rup_Var_Scenario_ID, Velocity_Model_ID, " +
+					"Low_Frequency_Cutoff, Max_Frequency, SGT_Source_Filter_Frequency " +
+					"FROM CyberShake_Runs WHERE Run_ID=" + runID;
 			ResultSet res = dbc.selectData(query);
 			res.first();
     		if (res.getRow()==0) {
@@ -182,6 +185,7 @@ public class RunIDQuery {
 
     		frequency = res.getDouble("Low_Frequency_Cutoff");
     		max_frequency = res.getDouble("Max_Frequency");
+    		sourceFrequency = res.getDouble("SGT_Source_Filter_Frequency");
     		
     		res.next();
     		if (!res.isAfterLast()) {
@@ -278,6 +282,10 @@ public class RunIDQuery {
 
 	public void setNumComponents(int numComponents) {
 		this.numComponents = numComponents;
+	}
+
+	public double getSourceFrequency() {
+		return sourceFrequency;
 	}
 
 }
