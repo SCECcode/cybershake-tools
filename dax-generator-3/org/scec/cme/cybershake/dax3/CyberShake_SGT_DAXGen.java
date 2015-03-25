@@ -94,7 +94,7 @@ public class CyberShake_SGT_DAXGen {
         Option maxCores = OptionBuilder.withArgName("max_cores").hasArg().withDescription("Maximum number of cores to use for AWP SGT code.").create("mc");
         Option separateMD5Jobs = new Option("sm", "separate-md5", false, "Run md5 jobs separately from PostAWP jobs (default is to combine).");
         Option handoffJobOpt = new Option("d", "handoff", false, "Run handoff job, which puts SGT into pending file on shock when completed.");
-
+        Option sourceFrequencyOpt = OptionBuilder.withArgName("source-frequency").hasArg().withDescription("Frequency of low-pass source filter (default is simulation frequency)").create("sf");
         
         cmd_opts.addOption(help);
         cmd_opts.addOptionGroup(runIDGroup);
@@ -102,6 +102,7 @@ public class CyberShake_SGT_DAXGen {
         cmd_opts.addOption(maxCores);
         cmd_opts.addOption(separateMD5Jobs);
         cmd_opts.addOption(handoffJobOpt);
+        cmd_opts.addOption(sourceFrequencyOpt);
         
         String usageString = "CyberShake_SGT_DAXGen <output filename> <destination directory> [options] [-f <runID file, one per line> | -r <runID1> <runID2> ... ]";
         CommandLineParser parser = new GnuParser();
