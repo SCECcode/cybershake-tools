@@ -325,7 +325,6 @@ public class CyberShake_SGT_DAXGen {
 		genSGTDAXJob.addArgument("-r " + riq.getRunID());
 		genSGTDAXJob.addArgument("-gf " + gridoutFile.getName());
 		genSGTDAXJob.addArgument("-o " + daxFile.getName());
-		genSGTDAXJob.addArgument("-sf " + riq.getSourceFrequency());
 		if (sgt_params.isSeparateVelocityJobs()) {
 			genSGTDAXJob.addArgument("-sv");
 		}
