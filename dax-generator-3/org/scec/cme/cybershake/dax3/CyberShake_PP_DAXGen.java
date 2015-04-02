@@ -247,7 +247,6 @@ public class CyberShake_PP_DAXGen {
         Option no_forward = new Option("nf", "no-forward", false, "Use no forwarding.");
         Option serial_extract = new Option("se", "serial-extract", false, "Use serial version of extraction code rather than extract SGT MPI.");
         Option global_extract_sgt_mpi = new Option("ge", "global-extract-mpi", false, "Use 1 extract SGT MPI job, run as part of pre workflow.");
-        Option frequency = OptionBuilder.withArgName("frequency").hasArg().withDescription("Maximum frequency for deterministic simulation.").create("f");
         Option large_mem = new Option("lm", "large-mem", false, "Use version of SeisPSA which can handle ruptures with large numbers of points.");
         Option multi_rv = OptionBuilder.withArgName("factor").hasArg().withDescription("Use SeisPSA version which supports multiple synthesis tasks per invocation; number of seis_psa jobs per invocation.").create("mr");
         Option source_forward = new Option("sf", "source-forward", false, "Aggregate files at the source level instead of the default rupture level.");
@@ -268,7 +267,6 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(no_dir_hierarchy);
         cmd_opts.addOption(serial_extract);
         cmd_opts.addOption(global_extract_sgt_mpi);
-        cmd_opts.addOption(frequency);
         cmd_opts.addOption(large_mem);
         OptionGroup forwardingGroup = new OptionGroup();
         forwardingGroup.addOption(file_forward);
@@ -385,15 +383,6 @@ public class CyberShake_PP_DAXGen {
         	pp_params.setGlobalExtractSGTMPI(true);
         }
         
-        if (line.hasOption(frequency.getOpt())) {
-        	pp_params.setDetFrequency(Double.parseDouble(line.getOptionValue("f")));
-        	//Adjust a few parameters accordingly
-        	if (pp_params.getDetFrequency()==1.0) {
-        		NUMTIMESTEPS = "8000";
-        	}
-        	LF_TIMESTEP = "" + (0.05/pp_params.getDetFrequency());
-        	SEIS_LENGTH = "300.0";
-        }
         if (line.hasOption(large_mem.getOpt())) {
         	pp_params.setLargeMemSynth(true);
         }
@@ -431,6 +420,8 @@ public class CyberShake_PP_DAXGen {
         	DEBUG_FLAG = 1;
         }
         
+
+        
         //Removing notifications
         pp_params.setNotifyGroupSize(pp_params.getNumOfDAXes()+1);
         
@@ -444,6 +435,17 @@ public class CyberShake_PP_DAXGen {
 //			ADAG topLevelDax = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName(), 0, 1);
 			wfContainer = new CyberShake_Workflow_Container(riq, params);
 
+			//Set frequency once we know the run ID
+	        //Set frequency-specific things
+	    
+	        params.setDetFrequency(riq.getFrequency());
+	        //Adjust a few parameters accordingly
+	        if (params.getDetFrequency()==1.0) {
+	        	NUMTIMESTEPS = "8000";
+	        }
+	        LF_TIMESTEP = "" + (0.05/params.getDetFrequency());
+	        SEIS_LENGTH = "300.0";
+			
 			//Check to make sure RV model is consistent with in-memory choice
 			//since if we generate rupture variations in memory, we only support RV ID 4
 			if (riq.getRuptVarScenID()==3) {

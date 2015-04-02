@@ -38,7 +38,6 @@ public class CyberShake_AWP_SGT_DAXGen {
         Option maxSGTCores = OptionBuilder.withArgName("maxCores").hasArg().withDescription("maximum number of cores for SGT jobs").create("mc");
         Option separateMD5Jobs = new Option("sm", "separate-md5", false, "Run md5 jobs separately from PostAWP jobs (default is to combine).");
         Option handoffJobOpt = new Option("d", "handoff", false, "Run handoff job, which puts SGT into pending file on shock when completed.");
-        Option sourceFrequencyOpt = OptionBuilder.withArgName("source-frequency").hasArg().withDescription("Frequency to low-pass filter the source at (default is simulation frequency)").create("sf");
 
         cmd_opts.addOption(runIDopt);
         cmd_opts.addOption(gridoutFile);
@@ -47,7 +46,6 @@ public class CyberShake_AWP_SGT_DAXGen {
         cmd_opts.addOption(maxSGTCores);
         cmd_opts.addOption(separateMD5Jobs);
         cmd_opts.addOption(handoffJobOpt);
-        cmd_opts.addOption(sourceFrequencyOpt);
         
         String usageString = "CyberShake_AWP_SGT_DAXGen [options]";
         CommandLineParser parser = new GnuParser();
@@ -112,11 +110,6 @@ public class CyberShake_AWP_SGT_DAXGen {
 		if (line.hasOption(handoffJobOpt.getOpt())) {
 				handoffJob = true;
 		}
-
-		double sourceFrequency = riq.getFrequency();
-		if (line.hasOption(sourceFrequencyOpt.getOpt())) {
-			sourceFrequency = Double.parseDouble(line.getOptionValue(sourceFrequencyOpt.getOpt()));
-		}
 		
 		ADAG sgtDAX = new ADAG("AWP_SGT_" + riq.getSiteName() + ".dax");
 		
@@ -141,7 +134,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		Job preSGT = addPreSGT();
 		sgtDAX.addJob(preSGT);
 		
-		Job preAWP = addPreAWP(separateVelJobs, procDims, sourceFrequency);
+		Job preAWP = addPreAWP(separateVelJobs, procDims);
 		sgtDAX.addJob(preAWP);
 		sgtDAX.addDependency(preSGT, preAWP);
 		sgtDAX.addDependency(velocityJob, preAWP);
@@ -399,7 +392,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 	}
 
 	
-	private static Job addPreAWP(boolean separate, int[] procDims, double sourceFrequency) {
+	private static Job addPreAWP(boolean separate, int[] procDims) {
 		String jobname = "PreAWP";
 		if (riq.getSgtString().equals("awp_gpu")) {
 			jobname = "PreAWP_GPU";
@@ -433,7 +426,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		preAWPJob.addArgument("--px " + procDims[0]);
 		preAWPJob.addArgument("--py " + procDims[1]);
 		preAWPJob.addArgument("--pz " + procDims[2]);
-		preAWPJob.addArgument("--source-frequency " + sourceFrequency);
+		preAWPJob.addArgument("--source-frequency " + riq.getSourceFrequency());
 		
 		//Only need to reformat velocity if we ran separate velocity jobs
 		if (separate) {
