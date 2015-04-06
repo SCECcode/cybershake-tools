@@ -432,9 +432,11 @@ public class CyberShake_PP_DAXGen {
 		try {
 			this.params = params;
 
+			riq = new RunIDQuery(runID);
+			
 //			ADAG topLevelDax = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName(), 0, 1);
 			wfContainer = new CyberShake_Workflow_Container(riq, params);
-
+			
 			//Set frequency once we know the run ID
 	        //Set frequency-specific things
 	    
