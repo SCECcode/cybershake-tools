@@ -659,7 +659,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 			postAWPJob.addArgument("-n");
 		}
 		if (riq.getSourceFrequency()!=riq.getFrequency()) {
-			postAWPJob.addArgument("-sf " + riq.getSourceFrequency());
+			postAWPJob.addArgument("-s " + riq.getSourceFrequency());
 		}
 
 		if (riq.getFrequency()>0.5) {
