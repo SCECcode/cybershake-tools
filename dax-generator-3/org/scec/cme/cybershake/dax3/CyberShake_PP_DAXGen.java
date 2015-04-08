@@ -107,7 +107,7 @@ public class CyberShake_PP_DAXGen {
      
     //DirectSynth parameters
     private static int DEBUG_FLAG = 0;
-    private static int NUM_SGT_HANDLERS = 1376;
+    private static int NUM_SGT_HANDLERS = 1024;
     
     //SQLite DB
     private RuptureVariationDB sqlDB = null;
