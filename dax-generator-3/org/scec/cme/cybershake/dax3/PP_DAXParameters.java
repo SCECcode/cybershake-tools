@@ -53,6 +53,8 @@ public class PP_DAXParameters {
 	
 	private boolean useDirectSynth = false;
 	
+	private String ppSite = null;
+	
 	//BW has 56 GB permitted per node
 	private int seisPSAMemCutoff = 56*1024;
 
@@ -346,5 +348,13 @@ public class PP_DAXParameters {
 
 	public void setUseDirectSynth(boolean useDirectSynth) {
 		this.useDirectSynth = useDirectSynth;
+	}
+
+	public String getPPSite() {
+		return ppSite;
+	}
+
+	public void setPPSite(String ppSite) {
+		this.ppSite = ppSite;
 	}
 }

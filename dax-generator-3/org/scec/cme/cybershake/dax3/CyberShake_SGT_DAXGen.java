@@ -94,6 +94,7 @@ public class CyberShake_SGT_DAXGen {
         Option maxCores = OptionBuilder.withArgName("max_cores").hasArg().withDescription("Maximum number of cores to use for AWP SGT code.").create("mc");
         Option separateMD5Jobs = new Option("sm", "separate-md5", false, "Run md5 jobs separately from PostAWP jobs (default is to combine).");
         Option handoffJobOpt = new Option("d", "handoff", false, "Run handoff job, which puts SGT into pending file on shock when completed.");
+        Option sgtSite = OptionBuilder.withArgName("sgt_site").hasArg().withDescription("Site to run SGT workflows on (optional)").create("ss");
         
         cmd_opts.addOption(help);
         cmd_opts.addOptionGroup(runIDGroup);
@@ -101,6 +102,7 @@ public class CyberShake_SGT_DAXGen {
         cmd_opts.addOption(maxCores);
         cmd_opts.addOption(separateMD5Jobs);
         cmd_opts.addOption(handoffJobOpt);
+        cmd_opts.addOption(sgtSite);
         
         String usageString = "CyberShake_SGT_DAXGen <output filename> <destination directory> [options] [-f <runID file, one per line> | -r <runID1> <runID2> ... ]";
         CommandLineParser parser = new GnuParser();
@@ -147,6 +149,10 @@ public class CyberShake_SGT_DAXGen {
 		
 		if (line.hasOption(handoffJobOpt.getOpt())) {
 			sgt_params.setHandoffJob(true);
+		}
+		
+		if (line.hasOption(sgtSite.getOpt())) {
+			sgt_params.setSgtSite(line.getOptionValue(sgtSite.getOpt()));
 		}
 		
 		sgt_params.setRunIDQueries(runIDQueries);
@@ -237,6 +243,9 @@ public class CyberShake_SGT_DAXGen {
 			DAX sgtDAX = new DAX("AWP_SGT_" + riq.getSiteName(), genSGTDaxFile.getName());
 			sgtDAX.addArgument("--force");
 			sgtDAX.addArgument("-o bluewaters");
+			if (sgt_params.getSgtSite()!=null) {
+				sgtDAX.addArgument("-s " + sgt_params.getSgtSite());
+			}
 			sgtDAX.addArgument("--basename AWP_SGT_" + riq.getSiteName());
 			sgtDAX.addArgument("--cleanup inplace");
 			workflowDAX.addDAX(sgtDAX);

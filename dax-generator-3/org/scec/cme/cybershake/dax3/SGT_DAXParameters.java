@@ -12,6 +12,8 @@ public class SGT_DAXParameters {
 	private boolean separateMD5Jobs = false;
 	private boolean handoffJob = false;
 	
+	private String sgtSite = null;
+	
 	public SGT_DAXParameters(String filename) {
 		this.daxFilename = filename;
 		this.directory = ".";
@@ -67,6 +69,14 @@ public class SGT_DAXParameters {
 
 	public void setHandoffJob(boolean handoffJob) {
 		this.handoffJob = handoffJob;
+	}
+
+	public String getSgtSite() {
+		return sgtSite;
+	}
+
+	public void setSgtSite(String sgtSite) {
+		this.sgtSite = sgtSite;
 	}
 	
 	
