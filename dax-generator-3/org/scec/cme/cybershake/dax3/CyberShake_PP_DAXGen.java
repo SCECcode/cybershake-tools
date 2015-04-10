@@ -494,7 +494,7 @@ public class CyberShake_PP_DAXGen {
 				ADAG dax = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName() + "_Synth");
 				addDirectSynth(dax);
 				//Write leftover jobs to file
-				String daxFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_Synth_" + DAX_FILENAME_EXTENSION;
+				String daxFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_Synth" + DAX_FILENAME_EXTENSION;
 				dax.writeToFile(daxFile);
 
 				wfContainer.addSubWorkflow(daxFile);
