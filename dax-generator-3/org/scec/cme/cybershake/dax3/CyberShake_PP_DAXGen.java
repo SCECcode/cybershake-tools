@@ -405,13 +405,6 @@ public class CyberShake_PP_DAXGen {
         	pp_params.setSourceForward(true);
         }
         
-        if (line.hasOption(rotd.getOpt())) {
-        	pp_params.setCalculateRotD(true);
-        	if (!pp_params.isLargeMemSynth()) {
-        		System.err.println("Currently RotD calculation is only supported if using large mem version of SeisPSA.");
-        	}
-        }
-        
         if (line.hasOption(skip_md5.getOpt())) {
         	pp_params.setSkipMD5(true);
         	System.out.println("Skipping md5 sums, beware!");
@@ -427,6 +420,13 @@ public class CyberShake_PP_DAXGen {
         
         if (line.hasOption(debug.getOpt())) {
         	DEBUG_FLAG = 1;
+        }
+        
+        if (line.hasOption(rotd.getOpt())) {
+        	pp_params.setCalculateRotD(true);
+        	if (!pp_params.isLargeMemSynth() && !pp_params.isUseDirectSynth()) {
+        		System.err.println("Currently RotD calculation is only supported if using large mem version of SeisPSA or DirectSynth.");
+        	}
         }
         
         if (line.hasOption(ppSite.getOpt())) {
