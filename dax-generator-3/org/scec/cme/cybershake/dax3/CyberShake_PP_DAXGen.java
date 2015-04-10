@@ -145,6 +145,9 @@ public class CyberShake_PP_DAXGen {
     	DAX preD = new DAX("preDAX", preDAXFilename);
 		preD.addArgument("--force");
 		preD.addArgument("-q");
+		if (cont.getParams().getPPSite()!=null) {
+			preD.addArgument("-s " + cont.getParams().getPPSite());
+		}
 		//Add the dax to the top-level dax like a job
 		topLevelDax.addDAX(preD);
 		//Create a file object
@@ -165,6 +168,9 @@ public class CyberShake_PP_DAXGen {
 			//Makes sure it doesn't prune workflow elements
 			jDax.addArgument("--force");
 			jDax.addArgument("-q");
+			if (cont.getParams().getPPSite()!=null) {
+				jDax.addArgument("-s " + cont.getParams().getPPSite());
+			}
 			//Force stage-out of zip files
 			jDax.addArgument("--output shock");
 			jDax.addArgument("--output-dir " + OUTPUT_DIR + "/" + siteName + "/" + cont.getRIQ().getRunID());
@@ -254,6 +260,8 @@ public class CyberShake_PP_DAXGen {
         Option skip_md5 = new Option("k", "skip-md5", false, "Skip md5 checksum step.  This option should only be used when debugging.");
         Option nonblocking_md5 = new Option("nb", "nonblocking-md5", false, "Move md5 checksum step out of the critical path. Entire workflow will still abort on error.");
         Option directSynth = new Option("ds", "direct-synth", false, "Use DirectSynth code instead of extract_sgt and SeisPSA to perform post-processing.");
+        Option ppSite = OptionBuilder.withArgName("pp_site").hasArg().withDescription("Site to run PP workflows on (optional)").create("ps");
+
         Option debug = new Option("d", "debug", false, "Debug flag.");
         
         cmd_opts.addOption(help);
@@ -282,6 +290,7 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(nonblocking_md5);
         cmd_opts.addOption(directSynth);
         cmd_opts.addOption(debug);
+        cmd_opts.addOption(ppSite);
 
         CommandLineParser parser = new GnuParser();
         if (args.length<=1) {
@@ -420,7 +429,9 @@ public class CyberShake_PP_DAXGen {
         	DEBUG_FLAG = 1;
         }
         
-
+        if (line.hasOption(ppSite.getOpt())) {
+        	pp_params.setPPSite(line.getOptionValue(ppSite.getOpt()));
+        }
         
         //Removing notifications
         pp_params.setNotifyGroupSize(pp_params.getNumOfDAXes()+1);
