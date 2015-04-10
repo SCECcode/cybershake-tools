@@ -865,7 +865,8 @@ public class CyberShake_PP_DAXGen {
 		directSynthJob.uses(sgt_yfile, LINK.INPUT);
 		directSynthJob.uses(sgt_x_header, LINK.INPUT);
 		directSynthJob.uses(sgt_y_header, LINK.INPUT);
-
+		
+		dax.addJob(directSynthJob);
 	}
 
 	private Job addExtractSGTMPIJob(ADAG dax, int currDax, String ruptureListFilename) {
