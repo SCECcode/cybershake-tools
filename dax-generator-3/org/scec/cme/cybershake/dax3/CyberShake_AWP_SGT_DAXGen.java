@@ -164,9 +164,12 @@ public class CyberShake_AWP_SGT_DAXGen {
 		Job updateEnd = addUpdate("SGT_START", "SGT_END");
 		sgtDAX.addJob(updateEnd);
 		
+		Job md5X, md5Y;
+		md5X = md5Y = null;
+		
 		if (separateMD5) {
-			Job md5X = addMD5("x");
-			Job md5Y = addMD5("y");
+			md5X = addMD5("x");
+			md5Y = addMD5("y");
 			sgtDAX.addJob(md5X);
 			sgtDAX.addJob(md5Y);
 			sgtDAX.addDependency(md5X, updateEnd);
@@ -185,6 +188,10 @@ public class CyberShake_AWP_SGT_DAXGen {
 			sgtDAX.addDependency(postAWPY, handoff);
 			sgtDAX.addDependency(nanCheckX, handoff);
 			sgtDAX.addDependency(nanCheckY, handoff);
+			if (separateMD5) {
+				sgtDAX.addDependency(md5X, handoff);
+				sgtDAX.addDependency(md5Y, handoff);
+			}
 			sgtDAX.addDependency(handoff, updateEnd);
 		}
 		
