@@ -841,7 +841,11 @@ public class CyberShake_PP_DAXGen {
 		directSynthJob.addArgument("x_header=" + sgt_x_header.getName());
 		directSynthJob.addArgument("y_header=" + sgt_y_header.getName());
 		directSynthJob.addArgument("det_max_freq=" + params.getDetFrequency());
-		directSynthJob.addArgument("stoch_max_freq=" + params.getStochasticFrequency());
+		if (params.isStochastic()) {
+			directSynthJob.addArgument("stoch_max_freq=" + params.getStochasticFrequency());
+		} else {
+			directSynthJob.addArgument("stoch_max_freq=-1.0"); //signify no stochastic components
+		}
 		directSynthJob.addArgument("run_psa=1");
 		
 		if (params.isCalculateRotD()) {
