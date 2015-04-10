@@ -145,6 +145,7 @@ public class CyberShake_PP_DAXGen {
     	DAX preD = new DAX("preDAX", preDAXFilename);
 		preD.addArgument("--force");
 		preD.addArgument("-q");
+		System.out.println("PP site is " + cont.getParams().getPPSite());
 		if (cont.getParams().getPPSite()!=null) {
 			preD.addArgument("-s " + cont.getParams().getPPSite());
 		}
