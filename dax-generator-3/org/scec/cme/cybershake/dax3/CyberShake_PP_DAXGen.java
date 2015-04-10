@@ -746,7 +746,7 @@ public class CyberShake_PP_DAXGen {
 		
 		Job directSynthJob = new Job("DirectSynth", NAMESPACE, DIRECT_SYNTH_NAME, "1.0");
 		
-		directSynthJob.addArgument(riq.getSiteName());
+		directSynthJob.addArgument("stat=" + riq.getSiteName());
 		directSynthJob.addArgument("slat=" + riq.getLat());
 		directSynthJob.addArgument("slon=" + riq.getLon());
 		if (riq.getSiteName().equals("TEST")) {
