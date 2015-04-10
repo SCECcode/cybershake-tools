@@ -126,6 +126,9 @@ public class CyberShake_Integrated_DAXGen {
 	    	DAX preD = new DAX(cont.getRIQ().getSiteName() + "_preDAX", preDAXFilename);
 			preD.addArgument("--force");
 			preD.addArgument("-q");
+			if (cont.getParams().getPPSite()!=null) {
+				preD.addArgument("-s " + cont.getParams().getPPSite());
+			}
 			//Add the dax to the top-level dax like a job
 			topLevelDax.addDAX(preD);
 			//Create a file object
@@ -153,6 +156,9 @@ public class CyberShake_Integrated_DAXGen {
 				//Makes sure it doesn't prune workflow elements
 				jDax.addArgument("--force");
 				jDax.addArgument("-q");
+				if (cont.getParams().getPPSite()!=null) {
+					jDax.addArgument("-s " + cont.getParams().getPPSite());
+				}
 				//Force stage-out of zip files
 				jDax.addArgument("--output shock");
 				jDax.addArgument("--output-dir " + PP_OUTPUT_DIR_ROOT + "/" + siteName + "/" + cont.getRIQ().getRunID());
