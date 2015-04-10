@@ -703,7 +703,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		File md5File = new File(awpStrainOutFile.getName() + ".md5");
 		
 		awpStrainOutFile.setRegister(false);
-		awpStrainOutFile.setTransfer(TRANSFER.FALSE);
+		awpStrainOutFile.setTransfer(TRANSFER.TRUE);
 		md5File.setRegister(true);
 		md5File.setTransfer(TRANSFER.TRUE);
 		
