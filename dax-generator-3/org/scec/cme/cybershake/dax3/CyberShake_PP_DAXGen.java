@@ -867,7 +867,7 @@ public class CyberShake_PP_DAXGen {
 		directSynthJob.addArgument("surfseis_rspectra_output_type=aa");
 		directSynthJob.addArgument("surfseis_rspectra_period=all");
 		directSynthJob.addArgument("surfseis_rspectra_apply_filter_highHZ=5.0");
-		directSynthJob.addArgument("surfseis_rspectra_apply_ybyteswap=no");
+		directSynthJob.addArgument("surfseis_rspectra_apply_byteswap=no");
 		
 		directSynthJob.uses(sgt_xfile, LINK.INPUT);
 		directSynthJob.uses(sgt_yfile, LINK.INPUT);
