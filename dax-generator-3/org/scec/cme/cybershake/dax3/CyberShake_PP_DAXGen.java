@@ -781,6 +781,9 @@ public class CyberShake_PP_DAXGen {
 				int source_id = ruptures.getInt("SR.Source_ID");
 				int rupture_id = ruptures.getInt("SR.Rupture_ID");
 				String rupture_path = "e" + riq.getErfID() + "_rv" + riq.getRuptVarScenID() + "_" + source_id + "_" + rupture_id + ".txt";
+				File rupture_file = new File(rupture_path);
+				rupture_file.setTransfer(TRANSFER.TRUE);
+				directSynthJob.uses(rupture_file, LINK.INPUT);
 				int slips = ruptures.getInt("count(*)");
 				int rupture_pts = ruptures.getInt("R.Num_Points");
 				bw.write(rupture_path + " " + slips + " 1 " + rupture_pts + "\n");
@@ -817,8 +820,9 @@ public class CyberShake_PP_DAXGen {
 		edu.isi.pegasus.planner.dax.File rupListFile = new File(rup_list_file);
 		rupListFile.addPhysicalFile("file://" + fullPath);
 		dax.addFile(rupListFile);
-		
+	
 		directSynthJob.addArgument("rup_list_file=" + rup_list_file);
+		rupListFile.setTransfer(TRANSFER.TRUE);
 		
         File sgt_xfile = new File(riq.getSiteName()+"_fx_" + riq.getRunID() + ".sgt");
         File sgt_yfile = new File(riq.getSiteName()+"_fy_" + riq.getRunID() + ".sgt");
@@ -869,6 +873,7 @@ public class CyberShake_PP_DAXGen {
 		directSynthJob.uses(sgt_yfile, LINK.INPUT);
 		directSynthJob.uses(sgt_x_header, LINK.INPUT);
 		directSynthJob.uses(sgt_y_header, LINK.INPUT);
+		directSynthJob.uses(rup_list_file, LINK.INPUT);
 		
 		dax.addJob(directSynthJob);
 	}
