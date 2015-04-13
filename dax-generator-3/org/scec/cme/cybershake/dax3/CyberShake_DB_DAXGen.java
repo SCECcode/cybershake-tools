@@ -258,10 +258,10 @@ public class CyberShake_DB_DAXGen {
 		if (params.isStochastic()) {
 			periods = periods + ",1,0.5,0.2,0.1";
 		} else {
-			if (params.getDetFrequency()>=1.0) {
+			if (params.getDetFrequency()>1.0) {
 				periods = periods + ",1";
 			}
-			if (params.getDetFrequency()>=2.0) {
+			if (params.getDetFrequency()>2.0) {
 				periods = periods + ",0.5";
 			}
 		}
@@ -386,10 +386,10 @@ public class CyberShake_DB_DAXGen {
 		if (params.isStochastic()) {
 			periods += ",1,0.5,0.2,0.1";
 		} else {
-			if (params.getDetFrequency()>=1.0) {
+			if (params.getDetFrequency()>1.0) {
 				periods = periods + ",1";
 			}
-			if (params.getDetFrequency()>=2.0) {
+			if (params.getDetFrequency()>2.0) {
 				periods = periods + ",0.5";
 			}
 		}
