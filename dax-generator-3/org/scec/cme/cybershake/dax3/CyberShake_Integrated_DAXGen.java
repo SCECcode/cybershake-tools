@@ -127,7 +127,7 @@ public class CyberShake_Integrated_DAXGen {
 			preD.addArgument("--force");
 			preD.addArgument("-q");
 			if (cont.getParams().getPPSite()!=null) {
-				preD.addArgument("-s " + cont.getParams().getPPSite());
+				preD.addArgument("-s " + cont.getParams().getPPSite() + ",shock,local");
 			}
 			//Add the dax to the top-level dax like a job
 			topLevelDax.addDAX(preD);
@@ -164,7 +164,10 @@ public class CyberShake_Integrated_DAXGen {
 				jDax.addArgument("--output-dir " + PP_OUTPUT_DIR_ROOT + "/" + siteName + "/" + cont.getRIQ().getRunID());
 				jDax.addProfile("dagman", "category", "subwf");
 				topLevelDax.addDAX(jDax);
-				topLevelDax.addDependency(preD, jDax);
+				//Only add a dependency if we're not using the no-blocking MD5 sums
+				if (cont.getParams().isNonblockingMD5()==false) {
+					topLevelDax.addDependency(preD, jDax);
+				}
 				File jDaxFile = new File(filename);
 				jDaxFile.addPhysicalFile("file://" + cont.getParams().getPPDirectory() + "/" + filename, "local");
 				topLevelDax.addFile(jDaxFile);
