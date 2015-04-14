@@ -126,6 +126,7 @@ public class CyberShake_Integrated_DAXGen {
 	    	DAX preD = new DAX(cont.getRIQ().getSiteName() + "_preDAX", preDAXFilename);
 			preD.addArgument("--force");
 			preD.addArgument("-q");
+			preD.addArgument("--cleanup none");
 			if (cont.getParams().getPPSite()!=null) {
 				preD.addArgument("-s " + cont.getParams().getPPSite() + ",shock,local");
 			}
@@ -156,6 +157,7 @@ public class CyberShake_Integrated_DAXGen {
 				//Makes sure it doesn't prune workflow elements
 				jDax.addArgument("--force");
 				jDax.addArgument("-q");
+				jDax.addArgument("--cleanup none");
 				if (cont.getParams().getPPSite()!=null) {
 					jDax.addArgument("-s " + cont.getParams().getPPSite());
 				}
@@ -181,6 +183,7 @@ public class CyberShake_Integrated_DAXGen {
 			DAX dbDax = new DAX(cont.getRIQ().getSiteName() + "_dbDax", dbDAXFile);
 			dbDax.addArgument("--force");
 			dbDax.addArgument("-q");
+			dbDax.addArgument("--cleanup none");
 			topLevelDax.addDAX(dbDax);
 			for (int j=0; j<subWfs.size(); j++) {
 				topLevelDax.addDependency(cont.getRIQ().getSiteName() + "_dax_" + j, cont.getRIQ().getSiteName() + "_dbDax");
@@ -194,6 +197,7 @@ public class CyberShake_Integrated_DAXGen {
 			DAX postD = new DAX(cont.getRIQ().getSiteName() + "_postDax", postDAXFile);
 			postD.addArgument("--force");
 			postD.addArgument("-q");
+			postD.addArgument("--cleanup none");
 			topLevelDax.addDAX(postD);
 			if (cont.getParams().getInsert()) {
 				topLevelDax.addDependency(dbDax, postD);
