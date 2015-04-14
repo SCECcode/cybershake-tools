@@ -167,6 +167,9 @@ public class CyberShake_Integrated_DAXGen {
 				//Only add a dependency if we're not using the no-blocking MD5 sums
 				if (cont.getParams().isNonblockingMD5()==false) {
 					topLevelDax.addDependency(preD, jDax);
+				} else {
+					//Add dependencies on job ID job, since we don't want these to start until it's post-processing time
+					topLevelDax.addDependency(getJobIDJob, jDax);
 				}
 				File jDaxFile = new File(filename);
 				jDaxFile.addPhysicalFile("file://" + cont.getParams().getPPDirectory() + "/" + filename, "local");
