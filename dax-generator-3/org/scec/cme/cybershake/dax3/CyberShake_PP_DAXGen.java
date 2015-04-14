@@ -86,6 +86,7 @@ public class CyberShake_PP_DAXGen {
     private final static String EXTRACT_SGT_MPI_NAME = "Extract_SGT_MPI";
     private final static String EXTRACT_SGT_MPI_AWP_NAME = "Extract_SGT_MPI_AWP";
     private final static String DIRECT_SYNTH_NAME = "DirectSynth";
+    private final static String SET_PP_HOST_NAME = "SetPPHost";
 	
     //Simulation parameters
     private static String NUMTIMESTEPS = "3000";
@@ -1467,6 +1468,17 @@ public class CyberShake_PP_DAXGen {
       			
 				preDax.addDependency(checkSgtXJob, extractMPIJob);
   				preDax.addDependency(checkSgtYJob, extractMPIJob);
+      		}
+      		
+      		if (params.getPPSite()!=null) {
+      			//Add job to set PP site
+      			Job setPPHostJob = new Job("SetPPHost", NAMESPACE, SET_PP_HOST_NAME, VERSION);
+      			
+      			setPPHostJob.addArgument("" + riq.getRunID());
+      			setPPHostJob.addArgument(params.getPPSite());
+      			
+      			preDax.addJob(setPPHostJob);
+      			//No dependencies
       		}
 	    
       		// Save the DAX

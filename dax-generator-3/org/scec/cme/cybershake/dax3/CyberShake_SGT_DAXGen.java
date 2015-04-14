@@ -893,4 +893,8 @@ public class CyberShake_SGT_DAXGen {
 
 		return awpJob;
 	}
+
+	public static SGT_DAXParameters getSgt_params() {
+		return sgt_params;
+	}
 }
