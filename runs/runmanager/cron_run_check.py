@@ -314,7 +314,10 @@ def createCompCurves(rm, m):
             # Construct list of periods to compute comparison curves
             period_list = ''
             for c in stats.getCurveList():
-                if (period_list == ''):
+                #For now, just consider geometric mean curves
+		if c.getIMComponent()!="geometric mean":
+		    continue
+		if (period_list == ''):
                     period_list = str(int(round(c.getIMValue())))
                 else:
                     period_list = '%s,%s' % (period_list, str(int(round(c.getIMValue()))))
