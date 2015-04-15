@@ -35,27 +35,31 @@ def init():
     argc = len(sys.argv)
     
     # Check command line arguments
-    if ((argc != 2) and (argc != 7)):
-        print "Usage: " + sys.argv[0] + " <site> [erf id] [sgt var id] [rup var id] [vel id] [awp]"
-        print "Example: " + sys.argv[0] + " USC 35 5 3 1 0"
+    if ((argc != 2) and (argc != 8)):
+        print "Usage: " + sys.argv[0] + " <site> [erf id] [sgt var id] [rup var id] [vel id] [frequency] [source frequency]"
+        print "Example: " + sys.argv[0] + " USC 35 5 3 1 0.5 0.5"
         return 1
 
     # Parse command line args
     info.site = sys.argv[1]
-    if (argc == 7):
+    if (argc == 8):
         info.erf = int(sys.argv[2])
         info.sgt_var = int(sys.argv[3])
         info.rup_var = int(sys.argv[4])
 	info.vel_id = int(sys.argv[5])
 	info.awp = False
-	if (sys.argv[6]=="1"):
+	if (info.sgt_var==6 or info.sgt_var==8):
 		info.awp = True
+	info.frequency = float(sys.argv[6])
+	info.source_frequency = float(sys.argv[7])
     else:
         info.erf = None
         info.sgt_var = None
         info.rup_var = None
 	info.vel_id = None
 	info.awp = False
+	info.frequency = 0
+	info.source_frequency = 0
     
     #print "Configuration:"
     #print "Site:\t\t" + info.site
@@ -140,6 +144,8 @@ def main():
         searchrun.setSGTVarID(info.sgt_var)
         searchrun.setRupVarID(info.rup_var)
 	searchrun.setVelID(info.vel_id)
+	searchrun.setMaxFreq(info.frequency)
+	searchrun.setLowFreqCutoff(info.frequency)
 
     # Find preferred runids, if any
     need_clone = False
