@@ -296,8 +296,6 @@ class RunManager:
                     newrun.setJobID(r[22])
                     newrun.setSubmitDir(r[23])
                     newrun.setNotifyUser(r[24])
-                    newrun.setMaxFreq(r[22])
-                    newrun.setLowFreqCutoff(r[23])
                     runs.append(newrun)
 
                 return runs
