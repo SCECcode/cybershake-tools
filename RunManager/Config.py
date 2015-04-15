@@ -12,7 +12,7 @@ DB_NAME = "CyberShake"
 
 # Valid computing resources
 HOST_LIST = ["unknown", "hpc", "mercury", "abe", "ranger", "kraken", \
-                 "sdsc", "hpc-local", "stampede", "bluewaters" ]
+                 "sdsc", "hpc-local", "stampede", "bluewaters", "titan" ]
 
 # Valid users
 USER_LIST = ["cybershk", "tera3d", "scottcal", "kmilner", "maechlin", \
@@ -69,6 +69,7 @@ OPENSHA_DBPASS_FILE = '/home/scec-00/cybershk/config/db_pass.txt'
 # Directories containing hazard curve images
 CURVE_DIRS = ["/home/scec-00/cybershk/opensha/curves/", \
                   "/home/scec-00/tera3d/opensha/curves/"]
+CURVE_DIR = CURVE_DIRS[0]
 
 
 # Path to the most recent scatter plot
