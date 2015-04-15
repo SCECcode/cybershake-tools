@@ -14,6 +14,7 @@ class Curve:
     im_measure = None
     im_value = None
     im_units = None
+    im_component = None
 
     def __init__(self):
         self.curve_id = None
@@ -21,6 +22,7 @@ class Curve:
         self.im_measure = None
         self.im_value = None
         self.im_units = None
+	self.im_component = None
 
     def copy(self, obj):
         self.curve_id = obj.curve_id
@@ -28,6 +30,7 @@ class Curve:
         self.im_measure = obj.im_measure
         self.im_value = obj.im_value
         self.im_units = obj.im_units
+	self.im_component = obj.im_component
 
     #@staticmethod
     def formatHeader(self):
@@ -85,3 +88,13 @@ class Curve:
             self.im_units = im_units
         else:
             self.im_units = str(im_units)
+
+    def getIMComponent(self):
+	return self.im_component
+
+    def setIMComponent(self, im_component):
+	if (im_component == None):
+	    self.im_component = im_component
+	else:
+	    self.im_component = str(im_component)
+
