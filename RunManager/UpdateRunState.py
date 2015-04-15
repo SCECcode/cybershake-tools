@@ -9,10 +9,10 @@ from RunManager import *
 # Constants
 
 # Map of acceptable run states for each reported workflow state
-RUN_STATES = {"SGT_INIT":["Initial"], \
+RUN_STATES = {"SGT_INIT":["Initial", "SGT Started"], \
                   "SGT_START":["SGT Started"], \
                   "SGT_END":[], \
-                  "PP_INIT":["SGT Generated"], \
+                  "PP_INIT":["SGT Generated","PP Started"], \
                   "PP_START":["PP Started"], \
                   "PP_END":[]}
 
