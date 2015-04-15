@@ -58,7 +58,7 @@ class RC:
 	cmd.append('lookup')
 	cmd.append(lfn)
 	output = self.__runCommand(cmd)
-	if (output == None)
+	if (output == None):
 		return None
 	else:
 		entry_list = []
