@@ -194,10 +194,12 @@ class RunManager:
             fields["Notify_User"] = run.getNotifyUser()
 	if (run.getVelID() != None):
 	    fields["Velocity_Model_ID"] = run.getVelID()
-	if (run.getMaxFreq() != None):
-	    fields["Max_Frequency"] = run.getMaxFrequency()
 	if (run.getLowFreqCutoff() != None):
 	    fields["Low_Frequency_Cutoff"] = run.getLowFreqCutoff()
+	if (run.getMaxFreq() != None):
+	    fields["Max_Frequency"] = run.getMaxFreq()
+        if (run.getSrcFreq() != None):
+	    fields["SGT_Source_Filter_Frequency"] = run.getSrcFreq()
             
         return fields
 
@@ -251,7 +253,8 @@ class RunManager:
     def __getRunsSQL(self, where_str, order_str, lock_str):
 
         # Retrieve these runs and lock the rows for update if needed
-        sqlcmd = "select Run_ID, CS_Site_ID, CS_Short_Name, CS_Site_Lat, CS_Site_Lon, CS_Site_Name, CS_Site_Type_Name, ERF_ID, SGT_Variation_ID, Rup_Var_Scenario_ID, Velocity_Model_ID, Status, Status_Time, SGT_Host, SGT_Time, PP_Host, PP_Time, Comment, Last_User, Job_ID, Submit_Dir, Notify_User, Max_Frequency, Low_Frequency_Cutoff from %s r, CyberShake_Sites s, CyberShake_Site_Types t where s.CS_Site_ID = r.Site_ID and s.CS_Site_Type_ID = t.CS_Site_Type_ID %s %s %s" % (RUN_TABLE_NAME, where_str, order_str, lock_str)
+        sqlcmd = "select Run_ID, CS_Site_ID, CS_Short_Name, CS_Site_Lat, CS_Site_Lon, CS_Site_Name, CS_Site_Type_Name, ERF_ID, SGT_Variation_ID, Rup_Var_Scenario_ID, Velocity_Model_ID, Max_Frequency, Low_Frequency_Cutoff, SGT_Source_Filter_Frequency, Status, Status_Time, SGT_Host, SGT_Time, PP_Host, PP_Time, Comment, Last_User, Job_ID, Submit_Dir, Notify_User from %s r, CyberShake_Sites s, CyberShake_Site_Types t where s.CS_Site_ID = r.Site_ID and s.CS_Site_Type_ID = t.CS_Site_Type_ID %s %s %s" % (RUN_TABLE_NAME, where_str, order_str, lock_str)
+	#print sqlcmd
         if (self.database.execsql(sqlcmd) != 0):
             self._printError("Unable to retrieve run.")
             return None
@@ -278,17 +281,21 @@ class RunManager:
                     newrun.setSGTVarID(r[8])
                     newrun.setRupVarID(r[9])
                     newrun.setVelID(r[10])
-                    newrun.setStatus(r[11])
-                    newrun.setStatusTime(r[12])
-                    newrun.setSGTHost(r[13])
-                    newrun.setSGTTime(r[14])
-                    newrun.setPPHost(r[15])
-                    newrun.setPPTime(r[16])
-                    newrun.setComment(r[17])
-                    newrun.setLastUser(r[18])
-                    newrun.setJobID(r[19])
-                    newrun.setSubmitDir(r[20])
-                    newrun.setNotifyUser(r[21])
+		    newrun.setMaxFreq(r[11])
+		    newrun.setLowFreqCutoff(r[12])
+		    newrun.setSrcFreq(r[13])	
+
+                    newrun.setStatus(r[14])
+                    newrun.setStatusTime(r[15])
+                    newrun.setSGTHost(r[16])
+                    newrun.setSGTTime(r[17])
+                    newrun.setPPHost(r[18])
+                    newrun.setPPTime(r[19])
+                    newrun.setComment(r[20])
+                    newrun.setLastUser(r[21])
+                    newrun.setJobID(r[22])
+                    newrun.setSubmitDir(r[23])
+                    newrun.setNotifyUser(r[24])
                     newrun.setMaxFreq(r[22])
                     newrun.setLowFreqCutoff(r[23])
                     runs.append(newrun)
@@ -337,7 +344,7 @@ class RunManager:
 
     def __getCurves(self, run):
         # Get the curves associated with this run
-        sqlcmd = "select t.IM_Type_ID, t.IM_Type_Measure, t.IM_Type_Value, t.Units from Hazard_Curves c, IM_Types t where c.IM_Type_ID = t.IM_Type_ID and c.Run_ID=%d order by t.IM_Type_Value asc" % (run.getRunID())
+        sqlcmd = "select t.IM_Type_ID, t.IM_Type_Measure, t.IM_Type_Value, t.Units, t.IM_Type_Component from Hazard_Curves c, IM_Types t where c.IM_Type_ID = t.IM_Type_ID and c.Run_ID=%d order by t.IM_Type_Value asc" % (run.getRunID())
         if (self.database.execsql(sqlcmd) != 0):
             self._printError("Unable to retrieve hazard curves.")
             return None
@@ -355,6 +362,7 @@ class RunManager:
                     newcurve.setIMMeasure(c[1])
                     newcurve.setIMValue(c[2])
                     newcurve.setIMUnits(c[3])
+		    newcurve.setIMComponent(c[4])
                     curves.append(newcurve)
 
                 return curves
@@ -652,7 +660,7 @@ class RunManager:
     
 
     def createRunByParam(self, site_name, erf_id, sgt_var_id, vel_id, 
-                         rup_var_id):
+                         rup_var_id, freq=0.5, src_freq=None):
         if ((site_name == None) or (erf_id == None) or \
                 (sgt_var_id == None) or (rup_var_id == None)):
             return None
@@ -665,6 +673,12 @@ class RunManager:
         run.setSGTVarID(sgt_var_id)
         run.setRupVarID(rup_var_id)
         run.setVelID(vel_id)
+	run.setMaxFreq(freq)
+	run.setLowFreqCutoff(freq)
+	if src_freq==None:
+		src_freq = freq
+	run.setSrcFreq(src_freq)
+
         return (self.createRun(run))
 
 
