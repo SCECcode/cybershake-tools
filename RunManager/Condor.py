@@ -14,6 +14,7 @@ CONDOR_Q = "condor_q"
 CONDOR_RETRY = 3
 CONDOR_WAIT_SECS = 30
 
+CONDOR_HOME = "/usr/local/condor/default/bin"
 
 class Condor:
     job_cache = {}
@@ -93,7 +94,7 @@ class Condor:
             return (None, 0)
 
         # Query condor_q for this job's classad
-        condorcmd = [CONDOR_Q, '-long', str(job_id)]
+        condorcmd = ["%s/%s" % (CONDOR_HOME, CONDOR_Q), '-long', str(job_id)]
         output = self.__runCondorCommand(condorcmd)
         if (output == None):
             return (None, 1)
@@ -119,7 +120,7 @@ class Condor:
     def cacheAllJobs(self):
 
         # Query condor_q for this job's classad
-        condorcmd = [CONDOR_Q,]
+        condorcmd = ["%s/%s" % (CONDOR_HOME, CONDOR_Q),]
         output = self.__runCondorCommand(condorcmd)
         if (output == None):
             return 1
