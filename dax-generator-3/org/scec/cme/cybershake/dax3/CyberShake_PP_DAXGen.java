@@ -96,7 +96,7 @@ public class CyberShake_PP_DAXGen {
     private static String SEIS_LENGTH = "300.0";
     private final static String HF_DT = "0.025";
 
-    private final static int LARGE_MEM_BUF = 1*1024;
+    private final static int LARGE_MEM_BUF = 1*512;
     
 	//Database
     private final static String DB_SERVER = "focal.usc.edu";
