@@ -171,7 +171,7 @@ public class CyberShake_Stochastic_DAXGen {
 	private Job createHFSynthJob(int sourceID, int ruptureID, int numRupVars, int numPoints, String localVMFilename) {
 		String id = "HF_Synth_" + sourceID + "_" + ruptureID;
 
-		Job job = new Job(id, NAMESPACE, HF_SYNTH_NAME, VERSION);
+		Job job = new Job(id, NAMESPACE, HF_SYNTH_NAME, "2.0");
 
 		String dirPrefix = "" + sourceID;
 		
@@ -423,6 +423,10 @@ public class CyberShake_Stochastic_DAXGen {
         if (sParams.getLowFreqRIQ().getErfID()!=riq.getErfID()) {
         	System.err.println("ERF ID " + sParams.getLowFreqRIQ().getErfID() + " used for low freq, ID " + riq.getErfID() + " used for high freq, aborting.");
         	System.exit(4);
+        }
+        if (sParams.getLowFreqRIQ().getRuptVarScenID()!=riq.getRuptVarScenID()) {
+        	System.err.println("Rupture Variation Scenario ID " + sParams.getLowFreqRIQ().getRuptVarScenID() + " used for low freq, ID " + riq.getRuptVarScenID() + " used for high freq, aborting.");
+        	System.exit(5);
         }
 		
 		if (sParams.getLowFreqRIQ().getFrequency()>=1.0) {
