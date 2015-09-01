@@ -75,14 +75,14 @@ public class CyberShake_Stochastic_DAXGen {
 		
 		Option help = new Option("h", "help", false, "Print help for CyberShake_HF_DAXGen");
 		Option mergeFrequency = OptionBuilder.withArgName("merge_frequency").hasArg().withDescription("Frequency at which to merge the LF and HF seismograms.").create("mf");
-		Option lfRunID = OptionBuilder.withArgName("lf_run_id").hasArg().withDescription("Run ID of low-frequency run to use (required).").create("lr");
+//		Option lfRunID = OptionBuilder.withArgName("lf_run_id").hasArg().withDescription("Run ID of low-frequency run to use (required).").create("lr");
 		Option noRotd = new Option("nr", "no-rotd", false, "Omit RotD calculations.");
 		Option noSiteResponse = new Option("nsr", "no-site-response", false, "Omit site response calculation.");
 		Option debug = new Option("d", "debug", false, "Debug flag.");
 		
 		cmd_opts.addOption(help);
 		cmd_opts.addOption(mergeFrequency);
-		cmd_opts.addOption(lfRunID);
+//		cmd_opts.addOption(lfRunID);
 		cmd_opts.addOption(noRotd);
 		cmd_opts.addOption(noSiteResponse);
 		cmd_opts.addOption(debug);
@@ -102,6 +102,8 @@ public class CyberShake_Stochastic_DAXGen {
         }
         int runID = Integer.parseInt(args[0]);
         String directory = args[1];
+        int lfRunID = Integer.parseInt(args[2]);
+        sParams.setLfRunID(lfRunID);
         
         if (line.hasOption(help.getOpt())) {
         	HelpFormatter formatter = new HelpFormatter();
@@ -110,12 +112,12 @@ public class CyberShake_Stochastic_DAXGen {
         }
 
         //Required option
-        if (line.hasOption(lfRunID.getOpt())) {
-        	sParams.setLfRunID(Integer.parseInt(line.getOptionValue(lfRunID.getOpt())));
-        } else {
-        	System.err.println("Low-frequency run ID is required.");
-        	return -3;
-        }
+//        if (line.hasOption(lfRunID.getOpt())) {
+//        	sParams.setLfRunID(Integer.parseInt(line.getOptionValue(lfRunID.getOpt())));
+//        } else {
+//        	System.err.println("Low-frequency run ID is required.");
+//        	return -3;
+//        }
         
         if (line.hasOption(mergeFrequency.getOpt())) {
         	sParams.setMergeFrequency(Double.parseDouble(line.getOptionValue(mergeFrequency.getOpt())));
