@@ -458,7 +458,7 @@ public class CyberShake_Stochastic_DAXGen {
 		String dbDAXFilename = DAX_FILENAME_PREFIX + riq.getSiteName() + "_DB_Products" + DAX_FILENAME_EXTENSION;
 		dbADAG.writeToFile(dbDAXFilename);
 		
-		ADAG topDAX = new ADAG(DAX_FILENAME_PREFIX + "_" + riq.getSiteName() + "_top" + DAX_FILENAME_EXTENSION);
+		ADAG topDAX = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName() + "_top" + DAX_FILENAME_EXTENSION);
 	
 		// Create update run state job
 	    Job updateJob = addUpdate(riq.getRunID(), "PP_START", "PP_END");
