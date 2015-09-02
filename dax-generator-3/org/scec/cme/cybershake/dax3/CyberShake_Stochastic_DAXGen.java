@@ -102,7 +102,7 @@ public class CyberShake_Stochastic_DAXGen {
         }
         int runID = Integer.parseInt(args[0]);
         String directory = args[1];
-        System.out.println("directory: " + directory);
+        sParams.setDirectory(directory);
         int lfRunID = Integer.parseInt(args[2]);
         sParams.setLfRunID(lfRunID);
         
