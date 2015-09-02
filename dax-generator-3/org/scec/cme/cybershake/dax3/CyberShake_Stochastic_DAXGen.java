@@ -34,7 +34,7 @@ public class CyberShake_Stochastic_DAXGen {
 	private Stochastic_DAXParameters sParams;
 	
 	//Constants
-	public final String DAX_FILENAME_PREFIX = "CyberShake_Stoch";
+	public final String DAX_FILENAME_PREFIX = "CyberShake_Stoch_";
 	public final String DAX_FILENAME_EXTENSION = ".dax";
 	private final String NAMESPACE = "scec";
 	private final String VERSION = "1.0";
@@ -445,20 +445,20 @@ public class CyberShake_Stochastic_DAXGen {
 			sParams.setTlen(400.0);
 		}
         
-		ADAG stochADAG = new ADAG(DAX_FILENAME_PREFIX + "_Stoch_" + riq.getSiteName() + DAX_FILENAME_EXTENSION);
+		ADAG stochADAG = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName() + DAX_FILENAME_EXTENSION);
 		
 		ResultSet ruptures = getRuptures();
 		createJobs(stochADAG, ruptures);
 
-		String stochDAXFilename = DAX_FILENAME_PREFIX + "_Stoch_" + riq.getSiteName() + DAX_FILENAME_EXTENSION;
+		String stochDAXFilename = DAX_FILENAME_PREFIX + riq.getSiteName() + DAX_FILENAME_EXTENSION;
 		stochADAG.writeToFile(stochDAXFilename);
 		
 		CyberShake_DB_DAXGen dbDaxGen = new CyberShake_DB_DAXGen(riq, 1, true, riq.getFrequency(), false);
 		ADAG dbADAG = dbDaxGen.makeDAX();
-		String dbDAXFilename = DAX_FILENAME_PREFIX + "_Stoch_" + riq.getSiteName() + "_DB_Products" + DAX_FILENAME_EXTENSION;
+		String dbDAXFilename = DAX_FILENAME_PREFIX + riq.getSiteName() + "_DB_Products" + DAX_FILENAME_EXTENSION;
 		dbADAG.writeToFile(dbDAXFilename);
 		
-		ADAG topDAX = new ADAG(DAX_FILENAME_PREFIX + "_" + riq.getSiteName() + DAX_FILENAME_EXTENSION);
+		ADAG topDAX = new ADAG(DAX_FILENAME_PREFIX + "_" + riq.getSiteName() + "_top" + DAX_FILENAME_EXTENSION);
 	
 		// Create update run state job
 	    Job updateJob = addUpdate(riq.getRunID(), "PP_START", "PP_END");
