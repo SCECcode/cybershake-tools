@@ -376,6 +376,7 @@ public class CyberShake_Stochastic_DAXGen {
 				dax.addJob(mergeIMJob);
 				dax.addDependency(hfSynthJob, mergeIMJob);
 				
+				ruptureSet.next();
 			}
 			
 			java.io.File dirsInputFile = new java.io.File(sParams.getDirectory() + java.io.File.separator + dirsInputFilename);
