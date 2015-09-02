@@ -483,7 +483,7 @@ public class CyberShake_Stochastic_DAXGen {
 		topDAX.addDependency(stochDAX, dbDAX);
 		topDAX.addDependency(dbDAX, updateJob);
 	    
-		String topDaxFilename = DAX_FILENAME_PREFIX + "_" + riq.getSiteName() + DAX_FILENAME_EXTENSION;
+		String topDaxFilename = DAX_FILENAME_PREFIX + riq.getSiteName() + "_top" + DAX_FILENAME_EXTENSION;
 		File topDaxFile = new File(topDaxFilename);
 		topDaxFile.addPhysicalFile("file://" + sParams.getDirectory() + "/" + topDaxFilename, "local");
 		topDAX.writeToFile(topDaxFilename);
