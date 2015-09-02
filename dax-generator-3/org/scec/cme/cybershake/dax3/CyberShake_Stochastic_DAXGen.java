@@ -415,7 +415,7 @@ public class CyberShake_Stochastic_DAXGen {
 	private void makeDax() {
 		//Start with some consistency checking
         if (sParams.getLowFreqRIQ().getSiteName()!=riq.getSiteName()) {
-        	System.err.println("High and low frequency site names don't agree, aborting.");
+        	System.err.println("High and low frequency site names " + riq.getSiteName() + " and " + sParams.getLowFreqRIQ().getSiteName() + " don't agree, aborting.");
         	System.exit(2);
         }
         if (sParams.getLowFreqRIQ().getFrequency()<sParams.getMergeFrequency()) {
