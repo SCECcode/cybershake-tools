@@ -102,6 +102,7 @@ public class CyberShake_Stochastic_DAXGen {
         }
         int runID = Integer.parseInt(args[0]);
         String directory = args[1];
+        System.out.println("directory: " + directory);
         int lfRunID = Integer.parseInt(args[2]);
         sParams.setLfRunID(lfRunID);
         
@@ -363,7 +364,7 @@ public class CyberShake_Stochastic_DAXGen {
 			
 			while (!ruptureSet.isAfterLast()) {
 				if ((index+1)%1000==0) {
-					System.out.println(index + " ruptures processed.");
+					System.out.println((index+1) + " ruptures processed.");
 				}
 				int sourceID = ruptureSet.getInt("R.Source_ID");
 				int ruptureID = ruptureSet.getInt("R.Rupture_ID");
