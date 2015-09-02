@@ -83,13 +83,14 @@ public class CyberShake_DB_DAXGen {
 		}
 	}
 	
-	public CyberShake_DB_DAXGen(RunIDQuery r, int numDAXes, boolean highFreq, double highFreqCutoff, boolean transferZip) {
+	public CyberShake_DB_DAXGen(RunIDQuery r, int numDAXes, boolean highFreq, double highFreqCutoff, boolean transferZip, boolean rotD) {
 		this(r);
 		transferZipFiles = transferZip;
 		this.numDAXes = numDAXes;
 		params = new PP_DAXParameters();
 		params.setStochastic(highFreq);
 		params.setStochasticCutoff(highFreqCutoff);
+		params.setCalculateRotD(rotD);
 		if (params.isFileForward() || params.isPipeForward()){
 			this.filesDir = STORAGE_DIR + "/" + r.getSiteName() + "/" + r.getRunID();
 		} else {
@@ -522,7 +523,7 @@ public class CyberShake_DB_DAXGen {
 		RunIDQuery rid = new RunIDQuery(runID);
 		
 		if (args.length == 2)
-			gen = new CyberShake_DB_DAXGen(rid, Integer.parseInt(args[1]), false, 0.5, true);
+			gen = new CyberShake_DB_DAXGen(rid, Integer.parseInt(args[1]), false, 0.5, true, true);
 		else
 			gen = new CyberShake_DB_DAXGen(rid);
 		
