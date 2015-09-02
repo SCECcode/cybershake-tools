@@ -359,7 +359,12 @@ public class CyberShake_Stochastic_DAXGen {
 			Job dirsJob = createDirsJob(dirsInputFilename);
 			dax.addJob(dirsJob);
 			
+			int index = 0;
+			
 			while (!ruptureSet.isAfterLast()) {
+				if ((index+1)%1000==0) {
+					System.out.println(index + " ruptures processed.");
+				}
 				int sourceID = ruptureSet.getInt("R.Source_ID");
 				int ruptureID = ruptureSet.getInt("R.Rupture_ID");
 				int numPoints = ruptureSet.getInt("R.Num_Points");
@@ -377,6 +382,7 @@ public class CyberShake_Stochastic_DAXGen {
 				dax.addDependency(hfSynthJob, mergeIMJob);
 				
 				ruptureSet.next();
+				index++;
 			}
 			
 			java.io.File dirsInputFile = new java.io.File(sParams.getDirectory() + java.io.File.separator + dirsInputFilename);
