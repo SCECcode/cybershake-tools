@@ -455,7 +455,7 @@ public class CyberShake_Stochastic_DAXGen {
 		
 		CyberShake_DB_DAXGen dbDaxGen = new CyberShake_DB_DAXGen(riq, 1, true, riq.getFrequency(), false);
 		ADAG dbADAG = dbDaxGen.makeDAX();
-		String dbDAXFilename = DAX_FILENAME_PREFIX + riq.getSiteName() + "_DB_Products" + DAX_FILENAME_EXTENSION;
+		String dbDAXFilename = DAX_FILENAME_PREFIX + "_Stoch_" + riq.getSiteName() + "_DB_Products" + DAX_FILENAME_EXTENSION;
 		dbADAG.writeToFile(dbDAXFilename);
 		
 		ADAG topDAX = new ADAG(DAX_FILENAME_PREFIX + "_" + riq.getSiteName() + DAX_FILENAME_EXTENSION);
@@ -470,7 +470,7 @@ public class CyberShake_Stochastic_DAXGen {
 		File stochDaxFile = new File(stochDAXFilename);
 		stochDaxFile.addPhysicalFile("file://" + sParams.getDirectory() + "/" + stochDAXFilename, "local");
 		
-		DAX dbDAX = new DAX("stochDax", dbDAXFilename);
+		DAX dbDAX = new DAX("dbDax", dbDAXFilename);
 		dbDAX.addArgument("--force");
 		dbDAX.addArgument("--q");
 		File dbDAXFile = new File(dbDAXFilename);
