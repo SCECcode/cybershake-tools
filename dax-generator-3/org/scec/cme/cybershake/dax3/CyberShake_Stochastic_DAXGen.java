@@ -462,6 +462,7 @@ public class CyberShake_Stochastic_DAXGen {
 	
 		// Create update run state job
 	    Job updateJob = addUpdate(riq.getRunID(), "PP_START", "PP_END");
+	    topDAX.addJob(updateJob);
 		
 		DAX stochDAX = new DAX("stochDax", stochDAXFilename);
 		stochDAX.addArgument("--force");
