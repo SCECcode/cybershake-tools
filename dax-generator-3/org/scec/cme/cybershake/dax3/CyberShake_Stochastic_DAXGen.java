@@ -154,6 +154,7 @@ public class CyberShake_Stochastic_DAXGen {
 				"and V.Rup_Var_Scenario_ID=" + riq.getRuptVarScenID() + " " +
 				"group by V.Source_ID, V.Rupture_ID " +
 				"order by R.Num_Points desc";
+		System.out.println("Query: " + query);
 
 		ResultSet rs = dbc.selectData(query);
 		try {
