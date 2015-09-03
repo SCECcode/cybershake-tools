@@ -340,7 +340,7 @@ public class CyberShake_Stochastic_DAXGen {
 		if (sParams.isRunRotd()) {
 			job.addArgument("run_rotd=1");
 			String rotDFilename = ROTD_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() + 
-	    			"_" + sourceID + "_" + ruptureID + "_bb" + PSA_FILENAME_EXTENSION;
+	    			"_" + sourceID + "_" + ruptureID + "_bb" + ROTD_FILENAME_EXTENSION;
 			File rotDFile = new File(rotDFilename);
 			rotDFile.setRegister(true);
 			rotDFile.setTransfer(TRANSFER.TRUE);
