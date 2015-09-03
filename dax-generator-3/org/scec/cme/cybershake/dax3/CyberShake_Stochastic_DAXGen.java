@@ -177,7 +177,8 @@ public class CyberShake_Stochastic_DAXGen {
 
 		Job job = new Job(id, NAMESPACE, HF_SYNTH_NAME, "2.0");
 
-		String dirPrefix = "" + sourceID;
+//		String dirPrefix = "" + sourceID;
+		String dirPrefix = ".";
 		
 		job.addArgument("stat=" + riq.getSiteName());
 		job.addArgument("slat=" + riq.getLat());
@@ -278,7 +279,8 @@ public class CyberShake_Stochastic_DAXGen {
 
 		Job job = new Job(id, NAMESPACE, MERGE_IM_NAME, VERSION);
 		
-		String dirPrefix = "" + sourceID;
+//		String dirPrefix = "" + sourceID;
+		String dirPrefix = ".";
 		
 		String lfSeisName = SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + sParams.getLowFreqRIQ().getRunID() +
 				"_" + sourceID + "_" + ruptureID + SEISMOGRAM_FILENAME_EXTENSION;
