@@ -238,6 +238,7 @@ public class CyberShake_Stochastic_DAXGen {
 		int memUsage = (int)(Math.ceil(1.1*(outputMem + srfMem)));
 
 		job.addProfile("pegasus", "pmc_request_memory", "" + memUsage);
+		job.addProfile("pegasus", "label", "pmc");
 
 		return job;
 	}
@@ -349,6 +350,7 @@ public class CyberShake_Stochastic_DAXGen {
 		} else {
 			job.addArgument("run_rotd=0");
 		}
+		job.addProfile("pegasus", "label", "pmc");
 		
 		return job;
 	}
