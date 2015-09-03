@@ -54,7 +54,7 @@ public class CyberShake_Stochastic_DAXGen {
     private final static String LOCAL_VM_NAME = "Local_VM";
     private final static String CREATE_DIRS_NAME = "Create_Dirs";
     private final static String HF_SYNTH_NAME = "HF_Synth";
-    private final static String MERGE_IM_NAME = "Merge_IM";
+    private final static String MERGE_IM_NAME = "MergeIM";
     private final static String UPDATERUN_NAME = "UpdateRun";
 	
 	//DB constants
@@ -197,7 +197,7 @@ public class CyberShake_Stochastic_DAXGen {
 		File seisFile = new File(dirPrefix + java.io.File.separator + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() +
 				"_" + sourceID + "_" + ruptureID + "_hf" + SEISMOGRAM_FILENAME_EXTENSION);
 		seisFile.setRegister(false);
-		seisFile.setTransfer(TRANSFER.TRUE);
+		seisFile.setTransfer(TRANSFER.FALSE);
 		job.uses(seisFile, File.LINK.OUTPUT);
 
 		job.addArgument("outfile=" + seisFile.getName());
@@ -280,7 +280,7 @@ public class CyberShake_Stochastic_DAXGen {
 		
 		String dirPrefix = "" + sourceID;
 		
-		String lfSeisName = dirPrefix + java.io.File.separator + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + sParams.getLowFreqRIQ().getRunID() +
+		String lfSeisName = SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + sParams.getLowFreqRIQ().getRunID() +
 				"_" + sourceID + "_" + ruptureID + SEISMOGRAM_FILENAME_EXTENSION;
 		File lfSeisFile = new File(lfSeisName);
 		lfSeisFile.setTransfer(TRANSFER.TRUE);
@@ -291,7 +291,7 @@ public class CyberShake_Stochastic_DAXGen {
 		String hfSeisName = dirPrefix + java.io.File.separator + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() +
 				"_" + sourceID + "_" + ruptureID + "_hf" + SEISMOGRAM_FILENAME_EXTENSION;
 		File hfSeisFile = new File(hfSeisName);
-		hfSeisFile.setTransfer(TRANSFER.TRUE);
+		hfSeisFile.setTransfer(TRANSFER.FALSE);
 		job.uses(hfSeisFile, LINK.INPUT);
 		job.addArgument("hf_seis=" + hfSeisFile.getName());
 		
