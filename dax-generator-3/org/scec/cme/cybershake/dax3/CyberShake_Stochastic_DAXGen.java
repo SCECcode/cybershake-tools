@@ -177,8 +177,7 @@ public class CyberShake_Stochastic_DAXGen {
 
 		Job job = new Job(id, NAMESPACE, HF_SYNTH_NAME, "2.0");
 
-//		String dirPrefix = "" + sourceID;
-		String dirPrefix = ".";
+		String dirPrefix = "" + sourceID;
 		
 		job.addArgument("stat=" + riq.getSiteName());
 		job.addArgument("slat=" + riq.getLat());
@@ -195,7 +194,7 @@ public class CyberShake_Stochastic_DAXGen {
 		job.addArgument("rupture_id=" + ruptureID);
 		job.addArgument("num_rup_vars=" + numRupVars);
 
-		File seisFile = new File(SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() +
+		File seisFile = new File(dirPrefix + java.io.File.separator + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() +
 				"_" + sourceID + "_" + ruptureID + "_hf" + SEISMOGRAM_FILENAME_EXTENSION);
 		seisFile.setRegister(false);
 		seisFile.setTransfer(TRANSFER.FALSE);
@@ -282,8 +281,7 @@ public class CyberShake_Stochastic_DAXGen {
 
 		Job job = new Job(id, NAMESPACE, MERGE_IM_NAME, VERSION);
 		
-//		String dirPrefix = "" + sourceID;
-		String dirPrefix = ".";
+		String dirPrefix = "" + sourceID;
 		
 		String lfSeisName = SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + sParams.getLowFreqRIQ().getRunID() +
 				"_" + sourceID + "_" + ruptureID + SEISMOGRAM_FILENAME_EXTENSION;
@@ -293,14 +291,14 @@ public class CyberShake_Stochastic_DAXGen {
 		job.uses(lfSeisFile, LINK.INPUT);
 		job.addArgument("lf_seis=" + lfSeisFile.getName());
 		
-		String hfSeisName = SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() +
+		String hfSeisName = dirPrefix + java.io.File.separator + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() +
 				"_" + sourceID + "_" + ruptureID + "_hf" + SEISMOGRAM_FILENAME_EXTENSION;
 		File hfSeisFile = new File(hfSeisName);
 		hfSeisFile.setTransfer(TRANSFER.FALSE);
 		job.uses(hfSeisFile, LINK.INPUT);
 		job.addArgument("hf_seis=" + hfSeisFile.getName());
 		
-		String mergedSeisName = SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() +
+		String mergedSeisName = dirPrefix + java.io.File.separator + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() +
 				"_" + sourceID + "_" + ruptureID + "_bb" + SEISMOGRAM_FILENAME_EXTENSION;
 		File mergedSeisFile = new File(mergedSeisName);
 		mergedSeisFile.setTransfer(TRANSFER.TRUE);
@@ -329,7 +327,7 @@ public class CyberShake_Stochastic_DAXGen {
     	job.addArgument("surfseis_rspectra_apply_filter_highHZ="+psaFilter);
     	job.addArgument("surfseis_rspectra_apply_byteswap=no");
     	
-    	String psaFilename = PSA_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() + 
+    	String psaFilename = dirPrefix + java.io.File.separator + PSA_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() + 
     			"_" + sourceID + "_" + ruptureID + "_bb" + PSA_FILENAME_EXTENSION;
     	File psaFile = new File(psaFilename);
     	psaFile.setRegister(true);
@@ -340,7 +338,7 @@ public class CyberShake_Stochastic_DAXGen {
     	//RotD
 		if (sParams.isRunRotd()) {
 			job.addArgument("run_rotd=1");
-			String rotDFilename = ROTD_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() + 
+			String rotDFilename = dirPrefix + java.io.File.separator + ROTD_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() + 
 	    			"_" + sourceID + "_" + ruptureID + "_bb" + ROTD_FILENAME_EXTENSION;
 			File rotDFile = new File(rotDFilename);
 			rotDFile.setRegister(true);
@@ -471,6 +469,7 @@ public class CyberShake_Stochastic_DAXGen {
 	    topDAX.addJob(updateJob);
 		
 		DAX stochDAX = new DAX("stochDax", stochDAXFilename);
+		stochDAX.addArgument("--cluster label");
 		stochDAX.addArgument("--force");
 		stochDAX.addArgument("--q");
 		stochDAX.addArgument("--output shock");
