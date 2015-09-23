@@ -9,6 +9,7 @@ public class Stochastic_DAXParameters {
 	private boolean debug = false;
 	private RunIDQuery lowFreqRIQ;
 	private double tlen = 300.0;
+	private double vs30 = -1.0;
 	
 	public double getMergeFrequency() {
 		return mergeFrequency;
@@ -58,5 +59,11 @@ public class Stochastic_DAXParameters {
 	}
 	public void setTlen(double tlen) {
 		this.tlen = tlen;
+	}
+	public double getVs30() {
+		return vs30;
+	}
+	public void setVs30(double vs30) {
+		this.vs30 = vs30;
 	}
 }
