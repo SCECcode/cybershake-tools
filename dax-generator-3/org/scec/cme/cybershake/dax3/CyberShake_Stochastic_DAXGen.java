@@ -291,6 +291,8 @@ public class CyberShake_Stochastic_DAXGen {
 			job.addArgument("vs30_model=" + sParams.getLowFreqRIQ().getVelModelString());
 		}
 		
+		job.addProfile("pegasus", "label", "pmc");
+		
 		return job;
 	}
 	
