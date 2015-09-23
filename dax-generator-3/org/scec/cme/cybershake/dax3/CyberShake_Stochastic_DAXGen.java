@@ -54,6 +54,7 @@ public class CyberShake_Stochastic_DAXGen {
     private final static String LOCAL_VM_NAME = "Local_VM";
     private final static String CREATE_DIRS_NAME = "Create_Dirs";
     private final static String HF_SYNTH_NAME = "HF_Synth";
+    private final static String LF_SITE_RESPONSE_NAME = "LF_Site_Response";
     private final static String MERGE_IM_NAME = "MergeIM";
     private final static String UPDATERUN_NAME = "UpdateRun";
 	
@@ -78,6 +79,7 @@ public class CyberShake_Stochastic_DAXGen {
 //		Option lfRunID = OptionBuilder.withArgName("lf_run_id").hasArg().withDescription("Run ID of low-frequency run to use (required).").create("lr");
 		Option noRotd = new Option("nr", "no-rotd", false, "Omit RotD calculations.");
 		Option noSiteResponse = new Option("nsr", "no-site-response", false, "Omit site response calculation.");
+		Option vs30 = OptionBuilder.withArgName("vs30").hasArg().withDescription("Vs30 value to use for site response.").create("v");
 		Option debug = new Option("d", "debug", false, "Debug flag.");
 		
 		cmd_opts.addOption(help);
@@ -85,6 +87,7 @@ public class CyberShake_Stochastic_DAXGen {
 //		cmd_opts.addOption(lfRunID);
 		cmd_opts.addOption(noRotd);
 		cmd_opts.addOption(noSiteResponse);
+		cmd_opts.addOption(vs30);
 		cmd_opts.addOption(debug);
 		
 		CommandLineParser parser = new GnuParser();
@@ -130,6 +133,10 @@ public class CyberShake_Stochastic_DAXGen {
         
         if (line.hasOption(noSiteResponse.getOpt())) {
         	sParams.setRunSiteResponse(false);
+        }
+        
+        if (line.hasOption(vs30.getOpt())) {
+        	sParams.setVs30(Double.parseDouble(line.getOptionValue(vs30.getOpt())));
         }
         
         if (line.hasOption(debug.getOpt())) {
@@ -212,6 +219,15 @@ public class CyberShake_Stochastic_DAXGen {
 			doSiteResponse = 0;
 		}
 		job.addArgument("do_site_response=" + doSiteResponse);
+		if (sParams.isRunSiteResponse()) {
+			//Handle vs30 source
+			if (sParams.getVs30()>0) {
+				job.addArgument("vs30=" + sParams.getVs30());
+			} else {
+				//Use vs30 from same UCVM model as deterministic
+				job.addArgument("vs30_model=" + sParams.getLowFreqRIQ().getVelModelString());
+			}
+		}
 		int debug = 0;
 		if (sParams.isDebug()) {
 			debug = 1;
@@ -239,6 +255,42 @@ public class CyberShake_Stochastic_DAXGen {
 		job.addProfile("pegasus", "pmc_request_memory", "" + memUsage);
 		job.addProfile("pegasus", "label", "pmc");
 
+		return job;
+	}
+	
+	private Job createLFSiteResponseJob(int sourceID, int ruptureID, int num_points) {
+		String id = "LF_Site_Response_" + sourceID + "_" + ruptureID;
+
+		Job job = new Job(id, NAMESPACE, LF_SITE_RESPONSE_NAME, "1.0");
+
+		File seis_in = new File(SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + sParams.getLowFreqRIQ().getRunID() +
+				"_" + sourceID + "_" + ruptureID + SEISMOGRAM_FILENAME_EXTENSION);
+		
+		seis_in.setRegister(false);
+		seis_in.setTransfer(TRANSFER.TRUE);
+		job.addArgument("seis_in=" + seis_in.getName());
+		job.uses(seis_in, LINK.INPUT);
+		
+		String dir_prefix = "" + sourceID;
+		
+		File seis_out = new File(dir_prefix + java.io.File.separator + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + sParams.getLowFreqRIQ().getRunID() +
+				"_" + sourceID + "_" + ruptureID + "_site_response" + SEISMOGRAM_FILENAME_EXTENSION);
+
+		seis_out.setRegister(false);
+		seis_out.setTransfer(TRANSFER.FALSE);
+		job.addArgument("seis_out=" + seis_out.getName());
+		job.uses(seis_out, LINK.OUTPUT);
+		
+		job.addArgument("slat=" + riq.getLat());
+		job.addArgument("slon=" + riq.getLon());
+		//Use the cb2014 module when using CyberShake (3D) deterministic seismograms
+		job.addArgument("module=cb2014");
+		if (sParams.getVs30()>0.0) {
+			job.addArgument("vs30=" + sParams.getVs30());
+		} else {
+			job.addArgument("vs30_model=" + sParams.getLowFreqRIQ().getVelModelString());
+		}
+		
 		return job;
 	}
 	
@@ -283,18 +335,29 @@ public class CyberShake_Stochastic_DAXGen {
 		
 		String dirPrefix = "" + sourceID;
 		
-		String lfSeisName = SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + sParams.getLowFreqRIQ().getRunID() +
-				"_" + sourceID + "_" + ruptureID + SEISMOGRAM_FILENAME_EXTENSION;
-		File lfSeisFile = new File(lfSeisName);
-		lfSeisFile.setTransfer(TRANSFER.TRUE);
-		lfSeisFile.setRegister(true);
-		job.uses(lfSeisFile, LINK.INPUT);
-		job.addArgument("lf_seis=" + lfSeisFile.getName());
+		if (sParams.isRunSiteResponse()) {
+			String lfSeisName = dirPrefix + java.io.File.separator + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + sParams.getLowFreqRIQ().getRunID() +
+					"_" + sourceID + "_" + ruptureID + "_site_response" + SEISMOGRAM_FILENAME_EXTENSION;
+			File lfSeisFile = new File(lfSeisName);
+			lfSeisFile.setTransfer(TRANSFER.FALSE);
+			lfSeisFile.setRegister(false);
+			job.uses(lfSeisFile, LINK.INPUT);
+			job.addArgument("lf_seis=" + lfSeisFile.getName());
+		} else {
+			String lfSeisName = SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + sParams.getLowFreqRIQ().getRunID() +
+					"_" + sourceID + "_" + ruptureID + SEISMOGRAM_FILENAME_EXTENSION;
+			File lfSeisFile = new File(lfSeisName);
+			lfSeisFile.setTransfer(TRANSFER.TRUE);
+			lfSeisFile.setRegister(false);
+			job.uses(lfSeisFile, LINK.INPUT);
+			job.addArgument("lf_seis=" + lfSeisFile.getName());
+		}
 		
 		String hfSeisName = dirPrefix + java.io.File.separator + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() +
 				"_" + sourceID + "_" + ruptureID + "_hf" + SEISMOGRAM_FILENAME_EXTENSION;
 		File hfSeisFile = new File(hfSeisName);
 		hfSeisFile.setTransfer(TRANSFER.FALSE);
+		hfSeisFile.setRegister(false);
 		job.uses(hfSeisFile, LINK.INPUT);
 		job.addArgument("hf_seis=" + hfSeisFile.getName());
 		
@@ -385,6 +448,13 @@ public class CyberShake_Stochastic_DAXGen {
 				Job mergeIMJob = createMergeIMJob(sourceID, ruptureID, numRupVars, numPoints);
 				dax.addJob(mergeIMJob);
 				dax.addDependency(hfSynthJob, mergeIMJob);
+
+				if (sParams.isRunSiteResponse()) {
+					Job lfSiteResponseJob = createLFSiteResponseJob(sourceID, ruptureID, numPoints);
+					dax.addJob(lfSiteResponseJob);
+					dax.addDependency(dirsJob, lfSiteResponseJob);
+					dax.addDependency(lfSiteResponseJob, mergeIMJob);
+				}
 				
 				ruptureSet.next();
 				index++;
