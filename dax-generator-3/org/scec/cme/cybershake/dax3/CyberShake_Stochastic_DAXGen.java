@@ -258,7 +258,7 @@ public class CyberShake_Stochastic_DAXGen {
 		return job;
 	}
 	
-	private Job createLFSiteResponseJob(int sourceID, int ruptureID, int num_points) {
+	private Job createLFSiteResponseJob(int sourceID, int ruptureID, int numRupVars, int num_points) {
 		String id = "LF_Site_Response_" + sourceID + "_" + ruptureID;
 
 		Job job = new Job(id, NAMESPACE, LF_SITE_RESPONSE_NAME, "1.0");
@@ -292,6 +292,8 @@ public class CyberShake_Stochastic_DAXGen {
 		}
 		
 		job.addProfile("pegasus", "label", "pmc");
+		//We only process 1 rupture variation at a time, so very small memory requirements
+		job.addProfile("pegasus", "pmc_request_memory", "1");
 		
 		return job;
 	}
@@ -381,9 +383,11 @@ public class CyberShake_Stochastic_DAXGen {
 			psaFilter = 2.0*riq.getFrequency();
 		}
 		
+		int nt = (int)((sParams.getTlen()/DT + 0.5));
+		
        	job.addArgument("simulation_out_pointsX=2"); //2 b/c 2 components
     	job.addArgument("simulation_out_pointsY=1"); //# of variations per seismogram
-    	job.addArgument("simulation_out_timesamples="+((int)((sParams.getTlen()/DT + 0.5))));// numTimeSteps
+    	job.addArgument("simulation_out_timesamples="+nt);// numTimeSteps
     	job.addArgument("simulation_out_timeskip="+ DT); //dt
     	job.addArgument("surfseis_rspectra_seismogram_units=cmpersec");
     	job.addArgument("surfseis_rspectra_output_units=cmpersec2");
@@ -414,6 +418,11 @@ public class CyberShake_Stochastic_DAXGen {
 			job.addArgument("run_rotd=0");
 		}
 		job.addProfile("pegasus", "label", "pmc");
+		//Must read in both rupture files at once
+		double lfMem = numRupVars * 2.0 * nt;
+		double hfMem = numRupVars * 2.0 * nt;
+		double totMem = (int)Math.ceil(1.1*(lfMem + hfMem)/(1024.0*1024.0));
+		job.addProfile("pegasus", "pmc_request_memory", "" + totMem);
 		
 		return job;
 	}
@@ -452,7 +461,7 @@ public class CyberShake_Stochastic_DAXGen {
 				dax.addDependency(hfSynthJob, mergeIMJob);
 
 				if (sParams.isRunSiteResponse()) {
-					Job lfSiteResponseJob = createLFSiteResponseJob(sourceID, ruptureID, numPoints);
+					Job lfSiteResponseJob = createLFSiteResponseJob(sourceID, ruptureID, numRupVars, numPoints);
 					dax.addJob(lfSiteResponseJob);
 					dax.addDependency(dirsJob, lfSiteResponseJob);
 					dax.addDependency(lfSiteResponseJob, mergeIMJob);
