@@ -54,6 +54,7 @@ public class CyberShake_Stochastic_DAXGen {
     private final static String LOCAL_VM_NAME = "Local_VM";
     private final static String CREATE_DIRS_NAME = "Create_Dirs";
     private final static String HF_SYNTH_NAME = "HF_Synth";
+    private final static String COMBINE_NAME = "Combine_HF_Synth";
     private final static String LF_SITE_RESPONSE_NAME = "LF_Site_Response";
     private final static String MERGE_IM_NAME = "MergeIM";
     private final static String UPDATERUN_NAME = "UpdateRun";
@@ -178,84 +179,139 @@ public class CyberShake_Stochastic_DAXGen {
       	return rs;
 	}
 	
-	//Creates 1 job per ruptures
-	private Job createHFSynthJob(int sourceID, int ruptureID, int numRupVars, int numPoints, String localVMFilename) {
-		String id = "HF_Synth_" + sourceID + "_" + ruptureID;
-
-		Job job = new Job(id, NAMESPACE, HF_SYNTH_NAME, "2.0");
-
+	//Creates multiple tasks per rupture to keep job runtime low; adds job to combine output files
+	private Job createHFSynthJob(int sourceID, int ruptureID, int numRupVars, int numPoints, String localVMFilename, Job localVMJob, Job dirsJob, ADAG dax) {
+		//Figure out how many tasks we need
+		long varsTimesPoints = numRupVars * numPoints;
+		int numTasks = (int)(Math.ceil(varsTimesPoints/10000000.0));
+		int numRupVarsPerTask = (int)(Math.ceil(((double)numRupVars)/((double)numTasks)));
+		
+		Job combineJob = null;
+		if (numTasks>1) {
+			combineJob = new Job("Combine_HF_Synth_" + sourceID + "_" + ruptureID, NAMESPACE, COMBINE_NAME, "1.0");
+		}
+		
 		String dirPrefix = "" + sourceID;
 		
-		job.addArgument("stat=" + riq.getSiteName());
-		job.addArgument("slat=" + riq.getLat());
-		job.addArgument("slon=" + riq.getLon());
+		for (int i=0; i<numTasks; i++) {
+			int startingRupVar = i*numRupVarsPerTask;
+			int endingRupVar = Math.min((i+1)*numRupVarsPerTask, numRupVars);
+			int numRupVarsThisTask = endingRupVar - startingRupVar;
+			
+			String id = "HF_Synth_" + sourceID + "_" + ruptureID;
+			if (numTasks>1) {
+				id += "_t" + i;
+			}
+			
+			Job job = new Job(id, NAMESPACE, HF_SYNTH_NAME, "2.0");
 		
-		File rupGeomFile = new File("e" + riq.getErfID() + "_rv" + riq.getRuptVarScenID() + "_" + sourceID + "_" + ruptureID + ".txt");
-		rupGeomFile.setRegister(false);
-		rupGeomFile.setTransfer(TRANSFER.TRUE);
+			job.addArgument("stat=" + riq.getSiteName());
+			job.addArgument("slat=" + riq.getLat());
+			job.addArgument("slon=" + riq.getLon());
 		
-		job.addArgument("rup_geom_file=" + rupGeomFile.getName());
-		job.uses(rupGeomFile, File.LINK.INPUT); 
+			File rupGeomFile = new File("e" + riq.getErfID() + "_rv" + riq.getRuptVarScenID() + "_" + sourceID + "_" + ruptureID + ".txt");
+			rupGeomFile.setRegister(false);
+			rupGeomFile.setTransfer(TRANSFER.TRUE);
 		
-		job.addArgument("source_id=" + sourceID);
-		job.addArgument("rupture_id=" + ruptureID);
-		job.addArgument("num_rup_vars=" + numRupVars);
+			job.addArgument("rup_geom_file=" + rupGeomFile.getName());
+			job.uses(rupGeomFile, File.LINK.INPUT); 
+			
+			job.addArgument("source_id=" + sourceID);
+			job.addArgument("rupture_id=" + ruptureID);
+			job.addArgument("num_rup_vars=" + numRupVarsThisTask);
 
-		File seisFile = new File(dirPrefix + java.io.File.separator + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() +
+			File seisFile = new File(dirPrefix + java.io.File.separator + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() +
 				"_" + sourceID + "_" + ruptureID + "_hf" + SEISMOGRAM_FILENAME_EXTENSION);
-		seisFile.setRegister(false);
-		seisFile.setTransfer(TRANSFER.FALSE);
-		job.uses(seisFile, File.LINK.OUTPUT);
+			if (numTasks>1) {
+				seisFile = new File(dirPrefix + java.io.File.separator + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() +
+						"_" + sourceID + "_" + ruptureID + "_hf_t" + i + SEISMOGRAM_FILENAME_EXTENSION);
+				//Construct rupture variation string
+				StringBuffer rup_var_string = new StringBuffer("");
+				for (int j=startingRupVar; j<endingRupVar; j++) {
+					rup_var_string.append("(" + j + "," + j + "," + 0 + ")");
+					if (j<endingRupVar-1) {
+						rup_var_string.append(";");
+					}
+				}
+				job.addArgument("rup_vars=" + rup_var_string.toString());
+			}
+			seisFile.setRegister(false);
+			seisFile.setTransfer(TRANSFER.FALSE);
+			job.uses(seisFile, File.LINK.OUTPUT);
 
-		job.addArgument("outfile=" + seisFile.getName());
+			job.addArgument("outfile=" + seisFile.getName());
 
-		job.addArgument("dx=" + DX);
-		job.addArgument("dy=" + DY);
+			job.addArgument("dx=" + DX);
+			job.addArgument("dy=" + DY);
 
-		job.addArgument("tlen=" + sParams.getTlen());
-		job.addArgument("dt=" + DT);
-		int doSiteResponse = 1;
-		if (!sParams.isRunSiteResponse()) {
-			doSiteResponse = 0;
-		}
-		job.addArgument("do_site_response=" + doSiteResponse);
-		if (sParams.isRunSiteResponse()) {
-			//Handle vs30 source
-			if (sParams.getVs30()>0) {
-				job.addArgument("vs30=" + sParams.getVs30());
+			job.addArgument("tlen=" + sParams.getTlen());
+			job.addArgument("dt=" + DT);
+			int doSiteResponse = 1;
+			if (!sParams.isRunSiteResponse()) {
+				doSiteResponse = 0;
+			}
+			job.addArgument("do_site_response=" + doSiteResponse);
+			if (sParams.isRunSiteResponse()) {
+				//Handle vs30 source
+				if (sParams.getVs30()>0) {
+					job.addArgument("vs30=" + sParams.getVs30());
+				} else {
+					//Use vs30 from same UCVM model as deterministic
+					job.addArgument("vs30_model=" + sParams.getLowFreqRIQ().getVelModelString());
+				}
+			}
+			int debug = 0;
+			if (sParams.isDebug()) {
+				debug = 1;
+			}
+			job.addArgument("debug=" + debug);
+
+			File localVMFile = new File(localVMFilename);
+			localVMFile.setRegister(false);
+			localVMFile.setTransfer(TRANSFER.TRUE);
+			job.uses(localVMFile, LINK.INPUT);
+		
+			job.addArgument("vmod=" + localVMFile.getName());
+
+			job.addProfile("pegasus", "priority", "" + numPoints);
+		
+			//Memory usage is the size of the SRF + the size of the output, basically.
+			double srfMem = 14.8 * Math.log10(numPoints) * Math.pow(numPoints, 1.14) / (1024.0*1024.0);
+			//Largest RV at dt=0.1 is 75 mb, so cap if larger
+			srfMem = Math.min(srfMem, 80.0);
+			//Adjust rv mem based on dt, since that affects the dt of the SRF too
+			srfMem *= 0.1/DT;
+			double outputMem = sParams.getTlen()/DT * 2.0 * 4.0 / (1024.0 * 1024.0);
+			//slipfile memory:  3 x NP x NQ x LV x sizeof(float)
+			double slipfileMem = 3.0*100.0*600.0*1000.0*4.0 / (1024.0*1024.0);
+			int memUsage = (int)(Math.ceil(1.1*(outputMem + srfMem + slipfileMem)));
+			
+			job.addProfile("pegasus", "pmc_request_memory", "" + memUsage);
+			job.addProfile("pegasus", "label", "pmc");
+			
+			dax.addJob(job);
+			dax.addDependency(localVMJob, job);
+			dax.addDependency(dirsJob, job);
+			if (numTasks==1) {
+				return job;
 			} else {
-				//Use vs30 from same UCVM model as deterministic
-				job.addArgument("vs30_model=" + sParams.getLowFreqRIQ().getVelModelString());
+				File combineSeisFile = new File(seisFile.getName());
+				combineJob.addArgument(combineSeisFile.getName());
+				combineSeisFile.setRegister(false);
+				combineSeisFile.setTransfer(TRANSFER.FALSE);
+				combineJob.uses(combineSeisFile, LINK.INPUT);
+				
+				dax.addDependency(job, combineJob);
 			}
 		}
-		int debug = 0;
-		if (sParams.isDebug()) {
-			debug = 1;
-		}
-		job.addArgument("debug=" + debug);
-
-		File localVMFile = new File(localVMFilename);
-		localVMFile.setRegister(false);
-		localVMFile.setTransfer(TRANSFER.TRUE);
-		job.uses(localVMFile, LINK.INPUT);
+		File combineSeisOutFile = new File(dirPrefix + java.io.File.separator + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() +
+				"_" + sourceID + "_" + ruptureID + "_hf" + SEISMOGRAM_FILENAME_EXTENSION);
+		combineSeisOutFile.setRegister(false);
+		combineSeisOutFile.setTransfer(TRANSFER.FALSE);
+		combineJob.addArgument(combineSeisOutFile.getName());
+		combineJob.uses(combineSeisOutFile, LINK.OUTPUT);
 		
-		job.addArgument("vmod=" + localVMFile.getName());
-
-		job.addProfile("pegasus", "priority", "" + numPoints);
-		
-		//Memory usage is the size of the SRF + the size of the output, basically.
-		double srfMem = 14.8 * Math.log10(numPoints) * Math.pow(numPoints, 1.14) / (1024.0*1024.0);
-		//Largest RV at dt=0.1 is 75 mb, so cap if larger
-		srfMem = Math.min(srfMem, 80.0);
-		//Adjust rv mem based on dt, since that affects the dt of the SRF too
-		srfMem *= 0.1/DT;
-		double outputMem = sParams.getTlen()/DT * 2.0 * 4.0 / (1024.0 * 1024.0);
-		int memUsage = (int)(Math.ceil(1.1*(outputMem + srfMem)));
-
-		job.addProfile("pegasus", "pmc_request_memory", "" + memUsage);
-		job.addProfile("pegasus", "label", "pmc");
-
-		return job;
+		return combineJob;
 	}
 	
 	private Job createLFSiteResponseJob(int sourceID, int ruptureID, int numRupVars, int num_points) {
@@ -451,10 +507,9 @@ public class CyberShake_Stochastic_DAXGen {
 			
 				dirNames.add("" + sourceID);
 				
-				Job hfSynthJob = createHFSynthJob(sourceID, ruptureID, numRupVars, numPoints, localVMFilename);
+				//Handle dependences in the method, because we might be using multiple tasks per rupture
+				Job hfSynthJob = createHFSynthJob(sourceID, ruptureID, numRupVars, numPoints, localVMFilename, localVMJob, dirsJob, dax);
 				dax.addJob(hfSynthJob);
-				dax.addDependency(localVMJob, hfSynthJob);
-				dax.addDependency(dirsJob, hfSynthJob);
 				
 				Job mergeIMJob = createMergeIMJob(sourceID, ruptureID, numRupVars, numPoints);
 				dax.addJob(mergeIMJob);
