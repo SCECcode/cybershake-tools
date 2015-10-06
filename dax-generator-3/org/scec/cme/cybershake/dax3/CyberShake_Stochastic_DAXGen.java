@@ -311,6 +311,8 @@ public class CyberShake_Stochastic_DAXGen {
 		combineJob.addArgument(combineSeisOutFile.getName());
 		combineJob.uses(combineSeisOutFile, LINK.OUTPUT);
 		
+		combineJob.addProfile("pegasus", "label", "pmc");
+		
 		return combineJob;
 	}
 	
