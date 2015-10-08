@@ -49,6 +49,8 @@ public class CyberShake_Stochastic_DAXGen {
     private final static String PSA_FILENAME_EXTENSION = ".bsa";
 	private final static String ROTD_FILENAME_PREFIX = "RotD_";
     private final static String ROTD_FILENAME_EXTENSION = ".rotd";
+    private final static String DURATION_FILENAME_PREFIX = "Duration_";
+    private final static String DURATION_FILENAME_EXTENSION = ".dur";
 	
 	//Transformation names
     private final static String LOCAL_VM_NAME = "Local_VM";
@@ -80,6 +82,7 @@ public class CyberShake_Stochastic_DAXGen {
 //		Option lfRunID = OptionBuilder.withArgName("lf_run_id").hasArg().withDescription("Run ID of low-frequency run to use (required).").create("lr");
 		Option noRotd = new Option("nr", "no-rotd", false, "Omit RotD calculations.");
 		Option noSiteResponse = new Option("nsr", "no-site-response", false, "Omit site response calculation.");
+		Option noDuration = new Option("nd", "no-duration", false, "Omit duration calculations.");
 		Option vs30 = OptionBuilder.withArgName("vs30").hasArg().withDescription("Vs30 value to use for site response.").create("v");
 		Option debug = new Option("d", "debug", false, "Debug flag.");
 		
@@ -88,6 +91,7 @@ public class CyberShake_Stochastic_DAXGen {
 //		cmd_opts.addOption(lfRunID);
 		cmd_opts.addOption(noRotd);
 		cmd_opts.addOption(noSiteResponse);
+		cmd_opts.addOption(noDuration);
 		cmd_opts.addOption(vs30);
 		cmd_opts.addOption(debug);
 		
@@ -134,6 +138,10 @@ public class CyberShake_Stochastic_DAXGen {
         
         if (line.hasOption(noSiteResponse.getOpt())) {
         	sParams.setRunSiteResponse(false);
+        }
+        
+        if (line.hasOption(noDuration.getOpt())) {
+        	sParams.setRunDuration(false);
         }
         
         if (line.hasOption(vs30.getOpt())) {
@@ -489,6 +497,21 @@ public class CyberShake_Stochastic_DAXGen {
 		} else {
 			job.addArgument("run_rotd=0");
 		}
+		
+		//Duration
+		if (sParams.isRunDuration()) {
+			job.addArgument("run_duration=1");
+			String durationFilename = dirPrefix + java.io.File.separator + DURATION_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() + 
+    			"_" + sourceID + "_" + ruptureID + "_bb" + DURATION_FILENAME_EXTENSION;
+			File durFile = new File(durationFilename);
+			durFile.setRegister(true);
+			durFile.setTransfer(TRANSFER.TRUE);
+			job.uses(durFile, LINK.OUTPUT);
+			job.addArgument("duration_out=" + durFile.getName());
+		} else {
+			job.addArgument("run_duration=0");
+		}
+		
 		job.addProfile("pegasus", "label", "pmc");
 		//Must read in both rupture files at once
 		double lfMem = numRupVars * 2.0 * nt;

@@ -6,6 +6,7 @@ public class Stochastic_DAXParameters {
 	private boolean runRotd = true;
 	private String directory;
 	private boolean runSiteResponse = true;
+	private boolean runDuration = true;
 	private boolean debug = false;
 	private RunIDQuery lowFreqRIQ;
 	private double tlen = 300.0;
@@ -65,5 +66,11 @@ public class Stochastic_DAXParameters {
 	}
 	public void setVs30(double vs30) {
 		this.vs30 = vs30;
+	}
+	public boolean isRunDuration() {
+		return runDuration;
+	}
+	public void setRunDuration(boolean runDuration) {
+		this.runDuration = runDuration;
 	}
 }
