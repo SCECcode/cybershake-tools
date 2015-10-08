@@ -149,7 +149,7 @@ public class CyberShake_Stochastic_DAXGen {
 	
 	private ResultSet getRuptures() {
 		DBConnect dbc = new DBConnect(DB_SERVER, DB, USER, PASS);
-		String query = "select R.Source_ID, R.Rupture_ID, R.Num_Points, R.Mag, count(*) " +
+		String query = "select R.Source_ID, R.Rupture_ID, R.Num_Points, R.Mag, count(*), R.Num_Rows, R.Num_Columns " +
 				"from CyberShake_Site_Ruptures SR, CyberShake_Sites S, Ruptures R, Rupture_Variations V " +
 				"where S.CS_Short_Name=\"" + riq.getSiteName() + "\" " +
 				"and SR.CS_Site_ID=S.CS_Site_ID " +
@@ -180,7 +180,7 @@ public class CyberShake_Stochastic_DAXGen {
 	}
 	
 	//Creates multiple tasks per rupture to keep job runtime low; adds job to combine output files
-	private Job createHFSynthJob(int sourceID, int ruptureID, int numRupVars, int numPoints, String localVMFilename, Job localVMJob, Job dirsJob, ADAG dax) {
+	private Job createHFSynthJob(int sourceID, int ruptureID, int numRupVars, int numPoints, int numRows, int numCols, String localVMFilename, Job localVMJob, Job dirsJob, ADAG dax) {
 		//Figure out how many tasks we need
 		long varsTimesPoints = numRupVars * numPoints;
 		int numTasks = (int)(Math.ceil(varsTimesPoints/10000000.0));
@@ -273,7 +273,7 @@ public class CyberShake_Stochastic_DAXGen {
 		
 			job.addArgument("vmod=" + localVMFile.getName());
 
-			job.addProfile("pegasus", "priority", "" + numPoints);
+			job.addProfile("pegasus", "pmc_priority", "" + numPoints);
 		
 			//Memory usage is the size of the SRF + the size of the output, basically.
 			double srfMem = 14.8 * Math.log10(numPoints) * Math.pow(numPoints, 1.14) / (1024.0*1024.0);
@@ -284,7 +284,21 @@ public class CyberShake_Stochastic_DAXGen {
 			double outputMem = sParams.getTlen()/DT * 2.0 * 4.0 / (1024.0 * 1024.0);
 			//slipfile memory:  3 x NP x NQ x LV x sizeof(float)
 			double slipfileMem = 3.0*100.0*600.0*1000.0*4.0 / (1024.0*1024.0);
-			int memUsage = (int)(Math.ceil(1.1*(outputMem + srfMem + slipfileMem)));
+			//Determine memory usage for srf2stoch buffers
+			int nstk = numRows;
+			int ndip = numCols;
+			int nx = (int)(nstk*0.2/2.0+0.5);
+			int ny = (int)(ndip*0.2/2.0+0.5);
+			int nxdiv = 1;
+			while ((nstk*nxdiv)%nx!=0) {
+				nxdiv++;
+			}
+			int nydiv = 1;
+			while ((ndip*nydiv)%ny!=0) {
+				nydiv++;
+			}
+			double srf2stochBuffers = 3.0*nxdiv*nydiv*nstk*ndip/(1024.0*1024.0);
+			int memUsage = (int)(Math.ceil(1.1*(outputMem + srfMem + slipfileMem+srf2stochBuffers)));
 			
 			job.addProfile("pegasus", "pmc_request_memory", "" + memUsage);
 			job.addProfile("pegasus", "label", "pmc");
@@ -506,11 +520,13 @@ public class CyberShake_Stochastic_DAXGen {
 				int ruptureID = ruptureSet.getInt("R.Rupture_ID");
 				int numPoints = ruptureSet.getInt("R.Num_Points");
 				int numRupVars = ruptureSet.getInt("count(*)");
+				int numRows = ruptureSet.getInt("R.Num_Rows");
+				int numCols = ruptureSet.getInt("R.Num_Columns");
 			
 				dirNames.add("" + sourceID);
 				
 				//Handle dependences in the method, because we might be using multiple tasks per rupture
-				Job hfSynthJob = createHFSynthJob(sourceID, ruptureID, numRupVars, numPoints, localVMFilename, localVMJob, dirsJob, dax);
+				Job hfSynthJob = createHFSynthJob(sourceID, ruptureID, numRupVars, numPoints, numRows, numCols, localVMFilename, localVMJob, dirsJob, dax);
 				dax.addJob(hfSynthJob);
 				
 				Job mergeIMJob = createMergeIMJob(sourceID, ruptureID, numRupVars, numPoints);
