@@ -285,8 +285,8 @@ public class CyberShake_Stochastic_DAXGen {
 			//slipfile memory:  3 x NP x NQ x LV x sizeof(float)
 			double slipfileMem = 3.0*100.0*600.0*1000.0*4.0 / (1024.0*1024.0);
 			//Determine memory usage for srf2stoch buffers
-			int nstk = numRows;
-			int ndip = numCols;
+			int nstk = numCols;
+			int ndip = numRows;
 			int nx = (int)(nstk*0.2/2.0+0.5);
 			int ny = (int)(ndip*0.2/2.0+0.5);
 			int nxdiv = 1;
@@ -297,7 +297,7 @@ public class CyberShake_Stochastic_DAXGen {
 			while ((ndip*nydiv)%ny!=0) {
 				nydiv++;
 			}
-			double srf2stochBuffers = 3.0*nxdiv*nydiv*nstk*ndip/(1024.0*1024.0);
+			double srf2stochBuffers = 3.0*nxdiv*nydiv*nstk*ndip*4.0/(1024.0*1024.0);
 			int memUsage = (int)(Math.ceil(1.1*(outputMem + srfMem + slipfileMem+srf2stochBuffers)));
 			
 			job.addProfile("pegasus", "pmc_request_memory", "" + memUsage);
