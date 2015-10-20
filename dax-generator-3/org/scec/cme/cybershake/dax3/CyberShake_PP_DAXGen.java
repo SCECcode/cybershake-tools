@@ -452,7 +452,7 @@ public class CyberShake_PP_DAXGen {
 			//Set frequency once we know the run ID
 	        //Set frequency-specific things
 	    
-	        params.setDetFrequency(riq.getFrequency());
+	        params.setDetFrequency(riq.getLowFrequencyCutoff());
 	        //Adjust a few parameters accordingly
 	        if (params.getDetFrequency()==1.0) {
 	        	NUMTIMESTEPS = "8000";

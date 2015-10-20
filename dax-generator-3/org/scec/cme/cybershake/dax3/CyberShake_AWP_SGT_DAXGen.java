@@ -314,7 +314,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 				}
 			}
 		} else if (riq.getSgtString().equals("awp_gpu")) {
-			if (riq.getFrequency()<1.0) {
+			if (riq.getLowFrequencyCutoff()<1.0) {
 				//Choose core count to be 10 x 10; each processor must be responsible for an even chunk, so each dim must be divisible by 20
 				for (int i=0; i<2; i++) {
 					if (dims[i] % 20 != 0) {
@@ -385,7 +385,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		preSGTJob.addArgument(faultlistFile);
 		preSGTJob.addArgument(radiusFile);
 		preSGTJob.addArgument(sgtcordFile);
-		preSGTJob.addArgument(riq.getFrequencyString());
+		preSGTJob.addArgument(riq.getLowFrequencyCutoffString());
 		
 		preSGTJob.uses(modelboxFile, File.LINK.INPUT);
 		preSGTJob.uses(gridoutFile, File.LINK.INPUT);
@@ -429,7 +429,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		preAWPJob.addArgument("--gridout " + gridoutFile.getName());
 		preAWPJob.addArgument("--fdloc " + fdlocFile.getName());
 		preAWPJob.addArgument("--cordfile " + cordFile.getName());
-		preAWPJob.addArgument("--frequency " + riq.getFrequencyString());
+		preAWPJob.addArgument("--frequency " + riq.getLowFrequencyCutoffString());
 		preAWPJob.addArgument("--px " + procDims[0]);
 		preAWPJob.addArgument("--py " + procDims[1]);
 		preAWPJob.addArgument("--pz " + procDims[2]);
@@ -515,7 +515,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 			System.exit(1);
 		}
 		
-		vMeshJob.addArgument(riq.getFrequencyString());
+		vMeshJob.addArgument(riq.getLowFrequencyCutoffString());
 		
 		gridoutFile.setTransfer(File.TRANSFER.TRUE);
 		coordFile.setTransfer(File.TRANSFER.TRUE);
@@ -665,12 +665,12 @@ public class CyberShake_AWP_SGT_DAXGen {
 		if (separateMD5) {
 			postAWPJob.addArgument("-n");
 		}
-		if (riq.getSourceFrequency()!=riq.getFrequency()) {
+		if (riq.getSourceFrequency()!=riq.getLowFrequencyCutoff()) {
 			postAWPJob.addArgument("-s " + riq.getSourceFrequency());
 		}
 
-		if (riq.getFrequency()>0.5) {
-			postAWPJob.addArgument(riq.getFrequency() + "");
+		if (riq.getLowFrequencyCutoff()>0.5) {
+			postAWPJob.addArgument(riq.getLowFrequencyCutoff() + "");
 		}
 		
 		postAWPJob.uses(awpStrainInFile, LINK.INPUT);
