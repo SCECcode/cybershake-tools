@@ -57,6 +57,8 @@ public class CyberShake_DB_DAXGen {
 	private boolean transferZipFiles = true;
 	private int numDAXes;
 	private PP_DAXParameters params;
+	// Insert duration results
+	private boolean insertDurations = false;
 	
 	//Job selection
 	// boolean to enable/disable scatter map plotting
@@ -65,6 +67,7 @@ public class CyberShake_DB_DAXGen {
 	private static final boolean DO_CURVE_GEN = true;
 	// boolean to enable/disable curve plotting. if DO_CURVE_GEN is false, then this is ignored.
 	private static final boolean DO_CURVE_PLOT = true;
+
 	
 	public CyberShake_DB_DAXGen(RunIDQuery r) {
 		riq = r;
@@ -91,6 +94,24 @@ public class CyberShake_DB_DAXGen {
 		params.setStochastic(highFreq);
 		params.setStochasticCutoff(highFreqCutoff);
 		params.setCalculateRotD(rotD);
+		params.setDetFrequency(r.getLowFrequencyCutoff());
+		if (params.isFileForward() || params.isPipeForward()){
+			this.filesDir = STORAGE_DIR + "/" + r.getSiteName() + "/" + r.getRunID();
+		} else {
+			this.filesDir = ".";
+		}
+	}
+	
+	public CyberShake_DB_DAXGen(RunIDQuery r, int numDAXes, boolean highFreq, double highFreqCutoff, boolean transferZip, boolean rotD, boolean duration) {
+		this(r);
+		transferZipFiles = transferZip;
+		this.numDAXes = numDAXes;
+		params = new PP_DAXParameters();
+		params.setStochastic(highFreq);
+		params.setStochasticCutoff(highFreqCutoff);
+		params.setCalculateRotD(rotD);
+		params.setDetFrequency(r.getLowFrequencyCutoff());
+		insertDurations = duration;
 		if (params.isFileForward() || params.isPipeForward()){
 			this.filesDir = STORAGE_DIR + "/" + r.getSiteName() + "/" + r.getRunID();
 		} else {
@@ -161,6 +182,18 @@ public class CyberShake_DB_DAXGen {
 			dax.addDependency(insertJob, rotDJob);
 		}
 		
+		Job durationJob = null;
+		if (insertDurations) {
+			durationJob = createInsertDurationJob();
+			dax.addJob(durationJob);
+			//Make this a child so we don't have multiple insertion jobs running at the same time
+			if (rotDJob!=null) {
+				dax.addDependency(rotDJob, durationJob);
+			} else {
+				dax.addDependency(insertJob, durationJob);
+			}
+		}
+		
 		Job dbCheckJob = createDBCheckJob();
 		dax.addJob(dbCheckJob);
 		
@@ -173,9 +206,15 @@ public class CyberShake_DB_DAXGen {
 			if (params.isCalculateRotD()) {
 				Job rotdCheckJob = createDBCheckRotDJob();
 				dax.addJob(rotdCheckJob);
+				dax.addDependency(rotDJob, rotdCheckJob);
 				Job rotdCalcJob = createRotDCurveCalcJob();
 				dax.addJob(rotdCalcJob);
 				dax.addDependency(rotdCheckJob, rotdCalcJob);
+			}
+			if (insertDurations) {
+				Job durationCheckJob = createDurationCheckJob();
+				dax.addJob(durationCheckJob);
+				dax.addDependency(durationJob, durationCheckJob);
 			}
 			
 			disaggJob = createDisaggJob();
@@ -225,6 +264,47 @@ public class CyberShake_DB_DAXGen {
 		return dax;
 	}
 	
+	
+	private Job createInsertDurationJob() {
+		String id = DB_PREFIX + "Load_Durations" + "_" + riq.getSiteName();
+		Job job = new Job(id, CyberShake_PP_DAXGen.NAMESPACE, DB_INSERT_NAME, CyberShake_PP_DAXGen.VERSION);
+		
+		if (transferZipFiles) {
+			for (int i=0; i<numDAXes; i++) {
+				File zipFile = new File("CyberShake_" + riq.getSiteName() + "_" + riq.getRunID() + "_" + i + "_PSA.zip");
+				zipFile.setRegister(false);
+				job.uses(zipFile, File.LINK.INPUT);
+			}
+		}
+		
+		job.addArgument("-server " + DB_SERVER);
+		if (transferZipFiles) {
+			job.addArgument("-z");
+		}
+		//For duration files
+		job.addArgument("-u");
+		job.addArgument("-p " + filesDir);
+
+		job.addArgument("-run " + riq.getRunID());
+		String periods = "10,7.5,5,4,3,2";
+		if (params.isStochastic()) {
+			periods = periods + ",1,0.5,0.2,0.1";
+		} else {
+			if (params.getDetFrequency()>1.0) {
+				periods = periods + ",1";
+			}
+			if (params.getDetFrequency()>2.0) {
+				periods = periods + ",0.5";
+			}
+		}
+		job.addArgument("-periods " + periods);
+		
+		job.addProfile("globus", "maxWallTime","60");
+		job.addProfile("hints","executionPool", "shock");
+		
+		return job;
+	}
+		
 	
 	private Job createRotDInsertionJob() {
 		String id = DB_PREFIX + "Load_Amps_RotD" + "_" + riq.getSiteName();
@@ -441,7 +521,7 @@ public class CyberShake_DB_DAXGen {
 	}
 	
 	private Job createDBCheckRotDJob() {
-		String id = DB_PREFIX + "DB_Check" + "_" + riq.getSiteName();
+		String id = DB_PREFIX + "DB_Check_RotD" + "_" + riq.getSiteName();
 		Job job = new Job(id, CyberShake_PP_DAXGen.NAMESPACE, DB_CHECK_NAME, CyberShake_PP_DAXGen.VERSION);
 		
 		job.addArgument("-r " + riq.getRunID());
@@ -450,7 +530,7 @@ public class CyberShake_DB_DAXGen {
 		
 		job.addArgument("-o " + outFile);
 		job.addArgument("-c rotd");
-		String periods = "10,5,3";
+		String periods = "10,7.5,5,4,3";
 		if (params.getDetFrequency()>=1.0) {
 			periods += ",2";
 		}
@@ -458,6 +538,26 @@ public class CyberShake_DB_DAXGen {
 			periods += ",1";
 		}
 		job.addArgument("-p " + periods);
+		
+		job.addProfile("globus", "maxWallTime", "15");
+		job.addProfile("hints","executionPool", "local");
+		
+		return job;
+	}
+	
+	private Job createDurationCheckJob() {
+		String id = DB_PREFIX + "DB_Check_Duration" + "_" + riq.getSiteName();
+		Job job = new Job(id, CyberShake_PP_DAXGen.NAMESPACE, DB_CHECK_NAME, CyberShake_PP_DAXGen.VERSION);
+		
+		job.addArgument("-r " + riq.getRunID());
+		
+		String outFile = DB_CHECK_OUTFILE_DIR + DB_CHECK_OUTFILE_PREFIX + "Duration_" +  riq.getSiteName();
+		
+		job.addArgument("-o " + outFile);
+		job.addArgument("-c duration");
+
+		//List of IM_Type_IDs for duration
+		job.addArgument("-t 176,177,178,179,180,181,182,183");
 		
 		job.addProfile("globus", "maxWallTime", "15");
 		job.addProfile("hints","executionPool", "local");

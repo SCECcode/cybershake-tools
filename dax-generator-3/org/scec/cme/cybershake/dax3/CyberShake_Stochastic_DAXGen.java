@@ -459,8 +459,8 @@ public class CyberShake_Stochastic_DAXGen {
 		
 		//PSA args
 		double psaFilter = PSA_FILTER;
-		if (psaFilter<2.0*riq.getFrequency()) {
-			psaFilter = 2.0*riq.getFrequency();
+		if (psaFilter<2.0*riq.getLowFrequencyCutoff()) {
+			psaFilter = 2.0*riq.getLowFrequencyCutoff();
 		}
 		
 		int nt = (int)((sParams.getTlen()/DT + 0.5));
@@ -608,8 +608,8 @@ public class CyberShake_Stochastic_DAXGen {
         	System.err.println("High and low frequency site names " + riq.getSiteName() + " and " + sParams.getLowFreqRIQ().getSiteName() + " don't agree, aborting.");
         	System.exit(2);
         }
-        if (sParams.getLowFreqRIQ().getFrequency()<sParams.getMergeFrequency()) {
-        	System.err.println("Low frequency stopped at " + sParams.getLowFreqRIQ().getFrequency() + "Hz, so can't merge at " + sParams.getMergeFrequency() + ", aborting.");
+        if (sParams.getLowFreqRIQ().getLowFrequencyCutoff()<sParams.getMergeFrequency()) {
+        	System.err.println("Low frequency stopped at " + sParams.getLowFreqRIQ().getLowFrequencyCutoff() + "Hz, so can't merge at " + sParams.getMergeFrequency() + ", aborting.");
         	System.exit(3);
         }
         if (sParams.getLowFreqRIQ().getErfID()!=riq.getErfID()) {
@@ -621,7 +621,7 @@ public class CyberShake_Stochastic_DAXGen {
         	System.exit(5);
         }
 		
-		if (sParams.getLowFreqRIQ().getFrequency()>=1.0) {
+		if (sParams.getLowFreqRIQ().getLowFrequencyCutoff()>=1.0) {
 			//@1 Hz we use seismograms which are 400s in length
 			sParams.setTlen(400.0);
 		}
@@ -634,7 +634,7 @@ public class CyberShake_Stochastic_DAXGen {
 		String stochDAXFilename = DAX_FILENAME_PREFIX + riq.getSiteName() + DAX_FILENAME_EXTENSION;
 		stochADAG.writeToFile(stochDAXFilename);
 		
-		CyberShake_DB_DAXGen dbDaxGen = new CyberShake_DB_DAXGen(riq, 1, true, riq.getFrequency(), false, sParams.isRunRotd());
+		CyberShake_DB_DAXGen dbDaxGen = new CyberShake_DB_DAXGen(riq, 1, true, riq.getLowFrequencyCutoff(), false, sParams.isRunRotd());
 		ADAG dbADAG = dbDaxGen.makeDAX();
 		String dbDAXFilename = DAX_FILENAME_PREFIX + riq.getSiteName() + "_DB_Products" + DAX_FILENAME_EXTENSION;
 		dbADAG.writeToFile(dbDAXFilename);

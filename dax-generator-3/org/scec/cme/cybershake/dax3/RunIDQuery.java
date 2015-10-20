@@ -27,7 +27,7 @@ public class RunIDQuery {
 	private double lon;
 	private double vs30 = -1.0;
 	private double erfSpacing = 1.0;
-	private double frequency = 0.5;
+	private double low_frequency_cutoff = 0.5;
 	private double max_frequency = 0.5;
 	private int numComponents = 2;
 	private double sourceFrequency;
@@ -58,7 +58,7 @@ public class RunIDQuery {
 		dbc = new DBConnect(HOSTNAME, DB_NAME, USER, PASS);
 		populateRunIDInfo();
 		populateSiteInfo();
-		if (max_frequency > frequency) {
+		if (max_frequency > low_frequency_cutoff) {
 			retrieveVs30();
 		}
 		dbc.closeConnection();
@@ -183,7 +183,7 @@ public class RunIDQuery {
     			System.exit(3);
     		}
 
-    		frequency = res.getDouble("Low_Frequency_Cutoff");
+    		low_frequency_cutoff = res.getDouble("Low_Frequency_Cutoff");
     		max_frequency = res.getDouble("Max_Frequency");
     		sourceFrequency = res.getDouble("SGT_Source_Filter_Frequency");
     		
@@ -273,12 +273,12 @@ public class RunIDQuery {
 		return erfSpacing;
 	}
 
-	public String getFrequencyString() {
-		return String.format("%.1f", frequency);
+	public String getLowFrequencyCutoffString() {
+		return String.format("%.1f", low_frequency_cutoff);
 	}
 	
-	public double getFrequency() {
-		return frequency;
+	public double getLowFrequencyCutoff() {
+		return low_frequency_cutoff;
 	}
 
 	public int getNumComponents() {

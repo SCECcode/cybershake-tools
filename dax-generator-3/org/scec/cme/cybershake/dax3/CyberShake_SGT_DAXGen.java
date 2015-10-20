@@ -410,7 +410,7 @@ public class CyberShake_SGT_DAXGen {
 		preCVMJob.addArgument(coordFile);
 		preCVMJob.addArgument(paramFile);
 		preCVMJob.addArgument(boundsFile);
-		preCVMJob.addArgument("-frequency " + riq.getFrequencyString());
+		preCVMJob.addArgument("-frequency " + riq.getLowFrequencyCutoffString());
 		if (riq.getSgtString().contains("gpu")) {
 			preCVMJob.addArgument("-gpu");
 		}
@@ -447,7 +447,7 @@ public class CyberShake_SGT_DAXGen {
 			System.exit(1);
 		}
 		
-		vMeshJob.addArgument(riq.getFrequencyString());
+		vMeshJob.addArgument(riq.getLowFrequencyCutoffString());
 		
 		gridoutFile.setTransfer(File.TRANSFER.FALSE);
 		coordFile.setTransfer(File.TRANSFER.FALSE);
@@ -758,7 +758,7 @@ public class CyberShake_SGT_DAXGen {
 		preAWPJob.addArgument("--gridout " + gridoutFile.getName());
 		preAWPJob.addArgument("--fdloc " + fdlocFile.getName());
 		preAWPJob.addArgument("--cordfile " + cordFile.getName());
-		preAWPJob.addArgument("--frequency " + riq.getFrequencyString());
+		preAWPJob.addArgument("--frequency " + riq.getLowFrequencyCutoffString());
 		
 		//Only need to reformat velocity if we ran separate velocity jobs
 		if (sgt_params.isSeparateVelocityJobs()) {
