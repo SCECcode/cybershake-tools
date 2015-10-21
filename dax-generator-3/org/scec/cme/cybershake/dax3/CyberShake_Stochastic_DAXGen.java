@@ -642,7 +642,7 @@ public class CyberShake_Stochastic_DAXGen {
 		String stochDAXFilename = DAX_FILENAME_PREFIX + riq.getSiteName() + DAX_FILENAME_EXTENSION;
 		stochADAG.writeToFile(stochDAXFilename);
 		
-		CyberShake_DB_DAXGen dbDaxGen = new CyberShake_DB_DAXGen(riq, 1, true, riq.getLowFrequencyCutoff(), false, sParams.isRunRotd());
+		CyberShake_DB_DAXGen dbDaxGen = new CyberShake_DB_DAXGen(riq, 1, true, riq.getLowFrequencyCutoff(), false, sParams.isRunRotd(), sParams.isRunDuration());
 		ADAG dbADAG = dbDaxGen.makeDAX();
 		String dbDAXFilename = DAX_FILENAME_PREFIX + riq.getSiteName() + "_DB_Products" + DAX_FILENAME_EXTENSION;
 		dbADAG.writeToFile(dbDAXFilename);
