@@ -82,6 +82,7 @@ public class CyberShake_Stochastic_DAXGen {
 //		Option lfRunID = OptionBuilder.withArgName("lf_run_id").hasArg().withDescription("Run ID of low-frequency run to use (required).").create("lr");
 		Option noRotd = new Option("nr", "no-rotd", false, "Omit RotD calculations.");
 		Option noSiteResponse = new Option("nsr", "no-site-response", false, "Omit site response calculation.");
+		Option noLFSiteResponse = new Option("nls", "no-low-site-response", false, "Omit site response calculation for low-frequency seismograms.");
 		Option noDuration = new Option("nd", "no-duration", false, "Omit duration calculations.");
 		Option vs30 = OptionBuilder.withArgName("vs30").hasArg().withDescription("Vs30 value to use for site response.").create("v");
 		Option debug = new Option("d", "debug", false, "Debug flag.");
@@ -91,6 +92,7 @@ public class CyberShake_Stochastic_DAXGen {
 //		cmd_opts.addOption(lfRunID);
 		cmd_opts.addOption(noRotd);
 		cmd_opts.addOption(noSiteResponse);
+		cmd_opts.addOption(noLFSiteResponse);
 		cmd_opts.addOption(noDuration);
 		cmd_opts.addOption(vs30);
 		cmd_opts.addOption(debug);
@@ -138,6 +140,10 @@ public class CyberShake_Stochastic_DAXGen {
         
         if (line.hasOption(noSiteResponse.getOpt())) {
         	sParams.setRunSiteResponse(false);
+        }
+        
+        if (line.hasOption(noLFSiteResponse.getOpt())) {
+        	sParams.setRunLFSiteResponse(false);
         }
         
         if (line.hasOption(noDuration.getOpt())) {
@@ -374,6 +380,8 @@ public class CyberShake_Stochastic_DAXGen {
 		job.addProfile("pegasus", "label", "pmc");
 		//We only process 1 rupture variation at a time, so very small memory requirements
 		job.addProfile("pegasus", "pmc_request_memory", "1");
+		//Let's run the HF jobs first
+		job.addProfile("pegasus", "pmc_priority", "1");
 		
 		return job;
 	}
@@ -556,7 +564,7 @@ public class CyberShake_Stochastic_DAXGen {
 				dax.addJob(mergeIMJob);
 				dax.addDependency(hfSynthJob, mergeIMJob);
 
-				if (sParams.isRunSiteResponse()) {
+				if (sParams.isRunLFSiteResponse()) {
 					Job lfSiteResponseJob = createLFSiteResponseJob(sourceID, ruptureID, numRupVars, numPoints);
 					dax.addJob(lfSiteResponseJob);
 					dax.addDependency(dirsJob, lfSiteResponseJob);
