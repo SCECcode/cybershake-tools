@@ -6,6 +6,7 @@ public class Stochastic_DAXParameters {
 	private boolean runRotd = true;
 	private String directory;
 	private boolean runSiteResponse = true;
+	private boolean runLFSiteResponse = true;
 	private boolean runDuration = true;
 	private boolean debug = false;
 	private RunIDQuery lowFreqRIQ;
@@ -72,5 +73,11 @@ public class Stochastic_DAXParameters {
 	}
 	public void setRunDuration(boolean runDuration) {
 		this.runDuration = runDuration;
+	}
+	public boolean isRunLFSiteResponse() {
+		return runLFSiteResponse;
+	}
+	public void setRunLFSiteResponse(boolean runLFSiteResponse) {
+		this.runLFSiteResponse = runLFSiteResponse;
 	}
 }
