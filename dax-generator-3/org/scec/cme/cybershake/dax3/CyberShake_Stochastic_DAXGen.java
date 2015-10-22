@@ -427,7 +427,7 @@ public class CyberShake_Stochastic_DAXGen {
 		
 		String dirPrefix = "" + sourceID;
 		
-		if (sParams.isRunSiteResponse()) {
+		if (sParams.isRunLFSiteResponse()) {
 			String lfSeisName = dirPrefix + java.io.File.separator + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + sParams.getLowFreqRIQ().getRunID() +
 					"_" + sourceID + "_" + ruptureID + "_site_response" + SEISMOGRAM_FILENAME_EXTENSION;
 			File lfSeisFile = new File(lfSeisName);
