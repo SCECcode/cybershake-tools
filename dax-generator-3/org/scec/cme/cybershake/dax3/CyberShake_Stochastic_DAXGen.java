@@ -441,7 +441,7 @@ public class CyberShake_Stochastic_DAXGen {
 			File lfSeisFile = new File(lfSeisName);
 			lfSeisFile.setTransfer(TRANSFER.TRUE);
 			lfSeisFile.setRegister(false);
-			job.uses(lfSeisFile, LINK.INPUT);
+			job.uses(lfSeisFile, LINK.INOUT);
 			job.addArgument("lf_seis=" + lfSeisFile.getName());
 		}
 		
