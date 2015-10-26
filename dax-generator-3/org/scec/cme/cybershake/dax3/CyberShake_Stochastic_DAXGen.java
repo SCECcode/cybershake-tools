@@ -532,14 +532,20 @@ public class CyberShake_Stochastic_DAXGen {
 	
 	private void createJobs(ADAG dax, ResultSet ruptureSet) {
 		try {
+      		// Create update run state job
+      		Job updateJob = addUpdate(riq.getRunID(), "PP_INIT", "PP_START");
+      		dax.addJob(updateJob);
+			
 			String localVMFilename = VM_FILENAME + ".local";
 			Job localVMJob = createLocalVMJob(VM_FILENAME, localVMFilename);
 			dax.addJob(localVMJob);
+			dax.addDependency(updateJob, localVMJob);
 			
 			HashSet<String> dirNames = new HashSet<String>();
 			String dirsInputFilename = "dirs_list.txt";
 			Job dirsJob = createDirsJob(dirsInputFilename);
 			dax.addJob(dirsJob);
+			dax.addDependency(updateJob, dirsJob);
 			
 			int index = 0;
 			
