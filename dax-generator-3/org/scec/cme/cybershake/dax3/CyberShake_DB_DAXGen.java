@@ -423,7 +423,7 @@ public class CyberShake_DB_DAXGen {
 		job.addArgument("--atten-rel-file " + CURVE_ATTEN_REL_XML_FILES);
 		String periods = CURVE_CALC_PERIODS;
 		if (params.isStochastic()) {
-			periods += ",1,0.5,0.2,0.1";
+			periods += "2,1,0.5,0.2,0.1";
 		} else {
 			if (params.getDetFrequency()>=1.0) {
 				periods = periods + ",2";
