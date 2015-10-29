@@ -77,6 +77,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 	
 		Option help = new Option("h", "help", false, "Print help for CyberShake_HF_DAXGen");
 		Option runID = OptionBuilder.withArgName("run_id").hasArg().withDescription("Stochastic simulation run ID").create("r");
+		Option lfRunID = OptionBuilder.withArgName("lf_run_id").hasArg().withDescription("Low-frequency simulation run ID").create("lr");
 		Option mergeFrequency = OptionBuilder.withArgName("merge_frequency").hasArg().withDescription("Frequency at which to merge the LF and HF seismograms.").create("mf");
 		Option noRotd = new Option("nr", "no-rotd", false, "Omit RotD calculations.");
 		Option noSiteResponse = new Option("nsr", "no-site-response", false, "Omit site response calculation.");
@@ -88,6 +89,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		
 		cmd_opts.addOption(help);
 		cmd_opts.addOption(runID);
+		cmd_opts.addOption(lfRunID);
 		cmd_opts.addOption(mergeFrequency);
 		cmd_opts.addOption(noRotd);
 		cmd_opts.addOption(noSiteResponse);
@@ -127,6 +129,16 @@ public class CyberShake_Sub_Stoch_DAXGen {
         }
         int run_id = Integer.parseInt(line.getOptionValue(runID.getOpt()));
         
+        
+        if (!line.hasOption(lfRunID.getOpt())) {
+        	System.err.println("Must specify low frequency runID.");
+        	HelpFormatter formatter = new HelpFormatter();
+        	formatter.printHelp(usageString, cmd_opts);
+        	System.exit(-2);
+        }
+        int lf_run_id = Integer.parseInt(line.getOptionValue(lfRunID.getOpt()));
+        sParams.setLfRunID(lf_run_id);
+
         if (!line.hasOption(velocityFile.getOpt())) {
         	System.err.println("Must specify velocity file.");
         	HelpFormatter formatter = new HelpFormatter();

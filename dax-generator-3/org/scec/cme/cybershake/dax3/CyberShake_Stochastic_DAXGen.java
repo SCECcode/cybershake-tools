@@ -204,7 +204,9 @@ public class CyberShake_Stochastic_DAXGen {
 
 		File velocityFile = new File("velocity_info_" + riq.getSiteName() + ".txt");
 		
+		genStochDAXJob.addArgument("-r " + riq.getRunID());
 		genStochDAXJob.addArgument("-mf " + sParams.getMergeFrequencyString());
+		genStochDAXJob.addArgument("-lr " + sParams.getLfRunID());
 		if (!sParams.isRunRotd()) {
 			genStochDAXJob.addArgument("-nr");
 		}
