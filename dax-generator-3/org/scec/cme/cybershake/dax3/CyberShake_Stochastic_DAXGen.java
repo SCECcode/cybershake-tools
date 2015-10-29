@@ -54,6 +54,7 @@ public class CyberShake_Stochastic_DAXGen {
 	
 	//Transformation names
     private final static String GET_VELOCITY_INFO = "Velocity_Info";
+    private final static String GEN_STOCH_DAX = "GenStochDax";
     private final static String LOCAL_VM_NAME = "Local_VM";
     private final static String CREATE_DIRS_NAME = "Create_Dirs";
     private final static String HF_SYNTH_NAME = "HF_Synth";
@@ -197,8 +198,8 @@ public class CyberShake_Stochastic_DAXGen {
 
 	private Job genStochDAX(File daxFile) {
 		//Runs a job which creates a DAX for running the SGT jobs
-		String id = "GenStochDax_" + riq.getSiteName();
-		Job genStochDAXJob = new Job(id, NAMESPACE, "GenStochDax", VERSION);
+		String id = GEN_STOCH_DAX + "_" + riq.getSiteName();
+		Job genStochDAXJob = new Job(id, NAMESPACE, GEN_STOCH_DAX, VERSION);
 
 		File velocityFile = new File("velocity_info_" + riq.getSiteName() + ".txt");
 		
@@ -265,6 +266,7 @@ public class CyberShake_Stochastic_DAXGen {
 	    
 	    // Create job to query UCVM to get velocity info for setting vref
 	    Job velocityJob = getVelInfo();
+	    topDAX.addJob(velocityJob);
 
 	    File genStochDaxFile = new File(DAX_FILENAME_PREFIX + riq.getSiteName() + DAX_FILENAME_EXTENSION);
 	    genStochDaxFile.setRegister(false);
