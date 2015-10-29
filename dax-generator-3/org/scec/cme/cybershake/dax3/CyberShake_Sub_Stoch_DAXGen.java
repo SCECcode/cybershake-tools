@@ -71,7 +71,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		sParams = hp;
 	}
     
-	private static void main(String[] args) {
+	public static void main(String[] args) {
 		String usageString = "CyberShake_Sub_Stochastic_DAXGen <runID> <directory>";
 		Options cmd_opts = new Options();
 	
