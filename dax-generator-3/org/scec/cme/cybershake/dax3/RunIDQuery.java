@@ -72,7 +72,7 @@ public class RunIDQuery {
 			//write to DB
 			String pass = null;
 			try {
-				BufferedReader br = new BufferedReader(new FileReader("focal.txt"));
+				BufferedReader br = new BufferedReader(new FileReader("/home/scec-02/cybershk/runs/focal.txt"));
 				pass = br.readLine().trim();
 				br.close();
 			} catch (IOException ex) {
