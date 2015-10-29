@@ -179,6 +179,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
         	sParams.setDebug(true);
         }
         
+        sParams.setDirectory(".");
         CyberShake_Sub_Stoch_DAXGen ssd = new CyberShake_Sub_Stoch_DAXGen(run_id, sParams);
         ADAG stochADAG = new ADAG(daxFilename);
         ResultSet ruptureSet = ssd.getRuptures();
