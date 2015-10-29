@@ -571,6 +571,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
     		retArray[VSSITE] = vsSite;
     		retArray[VS30] = vs30;
     		retArray[VSD] = vsD;
+    		return retArray;
     	} catch (IOException ie) {
     		ie.printStackTrace();
     		System.exit(1);
