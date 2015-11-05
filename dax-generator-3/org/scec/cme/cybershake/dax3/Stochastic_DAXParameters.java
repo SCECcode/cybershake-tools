@@ -12,6 +12,7 @@ public class Stochastic_DAXParameters {
 	private RunIDQuery lowFreqRIQ;
 	private double tlen = 300.0;
 	private double vs30 = -1.0;
+	private String velocityInfoFile = null;
 	
 	public double getMergeFrequency() {
 		return mergeFrequency;
@@ -79,5 +80,11 @@ public class Stochastic_DAXParameters {
 	}
 	public void setRunLFSiteResponse(boolean runLFSiteResponse) {
 		this.runLFSiteResponse = runLFSiteResponse;
+	}
+	public String getVelocityInfoFile() {
+		return velocityInfoFile;
+	}
+	public void setVelocityInfoFile(String velocityInfoFile) {
+		this.velocityInfoFile = velocityInfoFile;
 	}
 }
