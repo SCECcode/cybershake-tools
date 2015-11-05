@@ -187,6 +187,7 @@ public class CyberShake_Stochastic_DAXGen {
     	velocityJob.addArgument(gridSpacing/2 + "");
     	
     	File velocityInfoFile = new File("velocity_info_" + riq.getSiteName() + ".txt");
+    	sParams.setVelocityInfoFile(velocityInfoFile.getName());
     	velocityInfoFile.setRegister(false);
     	//Set transfer to false, otherwise Pegasus thinks we want to archive it and looks in the RC regex for it
     	velocityInfoFile.setTransfer(TRANSFER.FALSE);
@@ -289,7 +290,7 @@ public class CyberShake_Stochastic_DAXGen {
 		topDAX.addDAX(stochDAX);
 		topDAX.addDependency(genStochDAX, stochDAX);
 		
-		CyberShake_DB_DAXGen dbDaxGen = new CyberShake_DB_DAXGen(riq, 1, true, riq.getLowFrequencyCutoff(), false, sParams.isRunRotd(), sParams.isRunDuration());
+		CyberShake_DB_DAXGen dbDaxGen = new CyberShake_DB_DAXGen(riq, 1, true, riq.getLowFrequencyCutoff(), false, sParams.isRunRotd(), sParams.isRunDuration(), sParams.getVelocityInfoFile());
 		ADAG dbADAG = dbDaxGen.makeDAX();
 		String dbDAXFilename = DAX_FILENAME_PREFIX + riq.getSiteName() + "_DB_Products" + DAX_FILENAME_EXTENSION;
 		dbADAG.writeToFile(dbDAXFilename);
