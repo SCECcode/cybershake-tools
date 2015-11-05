@@ -59,9 +59,9 @@ public class CyberShake_Sub_Stoch_DAXGen {
     private final static String USER = "cybershk_ro";
     private final static String PASS = "CyberShake2007";
     
-    private final static int VSSITE = 0;
-    private final static int VS30 = 1;
-    private final static int VSD = 2;
+    private final static int VS30 = 0;
+    private final static int VS5H = 1;
+    private final static int VSD5H = 2;
 	
 	private RunIDQuery riq;
 	private Stochastic_DAXParameters sParams;
@@ -401,7 +401,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		//Need to set both Vs30 and Vref
 		job.addArgument("vs30=" + velocityArray[VS30]);
 		//Vref = Vsite * Vs30 / VsD
-		double vref = velocityArray[VSSITE] * velocityArray[VS30] / velocityArray[VSD];
+		double vref = velocityArray[VS30] * velocityArray[VSD5H] / velocityArray[VS5H];
 		//Round vref to nearest 0.1
 		vref = ((double)((int)(vref*10.0)))/10.0;
 		job.addArgument("vref=" + vref);
@@ -580,15 +580,15 @@ public class CyberShake_Sub_Stoch_DAXGen {
     		 * Vs30 = <Vs30>
     		 * Vs<D> = <VsD>
     		 */
-    		double vsSite = Double.parseDouble(br.readLine().split("=")[1]);
     		double vs30 = Double.parseDouble(br.readLine().split("=")[1]);
-    		double vsD = Double.parseDouble(br.readLine().split("=")[1]);
-    		System.out.println("vsSite=" + vsSite + ", vs30=" + vs30 + ", vsD=" + vsD);
+    		double vs5H = Double.parseDouble(br.readLine().split("=")[1]);
+    		double vsD5H = Double.parseDouble(br.readLine().split("=")[1]);
+    		System.out.println("vs30=" + vs30 + ", vs5H=" + vs5H + ", vsD5H=" + vsD5H);
     		br.close();
     		double[] retArray = new double[3];
-    		retArray[VSSITE] = vsSite;
     		retArray[VS30] = vs30;
-    		retArray[VSD] = vsD;
+    		retArray[VS5H] = vs5H;
+    		retArray[VSD5H] = vsD5H;
     		return retArray;
     	} catch (IOException ie) {
     		ie.printStackTrace();

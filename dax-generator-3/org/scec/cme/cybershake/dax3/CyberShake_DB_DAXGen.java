@@ -45,6 +45,7 @@ public class CyberShake_DB_DAXGen {
 	public static final String DB_INSERT_NAME = "Load_Amps";
 	public static final String DB_CHECK_NAME = "Check_DB_Site";
 	public static final String CURVE_CALC_NAME = "Curve_Calc";
+	public static final String CURVE_CALC_WRAPPER_NAME = "Curve_Calc_Wrapper";
 	public static final String DB_REPORT_NAME = "DB_Report";
 	public static final String SCATTER_MAP_NAME = "Scatter_Map";
     private final static String CYBERSHAKE_NOTIFY = "CyberShakeNotify";	
@@ -59,6 +60,8 @@ public class CyberShake_DB_DAXGen {
 	private PP_DAXParameters params;
 	// Insert duration results
 	private boolean insertDurations = false;
+	// File with Vs30 value, for use when calculating comparison curves with stochastic results
+	private String velocityFile = null;
 	
 	//Job selection
 	// boolean to enable/disable scatter map plotting
@@ -103,20 +106,13 @@ public class CyberShake_DB_DAXGen {
 	}
 	
 	public CyberShake_DB_DAXGen(RunIDQuery r, int numDAXes, boolean highFreq, double highFreqCutoff, boolean transferZip, boolean rotD, boolean duration) {
-		this(r);
-		transferZipFiles = transferZip;
-		this.numDAXes = numDAXes;
-		params = new PP_DAXParameters();
-		params.setStochastic(highFreq);
-		params.setStochasticCutoff(highFreqCutoff);
-		params.setCalculateRotD(rotD);
-		params.setDetFrequency(r.getLowFrequencyCutoff());
+		this(r, numDAXes, highFreq, highFreqCutoff, transferZip, rotD);
 		insertDurations = duration;
-		if (params.isFileForward() || params.isPipeForward()){
-			this.filesDir = STORAGE_DIR + "/" + r.getSiteName() + "/" + r.getRunID();
-		} else {
-			this.filesDir = ".";
-		}
+	}
+	
+	public CyberShake_DB_DAXGen(RunIDQuery r, int numDAXes, boolean highFreq, double highFreqCutoff, boolean transferZip, boolean rotD, boolean duration, String velocityFile) {
+		this(r, numDAXes, highFreq, highFreqCutoff, transferZip, rotD, duration);
+		this.velocityFile = velocityFile;
 	}
 	
 	
@@ -411,8 +407,22 @@ public class CyberShake_DB_DAXGen {
 	}
 
 	private Job createCurveCalcJob() {
-		String id = DB_PREFIX + "Curve_Calc" + "_" + riq.getSiteName();
-		Job job = new Job(id, CyberShake_PP_DAXGen.NAMESPACE, CURVE_CALC_NAME, CyberShake_PP_DAXGen.VERSION);
+		//If running stochastic curves, then run the wrapper instead, which will read the velocity file to retrieve the right Vs30
+		//Doing it this way b/c it's easier than creating the DAX on the fly
+		String id = null;
+		Job job = null;
+		if (params.isStochastic()) {
+			id = DB_PREFIX + "Curve_Calc_Wrapper" + "_" + riq.getSiteName();
+			job = new Job(id, CyberShake_PP_DAXGen.NAMESPACE, CURVE_CALC_WRAPPER_NAME, CyberShake_PP_DAXGen.VERSION);
+			job.addArgument(this.velocityFile);
+			if (this.velocityFile==null) {
+				System.err.println("Error!  Velocity file must be specified for Vs30 for stochastic curve calculation, exiting.");
+				System.exit(1);
+			}
+		} else {
+			id = DB_PREFIX + "Curve_Calc" + "_" + riq.getSiteName();
+			job = new Job(id, CyberShake_PP_DAXGen.NAMESPACE, CURVE_CALC_NAME, CyberShake_PP_DAXGen.VERSION);
+		}
 		
 		String outputDir = CURVE_OUTPUT_DIR_PREFIX + riq.getSiteName();
 		
@@ -440,11 +450,15 @@ public class CyberShake_DB_DAXGen {
 		
 		// db password file
 		job.addArgument("--password-file " + DB_PASS_FILE);
-		job.addArgument("--vs30 " + CURVE_DEFAULT_VS30);
+		//If it is stochastic, instead the wrapper will figure out the actual Vs30 value and use the --force-vs30 argument
+		if (!params.isStochastic()) {
+			job.addArgument("--vs30 " + CURVE_DEFAULT_VS30);
+		}
 		if (!DO_CURVE_PLOT) {
 			// this makes it just calculate the curve, without plotting
 			job.addArgument("--calc-only");
 		}
+		
 		
 		job.addProfile("globus", "maxWallTime", "15");
 		job.addProfile("hints","executionPool", "local");
@@ -453,9 +467,23 @@ public class CyberShake_DB_DAXGen {
 	}
 
 	private Job createRotDCurveCalcJob() {
-		String id = DB_PREFIX + "Curve_Calc_RotD" + "_" + riq.getSiteName();
-		Job job = new Job(id, CyberShake_PP_DAXGen.NAMESPACE, CURVE_CALC_NAME, CyberShake_PP_DAXGen.VERSION);
-		
+		//If running stochastic curves, then run the wrapper instead, which will read the velocity file to retrieve the right Vs30
+		//Doing it this way b/c it's easier than creating the DAX on the fly
+		String id = null;
+		Job job = null;
+		if (params.isStochastic()) {
+			id = DB_PREFIX + "Curve_Calc_RotD_Wrapper" + "_" + riq.getSiteName();
+			job = new Job(id, CyberShake_PP_DAXGen.NAMESPACE, CURVE_CALC_WRAPPER_NAME, CyberShake_PP_DAXGen.VERSION);
+			if (this.velocityFile==null) {
+				System.err.println("Error!  Velocity file must be specified for Vs30 for stochastic curve calculation, exiting.");
+				System.exit(1);
+			}
+			job.addArgument(this.velocityFile);
+		} else {
+			id = DB_PREFIX + "Curve_Calc_RotD" + "_" + riq.getSiteName();
+			job = new Job(id, CyberShake_PP_DAXGen.NAMESPACE, CURVE_CALC_NAME, CyberShake_PP_DAXGen.VERSION);
+		}
+				
 		String outputDir = CURVE_OUTPUT_DIR_PREFIX + riq.getSiteName();
 		
 		job.addArgument("--site " + riq.getSiteName());
