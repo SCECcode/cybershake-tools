@@ -321,25 +321,25 @@ public class CyberShake_Sub_Stoch_DAXGen {
 			//slipfile memory:  3 x NP x NQ x LV x sizeof(float)
 			double slipfileMem = 3.0*100.0*600.0*1000.0*4.0 / (1024.0*1024.0);
 //			//Determine memory usage for srf2stoch buffers
-//			int nstk = numCols;
-//			int ndip = numRows;
-//			int nx = (int)(nstk*0.2/2.0+0.5);
-//			int ny = (int)(ndip*0.2/2.0+0.5);
-//			int nxdiv = 1;
-//			while ((nstk*nxdiv)%nx!=0) {
-//				nxdiv++;
-//			}
-//			int nydiv = 1;
-//			while ((ndip*nydiv)%ny!=0) {
-//				nydiv++;
-//			}
-//			double srf2stochBuffers = 3.0*nxdiv*nydiv*nstk*ndip*4.0/(1024.0*1024.0);
-//			int memUsage = (int)(Math.ceil(1.1*(outputMem + srfMem + slipfileMem+srf2stochBuffers)));
-			//srf2stoch_lite: 
 			int nstk = numCols;
 			int ndip = numRows;
-			double srf2stochBuffers = (4.0*nstk*ndip*4.0)/(1024.0*1024.0);
+			int nx = (int)(nstk*0.2/2.0+0.5);
+			int ny = (int)(ndip*0.2/2.0+0.5);
+			int nxdiv = 1;
+			while ((nstk*nxdiv)%nx!=0) {
+				nxdiv++;
+			}
+			int nydiv = 1;
+			while ((ndip*nydiv)%ny!=0) {
+				nydiv++;
+			}
+			double srf2stochBuffers = 3.0*nxdiv*nydiv*nstk*ndip*4.0/(1024.0*1024.0);
 			int memUsage = (int)(Math.ceil(1.1*(outputMem + srfMem + slipfileMem+srf2stochBuffers)));
+			//srf2stoch_lite: 
+//			int nstk = numCols;
+//			int ndip = numRows;
+//			double srf2stochBuffers = (4.0*nstk*ndip*4.0)/(1024.0*1024.0);
+//			int memUsage = (int)(Math.ceil(1.1*(outputMem + srfMem + slipfileMem+srf2stochBuffers)));
 			
 			job.addProfile("pegasus", "pmc_request_memory", "" + memUsage);
 			job.addProfile("pegasus", "label", "pmc");
