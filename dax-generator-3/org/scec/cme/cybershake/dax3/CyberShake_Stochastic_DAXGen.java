@@ -184,7 +184,7 @@ public class CyberShake_Stochastic_DAXGen {
     	velocityJob.addArgument("" + riq.getLat());
     	velocityJob.addArgument(riq.getVelModelString());
     	int gridSpacing = (int)(100.0/riq.getLowFrequencyCutoff());
-    	velocityJob.addArgument(gridSpacing/2 + "");
+    	velocityJob.addArgument(gridSpacing + "");
     	
     	File velocityInfoFile = new File("velocity_info_" + riq.getSiteName() + ".txt");
     	sParams.setVelocityInfoFile(velocityInfoFile.getName());
@@ -298,6 +298,11 @@ public class CyberShake_Stochastic_DAXGen {
 		DAX dbDAX = new DAX("dbDax", dbDAXFilename);
 		dbDAX.addArgument("--force");
 		dbDAX.addArgument("--q");
+		//Track the velocity file so it gets staged
+		File velocityFile = new File(sParams.getVelocityInfoFile());
+		velocityFile.setRegister(false);
+		velocityFile.setTransfer(TRANSFER.FALSE);
+		dbDAX.uses(velocityFile, LINK.INPUT);
 		File dbDAXFile = new File(dbDAXFilename);
 		dbDAXFile.addPhysicalFile("file://" + sParams.getDirectory() + "/" + dbDAXFilename, "local");
 	    
@@ -305,6 +310,7 @@ public class CyberShake_Stochastic_DAXGen {
 		topDAX.addFile(dbDAXFile);
 		topDAX.addDependency(stochDAX, dbDAX);
 		topDAX.addDependency(dbDAX, updateJob);
+		topDAX.addDependency(velocityJob, dbDAX);
 	    
 		String topDaxFilename = DAX_FILENAME_PREFIX + riq.getSiteName() + "_top" + DAX_FILENAME_EXTENSION;
 		File topDaxFile = new File(topDaxFilename);
