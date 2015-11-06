@@ -511,7 +511,9 @@ public class CyberShake_DB_DAXGen {
 		
 		// db password file
 		job.addArgument("--password-file " + DB_PASS_FILE);
-		job.addArgument("--vs30 " + CURVE_DEFAULT_VS30);
+		if (!params.isStochastic()) {
+			job.addArgument("--vs30 " + CURVE_DEFAULT_VS30);
+		}
 		if (!DO_CURVE_PLOT) {
 			// this makes it just calculate the curve, without plotting
 			job.addArgument("--calc-only");
