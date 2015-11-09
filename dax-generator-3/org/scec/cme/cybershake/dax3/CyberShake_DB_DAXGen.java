@@ -5,6 +5,8 @@ import java.io.IOException;
 
 import edu.isi.pegasus.planner.dax.ADAG;
 import edu.isi.pegasus.planner.dax.File;
+import edu.isi.pegasus.planner.dax.File.LINK;
+import edu.isi.pegasus.planner.dax.File.TRANSFER;
 import edu.isi.pegasus.planner.dax.Job;
 
 public class CyberShake_DB_DAXGen {
@@ -414,11 +416,15 @@ public class CyberShake_DB_DAXGen {
 		if (params.isStochastic()) {
 			id = DB_PREFIX + "Curve_Calc_Wrapper" + "_" + riq.getSiteName();
 			job = new Job(id, CyberShake_PP_DAXGen.NAMESPACE, CURVE_CALC_WRAPPER_NAME, CyberShake_PP_DAXGen.VERSION);
-			job.addArgument(this.velocityFile);
 			if (this.velocityFile==null) {
 				System.err.println("Error!  Velocity file must be specified for Vs30 for stochastic curve calculation, exiting.");
 				System.exit(1);
 			}
+			File velocityFile = new File(this.velocityFile);
+			job.addArgument(velocityFile.getName());
+			velocityFile.setTransfer(TRANSFER.FALSE);
+			velocityFile.setRegister(false);
+			job.uses(velocityFile, LINK.INPUT);
 		} else {
 			id = DB_PREFIX + "Curve_Calc" + "_" + riq.getSiteName();
 			job = new Job(id, CyberShake_PP_DAXGen.NAMESPACE, CURVE_CALC_NAME, CyberShake_PP_DAXGen.VERSION);
@@ -478,7 +484,11 @@ public class CyberShake_DB_DAXGen {
 				System.err.println("Error!  Velocity file must be specified for Vs30 for stochastic curve calculation, exiting.");
 				System.exit(1);
 			}
-			job.addArgument(this.velocityFile);
+			File velocityFile = new File(this.velocityFile);
+			job.addArgument(velocityFile.getName());
+			velocityFile.setTransfer(TRANSFER.FALSE);
+			velocityFile.setRegister(false);
+			job.uses(velocityFile, LINK.INPUT);
 		} else {
 			id = DB_PREFIX + "Curve_Calc_RotD" + "_" + riq.getSiteName();
 			job = new Job(id, CyberShake_PP_DAXGen.NAMESPACE, CURVE_CALC_NAME, CyberShake_PP_DAXGen.VERSION);
