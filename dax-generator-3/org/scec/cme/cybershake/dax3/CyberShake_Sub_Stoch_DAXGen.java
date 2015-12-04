@@ -462,7 +462,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 			File lfSeisFile = new File(lfSeisName);
 			lfSeisFile.setTransfer(TRANSFER.FALSE);
 			lfSeisFile.setRegister(false);
-			job.uses(lfSeisFile, LINK.INPUT);
+			job.uses(lfSeisFile, LINK.INOUT);
 			job.addArgument("lf_seis=" + lfSeisFile.getName());
 		} else {
 			String lfSeisName = SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + sParams.getLowFreqRIQ().getRunID() +
