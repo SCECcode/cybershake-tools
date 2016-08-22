@@ -31,6 +31,8 @@ public class CyberShake_Integrated_DAXGen {
     
     private final static String SGT_OUTPUT_DIR_ROOT = "/projects/sciteam/jmz/CyberShake/data/SgtFiles";
     private final static String PP_OUTPUT_DIR_ROOT = "/home/scec-04/tera3d/CyberShake/data/PPFiles";
+
+    private static String servername = "focal.usc.edu";
     
     private static ArrayList<RunIDQuery> runIDQueries;
 	
@@ -354,6 +356,7 @@ public class CyberShake_Integrated_DAXGen {
         Option runIDList = OptionBuilder.withArgName("runID_list").hasArgs().withDescription("List of Run IDs to use.").create("rl");
         Option sgtArgs = OptionBuilder.withArgName("sgtargs").hasArgs().withDescription("Arguments to pass through to SGT workflow.").withLongOpt("sgtargs").create();
         Option postProcessingArgs = OptionBuilder.withArgName("ppargs").hasArgs().withDescription("Arguments to pass through to post-processing.").withLongOpt("ppargs").create();
+        Option server = OptionBuilder.withArgName("server").hasArg().withDescription("Server to use for site parameters and to insert PSA values into").create("sv");
         OptionGroup runIDGroup = new OptionGroup();
         runIDGroup.addOption(runIDFile);
         runIDGroup.addOption(runIDList);
@@ -362,6 +365,7 @@ public class CyberShake_Integrated_DAXGen {
         cmd_opts.addOptionGroup(runIDGroup);
         cmd_opts.addOption(postProcessingArgs);
         cmd_opts.addOption(sgtArgs);
+        cmd_opts.addOption(server);
 
         String usageString = "CyberShake_Integrated_DAXGen <output filename> <destination directory> [options] [-f <runID file, one per line> | -r <runID1> <runID2> ... ]";
         CommandLineParser parser = new GnuParser();
@@ -383,7 +387,10 @@ public class CyberShake_Integrated_DAXGen {
             pe.printStackTrace();
             System.exit(2);
         }
-
+        
+        if (line.hasOption(server.getOpt())) {
+        	servername = line.getOptionValue(server.getOpt());
+        }
         
         //Pull out run information
 		if (line.hasOption(runIDFile.getOpt())) {
@@ -418,7 +425,7 @@ public class CyberShake_Integrated_DAXGen {
 			BufferedReader br = new BufferedReader(new FileReader(inputFile));
 			String entry = br.readLine();
 			while (entry!=null) {
-				runIDQueries.add(new RunIDQuery(Integer.parseInt(entry)));
+				runIDQueries.add(new RunIDQuery(Integer.parseInt(entry), servername));
 			}
 			br.close();
 		} catch (IOException iex) {
@@ -433,7 +440,7 @@ public class CyberShake_Integrated_DAXGen {
 		ArrayList<RunIDQuery> runIDQueries = new ArrayList<RunIDQuery>();
 		
 		for (String runID: runIDs) {
-			runIDQueries.add(new RunIDQuery(Integer.parseInt(runID)));
+			runIDQueries.add(new RunIDQuery(Integer.parseInt(runID), servername));
 		}
 		return runIDQueries;
 	}

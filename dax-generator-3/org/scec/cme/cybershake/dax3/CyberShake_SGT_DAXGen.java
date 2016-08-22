@@ -95,6 +95,9 @@ public class CyberShake_SGT_DAXGen {
         Option separateMD5Jobs = new Option("sm", "separate-md5", false, "Run md5 jobs separately from PostAWP jobs (default is to combine).");
         Option handoffJobOpt = new Option("d", "handoff", false, "Run handoff job, which puts SGT into pending file on shock when completed.");
         Option sgtSite = OptionBuilder.withArgName("sgt_site").hasArg().withDescription("Site to run SGT workflows on (optional)").create("ss");
+        Option server = OptionBuilder.withArgName("server").hasArg().withDescription("Server to use for site parameters and to insert PSA values into").create("sv");
+        Option spacing = OptionBuilder.withArgName("spacing").hasArg().withDescription("Override the default grid spacing, in km.").create("sp");
+        Option minvs = OptionBuilder.withArgName("minvs").hasArg().withDescription("Override the minimum Vs value").create("mv");
         
         cmd_opts.addOption(help);
         cmd_opts.addOptionGroup(runIDGroup);
@@ -103,6 +106,9 @@ public class CyberShake_SGT_DAXGen {
         cmd_opts.addOption(separateMD5Jobs);
         cmd_opts.addOption(handoffJobOpt);
         cmd_opts.addOption(sgtSite);
+        cmd_opts.addOption(server);
+        cmd_opts.addOption(spacing);
+        cmd_opts.addOption(minvs);
         
         String usageString = "CyberShake_SGT_DAXGen <output filename> <destination directory> [options] [-f <runID file, one per line> | -r <runID1> <runID2> ... ]";
         CommandLineParser parser = new GnuParser();
@@ -124,9 +130,21 @@ public class CyberShake_SGT_DAXGen {
 		String directory = args[1];
 		
 		sgt_params = new SGT_DAXParameters(outputFilename);
-        sgt_params.setDirectory(directory);
+        sgt_params.setDirectory(directory);        
 		
 		ArrayList<RunIDQuery> runIDQueries = null;
+		
+		if (line.hasOption(server.getOpt())) {
+			sgt_params.setServer(line.getOptionValue(server.getOpt()));
+		}
+		
+		if (line.hasOption(spacing.getOpt())) {
+			sgt_params.setSpacing(Double.parseDouble(line.getOptionValue(spacing.getOpt())));
+		}
+		
+		if (line.hasOption(minvs.getOpt())) {
+			sgt_params.setMinvs(Double.parseDouble(line.getOptionValue(minvs.getOpt())));
+		}
 		
 		if (line.hasOption(runIDFile.getOpt())) {
 			runIDQueries = runIDsFromFile(line.getOptionValue(runIDFile.getOpt()));
@@ -376,8 +394,8 @@ public class CyberShake_SGT_DAXGen {
 		String id = "PreCVM_" + riq.getSiteName();
 		Job preCVMJob = new Job(id, NAMESPACE, "PreCVM", VERSION);
 		
-		preCVMJob.addArgument(riq.getSiteName());
-		preCVMJob.addArgument(riq.getErfID() + "");
+		preCVMJob.addArgument("--site " + riq.getSiteName());
+		preCVMJob.addArgument("--erf_id " + riq.getErfID());
 		
 		File modelboxFile = new File(riq.getSiteName() + ".modelbox");
 		File gridfileFile = new File("gridfile_" + riq.getSiteName());
@@ -404,15 +422,20 @@ public class CyberShake_SGT_DAXGen {
 		paramFile.setRegister(false);
 		boundsFile.setRegister(false);
 		
-		preCVMJob.addArgument(modelboxFile);
-		preCVMJob.addArgument(gridfileFile);
-		preCVMJob.addArgument(gridoutFile);
-		preCVMJob.addArgument(coordFile);
-		preCVMJob.addArgument(paramFile);
-		preCVMJob.addArgument(boundsFile);
+		preCVMJob.addArgument("--modelbox " + modelboxFile);
+		preCVMJob.addArgument("--gridfile " + gridfileFile);
+		preCVMJob.addArgument("--gridout " + gridoutFile);
+		preCVMJob.addArgument("--coordfile " + coordFile);
+		preCVMJob.addArgument("--paramsfile " + paramFile);
+		preCVMJob.addArgument("--boundsfile " + boundsFile);
 		preCVMJob.addArgument("-frequency " + riq.getLowFrequencyCutoffString());
 		if (riq.getSgtString().contains("gpu")) {
-			preCVMJob.addArgument("-gpu");
+			preCVMJob.addArgument("--gpu");
+		}
+		
+		preCVMJob.addArgument("--server " + sgt_params.getServer());
+		if (sgt_params.getSpacing()>0.0) {
+			preCVMJob.addArgument("--spacing " + sgt_params.getSpacing());
 		}
 		
 		preCVMJob.uses(modelboxFile, File.LINK.OUTPUT);
@@ -432,22 +455,30 @@ public class CyberShake_SGT_DAXGen {
 		File gridoutFile = new File("gridout_" + riq.getSiteName());
 		File coordFile = new File("model_coords_GC_" + riq.getSiteName());
 		
-		vMeshJob.addArgument(riq.getSiteName());
-		vMeshJob.addArgument(gridoutFile);
-		vMeshJob.addArgument(coordFile);
-		vMeshJob.addArgument(riq.getVelModelString());
+		vMeshJob.addArgument("--site " + riq.getSiteName());
+		vMeshJob.addArgument("--gridout " + gridoutFile);
+		vMeshJob.addArgument("--coordfile " + coordFile);
+		vMeshJob.addArgument("--models " + riq.getVelModelString());
 		
 		String sgtType = riq.getSgtString();
 		if (sgtType.contains("rwg")) {
-			vMeshJob.addArgument("rwg");
+			vMeshJob.addArgument("--format rwg");
 		} else if (sgtType.contains("awp")) {
-			vMeshJob.addArgument("awp");
+			vMeshJob.addArgument("--format awp");
 		} else {
 			System.err.println("SGT type " + sgtType + " is not RWG or AWP.  Not sure what velocity mesh format to use, aborting.");
 			System.exit(1);
 		}
 		
-		vMeshJob.addArgument(riq.getLowFrequencyCutoffString());
+		vMeshJob.addArgument("--frequency " + riq.getLowFrequencyCutoffString());
+		
+		if (sgt_params.getSpacing()>0.0) {
+			vMeshJob.addArgument("--spacing " + sgt_params.getSpacing());
+		}
+		
+		if (sgt_params.getMinvs()>0.0) {
+			vMeshJob.addArgument("--min_vs " + sgt_params.getMinvs());
+		}
 		
 		gridoutFile.setTransfer(File.TRANSFER.FALSE);
 		coordFile.setTransfer(File.TRANSFER.FALSE);
@@ -558,6 +589,8 @@ public class CyberShake_SGT_DAXGen {
 		preSGTJob.addArgument(faultlistFile);
 		preSGTJob.addArgument(radiusFile);
 		preSGTJob.addArgument(sgtcordFile);
+				
+		preSGTJob.addArgument(sgt_params.getSpacing() + "");
 		
 		preSGTJob.uses(modelboxFile, File.LINK.INPUT);
 		preSGTJob.uses(gridoutFile, File.LINK.INPUT);

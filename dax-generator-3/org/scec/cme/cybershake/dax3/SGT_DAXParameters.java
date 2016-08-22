@@ -14,6 +14,10 @@ public class SGT_DAXParameters {
 	
 	private String sgtSite = null;
 	
+	private String server = "focal.usc.edu";
+	private double spacing = -1.0;
+	private double minvs = -1.0;
+	
 	public SGT_DAXParameters(String filename) {
 		this.daxFilename = filename;
 		this.directory = ".";
@@ -77,6 +81,30 @@ public class SGT_DAXParameters {
 
 	public void setSgtSite(String sgtSite) {
 		this.sgtSite = sgtSite;
+	}
+
+	public String getServer() {
+		return server;
+	}
+
+	public void setServer(String server) {
+		this.server = server;
+	}
+
+	public double getSpacing() {
+		return spacing;
+	}
+
+	public void setSpacing(double spacing) {
+		this.spacing = spacing;
+	}
+
+	public double getMinvs() {
+		return minvs;
+	}
+
+	public void setMinvs(double minvs) {
+		this.minvs = minvs;
 	}
 	
 	

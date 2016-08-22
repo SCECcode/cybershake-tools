@@ -546,11 +546,15 @@ public class CyberShake_DB_DAXGen {
 		job.addArgument("-o " + outFile);
 		job.addArgument("-c geometric");
 		String periods = "10,5,3";
-		if (params.getDetFrequency()>=1.0) {
-			periods += ",2";
-		}
-		if (params.getDetFrequency()>=1.5) {
-			periods += ",1";
+		if (params.isStochastic()) {
+			periods = periods + ",2,1,0.5,0.2,0.1";
+		} else {
+			if (params.getDetFrequency()>=1.0) {
+				periods = periods + ",2,1";
+			}
+			if (params.getDetFrequency()>=2.0) {
+				periods = periods + ",0.5";
+			}
 		}
 		job.addArgument("-p " + periods);
 		
@@ -570,12 +574,16 @@ public class CyberShake_DB_DAXGen {
 		
 		job.addArgument("-o " + outFile);
 		job.addArgument("-c rotd");
-		String periods = "10,7.5,5,4,3";
-		if (params.getDetFrequency()>=1.0) {
-			periods += ",2";
-		}
-		if (params.getDetFrequency()>=1.5) {
-			periods += ",1";
+		String periods = "10,7.5,5,4,3,2";
+		if (params.isStochastic()) {
+			periods = periods + ",1,0.5,0.2,0.1";
+		} else {
+			if (params.getDetFrequency()>1.0) {
+				periods = periods + ",1";
+			}
+			if (params.getDetFrequency()>2.0) {
+				periods = periods + ",0.5";
+			}
 		}
 		job.addArgument("-p " + periods);
 		
