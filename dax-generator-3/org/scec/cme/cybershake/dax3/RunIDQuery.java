@@ -48,14 +48,19 @@ public class RunIDQuery {
 	private final int CVMH_11_9_NO_GTL_ID = 7;
 	private final int BBP_1D_ID = 8;
 	
-	private final String HOSTNAME = "focal.usc.edu";
+	private static final String HOSTNAME = "focal.usc.edu";
 	private final String DB_NAME = "CyberShake";
 	private final String USER = "cybershk_ro";
 	private final String PASS = "CyberShake2007";
 	
+	
 	public RunIDQuery(int runID) {
+		this(runID, HOSTNAME);
+	}
+	
+	public RunIDQuery(int runID, String host) {
 		this.runID = runID;
-		dbc = new DBConnect(HOSTNAME, DB_NAME, USER, PASS);
+		dbc = new DBConnect(host, DB_NAME, USER, PASS);
 		populateRunIDInfo();
 		populateSiteInfo();
 		if (max_frequency > low_frequency_cutoff) {
