@@ -99,7 +99,7 @@ public class CyberShake_PP_DAXGen {
     private final static int LARGE_MEM_BUF = 1*512;
     
 	//Database
-    private final static String DB_SERVER = "focal.usc.edu";
+    private static String DB_SERVER = "focal.usc.edu";
     private final static String DB = "CyberShake";
     private final static String USER = "cybershk_ro";
     private final static String PASS = "CyberShake2007";
@@ -263,6 +263,7 @@ public class CyberShake_PP_DAXGen {
         Option directSynth = new Option("ds", "direct-synth", false, "Use DirectSynth code instead of extract_sgt and SeisPSA to perform post-processing.");
         Option ppSite = OptionBuilder.withArgName("pp_site").hasArg().withDescription("Site to run PP workflows on (optional)").create("ps");
         Option spacingOpt = OptionBuilder.withArgName("spacing").hasArg().withDescription("Override the default grid spacing, in km.").create("sp");
+        Option server = OptionBuilder.withArgName("server").hasArg().withDescription("Server to use for site parameters and to insert PSA values into").create("sr");
         Option debug = new Option("d", "debug", false, "Debug flag.");
 
         
@@ -294,6 +295,7 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(debug);
         cmd_opts.addOption(ppSite);
         cmd_opts.addOption(spacingOpt);
+        cmd_opts.addOption(server);
 
         CommandLineParser parser = new GnuParser();
         if (args.length<=1) {
@@ -438,6 +440,10 @@ public class CyberShake_PP_DAXGen {
         
         if (line.hasOption(spacingOpt.getOpt())) {
         	pp_params.setSpacing(Double.parseDouble(line.getOptionValue(spacingOpt.getOpt())));
+        }
+        
+        if (line.hasOption(server.getOpt())) {
+        	DB_SERVER = line.getOptionValue(server.getOpt());
         }
         //Removing notifications
         pp_params.setNotifyGroupSize(pp_params.getNumOfDAXes()+1);
@@ -1343,7 +1349,7 @@ public class CyberShake_PP_DAXGen {
 	}
 
 	private ADAG genDBProductsDAX(int numSubDAXes) {
-		CyberShake_DB_DAXGen gen = new CyberShake_DB_DAXGen(riq, params, numSubDAXes, params.isZip());
+		CyberShake_DB_DAXGen gen = new CyberShake_DB_DAXGen(riq, params, numSubDAXes, params.isZip(), DB_SERVER);
 		ADAG dax = gen.makeDAX();
 			
 		return dax;		
