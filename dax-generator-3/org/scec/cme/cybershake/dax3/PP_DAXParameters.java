@@ -55,6 +55,7 @@ public class PP_DAXParameters {
 	
 	private String ppSite = null;
 	
+	private double spacing = -1.0;
 	//BW has 56 GB permitted per node
 	private int seisPSAMemCutoff = 56*1024;
 
@@ -356,5 +357,13 @@ public class PP_DAXParameters {
 
 	public void setPPSite(String ppSite) {
 		this.ppSite = ppSite;
+	}
+
+	public double getSpacing() {
+		return spacing;
+	}
+
+	public void setSpacing(double spacing) {
+		this.spacing = spacing;
 	}
 }
