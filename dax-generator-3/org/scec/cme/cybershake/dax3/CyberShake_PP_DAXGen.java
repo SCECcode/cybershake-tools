@@ -262,8 +262,9 @@ public class CyberShake_PP_DAXGen {
         Option nonblocking_md5 = new Option("nb", "nonblocking-md5", false, "Move md5 checksum step out of the critical path. Entire workflow will still abort on error.");
         Option directSynth = new Option("ds", "direct-synth", false, "Use DirectSynth code instead of extract_sgt and SeisPSA to perform post-processing.");
         Option ppSite = OptionBuilder.withArgName("pp_site").hasArg().withDescription("Site to run PP workflows on (optional)").create("ps");
-
+        Option spacingOpt = OptionBuilder.withArgName("spacing").hasArg().withDescription("Override the default grid spacing, in km.").create("sp");
         Option debug = new Option("d", "debug", false, "Debug flag.");
+
         
         cmd_opts.addOption(help);
         cmd_opts.addOption(partition);
@@ -292,6 +293,7 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(directSynth);
         cmd_opts.addOption(debug);
         cmd_opts.addOption(ppSite);
+        cmd_opts.addOption(spacingOpt);
 
         CommandLineParser parser = new GnuParser();
         if (args.length<=1) {
@@ -434,6 +436,9 @@ public class CyberShake_PP_DAXGen {
         	pp_params.setPPSite(line.getOptionValue(ppSite.getOpt()));
         }
         
+        if (line.hasOption(spacingOpt.getOpt())) {
+        	pp_params.setSpacing(Double.parseDouble(line.getOptionValue(spacingOpt.getOpt())));
+        }
         //Removing notifications
         pp_params.setNotifyGroupSize(pp_params.getNumOfDAXes()+1);
         
@@ -457,7 +462,12 @@ public class CyberShake_PP_DAXGen {
 	        if (params.getDetFrequency()==1.0) {
 	        	NUMTIMESTEPS = "8000";
 	        }
-	        LF_TIMESTEP = "" + (0.05/params.getDetFrequency());
+	        
+	        if (params.getSpacing()>0.0) {
+	        	LF_TIMESTEP = "" + (params.getSpacing()/2.0);
+	        } else {
+	        	LF_TIMESTEP = "" + (0.05/params.getDetFrequency());
+	        }
 	        SEIS_LENGTH = "300.0";
 			
 			//Check to make sure RV model is consistent with in-memory choice
