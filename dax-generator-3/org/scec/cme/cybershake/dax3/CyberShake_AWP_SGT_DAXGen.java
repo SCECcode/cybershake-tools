@@ -38,6 +38,8 @@ public class CyberShake_AWP_SGT_DAXGen {
         Option maxSGTCores = OptionBuilder.withArgName("maxCores").hasArg().withDescription("maximum number of cores for SGT jobs").create("mc");
         Option separateMD5Jobs = new Option("sm", "separate-md5", false, "Run md5 jobs separately from PostAWP jobs (default is to combine).");
         Option handoffJobOpt = new Option("d", "handoff", false, "Run handoff job, which puts SGT into pending file on shock when completed.");
+        Option spacingOpt = OptionBuilder.withArgName("spacing").hasArg().withDescription("Override the default grid spacing, in km.").create("sp");
+        Option minvs = OptionBuilder.withArgName("minvs").hasArg().withDescription("Override the minimum Vs value").create("mv");
 
         cmd_opts.addOption(runIDopt);
         cmd_opts.addOption(gridoutFile);
@@ -46,6 +48,8 @@ public class CyberShake_AWP_SGT_DAXGen {
         cmd_opts.addOption(maxSGTCores);
         cmd_opts.addOption(separateMD5Jobs);
         cmd_opts.addOption(handoffJobOpt);
+        cmd_opts.addOption(spacingOpt);
+        cmd_opts.addOption(minvs);
         
         String usageString = "CyberShake_AWP_SGT_DAXGen [options]";
         CommandLineParser parser = new GnuParser();
@@ -111,6 +115,17 @@ public class CyberShake_AWP_SGT_DAXGen {
 				handoffJob = true;
 		}
 		
+		double spacing = -1.0;
+		if (line.hasOption(spacingOpt.getOpt())) {
+			spacing = Double.parseDouble(line.getOptionValue(spacingOpt.getOpt()));
+		}
+		
+		double min_vs = -1.0;
+		if (line.hasOption(minvs.getOpt())) {
+			min_vs = Double.parseDouble(line.getOptionValue(minvs.getOpt()));
+		}
+	
+		
 		ADAG sgtDAX = new ADAG("AWP_SGT_" + riq.getSiteName() + ".dax");
 		
 		Job velocityJob = null;
@@ -125,7 +140,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 			
 			velocityJob = vMeshMerge;
 		} else {
-			Job vMeshJob = addVMeshSingle();
+			Job vMeshJob = addVMeshSingle(spacing, min_vs);
 			sgtDAX.addJob(vMeshJob);
 			
 			velocityJob = vMeshJob;
@@ -134,7 +149,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		Job preSGT = addPreSGT();
 		sgtDAX.addJob(preSGT);
 		
-		Job preAWP = addPreAWP(separateVelJobs, procDims);
+		Job preAWP = addPreAWP(separateVelJobs, procDims, spacing);
 		sgtDAX.addJob(preAWP);
 		sgtDAX.addDependency(preSGT, preAWP);
 		sgtDAX.addDependency(velocityJob, preAWP);
@@ -399,7 +414,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 	}
 
 	
-	private static Job addPreAWP(boolean separate, int[] procDims) {
+	private static Job addPreAWP(boolean separate, int[] procDims, double spacing) {
 		String jobname = "PreAWP";
 		if (riq.getSgtString().equals("awp_gpu")) {
 			jobname = "PreAWP_GPU";
@@ -434,6 +449,11 @@ public class CyberShake_AWP_SGT_DAXGen {
 		preAWPJob.addArgument("--py " + procDims[1]);
 		preAWPJob.addArgument("--pz " + procDims[2]);
 		preAWPJob.addArgument("--source-frequency " + riq.getSourceFrequency());
+		
+		if (spacing>0.0) {
+			preAWPJob.addArgument("--spacing " + spacing);
+		}
+		
 		
 		//Only need to reformat velocity if we ran separate velocity jobs
 		if (separate) {
@@ -493,29 +513,37 @@ public class CyberShake_AWP_SGT_DAXGen {
 		return awpJob;
 	}
 		
-	private static Job addVMeshSingle() {
+	private static Job addVMeshSingle(double spacing, double min_vs) {
 		String id = "UCVMMesh_" + riq.getSiteName();
 		Job vMeshJob = new Job(id, "scec", "UCVMMesh", "1.0");
 		
 		File gridoutFile = new File("gridout_" + riq.getSiteName());
 		File coordFile = new File("model_coords_GC_" + riq.getSiteName());
 		
-		vMeshJob.addArgument(riq.getSiteName());
-		vMeshJob.addArgument(gridoutFile);
-		vMeshJob.addArgument(coordFile);
-		vMeshJob.addArgument(riq.getVelModelString());
+		vMeshJob.addArgument("--site " + riq.getSiteName());
+		vMeshJob.addArgument("--gridout " + gridoutFile);
+		vMeshJob.addArgument("--coordfile " + coordFile);
+		vMeshJob.addArgument("--models " + riq.getVelModelString());
 		
 		String sgtType = riq.getSgtString();
 		if (sgtType.contains("rwg")) {
-			vMeshJob.addArgument("rwg");
+			vMeshJob.addArgument("--format rwg");
 		} else if (sgtType.contains("awp")) {
-			vMeshJob.addArgument("awp");
+			vMeshJob.addArgument("--format awp");
 		} else {
 			System.err.println("SGT type " + sgtType + " is not RWG or AWP.  Not sure what velocity mesh format to use, aborting.");
 			System.exit(1);
 		}
 		
-		vMeshJob.addArgument(riq.getLowFrequencyCutoffString());
+		vMeshJob.addArgument("--frequency " + riq.getLowFrequencyCutoffString());
+
+		if (spacing>0.0) {
+			vMeshJob.addArgument("--spacing " + spacing);
+		}
+		
+		if (min_vs>0.0) {
+			vMeshJob.addArgument("--min_vs " + min_vs);
+		}
 		
 		gridoutFile.setTransfer(File.TRANSFER.TRUE);
 		coordFile.setTransfer(File.TRANSFER.TRUE);
