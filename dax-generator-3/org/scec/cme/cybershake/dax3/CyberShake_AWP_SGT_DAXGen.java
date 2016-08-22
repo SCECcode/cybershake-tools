@@ -521,8 +521,8 @@ public class CyberShake_AWP_SGT_DAXGen {
 		File coordFile = new File("model_coords_GC_" + riq.getSiteName());
 		
 		vMeshJob.addArgument("--site " + riq.getSiteName());
-		vMeshJob.addArgument("--gridout " + gridoutFile);
-		vMeshJob.addArgument("--coordfile " + coordFile);
+		vMeshJob.addArgument("--gridout " + gridoutFile.getName());
+		vMeshJob.addArgument("--coordfile " + coordFile.getName());
 		vMeshJob.addArgument("--models " + riq.getVelModelString());
 		
 		String sgtType = riq.getSgtString();
