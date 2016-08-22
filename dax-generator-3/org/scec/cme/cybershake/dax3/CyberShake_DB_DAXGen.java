@@ -41,7 +41,7 @@ public class CyberShake_DB_DAXGen {
 	public static final String ROTD_OUTPUT_TYPES = "pdf,png";
 	
 	//DB info
-	public static final String DB_SERVER = "focal";
+	public static String DB_SERVER = "focal";
 	
 	//Job names
 	public static final String DB_INSERT_NAME = "Load_Amps";
@@ -91,6 +91,11 @@ public class CyberShake_DB_DAXGen {
 		}
 	}
 	
+	public CyberShake_DB_DAXGen(RunIDQuery r, PP_DAXParameters params, int numDAXes, boolean transferZip, String db_server) {
+		this(r, params, numDAXes, transferZip);
+		DB_SERVER = db_server.split("/.")[0];
+	}
+	
 	public CyberShake_DB_DAXGen(RunIDQuery r, int numDAXes, boolean highFreq, double highFreqCutoff, boolean transferZip, boolean rotD) {
 		this(r);
 		transferZipFiles = transferZip;
@@ -116,7 +121,6 @@ public class CyberShake_DB_DAXGen {
 		this(r, numDAXes, highFreq, highFreqCutoff, transferZip, rotD, duration);
 		this.velocityFile = velocityFile;
 	}
-	
 	
 	public ADAG makeDAX() {
 		String daxName = CyberShake_PP_DAXGen.DAX_FILENAME_PREFIX + riq.getSiteName() + DAX_FILENAME_POST;
