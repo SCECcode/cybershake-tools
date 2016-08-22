@@ -422,12 +422,12 @@ public class CyberShake_SGT_DAXGen {
 		paramFile.setRegister(false);
 		boundsFile.setRegister(false);
 		
-		preCVMJob.addArgument("--modelbox " + modelboxFile);
-		preCVMJob.addArgument("--gridfile " + gridfileFile);
-		preCVMJob.addArgument("--gridout " + gridoutFile);
-		preCVMJob.addArgument("--coordfile " + coordFile);
-		preCVMJob.addArgument("--paramsfile " + paramFile);
-		preCVMJob.addArgument("--boundsfile " + boundsFile);
+		preCVMJob.addArgument("--modelbox " + modelboxFile.getName());
+		preCVMJob.addArgument("--gridfile " + gridfileFile.getName());
+		preCVMJob.addArgument("--gridout " + gridoutFile.getName());
+		preCVMJob.addArgument("--coordfile " + coordFile.getName());
+		preCVMJob.addArgument("--paramsfile " + paramFile.getName());
+		preCVMJob.addArgument("--boundsfile " + boundsFile.getName());
 		preCVMJob.addArgument("-frequency " + riq.getLowFrequencyCutoffString());
 		if (riq.getSgtString().contains("gpu")) {
 			preCVMJob.addArgument("--gpu");
@@ -456,8 +456,8 @@ public class CyberShake_SGT_DAXGen {
 		File coordFile = new File("model_coords_GC_" + riq.getSiteName());
 		
 		vMeshJob.addArgument("--site " + riq.getSiteName());
-		vMeshJob.addArgument("--gridout " + gridoutFile);
-		vMeshJob.addArgument("--coordfile " + coordFile);
+		vMeshJob.addArgument("--gridout " + gridoutFile.getName());
+		vMeshJob.addArgument("--coordfile " + coordFile.getName());
 		vMeshJob.addArgument("--models " + riq.getVelModelString());
 		
 		String sgtType = riq.getSgtString();
