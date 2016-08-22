@@ -428,7 +428,7 @@ public class CyberShake_SGT_DAXGen {
 		preCVMJob.addArgument("--coordfile " + coordFile.getName());
 		preCVMJob.addArgument("--paramsfile " + paramFile.getName());
 		preCVMJob.addArgument("--boundsfile " + boundsFile.getName());
-		preCVMJob.addArgument("-frequency " + riq.getLowFrequencyCutoffString());
+		preCVMJob.addArgument("--frequency " + riq.getLowFrequencyCutoffString());
 		if (riq.getSgtString().contains("gpu")) {
 			preCVMJob.addArgument("--gpu");
 		}
