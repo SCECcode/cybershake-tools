@@ -40,6 +40,7 @@ public class CyberShake_AWP_SGT_DAXGen {
         Option handoffJobOpt = new Option("d", "handoff", false, "Run handoff job, which puts SGT into pending file on shock when completed.");
         Option spacingOpt = OptionBuilder.withArgName("spacing").hasArg().withDescription("Override the default grid spacing, in km.").create("sp");
         Option minvs = OptionBuilder.withArgName("minvs").hasArg().withDescription("Override the minimum Vs value").create("mv");
+        Option server = OptionBuilder.withArgName("server").hasArg().withDescription("Server to use for site parameters and to insert PSA values into").create("sr");
 
         cmd_opts.addOption(runIDopt);
         cmd_opts.addOption(gridoutFile);
@@ -50,6 +51,7 @@ public class CyberShake_AWP_SGT_DAXGen {
         cmd_opts.addOption(handoffJobOpt);
         cmd_opts.addOption(spacingOpt);
         cmd_opts.addOption(minvs);
+        cmd_opts.addOption(server);
         
         String usageString = "CyberShake_AWP_SGT_DAXGen [options]";
         CommandLineParser parser = new GnuParser();
@@ -74,7 +76,13 @@ public class CyberShake_AWP_SGT_DAXGen {
         	System.err.println("Run ID must be provided.");
         	System.exit(1);
         }
-		riq = new RunIDQuery(runID);
+        
+        String db_server = "focal.usc.edu";
+        if (line.hasOption(server.getOpt())) {
+        	db_server = line.getOptionValue(server.getOpt());
+        }
+        
+		riq = new RunIDQuery(runID, db_server);
 		
 		String gridoutFilename = "";		
 		if (line.hasOption(gridoutFile.getOpt())) {
