@@ -388,8 +388,8 @@ public class CyberShake_Integrated_DAXGen {
             System.exit(2);
         }
         
-        if (line.hasOption(server.getOpt())) {
-        	servername = line.getOptionValue(server.getOpt());
+        if (line.hasOption(server.getLongOpt())) {
+        	servername = line.getOptionValue(server.getLongOpt());
         }
         
         //Pull out run information
