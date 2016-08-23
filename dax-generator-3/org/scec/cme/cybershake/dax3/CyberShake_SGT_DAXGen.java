@@ -147,9 +147,9 @@ public class CyberShake_SGT_DAXGen {
 		}
 		
 		if (line.hasOption(runIDFile.getOpt())) {
-			runIDQueries = runIDsFromFile(line.getOptionValue(runIDFile.getOpt()));
+			runIDQueries = runIDsFromFile(line.getOptionValue(runIDFile.getOpt()), sgt_params.getServer());
 		} else {		
-			runIDQueries = runIDsFromArgs(line.getOptionValues(runIDList.getOpt()));
+			runIDQueries = runIDsFromArgs(line.getOptionValues(runIDList.getOpt()), sgt_params.getServer());
 		}
 		
 		if (line.hasOption(splitVelocityJobs.getOpt())) {
@@ -177,14 +177,14 @@ public class CyberShake_SGT_DAXGen {
 		return 0;
 	}
 
-	public static ArrayList<RunIDQuery> runIDsFromFile(String inputFile) {
+	public static ArrayList<RunIDQuery> runIDsFromFile(String inputFile, String hostname) {
 		ArrayList<RunIDQuery> runIDQueries = new ArrayList<RunIDQuery>();
 		
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(inputFile));
 			String entry = br.readLine();
 			while (entry!=null) {
-				runIDQueries.add(new RunIDQuery(Integer.parseInt(entry)));
+				runIDQueries.add(new RunIDQuery(Integer.parseInt(entry), hostname));
 			}
 			br.close();
 		} catch (IOException iex) {
@@ -195,11 +195,11 @@ public class CyberShake_SGT_DAXGen {
 		return runIDQueries;
 	}
 	
-	public static ArrayList<RunIDQuery> runIDsFromArgs(String[] runIDs) {
+	public static ArrayList<RunIDQuery> runIDsFromArgs(String[] runIDs, String hostname) {
 		ArrayList<RunIDQuery> runIDQueries = new ArrayList<RunIDQuery>();
 		
 		for (String runID: runIDs) {
-			runIDQueries.add(new RunIDQuery(Integer.parseInt(runID)));
+			runIDQueries.add(new RunIDQuery(Integer.parseInt(runID), hostname));
 		}
 		return runIDQueries;
 	}
