@@ -60,6 +60,7 @@ public class RunIDQuery {
 	
 	public RunIDQuery(int runID, String host) {
 		this.runID = runID;
+		System.out.println("Connecting to host " + host);
 		dbc = new DBConnect(host, DB_NAME, USER, PASS);
 		populateRunIDInfo();
 		populateSiteInfo();
