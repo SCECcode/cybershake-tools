@@ -356,7 +356,7 @@ public class CyberShake_Integrated_DAXGen {
         Option runIDList = OptionBuilder.withArgName("runID_list").hasArgs().withDescription("List of Run IDs to use.").create("rl");
         Option sgtArgs = OptionBuilder.withArgName("sgtargs").hasArgs().withDescription("Arguments to pass through to SGT workflow.").withLongOpt("sgtargs").create();
         Option postProcessingArgs = OptionBuilder.withArgName("ppargs").hasArgs().withDescription("Arguments to pass through to post-processing.").withLongOpt("ppargs").create();
-        Option server = OptionBuilder.withArgName("server").hasArg().withDescription("Server to use for site parameters and to insert PSA values into").create("sv");
+        Option server = OptionBuilder.withArgName("server").hasArg().withDescription("Server to use for site parameters and to insert PSA values into").create("sr");
         OptionGroup runIDGroup = new OptionGroup();
         runIDGroup.addOption(runIDFile);
         runIDGroup.addOption(runIDList);
