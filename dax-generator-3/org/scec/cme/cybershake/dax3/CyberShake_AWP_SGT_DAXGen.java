@@ -337,6 +337,14 @@ public class CyberShake_AWP_SGT_DAXGen {
 				}
 			}
 		} else if (riq.getSgtString().equals("awp_gpu")) {
+			/*The X and Y dimension (NX and NY) always have to be divisible by Number of GPU (NPX and NPY) multiple with output decimation number (NXSKP and NYSKP).
+				After that, the divided number also need to be divisible by 2, The formulas are as followings,
+					NX % (NPX*NXSKP) == 0
+					NY % (NPY*NYSKP) == 0,
+				and
+					(NX % (NPX*NXSKP)) % 2 == 0
+					(NY % (NPY*NYSKP)) % 2 == 0 
+					*/
 			if (riq.getLowFrequencyCutoff()<1.0) {
 				//Choose core count to be 10 x 10; each processor must be responsible for an even chunk, so each dim must be divisible by 20
 				for (int i=0; i<2; i++) {
@@ -349,17 +357,53 @@ public class CyberShake_AWP_SGT_DAXGen {
 				procDims[1] = 10;
 				procDims[2] = 1;
 			} else {
-				if (dims[0] % 80 != 0) {
-					System.err.println("One of the volume dimensions is " + dims[0] + " which is not divisible by 80.  Aborting.");
-					System.exit(3);
+				/* For Study 16.9, suggestions:
+					2760x4416x288, using 10x16x1=160 gpus (276*276*288) 
+					2840x6560x288, using 10x20x1=200 gpus (284*328*288)
+					*/ 
+				//Determine total number of points
+				long num_pts = ((long)dims[0])*((long)dims[1])*((long)dims[2]);
+				long TWO_BILLION = 2000000000L;
+				long SEVEN_BILLION = 7000000000L;
+				if (num_pts<TWO_BILLION) {
+					//Use 10x10x1
+					for (int i=0; i<2; i++) {
+						if (dims[i] % 20 != 0) {
+							System.err.println("We would like to use 10x10x1 GPUs, but one of the volume dimensions is " + dims[i] + " which is not divisible by 20.  Aborting.");
+							System.exit(3);
+						}
+					}
+					procDims[0] = 10;
+					procDims[1] = 10;
+					procDims[2] = 1;
+				} else if (num_pts<SEVEN_BILLION) {
+					//Use 20x10x1
+					if (dims[0] % 40 != 0) {
+						System.err.println("One of the volume dimensions is " + dims[0] + " which is not divisible by 40.  Aborting.");
+						System.exit(3);
+					}
+					if (dims[1] % 20 != 0) {
+						System.err.println("One of the volume dimensions is " + dims[1] + " which is not divisible by 20.  Aborting.");
+						System.exit(3);
+					}
+					procDims[0] = 20;
+					procDims[1] = 10;
+					procDims[2] = 1;
+				} else {
+					//Use 40x20x1
+					if (dims[0] % 80 != 0) {
+						System.err.println("One of the volume dimensions is " + dims[0] + " which is not divisible by 80.  Aborting.");
+						System.exit(3);
+					}
+					if (dims[1] % 40 != 0) {
+						System.err.println("One of the volume dimensions is " + dims[1] + " which is not divisible by 40.  Aborting.");
+						System.exit(3);
+					}
+					procDims[0] = 40;
+					procDims[1] = 20;
+					procDims[2] = 1;
 				}
-				if (dims[1] % 40 != 0) {
-					System.err.println("One of the volume dimensions is " + dims[1] + " which is not divisible by 40.  Aborting.");
-					System.exit(3);
-				}
-				procDims[0] = 40;
-				procDims[1] = 20;
-				procDims[2] = 1;
+				
 			}
 		} else {
 			System.err.println("SGT string " + riq.getSgtString() + " is not 'awp' or 'awp_gpu', so we don't know what to do with it in CyberShake_AWP_SGT_DAXGen.");
