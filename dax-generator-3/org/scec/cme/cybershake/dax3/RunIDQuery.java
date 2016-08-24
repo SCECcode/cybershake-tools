@@ -47,6 +47,8 @@ public class RunIDQuery {
 	private final int SCEC_1D_ID = 6;
 	private final int CVMH_11_9_NO_GTL_ID = 7;
 	private final int BBP_1D_ID = 8;
+	private final int CCA_1D_ID = 9;
+	private final int CCA_ID = 10;
 	
 	private static final String HOSTNAME = "focal.usc.edu";
 	private final String DB_NAME = "CyberShake";
@@ -184,6 +186,10 @@ public class RunIDQuery {
     			velModelString = "cvmh_nogtl";
     		} else if (velModelID==BBP_1D_ID) {
     			velModelString = "bbp1d";
+    		} else if (velModelID==CCA_1D_ID) {
+    			velModelString = "cca1d";
+    		} else if (velModelID==CCA_ID) {
+    			velModelString = "cca";
     		} else {
     			System.err.println("Velocity model ID " + velModelID + " can't be converted to a string representation.");
     			System.exit(3);
