@@ -154,7 +154,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 			velocityJob = vMeshJob;
 		}
 	
-		Job preSGT = addPreSGT();
+		Job preSGT = addPreSGT(spacing);
 		sgtDAX.addJob(preSGT);
 		
 		Job preAWP = addPreAWP(separateVelJobs, procDims, spacing);
@@ -415,7 +415,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 	
 	
 	
-	private static Job addPreSGT() {
+	private static Job addPreSGT(double spacing) {
 		String id = "PreSGT_" + riq.getSiteName();
 		Job preSGTJob = new Job(id, "scec", "PreSGT", "1.0");
 		
@@ -452,6 +452,11 @@ public class CyberShake_AWP_SGT_DAXGen {
 		preSGTJob.addArgument(faultlistFile);
 		preSGTJob.addArgument(radiusFile);
 		preSGTJob.addArgument(sgtcordFile);
+		if (spacing>0.0) {
+			preSGTJob.addArgument(spacing + "");
+		} else {
+			preSGTJob.addArgument((0.1/Double.parseDouble(riq.getLowFrequencyCutoffString())) + "");
+		}
 		preSGTJob.addArgument(riq.getLowFrequencyCutoffString());
 		
 		preSGTJob.uses(modelboxFile, File.LINK.INPUT);
