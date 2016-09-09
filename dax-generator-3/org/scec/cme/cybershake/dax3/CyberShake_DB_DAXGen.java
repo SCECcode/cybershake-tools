@@ -18,10 +18,14 @@ public class CyberShake_DB_DAXGen {
 	public static final String CURVE_OUTPUT_DIR_PREFIX = "/home/scec-00/" + USER + "/opensha/curves/";
 	public static final String DISAGG_OUTPUT_DIR_PREFIX = "/home/scec-00/" + USER + "/opensha/disagg/";
 	public static final String OPENSHA_CONF_DIR = "/home/scec-00/cybershk/opensha/OpenSHA/src/org/opensha/sha/cybershake/conf/";
-	public static final String CURVE_ATTEN_REL_XML_FILES = OPENSHA_CONF_DIR + "cb2008.xml"
-			+ "," + OPENSHA_CONF_DIR + "ba2008.xml"
-			+ "," + OPENSHA_CONF_DIR + "cy2008.xml"
-			+ "," + OPENSHA_CONF_DIR + "as2008.xml";
+	//public static final String CURVE_ATTEN_REL_XML_FILES = OPENSHA_CONF_DIR + "cb2008.xml"
+	//		+ "," + OPENSHA_CONF_DIR + "ba2008.xml"
+	//		+ "," + OPENSHA_CONF_DIR + "cy2008.xml"
+	//		+ "," + OPENSHA_CONF_DIR + "as2008.xml";
+	public static final String CURVE_ATTEN_REL_XML_FILES = OPENSHA_CONF_DIR + "ask2014.xml"
+			+ "," + OPENSHA_CONF_DIR + "bssa2014.xml"
+			+ "," + OPENSHA_CONF_DIR + "cb2014.xml"
+			+ "," + OPENSHA_CONF_DIR + "cy2014.xml";
 	public static final String DB_PASS_FILE = "/home/scec-00/" + USER + "/config/db_pass.txt";
 	public static final String DB_REPORT_OUTPUT_DIR = "/home/scec-00/" + USER + "/db_reports/";
 //	public static final String STORAGE_DIR = "/home/scec-02/tera3d/CyberShake2007/data/PPFiles/";
