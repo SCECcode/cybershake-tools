@@ -47,6 +47,7 @@ public class PP_DAXParameters {
 	private boolean sourceForward = false;
 	
 	private boolean calculateRotD = false;
+	private boolean calculateDurations = false;
 	
 	private boolean skipMD5 = false;
 	private boolean nonblockingMD5 = false;
@@ -365,5 +366,13 @@ public class PP_DAXParameters {
 
 	public void setSpacing(double spacing) {
 		this.spacing = spacing;
+	}
+	
+	public void setCalculateDurations(boolean dur) {
+		this.calculateDurations = dur;
+	}
+	
+	public boolean isCalculateDurations() {
+		return this.calculateDurations;
 	}
 }
