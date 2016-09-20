@@ -58,6 +58,8 @@ public class CyberShake_Integrated_DAXGen {
 			for (String a: cmdLineSubArgs.get(0)) {
 				sgtArgsList.add(a);
 			}
+			//Pass server argument through
+			sgtArgsList.add("--server " + servername);
 		}
 
 		//Add run ID arguments
@@ -112,6 +114,7 @@ public class CyberShake_Integrated_DAXGen {
 			for (String a: cmdLineSubArgs.get(1)) {
 				ppArgs.add(a);
 			}
+			ppArgs.add("--server " + servername);
 			String[] ppArgArray = ppArgs.toArray(new String[]{});
 			System.out.print("Post-processing args: ");
 			for (String a: ppArgArray) {

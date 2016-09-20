@@ -264,6 +264,7 @@ public class CyberShake_PP_DAXGen {
         Option ppSite = OptionBuilder.withArgName("pp_site").hasArg().withDescription("Site to run PP workflows on (optional)").create("ps");
         Option spacingOpt = OptionBuilder.withArgName("spacing").hasArg().withDescription("Override the default grid spacing, in km.").create("sp");
         Option server = OptionBuilder.withArgName("server").hasArg().withDescription("Server to use for site parameters and to insert PSA values into").create("sr");
+        Option durations = new Option("du", "duration", false, "Calculate duration metrics and insert them into the database.");
         Option debug = new Option("d", "debug", false, "Debug flag.");
 
         
@@ -296,6 +297,7 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(ppSite);
         cmd_opts.addOption(spacingOpt);
         cmd_opts.addOption(server);
+        cmd_opts.addOption(durations);
 
         CommandLineParser parser = new GnuParser();
         if (args.length<=1) {
@@ -444,6 +446,10 @@ public class CyberShake_PP_DAXGen {
         
         if (line.hasOption(server.getOpt())) {
         	DB_SERVER = line.getOptionValue(server.getOpt());
+        }
+        
+        if (line.hasOption(durations.getOpt())) {
+        	pp_params.setCalculateDurations(true);
         }
         //Removing notifications
         pp_params.setNotifyGroupSize(pp_params.getNumOfDAXes()+1);
@@ -873,6 +879,12 @@ public class CyberShake_PP_DAXGen {
 			directSynthJob.addArgument("run_rotd=1");
 		} else {
 			directSynthJob.addArgument("run_rotd=0");
+		}
+		
+		if (params.isCalculateDurations()) {
+			directSynthJob.addArgument("run_durations=1");
+		} else {
+			directSynthJob.addArgument("run_durations=0");
 		}
 		directSynthJob.addArgument("dtout=" + LF_TIMESTEP);
 		directSynthJob.addArgument("simulation_out_pointsX=2");
