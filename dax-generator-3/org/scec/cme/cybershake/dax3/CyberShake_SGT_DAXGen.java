@@ -134,7 +134,9 @@ public class CyberShake_SGT_DAXGen {
 		
 		ArrayList<RunIDQuery> runIDQueries = null;
 		
-		System.out.println(args);
+		for (String i: args) {
+			System.out.println(i);
+		}
 		
 		if (line.hasOption(server.getOpt())) {
 			sgt_params.setServer(line.getOptionValue(server.getOpt()));
