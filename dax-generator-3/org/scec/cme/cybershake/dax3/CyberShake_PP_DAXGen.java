@@ -263,7 +263,7 @@ public class CyberShake_PP_DAXGen {
         Option directSynth = new Option("ds", "direct-synth", false, "Use DirectSynth code instead of extract_sgt and SeisPSA to perform post-processing.");
         Option ppSite = OptionBuilder.withArgName("pp_site").hasArg().withDescription("Site to run PP workflows on (optional)").create("ps");
         Option spacingOpt = OptionBuilder.withArgName("spacing").hasArg().withDescription("Override the default grid spacing, in km.").create("sp");
-        Option server = OptionBuilder.withArgName("server").hasArg().withDescription("Server to use for site parameters and to insert PSA values into").create("sr");
+        Option server = OptionBuilder.withArgName("server").withLongOpt("server").hasArg().withDescription("Server to use for site parameters and to insert PSA values into").create("sr");
         Option durations = new Option("du", "duration", false, "Calculate duration metrics and insert them into the database.");
         Option debug = new Option("d", "debug", false, "Debug flag.");
 
