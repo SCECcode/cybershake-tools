@@ -138,7 +138,7 @@ public class CyberShake_SGT_DAXGen {
 			System.out.println(i);
 		}
 		
-		if (line.hasOption(server.getOpt())) {
+		if (line.hasOption(server.getLongOpt())) {
 			sgt_params.setServer(line.getOptionValue(server.getOpt()));
 		}
 		
