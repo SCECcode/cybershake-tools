@@ -767,7 +767,14 @@ public class CyberShake_PP_DAXGen {
 			System.exit(2);
 		}
 		
-		Job directSynthJob = new Job("DirectSynth", NAMESPACE, DIRECT_SYNTH_NAME, "1.0");
+		Job directSynthJob = null;
+		if (riq.getRuptVarScenID()==5 || riq.getRuptVarScenID()==6) {
+			//Use version linked with rupture generator v3.3.1
+			directSynthJob = new Job("DirectSynth", NAMESPACE, DIRECT_SYNTH_NAME, "1.0");
+		} else if (riq.getRuptVarScenID()==7) {
+			//Use version linked with rupture generator v5.2.3
+			directSynthJob = new Job("DirectSynth", NAMESPACE, DIRECT_SYNTH_NAME, "2.0");
+		}
 		
 		directSynthJob.addArgument("stat=" + riq.getSiteName());
 		directSynthJob.addArgument("slat=" + riq.getLat());
