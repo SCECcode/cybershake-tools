@@ -747,6 +747,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		postAWPJob.addArgument(component);
 		postAWPJob.addArgument(riq.getRunID() + "");
 		postAWPJob.addArgument(headerFile);
+		postAWPJob.addArgument(riq.getLowFrequencyCutoffString());
 		if (separateMD5) {
 			postAWPJob.addArgument("-n");
 		}
