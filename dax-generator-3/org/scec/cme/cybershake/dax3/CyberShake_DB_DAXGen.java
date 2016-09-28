@@ -97,7 +97,7 @@ public class CyberShake_DB_DAXGen {
 	
 	public CyberShake_DB_DAXGen(RunIDQuery r, PP_DAXParameters params, int numDAXes, boolean transferZip, String db_server) {
 		this(r, params, numDAXes, transferZip);
-		DB_SERVER = db_server.split("/.")[0];
+		DB_SERVER = db_server.split("\\.")[0];
 	}
 	
 	public CyberShake_DB_DAXGen(RunIDQuery r, int numDAXes, boolean highFreq, double highFreqCutoff, boolean transferZip, boolean rotD) {
