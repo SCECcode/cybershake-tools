@@ -409,6 +409,10 @@ public class CyberShake_DB_DAXGen {
 		// it will automatically come up with a file name if given a directory
 		job.addArgument("--file=" + DB_REPORT_OUTPUT_DIR);
 		job.addArgument(riq.getSiteName());
+		//Add arguments to be sure we use the right data
+		job.addArgument("--erfID " + riq.getErfID());
+		job.addArgument("--rupVarID " + riq.getRuptVarScenID());
+		job.addArgument("--sgtVarID " + riq.getSgtVarID());
 		
 		job.addProfile("globus", "maxWallTime", "15");
 		job.addProfile("hints","executionPool", "shock");
