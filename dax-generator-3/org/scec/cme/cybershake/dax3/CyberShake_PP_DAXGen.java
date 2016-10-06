@@ -789,7 +789,7 @@ public class CyberShake_PP_DAXGen {
 		
 		if (riq.getRuptVarScenID()==5) {
 			directSynthJob.addArgument("rupture_spacing=random");
-		} else if (riq.getRuptVarScenID()==6) {
+		} else if (riq.getRuptVarScenID()==6 || riq.getRuptVarScenID()==7) {
 			directSynthJob.addArgument("rupture_spacing=uniform");
 		}
 		
