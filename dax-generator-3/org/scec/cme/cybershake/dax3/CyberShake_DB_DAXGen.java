@@ -88,6 +88,7 @@ public class CyberShake_DB_DAXGen {
 		transferZipFiles = transferZip;
 		this.numDAXes = numDAXes;
 		this.params = params;
+		insertDurations = params.isCalculateDurations();
 		if (params.isFileForward() || params.isPipeForward()){
 			this.filesDir = STORAGE_DIR + "/" + r.getSiteName() + "/" + r.getRunID();
 		} else {
@@ -99,6 +100,7 @@ public class CyberShake_DB_DAXGen {
 		this(r, params, numDAXes, transferZip);
 		DB_SERVER = db_server.split("\\.")[0];
 	}
+	
 	
 	public CyberShake_DB_DAXGen(RunIDQuery r, int numDAXes, boolean highFreq, double highFreqCutoff, boolean transferZip, boolean rotD) {
 		this(r);
