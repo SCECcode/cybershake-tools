@@ -138,7 +138,7 @@ public class CyberShake_SGT_DAXGen {
 			System.out.println(i);
 		}
 		
-		if (line.hasOption(server.getLongOpt())) {
+		if (line.hasOption(server.getOpt())) {
 			sgt_params.setServer(line.getOptionValue(server.getOpt()));
 		}
 		
@@ -150,7 +150,6 @@ public class CyberShake_SGT_DAXGen {
 			sgt_params.setMinvs(Double.parseDouble(line.getOptionValue(minvs.getOpt())));
 		}
 		
-		System.out.println("SGT command line parse: server " + sgt_params.getServer());
 		if (line.hasOption(runIDFile.getOpt())) {
 			runIDQueries = runIDsFromFile(line.getOptionValue(runIDFile.getOpt()), sgt_params.getServer());
 		} else {		
