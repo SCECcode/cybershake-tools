@@ -189,7 +189,8 @@ public class RunIDQuery {
     		} else if (velModelID==CCA_1D_ID) {
     			velModelString = "cca1d";
     		} else if (velModelID==CCA_ID) {
-    			velModelString = "cca";
+    			//If using CCA, use CVM-S4.26 for regions outside of CCA
+    			velModelString = "cca,cvmsi";
     		} else {
     			System.err.println("Velocity model ID " + velModelID + " can't be converted to a string representation.");
     			System.exit(3);
