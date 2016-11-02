@@ -43,12 +43,16 @@ public class CyberShake_PP_DAXGen {
     private final static String PEAKVALS_FILENAME_EXTENSION = ".bsa";
     private final static String ROTD_FILENAME_PREFIX = "RotD_";
     private final static String ROTD_FILENAME_EXTENSION = ".rotd";
+    private final static String DURATION_FILENAME_PREFIX = "Duration_";
+    private final static String DURATION_FILENAME_EXTENSION = ".dur";
 	private final static String COMBINED_SEISMOGRAM_FILENAME_PREFIX = "Seismogram_";
     private final static String COMBINED_SEISMOGRAM_FILENAME_EXTENSION = ".grm";
     private final static String COMBINED_PEAKVALS_FILENAME_PREFIX = "PeakVals_";
     private final static String COMBINED_PEAKVALS_FILENAME_EXTENSION = ".bsa";
     private final static String COMBINED_ROTD_FILENAME_PREFIX = "RotD_";
     private final static String COMBINED_ROTD_FILENAME_EXTENSION = ".rotd";
+    private final static String COMBINED_DURATION_FILENAME_PREFIX = "Duration_";
+    private final static String COMBINED_DURATION_FILENAME_EXTENSION = ".dur";
     
 //  private final static String TMP_FS = "/lustre/scratch/tera3d/tmp";
     private final static String TMP_FS = "/dev/shm";
@@ -834,6 +838,13 @@ public class CyberShake_PP_DAXGen {
 					rotdFile.setRegister(true);
 					rotdFile.setTransfer(TRANSFER.TRUE);
 					directSynthJob.uses(rotdFile, LINK.OUTPUT);
+				}
+				if (params.isCalculateDurations()) {
+					File durationFile = new File(DURATION_FILENAME_PREFIX + riq.getSiteName() + "_" + 
+						riq.getRunID() + "_" + source_id + "_" + rupture_id + DURATION_FILENAME_EXTENSION);
+					durationFile.setRegister(true);
+					durationFile.setTransfer(TRANSFER.TRUE);
+					directSynthJob.uses(durationFile, LINK.OUTPUT);
 				}
 				ruptures.next();
 			}
