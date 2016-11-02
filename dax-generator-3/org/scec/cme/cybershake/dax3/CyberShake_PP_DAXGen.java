@@ -470,20 +470,26 @@ public class CyberShake_PP_DAXGen {
 //			ADAG topLevelDax = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName(), 0, 1);
 			wfContainer = new CyberShake_Workflow_Container(riq, params);
 			
+	        if (params.getSpacing()>0.0) {
+	        	LF_TIMESTEP = "" + (params.getSpacing()/2.0);
+	        } else {
+	        	LF_TIMESTEP = "" + (0.05/params.getDetFrequency());
+	        }
+			
 			//Set frequency once we know the run ID
 	        //Set frequency-specific things
 	    
 	        params.setDetFrequency(riq.getLowFrequencyCutoff());
 	        //Adjust a few parameters accordingly
 	        if (params.getDetFrequency()==1.0) {
+	        	//Timesteps should be enough for 400 sec of simulation, rounded up to nearest 1k
 	        	NUMTIMESTEPS = "8000";
+	        	if (params.getSpacing()>0.0) {
+	        		NUMTIMESTEPS = "" + 1000*Math.ceil((400.0/Double.parseDouble(LF_TIMESTEP))/1000);
+	        	}
 	        }
 	        
-	        if (params.getSpacing()>0.0) {
-	        	LF_TIMESTEP = "" + (params.getSpacing()/2.0);
-	        } else {
-	        	LF_TIMESTEP = "" + (0.05/params.getDetFrequency());
-	        }
+
 	        SEIS_LENGTH = "300.0";
 			
 			//Check to make sure RV model is consistent with in-memory choice
