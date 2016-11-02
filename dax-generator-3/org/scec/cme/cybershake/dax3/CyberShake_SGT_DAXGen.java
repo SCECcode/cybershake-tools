@@ -373,6 +373,9 @@ public class CyberShake_SGT_DAXGen {
 		if (sgt_params.getSpacing()>0.0) {
 			genSGTDAXJob.addArgument("-sp " + sgt_params.getSpacing());
 		}
+		if (sgt_params.getMinvs()>0.0) {
+			genSGTDAXJob.addArgument("-mv " + sgt_params.getMinvs());
+		}
 		
 		genSGTDAXJob.uses(gridoutFile, LINK.INPUT);
 		genSGTDAXJob.uses(daxFile, LINK.OUTPUT);
