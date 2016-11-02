@@ -485,7 +485,7 @@ public class CyberShake_PP_DAXGen {
 	        	//Timesteps should be enough for 400 sec of simulation, rounded up to nearest 1k
 	        	NUMTIMESTEPS = "8000";
 	        	if (params.getSpacing()>0.0) {
-	        		NUMTIMESTEPS = "" + 1000*Math.ceil((400.0/Double.parseDouble(LF_TIMESTEP))/1000);
+	        		NUMTIMESTEPS = "" + 1000*(int)(Math.ceil((400.0/Double.parseDouble(LF_TIMESTEP))/1000));
 	        	}
 	        }
 	        
