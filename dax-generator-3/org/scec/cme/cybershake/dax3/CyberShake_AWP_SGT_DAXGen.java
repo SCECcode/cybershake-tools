@@ -41,7 +41,8 @@ public class CyberShake_AWP_SGT_DAXGen {
         Option spacingOpt = OptionBuilder.withArgName("spacing").hasArg().withDescription("Override the default grid spacing, in km.").create("sp");
         Option minvs = OptionBuilder.withArgName("minvs").hasArg().withDescription("Override the minimum Vs value").create("mv");
         Option server = OptionBuilder.withArgName("server").hasArg().withDescription("Server to use for site parameters and to insert PSA values into").create("sr");
-
+        Option noSmoothing = new Option("ns", "no-smoothing", false, "Turn off smoothing (default is to smooth)");
+        
         cmd_opts.addOption(runIDopt);
         cmd_opts.addOption(gridoutFile);
         cmd_opts.addOption(outputDAX);
@@ -52,6 +53,7 @@ public class CyberShake_AWP_SGT_DAXGen {
         cmd_opts.addOption(spacingOpt);
         cmd_opts.addOption(minvs);
         cmd_opts.addOption(server);
+        cmd_opts.addOption(noSmoothing);
         
         String usageString = "CyberShake_AWP_SGT_DAXGen [options]";
         CommandLineParser parser = new GnuParser();
@@ -132,7 +134,11 @@ public class CyberShake_AWP_SGT_DAXGen {
 		if (line.hasOption(minvs.getOpt())) {
 			min_vs = Double.parseDouble(line.getOptionValue(minvs.getOpt()));
 		}
-	
+		
+		boolean smoothing = true;
+		if (line.hasOption(noSmoothing.getOpt())) {
+			smoothing = false;
+		}
 		
 		ADAG sgtDAX = new ADAG("AWP_SGT_" + riq.getSiteName() + ".dax");
 		
@@ -153,11 +159,11 @@ public class CyberShake_AWP_SGT_DAXGen {
 			
 			velocityJob = vMeshJob;
 		}
-	
+		
 		Job preSGT = addPreSGT(spacing);
 		sgtDAX.addJob(preSGT);
 		
-		Job preAWP = addPreAWP(separateVelJobs, procDims, spacing);
+		Job preAWP = addPreAWP(separateVelJobs, procDims, spacing, smoothing);
 		sgtDAX.addJob(preAWP);
 		sgtDAX.addDependency(preSGT, preAWP);
 		sgtDAX.addDependency(velocityJob, preAWP);
@@ -170,10 +176,10 @@ public class CyberShake_AWP_SGT_DAXGen {
 		sgtDAX.addDependency(preAWP, awpSGTx);
 		sgtDAX.addDependency(preAWP, awpSGTy);
 		
-		Job postAWPX = addPostAWP("x", separateVelJobs, separateMD5);
+		Job postAWPX = addPostAWP("x", separateVelJobs, separateMD5, smoothing);
 		sgtDAX.addJob(postAWPX);
 		sgtDAX.addDependency(awpSGTx, postAWPX);
-		Job postAWPY = addPostAWP("y", separateVelJobs, separateMD5);
+		Job postAWPY = addPostAWP("y", separateVelJobs, separateMD5, smoothing);
 		sgtDAX.addJob(postAWPY);
 		sgtDAX.addDependency(awpSGTy, postAWPY);
 				
@@ -471,7 +477,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 	}
 
 	
-	private static Job addPreAWP(boolean separate, int[] procDims, double spacing) {
+	private static Job addPreAWP(boolean separate, int[] procDims, double spacing, boolean smoothing) {
 		String jobname = "PreAWP";
 		if (riq.getSgtString().equals("awp_gpu")) {
 			jobname = "PreAWP_GPU";
@@ -511,6 +517,9 @@ public class CyberShake_AWP_SGT_DAXGen {
 			preAWPJob.addArgument("--spacing " + spacing);
 		}
 		
+		if (smoothing) {
+			preAWPJob.addArgument("--velocity-mesh awp." + riq.getSiteName() + ".smoothed.media");
+		}
 		
 		//Only need to reformat velocity if we ran separate velocity jobs
 		if (separate) {
@@ -529,6 +538,54 @@ public class CyberShake_AWP_SGT_DAXGen {
 		preAWPJob.uses(in3dYFile, LINK.OUTPUT);
 		
 		return preAWPJob;
+	}
+	
+	private static Job addSmoothing(double spacing) {
+		String jobname = "Smooth";
+		String id = jobname + "_" + riq.getSiteName();
+		Job smoothJob = new Job(id, "scec", jobname, "1.0");
+		//run_smoothing.py --gridout gridout_s1252 --coords model_coords_GC_s1252 --models cca,usgs,cvmsi
+		//--smoothing-dist 58 --mesh awp.s1252.media --mesh-out awp.s1252.integ_smoothed.media
+		
+		File gridoutFile = new File("gridout_" + riq.getSiteName());
+		
+		gridoutFile.setTransfer(TRANSFER.FALSE);
+		gridoutFile.setRegister(false);
+		smoothJob.uses(gridoutFile, LINK.INPUT);
+		
+		File modelCoordsFile = new File("model_coords_GC_" + riq.getSiteName());
+		
+		modelCoordsFile.setTransfer(TRANSFER.FALSE);
+		modelCoordsFile.setRegister(false);
+		smoothJob.uses(modelCoordsFile, LINK.INPUT);
+		
+		File inputMeshFile = new File("awp." + riq.getSiteName() + ".media");
+		
+		inputMeshFile.setTransfer(TRANSFER.FALSE);
+		inputMeshFile.setRegister(false);
+		smoothJob.uses(inputMeshFile, LINK.INPUT);
+		
+		File outputMeshFile = new File("awp." + riq.getSiteName() + "smoothed.media");
+		
+		outputMeshFile.setTransfer(TRANSFER.FALSE);
+		outputMeshFile.setRegister(false);
+		smoothJob.uses(outputMeshFile, LINK.OUTPUT);
+		
+		//Determine smoothing distance in grid points - we want it to be about 10 km
+		int smoothingDist = (int)Math.ceil(10.0/spacing);
+		
+		smoothJob.addArgument("--gridout " + gridoutFile.getName());
+		smoothJob.addArgument("--coords " + modelCoordsFile.getName());
+		smoothJob.addArgument("--models " + riq.getVelModelString());
+		smoothJob.addArgument("--smoothing-dist " + smoothingDist);
+		smoothJob.addArgument("--mesh " + inputMeshFile.getName());
+		smoothJob.addArgument("--mesh-out " + outputMeshFile.getName());
+				
+		smoothJob.addProfile("globus", "hostcount", "2");
+		smoothJob.addProfile("globus", "count", "64");
+		smoothJob.addProfile("pegasus", "cores", "64");
+		
+		return smoothJob;
 	}
 	
 	private static Job addAWPSGTGen(String component, int[] procDims) {
@@ -562,7 +619,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		
 		awpJob.uses(in3DFile, LINK.INPUT);
 		awpJob.uses(awpStrainFile, LINK.OUTPUT);
-				
+		
 		awpJob.addProfile("globus", "hostcount", "" + hosts);
 		awpJob.addProfile("globus", "count", "" + cores);
 		awpJob.addProfile("pegasus", "cores", "" + cores);
@@ -612,6 +669,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		vMeshJob.uses(coordFile, File.LINK.INPUT);
 		
 		File awpMediaFile = new File("awp." + riq.getSiteName() + ".media");
+		
 		
 		awpMediaFile.setTransfer(TRANSFER.FALSE);
 		awpMediaFile.setRegister(false);
@@ -681,7 +739,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		return vMeshMergeJob;
 	}
 	
-	private static Job addPostAWP(String component, boolean separateVel, boolean separateMD5) {
+	private static Job addPostAWP(String component, boolean separateVel, boolean separateMD5, boolean smoothing) {
 		String id = "PostAWP_" + riq.getSiteName() + "_" + riq.getVelModelString() + "_" + component;
 		Job postAWPJob = new Job(id, "scec", "PostAWP", "1.0");
 		
@@ -702,6 +760,9 @@ public class CyberShake_AWP_SGT_DAXGen {
 		File awpMediaFile = new File("awp." + riq.getSiteName() + ".media");
 		if (separateVel) {
 			awpMediaFile = new File("v_sgt-" + riq.getSiteName());
+		}
+		if (smoothing) {
+			awpMediaFile = new File("awp." + riq.getSiteName() + ".smoothed.media");
 		}
 		File headerFile = new File(riq.getSiteName() + "_f" + rwgComponent + "_" + riq.getRunID() + ".sgthead");
 		
