@@ -160,6 +160,13 @@ public class CyberShake_AWP_SGT_DAXGen {
 			velocityJob = vMeshJob;
 		}
 		
+		Job smoothingJob = null;
+		if (smoothing) {
+			smoothingJob = addSmoothing(spacing);
+			sgtDAX.addJob(smoothingJob);
+			sgtDAX.addDependency(velocityJob, smoothingJob);
+		}
+		
 		Job preSGT = addPreSGT(spacing);
 		sgtDAX.addJob(preSGT);
 		
@@ -167,6 +174,10 @@ public class CyberShake_AWP_SGT_DAXGen {
 		sgtDAX.addJob(preAWP);
 		sgtDAX.addDependency(preSGT, preAWP);
 		sgtDAX.addDependency(velocityJob, preAWP);
+		if (smoothing) {
+			//PreAWP might have to reformat the velocity file
+			sgtDAX.addDependency(smoothingJob, preAWP);
+		}
 		
 		Job awpSGTx = addAWPSGTGen("x", procDims);
 		sgtDAX.addJob(awpSGTx);
@@ -182,7 +193,12 @@ public class CyberShake_AWP_SGT_DAXGen {
 		Job postAWPY = addPostAWP("y", separateVelJobs, separateMD5, smoothing);
 		sgtDAX.addJob(postAWPY);
 		sgtDAX.addDependency(awpSGTy, postAWPY);
-				
+		if (smoothing) {
+			//PostAWP uses the velocity file
+			sgtDAX.addDependency(smoothingJob, postAWPX);
+			sgtDAX.addDependency(smoothingJob, postAWPY);
+		}
+
 		Job nanCheckX = addAWPNanCheck("x");
 		sgtDAX.addJob(nanCheckX);
 		sgtDAX.addDependency(awpSGTx, nanCheckX);
@@ -482,7 +498,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		if (riq.getSgtString().equals("awp_gpu")) {
 			jobname = "PreAWP_GPU";
 		}
-		String id = jobname + "_" + riq.getSiteName() + "_" + riq.getVelModelString();
+		String id = jobname + "_" + riq.getSiteName();
 		Job preAWPJob = new Job(id, "scec", jobname, "1.0");
 		
 		File gridoutFile = new File("gridout_" + riq.getSiteName());
@@ -593,7 +609,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		if (riq.getSgtString().equals("awp_gpu")) {
 			jobname = "AWP_GPU";
 		}
-		String id = jobname + "_" + riq.getSiteName() + "_" + riq.getVelModelString() + "_" + component;
+		String id = jobname + "_" + riq.getSiteName() + "_" + component;
 		Job awpJob = new Job(id, "scec", jobname, "1.0");
 		
 		File in3DFile = new File("IN3D." + riq.getSiteName() + "." + component);
@@ -740,7 +756,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 	}
 	
 	private static Job addPostAWP(String component, boolean separateVel, boolean separateMD5, boolean smoothing) {
-		String id = "PostAWP_" + riq.getSiteName() + "_" + riq.getVelModelString() + "_" + component;
+		String id = "PostAWP_" + riq.getSiteName() + "_" + component;
 		Job postAWPJob = new Job(id, "scec", "PostAWP", "1.0");
 		
 		File awpStrainInFile = new File("comp_" + component + "/output_sgt/awp-strain-" + riq.getSiteName() + "-f" + component);
