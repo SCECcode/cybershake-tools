@@ -581,7 +581,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		inputMeshFile.setRegister(false);
 		smoothJob.uses(inputMeshFile, LINK.INPUT);
 		
-		File outputMeshFile = new File("awp." + riq.getSiteName() + "smoothed.media");
+		File outputMeshFile = new File("awp." + riq.getSiteName() + ".smoothed.media");
 		
 		outputMeshFile.setTransfer(TRANSFER.FALSE);
 		outputMeshFile.setRegister(false);
