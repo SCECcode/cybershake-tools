@@ -98,7 +98,8 @@ public class CyberShake_SGT_DAXGen {
         Option server = OptionBuilder.withArgName("server").withLongOpt("server").hasArg().withDescription("Server to use for site parameters and to insert PSA values into").create("sr");
         Option spacing = OptionBuilder.withArgName("spacing").hasArg().withDescription("Override the default grid spacing, in km.").create("sp");
         Option minvs = OptionBuilder.withArgName("minvs").hasArg().withDescription("Override the minimum Vs value").create("mv");
-        
+        Option noSmoothing = new Option("ns", "no-smoothing", false, "Turn off smoothing (default is to smooth)");
+               
         cmd_opts.addOption(help);
         cmd_opts.addOptionGroup(runIDGroup);
         cmd_opts.addOption(splitVelocityJobs);
@@ -109,6 +110,7 @@ public class CyberShake_SGT_DAXGen {
         cmd_opts.addOption(server);
         cmd_opts.addOption(spacing);
         cmd_opts.addOption(minvs);
+        cmd_opts.addOption(noSmoothing);
         
         String usageString = "CyberShake_SGT_DAXGen <output filename> <destination directory> [options] [-f <runID file, one per line> | -r <runID1> <runID2> ... ]";
         CommandLineParser parser = new GnuParser();
@@ -175,6 +177,10 @@ public class CyberShake_SGT_DAXGen {
 		
 		if (line.hasOption(sgtSite.getOpt())) {
 			sgt_params.setSgtSite(line.getOptionValue(sgtSite.getOpt()));
+		}
+		
+		if (line.hasOption(noSmoothing.getOpt())) {
+			sgt_params.setSmoothing(false);
 		}
 		
 		sgt_params.setRunIDQueries(runIDQueries);
@@ -267,6 +273,9 @@ public class CyberShake_SGT_DAXGen {
 			sgtDAX.addArgument("-o bluewaters");
 			if (sgt_params.getSgtSite()!=null) {
 				sgtDAX.addArgument("-s " + sgt_params.getSgtSite());
+			}
+			if (sgt_params.isSmoothing()==false) {
+				sgtDAX.addArgument("-ns");
 			}
 			sgtDAX.addArgument("--basename AWP_SGT_" + riq.getSiteName());
 			sgtDAX.addArgument("--cleanup inplace");
