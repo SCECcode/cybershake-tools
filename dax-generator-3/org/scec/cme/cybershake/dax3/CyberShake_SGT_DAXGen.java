@@ -274,9 +274,6 @@ public class CyberShake_SGT_DAXGen {
 			if (sgt_params.getSgtSite()!=null) {
 				sgtDAX.addArgument("-s " + sgt_params.getSgtSite());
 			}
-			if (sgt_params.isSmoothing()==false) {
-				sgtDAX.addArgument("-ns");
-			}
 			sgtDAX.addArgument("--basename AWP_SGT_" + riq.getSiteName());
 			sgtDAX.addArgument("--cleanup inplace");
 			workflowDAX.addDAX(sgtDAX);
@@ -384,6 +381,9 @@ public class CyberShake_SGT_DAXGen {
 		}
 		if (sgt_params.getMinvs()>0.0) {
 			genSGTDAXJob.addArgument("-mv " + sgt_params.getMinvs());
+		}
+		if (sgt_params.isSmoothing()==false) {
+			genSGTDAXJob.addArgument("-ns");
 		}
 		
 		genSGTDAXJob.uses(gridoutFile, LINK.INPUT);
