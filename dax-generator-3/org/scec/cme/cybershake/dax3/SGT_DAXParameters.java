@@ -18,6 +18,8 @@ public class SGT_DAXParameters {
 	private double spacing = -1.0;
 	private double minvs = -1.0;
 	
+	private boolean smoothing = true;
+	
 	public SGT_DAXParameters(String filename) {
 		this.daxFilename = filename;
 		this.directory = ".";
@@ -105,6 +107,14 @@ public class SGT_DAXParameters {
 
 	public void setMinvs(double minvs) {
 		this.minvs = minvs;
+	}
+
+	public boolean isSmoothing() {
+		return smoothing;
+	}
+
+	public void setSmoothing(boolean smoothing) {
+		this.smoothing = smoothing;
 	}
 	
 	
