@@ -758,7 +758,7 @@ public class CyberShake_PP_DAXGen {
 		if (dbc==null) {
 			dbc = new DBConnect(DB_SERVER, DB, USER, PASS);
 		}
-		String query = "select SR.Source_ID, SR.Rupture_ID, R.Num_Points, count(*) " +
+		String query = "select SR.Source_ID, SR.Rupture_ID, R.Num_Points, R.Mag, count(*) " +
 			"from CyberShake_Site_Ruptures SR, CyberShake_Sites S, Ruptures R, Rupture_Variations V " +
 			"where S.CS_Short_Name='" + riq.getSiteName() + "' and S.CS_Site_ID=SR.CS_Site_ID " +
 			"and SR.ERF_ID=" + riq.getErfID() + " and R.ERF_ID=" + riq.getErfID() + " " + 
@@ -816,7 +816,7 @@ public class CyberShake_PP_DAXGen {
 			fullPath = javaFile.getCanonicalPath();
 			BufferedWriter bw = new BufferedWriter(new FileWriter(javaFile));
 			bw.write(rupture_count + "\n");
-			// <path to rupture geometry file> <#slips> <#hypos> <#points>
+			// <path to rupture geometry file> <#slips> <#hypos> <#points> <mag>
 			while (!ruptures.isAfterLast()) {
 				int source_id = ruptures.getInt("SR.Source_ID");
 				int rupture_id = ruptures.getInt("SR.Rupture_ID");
@@ -826,7 +826,8 @@ public class CyberShake_PP_DAXGen {
 				directSynthJob.uses(rupture_file, LINK.INPUT);
 				int slips = ruptures.getInt("count(*)");
 				int rupture_pts = ruptures.getInt("R.Num_Points");
-				bw.write(rupture_path + " " + slips + " 1 " + rupture_pts + "\n");
+				double mag = ruptures.getDouble("R.Mag");
+				bw.write(rupture_path + " " + slips + " 1 " + rupture_pts + " " + String.format("%.2f", mag) + "\n");
 				//Also add this to Pegasus file management
 				File seisFile = new File(SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
 						riq.getRunID() + "_" + source_id + "_" + rupture_id + SEISMOGRAM_FILENAME_EXTENSION);
