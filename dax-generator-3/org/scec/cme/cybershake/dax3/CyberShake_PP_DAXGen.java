@@ -764,7 +764,8 @@ public class CyberShake_PP_DAXGen {
 			"and SR.ERF_ID=" + riq.getErfID() + " and R.ERF_ID=" + riq.getErfID() + " " + 
 			"and V.ERF_ID=" + riq.getErfID() + " and V.Rup_Var_Scenario_ID=" + riq.getRuptVarScenID() + " " +
 			"and SR.Source_ID=R.Source_ID and R.Source_ID=V.Source_ID and SR.Rupture_ID=R.Rupture_ID " +
-			"and R.Rupture_ID=V.Rupture_ID group by V.Source_ID, V.Rupture_ID";
+			"and R.Rupture_ID=V.Rupture_ID group by V.Source_ID, V.Rupture_ID " + 
+			"order by R.Num_Points desc";
 		ResultSet ruptures = dbc.selectData(query);
 		try {
 			ruptures.first();
