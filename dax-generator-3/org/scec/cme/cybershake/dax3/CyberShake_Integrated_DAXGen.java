@@ -149,6 +149,9 @@ public class CyberShake_Integrated_DAXGen {
 				for (AbstractJob sgtJob : sgtJobs) {
 					topLevelDax.addDependency(sgtJob, preD);
 				}
+			} else {
+				//Otherwise, make this dependent on the AWP sub-SGT workflow so we pick up the SGT files correctly
+				topLevelDax.addDependency(lastJob, preD);
 			}
 			
 			//subWfs
@@ -179,6 +182,8 @@ public class CyberShake_Integrated_DAXGen {
 				} else {
 					//Add dependencies on job ID job, since we don't want these to start until it's post-processing time
 					topLevelDax.addDependency(getJobIDJob, jDax);
+					//Also add dependency on AWP workflow job, so we pick up the SGTs appropriately
+					topLevelDax.addDependency(lastJob, jDax);
 				}
 				File jDaxFile = new File(filename);
 				jDaxFile.addPhysicalFile("file://" + cont.getParams().getPPDirectory() + "/" + filename, "local");
