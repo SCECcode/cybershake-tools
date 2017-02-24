@@ -41,7 +41,7 @@ public class CyberShake_DB_DAXGen {
 	public static final String CURVE_OUTPUT_TYPES = "pdf,png";
 	public static final double CURVE_DEFAULT_VS30 = 760;
 	
-	public static final String ROTD_CALC_PERIODS = "2,3,4,5,7.5,10";
+	public static final String ROTD_CALC_PERIODS = "3,4,5,7.5,10";
 	public static final String ROTD_OUTPUT_TYPES = "pdf,png";
 	
 	//DB info
@@ -88,7 +88,8 @@ public class CyberShake_DB_DAXGen {
 		transferZipFiles = transferZip;
 		this.numDAXes = numDAXes;
 		this.params = params;
-		insertDurations = params.isCalculateDurations();
+		//For Study 17.3, don't insert durations, even though they might have been calculated 
+//		insertDurations = params.isCalculateDurations();
 		if (params.isFileForward() || params.isPipeForward()){
 			this.filesDir = STORAGE_DIR + "/" + r.getSiteName() + "/" + r.getRunID();
 		} else {
@@ -215,9 +216,12 @@ public class CyberShake_DB_DAXGen {
 				Job rotdCheckJob = createDBCheckRotDJob();
 				dax.addJob(rotdCheckJob);
 				dax.addDependency(rotDJob, rotdCheckJob);
-				Job rotdCalcJob = createRotDCurveCalcJob();
-				dax.addJob(rotdCalcJob);
-				dax.addDependency(rotdCheckJob, rotdCalcJob);
+				Job rotd100CalcJob = createRotD100CurveCalcJob();
+				dax.addJob(rotd100CalcJob);
+				dax.addDependency(rotdCheckJob, rotd100CalcJob);
+				Job rotd50CalcJob = createRotD50CurveCalcJob();
+				dax.addJob(rotd50CalcJob);
+				dax.addDependency(rotdCheckJob, rotd50CalcJob);
 			}
 			if (insertDurations) {
 				Job durationCheckJob = createDurationCheckJob();
@@ -343,15 +347,15 @@ public class CyberShake_DB_DAXGen {
 		job.addArgument("-p " + filesDir);
 
 		job.addArgument("-run " + riq.getRunID());
-		String periods = "10,7.5,5,4,3,2";
+		String periods = "10,7.5,5,4,3";
 		if (params.isStochastic()) {
 			periods = periods + ",1,0.5,0.2,0.1";
 		} else {
-			if (params.getDetFrequency()>1.0) {
-				periods = periods + ",1";
+			if (params.getDetFrequency()>=1.0) {
+				periods = periods + ",2";
 			}
-			if (params.getDetFrequency()>2.0) {
-				periods = periods + ",0.5";
+			if (params.getDetFrequency()>=2.0) {
+				periods = periods + ",1";
 			}
 		}
 		job.addArgument("-periods " + periods);
@@ -486,13 +490,13 @@ public class CyberShake_DB_DAXGen {
 		return job;
 	}
 
-	private Job createRotDCurveCalcJob() {
+	private Job createRotD100CurveCalcJob() {
 		//If running stochastic curves, then run the wrapper instead, which will read the velocity file to retrieve the right Vs30
 		//Doing it this way b/c it's easier than creating the DAX on the fly
 		String id = null;
 		Job job = null;
 		if (params.isStochastic()) {
-			id = DB_PREFIX + "Curve_Calc_RotD_Wrapper" + "_" + riq.getSiteName();
+			id = DB_PREFIX + "Curve_Calc_RotD100_Wrapper" + "_" + riq.getSiteName();
 			job = new Job(id, CyberShake_PP_DAXGen.NAMESPACE, CURVE_CALC_WRAPPER_NAME, CyberShake_PP_DAXGen.VERSION);
 			if (this.velocityFile==null) {
 				System.err.println("Error!  Velocity file must be specified for Vs30 for stochastic curve calculation, exiting.");
@@ -504,7 +508,7 @@ public class CyberShake_DB_DAXGen {
 			velocityFile.setRegister(false);
 			job.uses(velocityFile, LINK.INPUT);
 		} else {
-			id = DB_PREFIX + "Curve_Calc_RotD" + "_" + riq.getSiteName();
+			id = DB_PREFIX + "Curve_Calc_RotD100" + "_" + riq.getSiteName();
 			job = new Job(id, CyberShake_PP_DAXGen.NAMESPACE, CURVE_CALC_NAME, CyberShake_PP_DAXGen.VERSION);
 		}
 				
@@ -519,11 +523,11 @@ public class CyberShake_DB_DAXGen {
 		if (params.isStochastic()) {
 			periods += ",1,0.5,0.2,0.1";
 		} else {
-			if (params.getDetFrequency()>1.0) {
-				periods = periods + ",1";
+			if (params.getDetFrequency()>=1.0) {
+				periods = periods + ",2";
 			}
-			if (params.getDetFrequency()>2.0) {
-				periods = periods + ",0.5";
+			if (params.getDetFrequency()>=2.0) {
+				periods = periods + ",1";
 			}
 		}
 		job.addArgument("--period " + periods);
@@ -532,6 +536,69 @@ public class CyberShake_DB_DAXGen {
 		// this makes it calculate and the add the curve without prompting if needed
 		job.addArgument("--force-add");
 		job.addArgument("--cmp RotD100");
+		
+		// db password file
+		job.addArgument("--password-file " + DB_PASS_FILE);
+		if (!params.isStochastic()) {
+			job.addArgument("--vs30 " + CURVE_DEFAULT_VS30);
+		}
+		if (!DO_CURVE_PLOT) {
+			// this makes it just calculate the curve, without plotting
+			job.addArgument("--calc-only");
+		}
+		
+		job.addProfile("globus", "maxWallTime", "15");
+		job.addProfile("hints","executionPool", "local");
+		
+		return job;
+	}
+	
+	private Job createRotD50CurveCalcJob() {
+		//If running stochastic curves, then run the wrapper instead, which will read the velocity file to retrieve the right Vs30
+		//Doing it this way b/c it's easier than creating the DAX on the fly
+		String id = null;
+		Job job = null;
+		if (params.isStochastic()) {
+			id = DB_PREFIX + "Curve_Calc_RotD50_Wrapper" + "_" + riq.getSiteName();
+			job = new Job(id, CyberShake_PP_DAXGen.NAMESPACE, CURVE_CALC_WRAPPER_NAME, CyberShake_PP_DAXGen.VERSION);
+			if (this.velocityFile==null) {
+				System.err.println("Error!  Velocity file must be specified for Vs30 for stochastic curve calculation, exiting.");
+				System.exit(1);
+			}
+			File velocityFile = new File(this.velocityFile);
+			job.addArgument(velocityFile.getName());
+			velocityFile.setTransfer(TRANSFER.FALSE);
+			velocityFile.setRegister(false);
+			job.uses(velocityFile, LINK.INPUT);
+		} else {
+			id = DB_PREFIX + "Curve_Calc_RotD50" + "_" + riq.getSiteName();
+			job = new Job(id, CyberShake_PP_DAXGen.NAMESPACE, CURVE_CALC_NAME, CyberShake_PP_DAXGen.VERSION);
+		}
+				
+		String outputDir = CURVE_OUTPUT_DIR_PREFIX + riq.getSiteName();
+		
+		job.addArgument("--site " + riq.getSiteName());
+		job.addArgument("--run-id " + riq.getRunID());
+		job.addArgument("--erf-file " + CURVE_ERF_XML_FILE);
+		//Comment this out until we update so that we can use Velocity_Model_ID=4 data
+		job.addArgument("--atten-rel-file " + CURVE_ATTEN_REL_XML_FILES);
+		String periods = ROTD_CALC_PERIODS;
+		if (params.isStochastic()) {
+			periods += ",1,0.5,0.2,0.1";
+		} else {
+			if (params.getDetFrequency()>=1.0) {
+				periods = periods + ",2";
+			}
+			if (params.getDetFrequency()>=2.0) {
+				periods = periods + ",1";
+			}
+		}
+		job.addArgument("--period " + periods);
+		job.addArgument("--output-dir " + outputDir);
+		job.addArgument("--type " + ROTD_OUTPUT_TYPES);
+		// this makes it calculate and the add the curve without prompting if needed
+		job.addArgument("--force-add");
+		job.addArgument("--cmp RotD50");
 		
 		// db password file
 		job.addArgument("--password-file " + DB_PASS_FILE);
@@ -592,11 +659,11 @@ public class CyberShake_DB_DAXGen {
 		if (params.isStochastic()) {
 			periods = periods + ",1,0.5,0.2,0.1";
 		} else {
-			if (params.getDetFrequency()>1.0) {
-				periods = periods + ",1";
+			if (params.getDetFrequency()>=1.0) {
+				periods = periods + ",1.5";
 			}
-			if (params.getDetFrequency()>2.0) {
-				periods = periods + ",0.5";
+			if (params.getDetFrequency()>=2.0) {
+				periods = periods + ",1";
 			}
 		}
 		job.addArgument("-p " + periods);
@@ -661,10 +728,10 @@ public class CyberShake_DB_DAXGen {
 			periods = periods + ",2,1,0.5,0.2,0.1";
 		} else {
 			if (params.getDetFrequency()>=1.0) {
-				periods = periods + ",2,1";
+				periods = periods + ",2";
 			}
 			if (params.getDetFrequency()>=2.0) {
-				periods = periods + ",0.5";
+				periods = periods + ",1";
 			}
 		}
 		job.addArgument("-periods " + periods);
