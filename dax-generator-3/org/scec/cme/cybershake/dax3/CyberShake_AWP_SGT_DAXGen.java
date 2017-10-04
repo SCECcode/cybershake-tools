@@ -885,8 +885,14 @@ public class CyberShake_AWP_SGT_DAXGen {
 		awpStrainInFile.setTransfer(TRANSFER.TRUE);
 		awpStrainInFile.setRegister(false);
 		
+		File headerFile = new File(riq.getSiteName() + "_f" + component + "_" + riq.getRunID() + ".sgthead");
+		headerFile.setTransfer(TRANSFER.TRUE);
+		headerFile.setRegister(false);
+		
 		awpJob.addArgument(awpStrainInFile.getName());
+		awpJob.addArgument(headerFile.getName());
 		awpJob.uses(awpStrainInFile, LINK.INPUT);
+		awpJob.uses(headerFile, LINK.INPUT);
 
 		return awpJob;
 	}
