@@ -879,22 +879,28 @@ public class CyberShake_AWP_SGT_DAXGen {
 	
 	private static Job addAWPNanCheck(String component) {
 		String id = "AWP_NaN_Check_" + component;
-		Job awpJob = new Job(id, "scec", "AWP_NaN_Check", "1.0");
+		Job awpNaNJob = new Job(id, "scec", "AWP_NaN_Check", "1.0");
 		
 		File awpStrainInFile = new File("comp_" + component + "/output_sgt/awp-strain-" + riq.getSiteName() + "-f" + component);
 		awpStrainInFile.setTransfer(TRANSFER.TRUE);
 		awpStrainInFile.setRegister(false);
 		
-		File headerFile = new File(riq.getSiteName() + "_f" + component + "_" + riq.getRunID() + ".sgthead");
-		headerFile.setTransfer(TRANSFER.TRUE);
-		headerFile.setRegister(false);
+		File sgtcordFile = new File(riq.getSiteName() + ".cordfile");
+		sgtcordFile.setTransfer(TRANSFER.TRUE);
+		sgtcordFile.setRegister(false);
 		
-		awpJob.addArgument(awpStrainInFile.getName());
-		awpJob.addArgument(headerFile.getName());
-		awpJob.uses(awpStrainInFile, LINK.INPUT);
-		awpJob.uses(headerFile, LINK.INPUT);
+		File in3DFile = new File("IN3D." + riq.getSiteName() + "." + component);
+		in3DFile.setTransfer(TRANSFER.TRUE);
+		in3DFile.setRegister(false);
+		
+		awpNaNJob.addArgument(awpStrainInFile.getName());
+		awpNaNJob.addArgument(sgtcordFile.getName());
+		awpNaNJob.addArgument(in3DFile.getName());
+		awpNaNJob.uses(awpStrainInFile, LINK.INPUT);
+		awpNaNJob.uses(sgtcordFile, LINK.INPUT);
+		awpNaNJob.uses(in3DFile, LINK.INPUT);
 
-		return awpJob;
+		return awpNaNJob;
 	}
 	
 	private static Job addHandoff() {
