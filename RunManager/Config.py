@@ -2,7 +2,8 @@
 
 
 # DB Constants
-DB_HOST = "focal.usc.edu"
+#DB_HOST = "focal.usc.edu"
+DB_HOST = "moment.usc.edu"
 DB_PORT = 3306
 DB_USER_WR = "cybershk"
 DB_PASS_WR = "***REMOVED***"
@@ -12,7 +13,8 @@ DB_NAME = "CyberShake"
 
 # Valid computing resources
 HOST_LIST = ["unknown", "hpc", "mercury", "abe", "ranger", "kraken", \
-                 "sdsc", "hpc-local", "stampede", "bluewaters", "titan" ]
+                 "sdsc", "hpc-local", "stampede", "bluewaters", "titan", \
+		"cori"]
 
 # Valid users
 USER_LIST = ["cybershk", "tera3d", "scottcal", "kmilner", "maechlin", \
@@ -51,7 +53,10 @@ STATUS_STD = {"Initial": ["Initial", "SGT Started", "SGT Error", "Deleted",], \
 
 
 # OpenSHA scripts and config
-OPENSHA_LOGIN = 'cybershk@opensha.usc.edu'
+# Logging into OpenSHA with user cybershk stopped working
+# See if we can do this on shock instead
+OPENSHA_LOGIN = 'cybershk@shock.usc.edu'
+#OPENSHA_LOGIN = 'cybershk@opensha.usc.edu'
 OPENSHA_DIR = '/home/scec-00/cybershk/opensha'
 OPENSHA_SCATTER_SCRIPT = '%s/make_scatter_map.sh' % (OPENSHA_DIR)
 OPENSHA_INTERPOLATED_SCRIPT = '%s/make_interpolated_map.sh' % (OPENSHA_DIR)
