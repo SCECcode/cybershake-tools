@@ -658,7 +658,7 @@ class RunManager:
     
 
     def createRunByParam(self, site_name, erf_id, sgt_var_id, vel_id, 
-                         rup_var_id, freq=0.5, src_freq=None):
+                         rup_var_id, freq=0.5, src_freq=None, max_freq=None, status=None, sgthost=None):
         if ((site_name == None) or (erf_id == None) or \
                 (sgt_var_id == None) or (rup_var_id == None)):
             return None
@@ -671,11 +671,17 @@ class RunManager:
         run.setSGTVarID(sgt_var_id)
         run.setRupVarID(rup_var_id)
         run.setVelID(vel_id)
-	run.setMaxFreq(freq)
+	if max_freq==None:
+		max_freq = freq
+	run.setMaxFreq(max_freq)
 	run.setLowFreqCutoff(freq)
 	if src_freq==None:
 		src_freq = freq
 	run.setSrcFreq(src_freq)
+	if status!=None:
+		run.setStatus(status)
+	if sgthost!=None:
+		run.setSGTHost(sgthost)
 
         return (self.createRun(run))
 
