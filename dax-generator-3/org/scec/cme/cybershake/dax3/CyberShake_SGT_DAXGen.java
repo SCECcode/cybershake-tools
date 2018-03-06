@@ -99,6 +99,9 @@ public class CyberShake_SGT_DAXGen {
         Option spacing = OptionBuilder.withArgName("spacing").hasArg().withDescription("Override the default grid spacing, in km.").create("sp");
         Option minvs = OptionBuilder.withArgName("minvs").hasArg().withDescription("Override the minimum Vs value").create("mv");
         Option noSmoothing = new Option("ns", "no-smoothing", false, "Turn off smoothing (default is to smooth)");
+        Option boundingBox = new Option("bbox", "bounding-box", false, "When constructing a volume, assume (Start Lat, StartLon) and (EndLat, EndLon) represent" +
+        		"2 corners of a box, all 4 corners of which must be inside the volume. " +
+        		"Default is to only require those two points to be inside the volume.");
                
         cmd_opts.addOption(help);
         cmd_opts.addOptionGroup(runIDGroup);
@@ -111,6 +114,7 @@ public class CyberShake_SGT_DAXGen {
         cmd_opts.addOption(spacing);
         cmd_opts.addOption(minvs);
         cmd_opts.addOption(noSmoothing);
+        cmd_opts.addOption(boundingBox);
         
         String usageString = "CyberShake_SGT_DAXGen <output filename> <destination directory> [options] [-f <runID file, one per line> | -r <runID1> <runID2> ... ]";
         CommandLineParser parser = new GnuParser();
@@ -181,6 +185,10 @@ public class CyberShake_SGT_DAXGen {
 		
 		if (line.hasOption(noSmoothing.getOpt())) {
 			sgt_params.setSmoothing(false);
+		}
+		
+		if (line.hasOption(boundingBox.getOpt())) {
+			sgt_params.setBoundingBox(true);
 		}
 		
 		sgt_params.setRunIDQueries(runIDQueries);
@@ -457,6 +465,10 @@ public class CyberShake_SGT_DAXGen {
 		preCVMJob.addArgument("--server " + sgt_params.getServer());
 		if (sgt_params.getSpacing()>0.0) {
 			preCVMJob.addArgument("--spacing " + sgt_params.getSpacing());
+		}
+
+		if (sgt_params.isBoundingBox()) {
+			preCVMJob.addArgument("--bounding-box ");
 		}
 		
 		preCVMJob.uses(modelboxFile, File.LINK.OUTPUT);

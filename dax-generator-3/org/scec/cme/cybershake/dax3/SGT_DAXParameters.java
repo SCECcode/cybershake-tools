@@ -19,6 +19,7 @@ public class SGT_DAXParameters {
 	private double minvs = -1.0;
 	
 	private boolean smoothing = true;
+	private boolean boundingBox = false;
 	
 	public SGT_DAXParameters(String filename) {
 		this.daxFilename = filename;
@@ -115,6 +116,14 @@ public class SGT_DAXParameters {
 
 	public void setSmoothing(boolean smoothing) {
 		this.smoothing = smoothing;
+	}
+
+	public boolean isBoundingBox() {
+		return boundingBox;
+	}
+
+	public void setBoundingBox(boolean boundingBox) {
+		this.boundingBox = boundingBox;
 	}
 	
 	
