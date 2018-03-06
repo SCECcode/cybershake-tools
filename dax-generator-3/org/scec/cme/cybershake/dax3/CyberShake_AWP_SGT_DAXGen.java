@@ -481,6 +481,10 @@ public class CyberShake_AWP_SGT_DAXGen {
 		}
 		preSGTJob.addArgument(riq.getLowFrequencyCutoffString());
 		
+		if (riq.getErfID()==42) {
+			preSGTJob.addArgument("rsqsim");
+		}
+		
 		preSGTJob.uses(modelboxFile, File.LINK.INPUT);
 		preSGTJob.uses(gridoutFile, File.LINK.INPUT);
 		preSGTJob.uses(coordFile, File.LINK.INPUT);
