@@ -90,6 +90,7 @@ public class CyberShake_PP_DAXGen {
     private final static String EXTRACT_SGT_MPI_NAME = "Extract_SGT_MPI";
     private final static String EXTRACT_SGT_MPI_AWP_NAME = "Extract_SGT_MPI_AWP";
     private final static String DIRECT_SYNTH_NAME = "DirectSynth";
+    private final static String DIRECT_SYNTH_RSQSIM_NAME = "DirectSynth_RSQSim";
     private final static String SET_PP_HOST_NAME = "SetPPHost";
 	
     //Simulation parameters
@@ -767,7 +768,7 @@ public class CyberShake_PP_DAXGen {
 			//Use version linked with rupture generator v5.2.3
 			directSynthJob = new Job("DirectSynth", NAMESPACE, DIRECT_SYNTH_NAME, "2.0");
 		} else if (riq.getRuptVarScenID()==8) {
-			directSynthJob = new Job("DirectSynth_RSQSim", NAMESPACE, DIRECT_SYNTH_NAME, "1.0");
+			directSynthJob = new Job("DirectSynth_RSQSim", NAMESPACE, DIRECT_SYNTH_RSQSIM_NAME, "1.0");
 		} else {
 			System.err.println("Not sure what version of DirectSynth to use with Rupture Variation Scenario ID " + riq.getRuptVarScenID() + ", aborting.");
 			System.exit(2);
@@ -868,7 +869,7 @@ public class CyberShake_PP_DAXGen {
 			} else {
 				//We're running with already-generated SRFs, so use those instead
 				//One line per rupture variation
-				String query = "select V.Rup_Var_LFN " + 
+				String query = "select V.Rup_Var_LFN,  " + 
 						"from Rupture_Variations V, CyberShake_Sites S, CyberShake_Site_Ruptures SR, Ruptures R " +
 						"where S.CS_Short_Name='" + riq.getSiteName() + "' and S.CS_Site_ID=SR.CS_Site_ID " +
 						"and SR.ERF_ID=" + riq.getErfID() + " and SR.Cutoff_Dist=" + riq.getCutoffDist() + " " + 
