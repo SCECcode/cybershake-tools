@@ -932,6 +932,8 @@ public class CyberShake_PP_DAXGen {
 					}
 					ruptureVariations.next();
 				}
+				bw.flush();
+				bw.close();
 			}
 		} catch (IOException ex) {
 			ex.printStackTrace();
