@@ -869,7 +869,7 @@ public class CyberShake_PP_DAXGen {
 			} else {
 				//We're running with already-generated SRFs, so use those instead
 				//One line per rupture variation
-				String query = "select V.Rup_Var_LFN,  " + 
+				String query = "select V.Rup_Var_LFN " + 
 						"from Rupture_Variations V, CyberShake_Sites S, CyberShake_Site_Ruptures SR, Ruptures R " +
 						"where S.CS_Short_Name='" + riq.getSiteName() + "' and S.CS_Site_ID=SR.CS_Site_ID " +
 						"and SR.ERF_ID=" + riq.getErfID() + " and SR.Cutoff_Dist=" + riq.getCutoffDist() + " " + 
