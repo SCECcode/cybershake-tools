@@ -36,7 +36,9 @@ public class CyberShake_DB_DAXGen {
 	public static final String DAX_FILENAME_POST = "_db_products";
 	public static final String DB_PREFIX = "CS_Products_";
 	public static final String DB_CHECK_OUTFILE_PREFIX = "DB_Check_Out_";
-	public static final String CURVE_ERF_XML_FILE = OPENSHA_CONF_DIR + "MeanUCERF.xml"; 
+	public static final String UCERF2_ERF_FILE = OPENSHA_CONF_DIR + "MeanUCERF.xml"; 
+	public static final String RSQSIM_ERF42_FILE = "/home/scec-02/kmilner/simulators/catalogs/rundir2457/erf_params.xml";
+	public static final String RSQSIM_ERF48_FILE = "/home/scec-02/kmilner/simulators/catalogs/rundir2585_1myrs/erf_params.xml";
 	public static final String CURVE_CALC_PERIODS = "3,5,10";
 	public static final String CURVE_OUTPUT_TYPES = "pdf,png";
 	public static final double CURVE_DEFAULT_VS30 = 760;
@@ -375,7 +377,13 @@ public class CyberShake_DB_DAXGen {
 		disaggJob.addArgument("--probs 4.0e-4");
 		disaggJob.addArgument("--output-dir " + DISAGG_OUTPUT_DIR_PREFIX);
 		disaggJob.addArgument("--type pdf,png,txt");
-		
+		String erfFile = UCERF2_ERF_FILE;
+		if (riq.getErfID()==42) {
+			erfFile = RSQSIM_ERF42_FILE;
+		} else if (riq.getErfID()==48){
+			erfFile = RSQSIM_ERF48_FILE;
+		}
+		disaggJob.addArgument("--erf-file " + erfFile);
 		
 		disaggJob.addProfile("globus", "maxWallTime", "5");
 		
@@ -452,7 +460,13 @@ public class CyberShake_DB_DAXGen {
 		
 		job.addArgument("--site " + riq.getSiteName());
 		job.addArgument("--run-id " + riq.getRunID());
-		job.addArgument("--erf-file " + CURVE_ERF_XML_FILE);
+		String erfFile = UCERF2_ERF_FILE;
+		if (riq.getErfID()==42) {
+			erfFile = RSQSIM_ERF42_FILE;
+		} else if (riq.getErfID()==48){
+			erfFile = RSQSIM_ERF48_FILE;
+		}
+		job.addArgument("--erf-file " + erfFile);
 		//Comment this out until we update so that we can use Velocity_Model_ID=4 data
 		job.addArgument("--atten-rel-file " + CURVE_ATTEN_REL_XML_FILES);
 		String periods = CURVE_CALC_PERIODS;
@@ -516,7 +530,13 @@ public class CyberShake_DB_DAXGen {
 		
 		job.addArgument("--site " + riq.getSiteName());
 		job.addArgument("--run-id " + riq.getRunID());
-		job.addArgument("--erf-file " + CURVE_ERF_XML_FILE);
+		String erfFile = UCERF2_ERF_FILE;
+		if (riq.getErfID()==42) {
+			erfFile = RSQSIM_ERF42_FILE;
+		} else if (riq.getErfID()==48){
+			erfFile = RSQSIM_ERF48_FILE;
+		}
+		job.addArgument("--erf-file " + erfFile);
 		//Comment this out until we update so that we can use Velocity_Model_ID=4 data
 		job.addArgument("--atten-rel-file " + CURVE_ATTEN_REL_XML_FILES);
 		String periods = ROTD_CALC_PERIODS;
@@ -579,7 +599,13 @@ public class CyberShake_DB_DAXGen {
 		
 		job.addArgument("--site " + riq.getSiteName());
 		job.addArgument("--run-id " + riq.getRunID());
-		job.addArgument("--erf-file " + CURVE_ERF_XML_FILE);
+		String erfFile = UCERF2_ERF_FILE;
+		if (riq.getErfID()==42) {
+			erfFile = RSQSIM_ERF42_FILE;
+		} else if (riq.getErfID()==48){
+			erfFile = RSQSIM_ERF48_FILE;
+		}
+		job.addArgument("--erf-file " + erfFile);
 		//Comment this out until we update so that we can use Velocity_Model_ID=4 data
 		job.addArgument("--atten-rel-file " + CURVE_ATTEN_REL_XML_FILES);
 		String periods = ROTD_CALC_PERIODS;
