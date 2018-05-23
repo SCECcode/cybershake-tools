@@ -591,8 +591,8 @@ public class CyberShake_AWP_SGT_DAXGen {
 		outputMeshFile.setRegister(false);
 		smoothJob.uses(outputMeshFile, LINK.OUTPUT);
 		
-		//Determine smoothing distance in grid points - we want it to be about 10 km
-		int smoothingDist = (int)Math.ceil(10.0/spacing);
+		//Determine smoothing distance in grid points - we want it to be about 20 km
+		int smoothingDist = (int)Math.ceil(20.0/spacing);
 		
 		smoothJob.addArgument("--gridout " + gridoutFile.getName());
 		smoothJob.addArgument("--coords " + modelCoordsFile.getName());
