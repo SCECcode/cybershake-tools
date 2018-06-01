@@ -592,6 +592,12 @@ public class CyberShake_AWP_SGT_DAXGen {
 		smoothJob.uses(outputMeshFile, LINK.OUTPUT);
 		
 		//Determine smoothing distance in grid points - we want it to be about 20 km
+		if (spacing<0.0) {
+			//Determine spacing from frequency
+			double freq = riq.getLowFrequencyCutoff();
+			//Assume .1km for 1.0 Hz, .2km for 0.5 
+			spacing = 0.1/freq;
+		}
 		int smoothingDist = (int)Math.ceil(20.0/spacing);
 		
 		smoothJob.addArgument("--gridout " + gridoutFile.getName());
