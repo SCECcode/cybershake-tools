@@ -1654,9 +1654,8 @@ public class CyberShake_PP_DAXGen {
 		checkJob.addArgument(sgtFile);
 		checkJob.addArgument(sgtmd5File);
 
-		//Need a local copy to be inserted into RLS;  trying this
-		checkJob.uses(sgtFile, File.LINK.INOUT);
-		checkJob.uses(sgtmd5File, File.LINK.INOUT);
+		checkJob.uses(sgtFile, File.LINK.INPUT);
+		checkJob.uses(sgtmd5File, File.LINK.INPUT);
 		//If using AWP files, then also add sgthead files to uses.
 		//They're not actually used by the job, but this forces them to be transferred in.
 		if (riq.isAWPSGT()) {
