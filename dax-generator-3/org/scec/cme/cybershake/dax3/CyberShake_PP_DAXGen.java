@@ -1660,7 +1660,7 @@ public class CyberShake_PP_DAXGen {
 		//They're not actually used by the job, but this forces them to be transferred in.
 		if (riq.isAWPSGT()) {
 			File sgtHeadFile = new File(site + "_f" + component + "_" + riq.getRunID() + ".sgthead"); 
-			checkJob.uses(sgtHeadFile, File.LINK.INOUT);
+			checkJob.uses(sgtHeadFile, File.LINK.INPUT);
 			sgtHeadFile.setRegister(true);
 		}
 
