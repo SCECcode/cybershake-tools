@@ -90,8 +90,8 @@ public class CyberShake_DB_DAXGen {
 		transferZipFiles = transferZip;
 		this.numDAXes = numDAXes;
 		this.params = params;
-		//For Study 17.3, don't insert durations, even though they might have been calculated 
-//		insertDurations = params.isCalculateDurations();
+		//For Study 18.8, insert durations 
+		insertDurations = params.isCalculateDurations();
 		if (params.isFileForward() || params.isPipeForward()){
 			this.filesDir = STORAGE_DIR + "/" + r.getSiteName() + "/" + r.getRunID();
 		} else {
@@ -300,18 +300,6 @@ public class CyberShake_DB_DAXGen {
 		job.addArgument("-p " + filesDir);
 
 		job.addArgument("-run " + riq.getRunID());
-		String periods = "10,7.5,5,4,3,2";
-		if (params.isStochastic()) {
-			periods = periods + ",1,0.5,0.2,0.1";
-		} else {
-			if (params.getDetFrequency()>1.0) {
-				periods = periods + ",1";
-			}
-			if (params.getDetFrequency()>2.0) {
-				periods = periods + ",0.5";
-			}
-		}
-		job.addArgument("-periods " + periods);
 		
 		job.addProfile("globus", "maxWallTime","60");
 		job.addProfile("hints","executionPool", "shock");
