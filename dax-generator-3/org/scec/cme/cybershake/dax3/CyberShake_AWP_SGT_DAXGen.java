@@ -532,6 +532,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		preAWPJob.addArgument("--py " + procDims[1]);
 		preAWPJob.addArgument("--pz " + procDims[2]);
 		preAWPJob.addArgument("--source-frequency " + riq.getSourceFrequency());
+		preAWPJob.addArgument("--run_id " + riq.getRunID());
 		
 		if (spacing>0.0) {
 			preAWPJob.addArgument("--spacing " + spacing);
