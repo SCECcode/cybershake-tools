@@ -484,10 +484,10 @@ public class CyberShake_PP_DAXGen {
 	        
 	        //Adjust a few parameters accordingly
 	        if (params.getDetFrequency()==1.0) {
-	        	//Timesteps should be enough for 400 sec of simulation, rounded up to nearest 1k
-	        	NUMTIMESTEPS = "8000";
+	        	//Timesteps should be enough for 500 sec of simulation, rounded up to nearest 1k
+	        	NUMTIMESTEPS = "10000";
 	        	if (params.getSpacing()>0.0) {
-	        		NUMTIMESTEPS = "" + 1000*(int)(Math.ceil((400.0/Double.parseDouble(LF_TIMESTEP))/1000));
+	        		NUMTIMESTEPS = "" + 1000*(int)(Math.ceil((500.0/Double.parseDouble(LF_TIMESTEP))/1000));
 	        	}
 	        }			
 
@@ -790,7 +790,7 @@ public class CyberShake_PP_DAXGen {
 		} else if (riq.getRuptVarScenID()==6 || riq.getRuptVarScenID()==7) {
 			directSynthJob.addArgument("rupture_spacing=uniform");
 		}
-		
+				
 		directSynthJob.addArgument("ntout=" + NUMTIMESTEPS);
 		
 		String rup_list_file = "rupture_file_list_" + riq.getSiteName();
