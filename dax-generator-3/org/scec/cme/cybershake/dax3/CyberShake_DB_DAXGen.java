@@ -476,10 +476,6 @@ public class CyberShake_DB_DAXGen {
 		
 		// db password file
 		job.addArgument("--password-file " + DB_PASS_FILE);
-		//If it is stochastic, instead the wrapper will figure out the actual Vs30 value and use the --force-vs30 argument
-		if (!params.isStochastic()) {
-			job.addArgument("--vs30 " + CURVE_DEFAULT_VS30);
-		}
 		if (!DO_CURVE_PLOT) {
 			// this makes it just calculate the curve, without plotting
 			job.addArgument("--calc-only");
@@ -547,9 +543,6 @@ public class CyberShake_DB_DAXGen {
 		
 		// db password file
 		job.addArgument("--password-file " + DB_PASS_FILE);
-		if (!params.isStochastic()) {
-			job.addArgument("--vs30 " + CURVE_DEFAULT_VS30);
-		}
 		if (!DO_CURVE_PLOT) {
 			// this makes it just calculate the curve, without plotting
 			job.addArgument("--calc-only");
@@ -616,9 +609,6 @@ public class CyberShake_DB_DAXGen {
 		
 		// db password file
 		job.addArgument("--password-file " + DB_PASS_FILE);
-		if (!params.isStochastic()) {
-			job.addArgument("--vs30 " + CURVE_DEFAULT_VS30);
-		}
 		if (!DO_CURVE_PLOT) {
 			// this makes it just calculate the curve, without plotting
 			job.addArgument("--calc-only");
