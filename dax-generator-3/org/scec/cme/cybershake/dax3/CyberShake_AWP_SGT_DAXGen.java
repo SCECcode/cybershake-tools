@@ -170,6 +170,15 @@ public class CyberShake_AWP_SGT_DAXGen {
 		Job preSGT = addPreSGT(spacing);
 		sgtDAX.addJob(preSGT);
 		
+		Job velocityParams = addVelocityParams(db_server, smoothing);
+		sgtDAX.addJob(velocityParams);
+		if (smoothing) {
+			sgtDAX.addDependency(smoothingJob, velocityParams);
+		} else {
+			sgtDAX.addDependency(velocityJob, velocityParams);
+		}
+		sgtDAX.addDependency(preSGT, velocityParams);
+		
 		Job preAWP = addPreAWP(separateVelJobs, procDims, spacing, smoothing);
 		sgtDAX.addJob(preAWP);
 		sgtDAX.addDependency(preSGT, preAWP);
@@ -242,6 +251,42 @@ public class CyberShake_AWP_SGT_DAXGen {
 		
 		sgtDAX.writeToFile(outputDAXFilename);
 		
+	}
+
+
+	private static Job addVelocityParams(String server, boolean smoothing) {
+		String id = "PreSGT_" + riq.getSiteName();
+		Job velocityParamsJob = new Job(id, "scec", "Velocity_Params", "1.0");
+		
+		File velocityMesh = new File("awp." + riq.getSiteName() + ".media");
+		if (smoothing) {
+			velocityMesh = new File("awp." + riq.getSiteName() + ".smoothed.media");
+		}
+		File gridoutFile = new File("gridout_" + riq.getSiteName());
+		File fdlocFile = new File(riq.getSiteName() + ".fdloc");
+
+		velocityMesh.setTransfer(File.TRANSFER.FALSE);
+		gridoutFile.setTransfer(File.TRANSFER.TRUE);
+		fdlocFile.setTransfer(File.TRANSFER.FALSE);
+		
+		velocityMesh.setRegister(false);
+		gridoutFile.setRegister(false);
+		fdlocFile.setRegister(false);
+		
+		velocityParamsJob.addArgument("-lat " + riq.getLat());
+		velocityParamsJob.addArgument("-lon " + riq.getLon());
+		velocityParamsJob.addArgument("-m " + riq.getVelModelString());
+		velocityParamsJob.addArgument("-vmesh " + velocityMesh.getName());
+		velocityParamsJob.addArgument("-fd " + fdlocFile.getName());
+		velocityParamsJob.addArgument("-go " + gridoutFile.getName());
+		velocityParamsJob.addArgument("-s " + server);
+		velocityParamsJob.addArgument("-r " + riq.getRunID());
+		
+		velocityParamsJob.uses(velocityMesh, LINK.INPUT);
+		velocityParamsJob.uses(gridoutFile, LINK.INPUT);
+		velocityParamsJob.uses(fdlocFile, LINK.INPUT);
+		
+		return velocityParamsJob;
 	}
 
 
