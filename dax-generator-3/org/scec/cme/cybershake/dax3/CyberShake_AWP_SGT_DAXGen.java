@@ -432,6 +432,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 				long num_pts = ((long)dims[0])*((long)dims[1])*((long)dims[2]);
 				long TWO_BILLION = 2000000000L;
 				long SEVEN_BILLION = 7000000000L;
+				long FIFTEEN_BILLION = 15000000000L;
 				if (num_pts<TWO_BILLION) {
 					//Use 10x10x1
 					for (int i=0; i<2; i++) {
@@ -457,17 +458,17 @@ public class CyberShake_AWP_SGT_DAXGen {
 					procDims[1] = 10;
 					procDims[2] = 1;
 				} else {
-					//Use 40x20x1
+					//Study 18.8: change to 40x30x1
 					if (dims[0] % 80 != 0) {
 						System.err.println("One of the volume dimensions is " + dims[0] + " which is not divisible by 80.  Aborting.");
 						System.exit(3);
 					}
-					if (dims[1] % 40 != 0) {
+					if (dims[1] % 60 != 0) {
 						System.err.println("One of the volume dimensions is " + dims[1] + " which is not divisible by 40.  Aborting.");
 						System.exit(3);
 					}
 					procDims[0] = 40;
-					procDims[1] = 20;
+					procDims[1] = 30;
 					procDims[2] = 1;
 				}
 				
