@@ -691,6 +691,21 @@ public class CyberShake_DB_DAXGen {
 
 		//List of IM_Type_IDs for duration
 		job.addArgument("-t 176,177,180,181");
+
+		//Period required for the job to work correctly
+		String periods = "10,7.5,5,4,3";
+		if (params.isStochastic()) {
+			periods = periods + ",1,0.5,0.2,0.1";
+		} else {
+			if (params.getDetFrequency()>=1.0) {
+				periods = periods + ",2";
+			}
+			if (params.getDetFrequency()>=2.0) {
+				periods = periods + ",1";
+			}
+		}
+		job.addArgument("-periods " + periods);
+
 		
 		job.addProfile("globus", "maxWallTime", "15");
 		job.addProfile("hints","executionPool", "local");
