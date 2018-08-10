@@ -690,7 +690,7 @@ public class CyberShake_DB_DAXGen {
 		job.addArgument("-c duration");
 
 		//List of IM_Type_IDs for duration
-		job.addArgument("-t 176,177,178,179,180,181,182,183");
+		job.addArgument("-t 176,177,180,181");
 		
 		job.addProfile("globus", "maxWallTime", "15");
 		job.addProfile("hints","executionPool", "local");
