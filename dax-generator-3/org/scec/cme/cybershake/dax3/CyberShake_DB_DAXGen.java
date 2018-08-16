@@ -300,6 +300,8 @@ public class CyberShake_DB_DAXGen {
 		job.addArgument("-p " + filesDir);
 
 		job.addArgument("-run " + riq.getRunID());
+		//This isn't used, but CyberCommands requires it
+		job.addArgument("-periods 2,3,5,10");
 		
 		job.addProfile("globus", "maxWallTime","60");
 		job.addProfile("hints","executionPool", "shock");
