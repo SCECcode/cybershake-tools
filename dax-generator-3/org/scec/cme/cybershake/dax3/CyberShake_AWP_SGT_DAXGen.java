@@ -255,7 +255,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 
 
 	private static Job addVelocityParams(String server, boolean smoothing) {
-		String id = "Velocity_Params" + riq.getSiteName();
+		String id = "Velocity_Params_" + riq.getSiteName();
 		Job velocityParamsJob = new Job(id, "scec", "Velocity_Params", "1.0");
 		
 		File velocityMesh = new File("awp." + riq.getSiteName() + ".media");
