@@ -916,7 +916,7 @@ public class CyberShake_SGT_DAXGen {
 		awpStrainOutFile.setRegister(true);
 		headerFile.setRegister(true);
 		md5OutFile.setRegister(true);
-
+		
 		postAWPJob.addArgument(riq.getSiteName());
 		postAWPJob.addArgument(awpStrainInFile);
 		postAWPJob.addArgument(awpStrainOutFile);
