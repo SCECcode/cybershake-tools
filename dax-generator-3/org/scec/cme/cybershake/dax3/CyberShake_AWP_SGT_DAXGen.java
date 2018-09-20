@@ -671,8 +671,8 @@ public class CyberShake_AWP_SGT_DAXGen {
 		String id = jobname + "_" + riq.getSiteName() + "_" + component;
 		Job awpJob = new Job(id, "scec", jobname, "1.0");
 		
-		//Try not telling Pegasus about IN3D file: this way it won't get transferred between
-		//titan and titan-pilot, which results in the file being zeroed
+		//Try not telling Pegasus about IN3D or awp-strain files: this way they won't get transferred between
+		//titan and titan-pilot, which results in the files being zeroed
 		//File in3DFile = new File("IN3D." + riq.getSiteName() + "." + component);
 		String in3DFilename = "IN3D." + riq.getSiteName() + "." + component;
 		//in3DFile.setTransfer(TRANSFER.FALSE);
@@ -692,12 +692,12 @@ public class CyberShake_AWP_SGT_DAXGen {
 		//awpJob.addArgument(in3DFile);
 		awpJob.addArgument(in3DFilename);
 		
-		File awpStrainFile = new File("comp_" + component + "/output_sgt/awp-strain-" + riq.getSiteName() + "-f" + component);
-		awpStrainFile.setTransfer(TRANSFER.FALSE);
-		awpStrainFile.setRegister(false);
+//		File awpStrainFile = new File("comp_" + component + "/output_sgt/awp-strain-" + riq.getSiteName() + "-f" + component);
+//		awpStrainFile.setTransfer(TRANSFER.FALSE);
+//		awpStrainFile.setRegister(false);
 		
 //		awpJob.uses(in3DFile, LINK.INPUT);
-		awpJob.uses(awpStrainFile, LINK.OUTPUT);
+//		awpJob.uses(awpStrainFile, LINK.OUTPUT);
 		
 		awpJob.addProfile("globus", "hostcount", "" + hosts);
 		awpJob.addProfile("globus", "count", "" + cores);
@@ -822,7 +822,10 @@ public class CyberShake_AWP_SGT_DAXGen {
 		String id = "PostAWP_" + riq.getSiteName() + "_" + component;
 		Job postAWPJob = new Job(id, "scec", "PostAWP", "1.0");
 		
-		File awpStrainInFile = new File("comp_" + component + "/output_sgt/awp-strain-" + riq.getSiteName() + "-f" + component);
+		//Try not telling Pegasus about IN3D or awp-strain files: this way they won't get transferred between
+		//titan and titan-pilot, which results in the files being zeroed
+//		File awpStrainInFile = new File("comp_" + component + "/output_sgt/awp-strain-" + riq.getSiteName() + "-f" + component);
+		String awpStrainInFilename = "comp_" + component + "/output_sgt/awp-strain-" + riq.getSiteName() + "-f" + component;
 		//We swap the component value in the output file, because AWP X = RWG Y
 		String rwgComponent = "z";
 		if (component.equals("x")) {
@@ -835,7 +838,8 @@ public class CyberShake_AWP_SGT_DAXGen {
 		File cordFile = new File(riq.getSiteName() + ".cordfile");
 		File fdlocFile = new File(riq.getSiteName() + ".fdloc");
 		File gridoutFile = new File("gridout_" + riq.getSiteName());
-		File in3DFile = new File("IN3D." + riq.getSiteName() + "." + component);
+//		File in3DFile = new File("IN3D." + riq.getSiteName() + "." + component);
+		String in3DFilename = "IN3D." + riq.getSiteName() + "." + component;
 		File awpMediaFile = new File("awp." + riq.getSiteName() + ".media");
 		if (separateVel) {
 			awpMediaFile = new File("v_sgt-" + riq.getSiteName());
@@ -845,12 +849,12 @@ public class CyberShake_AWP_SGT_DAXGen {
 		}
 		File headerFile = new File(riq.getSiteName() + "_f" + rwgComponent + "_" + riq.getRunID() + ".sgthead");
 		
-		awpStrainInFile.setTransfer(TRANSFER.TRUE);
+//		awpStrainInFile.setTransfer(TRANSFER.TRUE);
 		modelboxFile.setTransfer(TRANSFER.TRUE);
 		cordFile.setTransfer(TRANSFER.TRUE);
 		fdlocFile.setTransfer(TRANSFER.TRUE);
 		gridoutFile.setTransfer(TRANSFER.TRUE);
-		in3DFile.setTransfer(TRANSFER.TRUE);
+//		in3DFile.setTransfer(TRANSFER.TRUE);
 		//Changing to true to facilitate cleanup
 		awpMediaFile.setTransfer(TRANSFER.TRUE);
 		
@@ -864,25 +868,27 @@ public class CyberShake_AWP_SGT_DAXGen {
 			postAWPJob.uses(md5OutFile, LINK.OUTPUT);
 		}
 		
-		awpStrainInFile.setRegister(false);
+//		awpStrainInFile.setRegister(false);
 		modelboxFile.setRegister(false);
 		cordFile.setRegister(false);
 		fdlocFile.setRegister(false);
 		gridoutFile.setRegister(false);
-		in3DFile.setRegister(false);
+//		in3DFile.setRegister(false);
 		awpMediaFile.setRegister(false);
 		
 		awpStrainOutFile.setRegister(true);
 		headerFile.setRegister(true);
 
 		postAWPJob.addArgument(riq.getSiteName());
-		postAWPJob.addArgument(awpStrainInFile);
+//		postAWPJob.addArgument(awpStrainInFile);
+		postAWPJob.addArgument(awpStrainInFilename);
 		postAWPJob.addArgument(awpStrainOutFile);
 		postAWPJob.addArgument(modelboxFile);
 		postAWPJob.addArgument(cordFile);
 		postAWPJob.addArgument(fdlocFile);
 		postAWPJob.addArgument(gridoutFile);
-		postAWPJob.addArgument(in3DFile);
+//		postAWPJob.addArgument(in3DFile);
+		postAWPJob.addArgument(in3DFilename);
 		postAWPJob.addArgument(awpMediaFile);
 		postAWPJob.addArgument(component);
 		postAWPJob.addArgument(riq.getRunID() + "");
@@ -899,13 +905,13 @@ public class CyberShake_AWP_SGT_DAXGen {
 			postAWPJob.addArgument(riq.getLowFrequencyCutoff() + "");
 		}
 		
-		postAWPJob.uses(awpStrainInFile, LINK.INPUT);
+//		postAWPJob.uses(awpStrainInFile, LINK.INPUT);
 		postAWPJob.uses(awpStrainOutFile, LINK.OUTPUT);
 		postAWPJob.uses(modelboxFile, LINK.INPUT);
 		postAWPJob.uses(cordFile, LINK.INPUT);
 		postAWPJob.uses(fdlocFile, LINK.INPUT);
 		postAWPJob.uses(gridoutFile, LINK.INPUT);
-		postAWPJob.uses(in3DFile, LINK.INPUT);
+//		postAWPJob.uses(in3DFile, LINK.INPUT);
 		postAWPJob.uses(awpMediaFile, LINK.INPUT);
 		postAWPJob.uses(headerFile, LINK.OUTPUT);
 		
@@ -944,24 +950,30 @@ public class CyberShake_AWP_SGT_DAXGen {
 		String id = "AWP_NaN_Check_" + component;
 		Job awpNaNJob = new Job(id, "scec", "AWP_NaN_Check", "1.0");
 		
-		File awpStrainInFile = new File("comp_" + component + "/output_sgt/awp-strain-" + riq.getSiteName() + "-f" + component);
-		awpStrainInFile.setTransfer(TRANSFER.TRUE);
-		awpStrainInFile.setRegister(false);
+		//Try not telling Pegasus about IN3D or awp-strain files: this way they won't get transferred between
+		//titan and titan-pilot, which results in the files being zeroed
+//		File awpStrainInFile = new File("comp_" + component + "/output_sgt/awp-strain-" + riq.getSiteName() + "-f" + component);
+//		awpStrainInFile.setTransfer(TRANSFER.TRUE);
+//		awpStrainInFile.setRegister(false);
+		String awpStrainInFilename = "comp_" + component + "/output_sgt/awp-strain-" + riq.getSiteName() + "-f" + component;
 		
 		File sgtcordFile = new File(riq.getSiteName() + ".cordfile");
 		sgtcordFile.setTransfer(TRANSFER.TRUE);
 		sgtcordFile.setRegister(false);
 		
-		File in3DFile = new File("IN3D." + riq.getSiteName() + "." + component);
-		in3DFile.setTransfer(TRANSFER.TRUE);
-		in3DFile.setRegister(false);
+//		File in3DFile = new File("IN3D." + riq.getSiteName() + "." + component);
+//		in3DFile.setTransfer(TRANSFER.TRUE);
+//		in3DFile.setRegister(false);
+		String in3DFilename = "IN3D." + riq.getSiteName() + "." + component;
 		
-		awpNaNJob.addArgument(awpStrainInFile.getName());
+//		awpNaNJob.addArgument(awpStrainInFile.getName());
+		awpNaNJob.addArgument(awpStrainInFilename);
 		awpNaNJob.addArgument(sgtcordFile.getName());
-		awpNaNJob.addArgument(in3DFile.getName());
-		awpNaNJob.uses(awpStrainInFile, LINK.INPUT);
+//		awpNaNJob.addArgument(in3DFile.getName());
+		awpNaNJob.addArgument(in3DFilename);
+//		awpNaNJob.uses(awpStrainInFile, LINK.INPUT);
 		awpNaNJob.uses(sgtcordFile, LINK.INPUT);
-		awpNaNJob.uses(in3DFile, LINK.INPUT);
+//		awpNaNJob.uses(in3DFile, LINK.INPUT);
 
 		return awpNaNJob;
 	}
