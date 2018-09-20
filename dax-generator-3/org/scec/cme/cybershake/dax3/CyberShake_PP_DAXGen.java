@@ -435,6 +435,7 @@ public class CyberShake_PP_DAXGen {
         }
         
         if (line.hasOption(rotd.getOpt())) {
+        	
         	pp_params.setCalculateRotD(true);
         	if (!pp_params.isLargeMemSynth() && !pp_params.isUseDirectSynth()) {
         		System.err.println("Currently RotD calculation is only supported if using large mem version of SeisPSA or DirectSynth.");
