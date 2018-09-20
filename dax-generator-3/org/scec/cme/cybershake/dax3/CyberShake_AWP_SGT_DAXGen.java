@@ -554,20 +554,22 @@ public class CyberShake_AWP_SGT_DAXGen {
 		File gridoutFile = new File("gridout_" + riq.getSiteName());
 		File fdlocFile = new File(riq.getSiteName() + ".fdloc");
 		File cordFile = new File(riq.getSiteName() + ".cordfile");
-		File in3dXFile = new File("IN3D." + riq.getSiteName() + ".x");
-		File in3dYFile = new File("IN3D." + riq.getSiteName() + ".y");
+		//Try not telling Pegasus about IN3D file: this way it won't get transferred between
+		//titan and titan-pilot, which results in the file being zeroed
+		//File in3dXFile = new File("IN3D." + riq.getSiteName() + ".x");
+		//File in3dYFile = new File("IN3D." + riq.getSiteName() + ".y");
 
 		gridoutFile.setTransfer(TRANSFER.TRUE);
 		fdlocFile.setTransfer(TRANSFER.FALSE);
 		cordFile.setTransfer(TRANSFER.FALSE);
-		in3dXFile.setTransfer(TRANSFER.FALSE);
-		in3dYFile.setTransfer(TRANSFER.FALSE);
+		//in3dXFile.setTransfer(TRANSFER.FALSE);
+		//in3dYFile.setTransfer(TRANSFER.FALSE);
 
 		gridoutFile.setRegister(false);
 		fdlocFile.setRegister(false);
 		cordFile.setRegister(false);
-		in3dXFile.setRegister(false);
-		in3dYFile.setRegister(false);
+		//in3dXFile.setRegister(false);
+		//in3dYFile.setRegister(false);
 		
 		preAWPJob.addArgument("--site " + riq.getSiteName());
 		preAWPJob.addArgument("--gridout " + gridoutFile.getName());
@@ -601,8 +603,8 @@ public class CyberShake_AWP_SGT_DAXGen {
 		preAWPJob.uses(gridoutFile, LINK.INPUT);
 		preAWPJob.uses(fdlocFile, LINK.INPUT);
 		preAWPJob.uses(cordFile, LINK.INPUT);
-		preAWPJob.uses(in3dXFile, LINK.OUTPUT);
-		preAWPJob.uses(in3dYFile, LINK.OUTPUT);
+		//preAWPJob.uses(in3dXFile, LINK.OUTPUT);
+		//preAWPJob.uses(in3dYFile, LINK.OUTPUT);
 		
 		return preAWPJob;
 	}
@@ -669,12 +671,15 @@ public class CyberShake_AWP_SGT_DAXGen {
 		String id = jobname + "_" + riq.getSiteName() + "_" + component;
 		Job awpJob = new Job(id, "scec", jobname, "1.0");
 		
-		File in3DFile = new File("IN3D." + riq.getSiteName() + "." + component);
+		//Try not telling Pegasus about IN3D file: this way it won't get transferred between
+		//titan and titan-pilot, which results in the file being zeroed
+		//File in3DFile = new File("IN3D." + riq.getSiteName() + "." + component);
+		String in3DFilename = "IN3D." + riq.getSiteName() + "." + component;
+		//in3DFile.setTransfer(TRANSFER.FALSE);
 		
-		in3DFile.setTransfer(TRANSFER.FALSE);
+		//in3DFile.setRegister(false);
 		
-		in3DFile.setRegister(false);
-
+		
 		int cores = procDims[0]*procDims[1]*procDims[2];
 		int hosts = (int)Math.ceil(((double)cores)/32);
 		if (riq.getSgtString().equals("awp_gpu")) {
@@ -684,13 +689,14 @@ public class CyberShake_AWP_SGT_DAXGen {
 		if (riq.getSgtString().equals("awp")) {
 			awpJob.addArgument("" + cores);
 		}
-		awpJob.addArgument(in3DFile);
+		//awpJob.addArgument(in3DFile);
+		awpJob.addArgument(in3DFilename);
 		
 		File awpStrainFile = new File("comp_" + component + "/output_sgt/awp-strain-" + riq.getSiteName() + "-f" + component);
 		awpStrainFile.setTransfer(TRANSFER.FALSE);
 		awpStrainFile.setRegister(false);
 		
-		awpJob.uses(in3DFile, LINK.INPUT);
+//		awpJob.uses(in3DFile, LINK.INPUT);
 		awpJob.uses(awpStrainFile, LINK.OUTPUT);
 		
 		awpJob.addProfile("globus", "hostcount", "" + hosts);
