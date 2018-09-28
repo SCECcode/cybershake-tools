@@ -801,10 +801,16 @@ public class CyberShake_PP_DAXGen {
 			if (riq.getRuptVarScenID()!=8) {
 				//Then we write one line per rupture, and let DirectSynth synthesize the individual RVs
 				//Get number of ruptures
+				//Cutoff distance depends on if it's a TEST site or not
+				double cutoffDist = 200.0;
+				if (riq.getSiteName().equals("TEST")) {
+					cutoffDist = 20.0;
+				}
+				
 				String query = "select SR.Source_ID, SR.Rupture_ID, R.Num_Points, R.Mag, count(*) " +
 						"from CyberShake_Site_Ruptures SR, CyberShake_Sites S, Ruptures R, Rupture_Variations V " +
 						"where S.CS_Short_Name='" + riq.getSiteName() + "' and S.CS_Site_ID=SR.CS_Site_ID " +
-						"and SR.ERF_ID=" + riq.getErfID() + " and R.ERF_ID=" + riq.getErfID() + " and SR.Cutoff_Dist=200.0 " +
+						"and SR.ERF_ID=" + riq.getErfID() + " and R.ERF_ID=" + riq.getErfID() + " and SR.Cutoff_Dist=" + cutoffDist + " " +
 						"and V.ERF_ID=" + riq.getErfID() + " and V.Rup_Var_Scenario_ID=" + riq.getRuptVarScenID() + " " +
 						"and SR.Source_ID=R.Source_ID and R.Source_ID=V.Source_ID and SR.Rupture_ID=R.Rupture_ID " +
 						"and R.Rupture_ID=V.Rupture_ID group by V.Source_ID, V.Rupture_ID " + 
