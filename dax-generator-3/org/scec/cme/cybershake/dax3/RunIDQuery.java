@@ -50,6 +50,7 @@ public class RunIDQuery {
 	private final int CCA_1D_ID = 9;
 	private final int CCA_ID = 10;
 	private final int USGS_ID = 11;
+	private final int STUDY_18_8_ID = 12;
 	
 	private static final String HOSTNAME = "focal.usc.edu";
 	private final String DB_NAME = "CyberShake";
@@ -195,6 +196,9 @@ public class RunIDQuery {
     		} else if (velModelID==USGS_ID) {
     			//If using USGS Bay Area, use CCA, then CVM-S4.26.M01
     			velModelString = "usgs,cca,cvmsi";
+    		} else if (velModelID==STUDY_18_8_ID) {
+    			//For Study 18.8, we're using CCA, then USGS Bay Area, then CVM-S4.26.M01
+    			velModelString = "cca,usgs,cvmsi";
     		} else {
     			System.err.println("Velocity model ID " + velModelID + " can't be converted to a string representation.");
     			System.exit(3);
