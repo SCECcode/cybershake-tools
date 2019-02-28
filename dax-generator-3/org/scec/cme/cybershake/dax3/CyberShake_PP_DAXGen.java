@@ -254,7 +254,7 @@ public class CyberShake_PP_DAXGen {
         Option no_mpi_cluster = new Option("nc", "no-mpi-cluster", false, "Do not use pegasus-mpi-cluster");
         Option zip = new Option("z", "zip", false, "Zip seismogram and PSA files before transferring.");
         Option separate_zip = new Option("s", "separate-zip", false, "Run zip jobs as separate seismogram and PSA zip jobs.");
-        Option no_dir_hierarchy = new Option("nh", "no-hierarchy", false, "Use directory hierarchy on compute resource for seismograms and PSA files.");
+        Option dir_hierarchy = new Option("dh", "dir-hierarchy", false, "Use directory hierarchy on compute resource for input and output files.");
         Option file_forward = new Option("ff", "file-forward", false, "Use file-forwarding option.  Requires PMC.");
         Option no_forward = new Option("nf", "no-forward", false, "Use no forwarding.");
         Option serial_extract = new Option("se", "serial-extract", false, "Use serial version of extraction code rather than extract SGT MPI.");
@@ -281,7 +281,7 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(high_frequency);
         cmd_opts.addOption(sqlIndex);
         cmd_opts.addOption(no_mpi_cluster);
-        cmd_opts.addOption(no_dir_hierarchy);
+        cmd_opts.addOption(dir_hierarchy);
         cmd_opts.addOption(serial_extract);
         cmd_opts.addOption(global_extract_sgt_mpi);
         cmd_opts.addOption(large_mem);
@@ -375,8 +375,8 @@ public class CyberShake_PP_DAXGen {
         		return -5;
         	}
         }
-        if (line.hasOption(no_dir_hierarchy.getOpt())) {
-        	pp_params.setDirHierarchy(false);
+        if (line.hasOption(dir_hierarchy.getOpt())) {
+        	pp_params.setDirHierarchy(true);
         }
 
         if (line.hasOption(file_forward.getOpt())) {
@@ -836,7 +836,11 @@ public class CyberShake_PP_DAXGen {
 				while (!ruptures.isAfterLast()) {
 					int source_id = ruptures.getInt("SR.Source_ID");
 					int rupture_id = ruptures.getInt("SR.Rupture_ID");
-					String rupture_path = "e" + riq.getErfID() + "_rv" + riq.getRuptVarScenID() + "_" + source_id + "_" + rupture_id + ".txt";
+					String directory = "";
+					if (params.isDirHierarchy()) {
+						directory = source_id + "/" + rupture_id + "/";
+					}
+					String rupture_path = directory + "e" + riq.getErfID() + "_rv" + riq.getRuptVarScenID() + "_" + source_id + "_" + rupture_id + ".txt";
 					File rupture_file = new File(rupture_path);
 					rupture_file.setTransfer(TRANSFER.TRUE);
 					directSynthJob.uses(rupture_file, LINK.INPUT);
@@ -845,25 +849,25 @@ public class CyberShake_PP_DAXGen {
 					double mag = ruptures.getDouble("R.Mag");
 					bw.write(rupture_path + " " + slips + " 1 " + rupture_pts + " " + String.format("%.2f", mag) + "\n");
 					//Also add this to Pegasus file management
-					File seisFile = new File(SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
+					File seisFile = new File(directory + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
 							riq.getRunID() + "_" + source_id + "_" + rupture_id + SEISMOGRAM_FILENAME_EXTENSION);
 					seisFile.setRegister(true);
 					seisFile.setTransfer(TRANSFER.TRUE);
 					directSynthJob.uses(seisFile, LINK.OUTPUT);
-					File psaFile = new File(PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
+					File psaFile = new File(directory + PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
 							riq.getRunID() + "_" + source_id + "_" + rupture_id + PEAKVALS_FILENAME_EXTENSION);
 					psaFile.setRegister(true);
 					psaFile.setTransfer(TRANSFER.TRUE);
 					directSynthJob.uses(psaFile, LINK.OUTPUT);
 					if (params.isCalculateRotD()) {
-						File rotdFile = new File(ROTD_FILENAME_PREFIX + riq.getSiteName() + "_" +
+						File rotdFile = new File(directory + ROTD_FILENAME_PREFIX + riq.getSiteName() + "_" +
 							riq.getRunID() + "_" + source_id + "_" + rupture_id + ROTD_FILENAME_EXTENSION);
 						rotdFile.setRegister(true);
 						rotdFile.setTransfer(TRANSFER.TRUE);
 						directSynthJob.uses(rotdFile, LINK.OUTPUT);
 					}
 					if (params.isCalculateDurations()) {
-						File durationFile = new File(DURATION_FILENAME_PREFIX + riq.getSiteName() + "_" + 
+						File durationFile = new File(directory + DURATION_FILENAME_PREFIX + riq.getSiteName() + "_" + 
 								riq.getRunID() + "_" + source_id + "_" + rupture_id + DURATION_FILENAME_EXTENSION);
 						durationFile.setRegister(true);
 						durationFile.setTransfer(TRANSFER.TRUE);
@@ -904,34 +908,38 @@ public class CyberShake_PP_DAXGen {
 				// <path to SRF>
 				while (!ruptureVariations.isAfterLast()) {
 					String rup_var_path = ruptureVariations.getString("V.Rup_Var_LFN");
-					bw.write(rup_var_path + "\n");
-					File rup_var_file = new File(rup_var_path);
-					rup_var_file.setTransfer(TRANSFER.TRUE);
-					directSynthJob.uses(rup_var_file, LINK.INPUT);
 					//For RSQSim, filename looks like e<erf id>_rv<rup var scen id>_<src id>_<rup id>_event<uid>.srf
 					String[] pieces = rup_var_path.split("_");
 					int source_id = Integer.parseInt(pieces[2]);
 					int rupture_id = Integer.parseInt(pieces[3]);
+					String directory = "";
+					if (params.isDirHierarchy()) {
+						directory = source_id + "/" + rupture_id + "/"; 
+					}
+					bw.write(rup_var_path + "\n");
+					File rup_var_file = new File(directory + rup_var_path);
+					rup_var_file.setTransfer(TRANSFER.TRUE);
+					directSynthJob.uses(rup_var_file, LINK.INPUT);
 					//Add output files
-					File seisFile = new File(SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
+					File seisFile = new File(directory + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
 							riq.getRunID() + "_" + source_id + "_" + rupture_id + SEISMOGRAM_FILENAME_EXTENSION);
 					seisFile.setRegister(true);
 					seisFile.setTransfer(TRANSFER.TRUE);
 					directSynthJob.uses(seisFile, LINK.OUTPUT);
-					File psaFile = new File(PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
+					File psaFile = new File(directory + PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
 							riq.getRunID() + "_" + source_id + "_" + rupture_id + PEAKVALS_FILENAME_EXTENSION);
 					psaFile.setRegister(true);
 					psaFile.setTransfer(TRANSFER.TRUE);
 					directSynthJob.uses(psaFile, LINK.OUTPUT);
 					if (params.isCalculateRotD()) {
-						File rotdFile = new File(ROTD_FILENAME_PREFIX + riq.getSiteName() + "_" +
+						File rotdFile = new File(directory + ROTD_FILENAME_PREFIX + riq.getSiteName() + "_" +
 							riq.getRunID() + "_" + source_id + "_" + rupture_id + ROTD_FILENAME_EXTENSION);
 						rotdFile.setRegister(true);
 						rotdFile.setTransfer(TRANSFER.TRUE);
 						directSynthJob.uses(rotdFile, LINK.OUTPUT);
 					}
 					if (params.isCalculateDurations()) {
-						File durationFile = new File(DURATION_FILENAME_PREFIX + riq.getSiteName() + "_" + 
+						File durationFile = new File(directory + DURATION_FILENAME_PREFIX + riq.getSiteName() + "_" + 
 								riq.getRunID() + "_" + source_id + "_" + rupture_id + DURATION_FILENAME_EXTENSION);
 						durationFile.setRegister(true);
 						durationFile.setTransfer(TRANSFER.TRUE);
