@@ -33,7 +33,7 @@ public class PP_DAXParameters {
 	private boolean mpi_cluster = true;
 	private boolean zip = false;
 	private boolean separateZip = false;
-	private boolean dirHierarchy = true;
+	private boolean dirHierarchy = false;
 	
 	private boolean fileForward = false;
 	private boolean pipeForward = true;
