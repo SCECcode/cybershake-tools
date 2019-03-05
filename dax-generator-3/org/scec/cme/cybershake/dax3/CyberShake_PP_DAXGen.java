@@ -92,6 +92,7 @@ public class CyberShake_PP_DAXGen {
     private final static String DIRECT_SYNTH_NAME = "DirectSynth";
     private final static String DIRECT_SYNTH_RSQSIM_NAME = "DirectSynth_RSQSim";
     private final static String SET_PP_HOST_NAME = "SetPPHost";
+    private final static String DIR_CREATE_NAME = "DirCreate";
 	
     //Simulation parameters
     private static String NUMTIMESTEPS = "3000";
@@ -527,7 +528,13 @@ public class CyberShake_PP_DAXGen {
 			
 			if (params.isUseDirectSynth()) {
 				ADAG dax = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName() + "_Synth");
-				addDirectSynth(dax);
+				Job directSynthJob = addDirectSynth(dax);
+				if (params.isDirHierarchy()) {
+					//Add a job to create all the directories we need
+					Job dirCreateJob = addDirCreateJob(dax);
+					dax.addDependency(dirCreateJob, directSynthJob);
+				}
+				
 				//Write leftover jobs to file
 				String daxFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_Synth" + DAX_FILENAME_EXTENSION;
 				dax.writeToFile(daxFile);
@@ -731,7 +738,14 @@ public class CyberShake_PP_DAXGen {
 		return null;
 	}
 			
-	private void addDirectSynth(ADAG dax) {
+	private Job addDirCreateJob(ADAG dax) {
+		Job dirCreateJob = new Job("DirCreate", NAMESPACE, DIRECT_SYNTH_NAME, "1.0");
+		
+		
+		return null;
+	}
+
+	private Job addDirectSynth(ADAG dax) {
 		/*stat=$stat slon=$slon slat=$slat \
         sgt_handlers=32 run_id=0 \
 		debug=1 max_buf_mb=1024 \
@@ -797,6 +811,9 @@ public class CyberShake_PP_DAXGen {
 		String rup_list_file = "rupture_file_list_" + riq.getSiteName();
 		java.io.File javaFile = new java.io.File(params.getPPDirectory() + "/" + rup_list_file);
 		String fullPath = "";
+		String dirFilename = "directory_list.txt";
+		BufferedWriter dirFile = null;
+
 		try {
 			if (riq.getRuptVarScenID()!=8) {
 				//Then we write one line per rupture, and let DirectSynth synthesize the individual RVs
@@ -839,8 +856,12 @@ public class CyberShake_PP_DAXGen {
 					String directory = "";
 					if (params.isDirHierarchy()) {
 						directory = source_id + "/" + rupture_id + "/";
+						if (dirFile==null) {
+							dirFile = new BufferedWriter(new FileWriter(dirFilename));
+						}
+						dirFile.write(directory + "\n");
 					}
-					String rupture_path = directory + "e" + riq.getErfID() + "_rv" + riq.getRuptVarScenID() + "_" + source_id + "_" + rupture_id + ".txt";
+					String rupture_path = "e" + riq.getErfID() + "_rv" + riq.getRuptVarScenID() + "_" + source_id + "_" + rupture_id + ".txt";
 					File rupture_file = new File(rupture_path);
 					rupture_file.setTransfer(TRANSFER.TRUE);
 					directSynthJob.uses(rupture_file, LINK.INPUT);
@@ -915,9 +936,13 @@ public class CyberShake_PP_DAXGen {
 					String directory = "";
 					if (params.isDirHierarchy()) {
 						directory = source_id + "/" + rupture_id + "/"; 
+						if (dirFile==null) {
+							dirFile = new BufferedWriter(new FileWriter("directory_list.txt"));
+						}
+						dirFile.write(directory + "\n");
 					}
 					bw.write(rup_var_path + "\n");
-					File rup_var_file = new File(directory + rup_var_path);
+					File rup_var_file = new File(rup_var_path);
 					rup_var_file.setTransfer(TRANSFER.TRUE);
 					directSynthJob.uses(rup_var_file, LINK.INPUT);
 					//Add output files
@@ -1023,6 +1048,22 @@ public class CyberShake_PP_DAXGen {
 		directSynthJob.uses(rup_list_file, LINK.INPUT);
 		
 		dax.addJob(directSynthJob);
+		
+		if (params.isDirHierarchy()) {
+			Job dirCreateJob = new Job("DirCreate", NAMESPACE, DIRECT_SYNTH_NAME, "1.0");
+			try {
+				dirFile.flush();
+				dirFile.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			dirCreateJob.uses(dirFilename, LINK.INPUT);
+			dirCreateJob.addArgument(dirFilename);
+			dax.addJob(dirCreateJob);
+			dax.addDependency(dirCreateJob, directSynthJob);
+		}
+
+		return directSynthJob;
 	}
 
 	private Job addExtractSGTMPIJob(ADAG dax, int currDax, String ruptureListFilename) {
