@@ -807,7 +807,8 @@ public class CyberShake_PP_DAXGen {
 		java.io.File javaFile = new java.io.File(params.getPPDirectory() + "/" + rup_list_file);
 		String fullPath = "";
 		String dirFilename = "directory_list.txt";
-		BufferedWriter dirFile = null;
+		java.io.File dirJavaFile = new java.io.File(dirFilename);
+		BufferedWriter dirFileWriter = null;
 
 		try {
 			if (riq.getRuptVarScenID()!=8) {
@@ -851,10 +852,10 @@ public class CyberShake_PP_DAXGen {
 					String directory = "";
 					if (params.isDirHierarchy()) {
 						directory = source_id + "/" + rupture_id + "/";
-						if (dirFile==null) {
-							dirFile = new BufferedWriter(new FileWriter(dirFilename));
+						if (dirFileWriter==null) {
+							dirFileWriter = new BufferedWriter(new FileWriter(dirJavaFile));
 						}
-						dirFile.write(directory + "\n");
+						dirFileWriter.write(directory + "\n");
 					}
 					String rupture_path = "e" + riq.getErfID() + "_rv" + riq.getRuptVarScenID() + "_" + source_id + "_" + rupture_id + ".txt";
 					File rupture_file = new File(rupture_path);
@@ -931,10 +932,10 @@ public class CyberShake_PP_DAXGen {
 					String directory = "";
 					if (params.isDirHierarchy()) {
 						directory = source_id + "/" + rupture_id + "/"; 
-						if (dirFile==null) {
-							dirFile = new BufferedWriter(new FileWriter("directory_list.txt"));
+						if (dirFileWriter==null) {
+							dirFileWriter = new BufferedWriter(new FileWriter(dirJavaFile));
 						}
-						dirFile.write(directory + "\n");
+						dirFileWriter.write(directory + "\n");
 					}
 					bw.write(rup_var_path + "\n");
 					File rup_var_file = new File(rup_var_path);
@@ -1046,13 +1047,19 @@ public class CyberShake_PP_DAXGen {
 		
 		if (params.isDirHierarchy()) {
 			Job dirCreateJob = new Job("DirCreate", NAMESPACE, DIRECT_SYNTH_NAME, "1.0");
+			String dirFileFullPath = null;
 			try {
-				dirFile.flush();
-				dirFile.close();
+				dirFileWriter.flush();
+				dirFileWriter.close();
+				dirFileFullPath = dirJavaFile.getCanonicalPath();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			File dirListFile = new File(dirFilename);
+			edu.isi.pegasus.planner.dax.File dirListFile = new File(dirFilename);
+			dirListFile.addPhysicalFile("file://" + dirFileFullPath);
+			dax.addFile(dirListFile);
+			dirListFile.setTransfer(TRANSFER.TRUE);
+			
 			dirCreateJob.uses(dirListFile, LINK.INPUT);
 			dirCreateJob.addArgument(dirFilename);
 			dax.addJob(dirCreateJob);
