@@ -1046,7 +1046,7 @@ public class CyberShake_PP_DAXGen {
 		dax.addJob(directSynthJob);
 		
 		if (params.isDirHierarchy()) {
-			Job dirCreateJob = new Job("DirCreate", NAMESPACE, DIRECT_SYNTH_NAME, "1.0");
+			Job dirCreateJob = new Job("DirCreate", NAMESPACE, DIR_CREATE_NAME, "1.0");
 			String dirFileFullPath = null;
 			try {
 				dirFileWriter.flush();
