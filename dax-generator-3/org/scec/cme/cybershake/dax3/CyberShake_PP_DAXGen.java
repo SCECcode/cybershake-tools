@@ -529,11 +529,6 @@ public class CyberShake_PP_DAXGen {
 			if (params.isUseDirectSynth()) {
 				ADAG dax = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName() + "_Synth");
 				Job directSynthJob = addDirectSynth(dax);
-				if (params.isDirHierarchy()) {
-					//Add a job to create all the directories we need
-					Job dirCreateJob = addDirCreateJob(dax);
-					dax.addDependency(dirCreateJob, directSynthJob);
-				}
 				
 				//Write leftover jobs to file
 				String daxFile = DAX_FILENAME_PREFIX + riq.getSiteName() + "_Synth" + DAX_FILENAME_EXTENSION;
