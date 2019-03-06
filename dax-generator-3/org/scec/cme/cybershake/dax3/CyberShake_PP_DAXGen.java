@@ -1052,7 +1052,8 @@ public class CyberShake_PP_DAXGen {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			dirCreateJob.uses(dirFilename, LINK.INPUT);
+			File dirListFile = new File(dirFilename);
+			dirCreateJob.uses(dirListFile, LINK.INPUT);
 			dirCreateJob.addArgument(dirFilename);
 			dax.addJob(dirCreateJob);
 			dax.addDependency(dirCreateJob, directSynthJob);
