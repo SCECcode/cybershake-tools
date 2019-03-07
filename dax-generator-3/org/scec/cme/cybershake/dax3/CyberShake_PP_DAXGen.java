@@ -850,17 +850,22 @@ public class CyberShake_PP_DAXGen {
 					int source_id = ruptures.getInt("SR.Source_ID");
 					int rupture_id = ruptures.getInt("SR.Rupture_ID");
 					String directory = "";
+					String rupture_path = "e" + riq.getErfID() + "_rv" + riq.getRuptVarScenID() + "_" + source_id + "_" + rupture_id + ".txt";
+					File rupture_file = new File(rupture_path);
+					//If we're using dir hierarchy, we can't have Pegasus transfer in the input files
+					//because Pegasus can only transfer them into the current working directory
+					//Instead, we pass the list of input files to the directory creation job, which does
+					//the symlinks itself.
 					if (params.isDirHierarchy()) {
 						directory = source_id + "/" + rupture_id + "/";
 						if (dirFileWriter==null) {
 							dirFileWriter = new BufferedWriter(new FileWriter(dirJavaFile));
 						}
-						dirFileWriter.write(directory + "\n");
+						dirFileWriter.write(directory + rupture_path + "\n");
+					} else {
+						rupture_file.setTransfer(TRANSFER.TRUE);
+						directSynthJob.uses(rupture_file, LINK.INPUT);
 					}
-					String rupture_path = "e" + riq.getErfID() + "_rv" + riq.getRuptVarScenID() + "_" + source_id + "_" + rupture_id + ".txt";
-					File rupture_file = new File(rupture_path);
-					rupture_file.setTransfer(TRANSFER.TRUE);
-					directSynthJob.uses(rupture_file, LINK.INPUT);
 					int slips = ruptures.getInt("count(*)");
 					int rupture_pts = ruptures.getInt("R.Num_Points");
 					double mag = ruptures.getDouble("R.Mag");
@@ -930,17 +935,22 @@ public class CyberShake_PP_DAXGen {
 					int source_id = Integer.parseInt(pieces[2]);
 					int rupture_id = Integer.parseInt(pieces[3]);
 					String directory = "";
+					//If we're using dir hierarchy, we can't have Pegasus transfer in the input files
+					//because Pegasus can only transfer them into the current working directory
+					//Instead, we pass the list of input files to the directory creation job, which does
+					//the symlinks itself.
 					if (params.isDirHierarchy()) {
 						directory = source_id + "/" + rupture_id + "/"; 
 						if (dirFileWriter==null) {
 							dirFileWriter = new BufferedWriter(new FileWriter(dirJavaFile));
 						}
-						dirFileWriter.write(directory + "\n");
+						dirFileWriter.write(directory + rup_var_path + "\n");
+					} else {
+						File rup_var_file = new File(rup_var_path);
+						rup_var_file.setTransfer(TRANSFER.TRUE);
+						directSynthJob.uses(rup_var_file, LINK.INPUT);
 					}
-					bw.write(rup_var_path + "\n");
-					File rup_var_file = new File(rup_var_path);
-					rup_var_file.setTransfer(TRANSFER.TRUE);
-					directSynthJob.uses(rup_var_file, LINK.INPUT);
+					bw.write(directory + rup_var_path + "\n");
 					//Add output files
 					File seisFile = new File(directory + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
 							riq.getRunID() + "_" + source_id + "_" + rupture_id + SEISMOGRAM_FILENAME_EXTENSION);
@@ -1062,6 +1072,7 @@ public class CyberShake_PP_DAXGen {
 			
 			dirCreateJob.uses(dirListFile, LINK.INPUT);
 			dirCreateJob.addArgument(dirFilename);
+			dirCreateJob.addArgument("" + riq.getErfID());
 			dax.addJob(dirCreateJob);
 			dax.addDependency(dirCreateJob, directSynthJob);
 		}
