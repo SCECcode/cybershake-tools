@@ -790,7 +790,12 @@ public class CyberShake_PP_DAXGen {
 		if (riq.getSiteName().equals("TEST")) {
 			NUM_SGT_HANDLERS = 32;
 		}
-		directSynthJob.addArgument("sgt_handlers=" + NUM_SGT_HANDLERS);
+		if (riq.getRuptVarScenID()==8) {
+			//Expand to more, since recent tests are yielding 1.2 TB SGTs
+			directSynthJob.addArgument("sgt_handlers=" + 1520);
+		} else {
+			directSynthJob.addArgument("sgt_handlers=" + NUM_SGT_HANDLERS);
+		}
 		directSynthJob.addArgument("run_id=" + riq.getRunID());
 		directSynthJob.addArgument("debug=" + DEBUG_FLAG);
 		directSynthJob.addArgument("max_buf_mb=" + LARGE_MEM_BUF);
