@@ -153,7 +153,7 @@ public class CyberShake_PP_DAXGen {
 		preD.addArgument("--force");
 		preD.addArgument("-q");
 		if (cont.getParams().getPPSite()!=null) {
-			preD.addArgument("-s " + cont.getParams().getPPSite());
+			preD.addArgument("-s " + cont.getParams().getPPSite() + ",shock");
 		}
 		//Add the dax to the top-level dax like a job
 		topLevelDax.addDAX(preD);
@@ -176,7 +176,7 @@ public class CyberShake_PP_DAXGen {
 			jDax.addArgument("--force");
 			jDax.addArgument("-q");
 			if (cont.getParams().getPPSite()!=null) {
-				jDax.addArgument("-s " + cont.getParams().getPPSite());
+				jDax.addArgument("-s " + cont.getParams().getPPSite() + ",shock");
 			}
 			//Force stage-out of zip files
 			jDax.addArgument("--output shock");
