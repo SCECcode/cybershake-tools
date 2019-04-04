@@ -945,7 +945,7 @@ public class CyberShake_PP_DAXGen {
 					//Instead, we pass the list of input files to the directory creation job, which does
 					//the symlinks itself.
 					if (params.isDirHierarchy()) {
-						directory = source_id + "/" + rupture_id + "/"; 
+						directory = source_id + "/"; 
 						if (dirFileWriter==null) {
 							dirFileWriter = new BufferedWriter(new FileWriter(dirJavaFile));
 						}
