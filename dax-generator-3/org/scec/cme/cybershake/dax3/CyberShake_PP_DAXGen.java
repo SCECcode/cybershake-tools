@@ -862,7 +862,7 @@ public class CyberShake_PP_DAXGen {
 					//Instead, we pass the list of input files to the directory creation job, which does
 					//the symlinks itself.
 					if (params.isDirHierarchy()) {
-						directory = source_id + "/" + rupture_id + "/";
+						directory = source_id + "/";
 						if (dirFileWriter==null) {
 							dirFileWriter = new BufferedWriter(new FileWriter(dirJavaFile));
 						}
@@ -1040,6 +1040,11 @@ public class CyberShake_PP_DAXGen {
 		} else {
 			directSynthJob.addArgument("run_durations=0");
 		}
+		
+		if (params.isDirHierarchy()) {
+			directSynthJob.addArgument("dir_hierarchy=1");
+		}
+		
 		directSynthJob.addArgument("dtout=" + LF_TIMESTEP);
 		directSynthJob.addArgument("simulation_out_pointsX=2");
 		directSynthJob.addArgument("simulation_out_pointsY=1");
