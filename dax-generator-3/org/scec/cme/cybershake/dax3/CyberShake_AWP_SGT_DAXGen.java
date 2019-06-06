@@ -527,7 +527,8 @@ public class CyberShake_AWP_SGT_DAXGen {
 		}
 		preSGTJob.addArgument(riq.getLowFrequencyCutoffString());
 		
-		if (riq.getErfID()==42) {
+		//Use Rup Var Scenario ID = 8
+		if (riq.getRuptVarScenID()==8) {
 			preSGTJob.addArgument("rsqsim");
 		}
 		
