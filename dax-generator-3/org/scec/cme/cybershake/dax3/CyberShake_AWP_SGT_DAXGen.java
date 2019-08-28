@@ -757,7 +757,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		vMeshJob.uses(awpMediaFile, LINK.OUTPUT);
 				
 		if (riq.getSiteName().equals("TEST")) {
-			vMeshJob.addProfile("globus", "count", "155");
+			vMeshJob.addProfile("globus", "hostcount", "10");
 		}
 		
 		return vMeshJob;
