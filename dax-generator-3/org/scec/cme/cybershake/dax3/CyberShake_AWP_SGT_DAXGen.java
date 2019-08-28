@@ -658,8 +658,8 @@ public class CyberShake_AWP_SGT_DAXGen {
 		smoothJob.addArgument("--mesh-out " + outputMeshFile.getName());
 				
 		smoothJob.addProfile("globus", "hostcount", "2");
-		smoothJob.addProfile("globus", "count", "64");
-		smoothJob.addProfile("pegasus", "cores", "64");
+//		smoothJob.addProfile("globus", "count", "64");
+//		smoothJob.addProfile("pegasus", "cores", "64");
 		
 		return smoothJob;
 	}
@@ -701,8 +701,8 @@ public class CyberShake_AWP_SGT_DAXGen {
 //		awpJob.uses(awpStrainFile, LINK.OUTPUT);
 		
 		awpJob.addProfile("globus", "hostcount", "" + hosts);
-		awpJob.addProfile("globus", "count", "" + cores);
-		awpJob.addProfile("pegasus", "cores", "" + cores);
+		//awpJob.addProfile("globus", "count", "" + cores);
+		//awpJob.addProfile("pegasus", "cores", "" + cores);
 		
 		return awpJob;
 	}
