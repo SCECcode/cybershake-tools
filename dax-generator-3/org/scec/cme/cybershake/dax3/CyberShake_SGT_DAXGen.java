@@ -102,6 +102,7 @@ public class CyberShake_SGT_DAXGen {
         Option boundingBox = new Option("bbox", "bounding-box", false, "When constructing a volume, assume (Start Lat, StartLon) and (EndLat, EndLon) represent" +
         		"2 corners of a box, all 4 corners of which must be inside the volume. " +
         		"Default is to only require those two points to be inside the volume.");
+        Option depth = OptionBuilder.withArgName("depth").hasArg().withDescription("Depth of simulation volume.  Defaults to 50 km, rounded up to an even number of grid points").create("dep");
                
         cmd_opts.addOption(help);
         cmd_opts.addOptionGroup(runIDGroup);
@@ -115,6 +116,7 @@ public class CyberShake_SGT_DAXGen {
         cmd_opts.addOption(minvs);
         cmd_opts.addOption(noSmoothing);
         cmd_opts.addOption(boundingBox);
+        cmd_opts.addOption(depth);
         
         String usageString = "CyberShake_SGT_DAXGen <output filename> <destination directory> [options] [-f <runID file, one per line> | -r <runID1> <runID2> ... ]";
         CommandLineParser parser = new GnuParser();
@@ -278,7 +280,6 @@ public class CyberShake_SGT_DAXGen {
 			
 			DAX sgtDAX = new DAX("AWP_SGT_" + riq.getSiteName(), genSGTDaxFile.getName());
 			sgtDAX.addArgument("--force");
-			sgtDAX.addArgument("-o bluewaters");
 			if (sgt_params.getSgtSite()!=null) {
 				sgtDAX.addArgument("-s " + sgt_params.getSgtSite());
 			}
