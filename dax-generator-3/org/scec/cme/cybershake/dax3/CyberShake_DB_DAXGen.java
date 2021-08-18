@@ -79,6 +79,9 @@ public class CyberShake_DB_DAXGen {
 	// boolean to enable/disable curve plotting. if DO_CURVE_GEN is false, then this is ignored.
 	private static final boolean DO_CURVE_PLOT = true;
 
+    //Periods used as proxies for PGA or PGV
+    private double PGA_period = 1.0e-4;
+    private double PGV_period = 1.0e-5;
 	
 	public CyberShake_DB_DAXGen(RunIDQuery r) {
 		riq = r;
@@ -124,6 +127,12 @@ public class CyberShake_DB_DAXGen {
 	public CyberShake_DB_DAXGen(RunIDQuery r, int numDAXes, boolean highFreq, double highFreqCutoff, boolean transferZip, boolean rotD, boolean duration) {
 		this(r, numDAXes, highFreq, highFreqCutoff, transferZip, rotD);
 		insertDurations = duration;
+	}
+	
+	public CyberShake_DB_DAXGen(RunIDQuery r, int numDAXes, boolean highFreq, double highFreqCutoff, boolean transferZip, String db_server, boolean rotD, boolean duration) {
+		this(r, numDAXes, highFreq, highFreqCutoff, transferZip, rotD);
+		insertDurations = duration;
+		DB_SERVER = db_server.split("\\.")[0];
 	}
 	
 	public CyberShake_DB_DAXGen(RunIDQuery r, int numDAXes, boolean highFreq, double highFreqCutoff, boolean transferZip, boolean rotD, boolean duration, String velocityFile) {
@@ -340,12 +349,18 @@ public class CyberShake_DB_DAXGen {
 
 		job.addArgument("-run " + riq.getRunID());
 		String periods = "10,7.5,5,4,3";
+		if (params.getDetFrequency()>=1.0) {
+			periods = periods + ",2";
+		}
 		if (params.isStochastic()) {
-			periods = periods + ",1,0.5,0.2,0.1";
-		} else {
-			if (params.getDetFrequency()>=1.0) {
-				periods = periods + ",2";
+			periods = periods + ",1,0.75,0.5,0.4,0.3,0.2,0.1,PGA,PGV";
+			if (params.getStochasticFrequency()>10.0) {
+				periods = periods + ",0.075,0.05";
 			}
+			if (params.getStochasticFrequency()>20.0) {
+				periods = periods + "0.04,0.03,0.02,0.01";
+			}
+		} else {
 			if (params.getDetFrequency()>=2.0) {
 				periods = periods + ",1";
 			}
@@ -527,7 +542,7 @@ public class CyberShake_DB_DAXGen {
 		job.addArgument("--atten-rel-file " + CURVE_ATTEN_REL_XML_FILES);
 		String periods = ROTD_CALC_PERIODS;
 		if (params.isStochastic()) {
-			periods += ",1,0.5,0.2,0.1";
+			periods += ",2,1,0.5,0.2,0.1";
 		} else {
 			if (params.getDetFrequency()>=1.0) {
 				periods = periods + ",2";
@@ -593,7 +608,7 @@ public class CyberShake_DB_DAXGen {
 		job.addArgument("--atten-rel-file " + CURVE_ATTEN_REL_XML_FILES);
 		String periods = ROTD_CALC_PERIODS;
 		if (params.isStochastic()) {
-			periods += ",1,0.5,0.2,0.1";
+			periods += ",2,1,0.5,0.2,0.1";
 		} else {
 			if (params.getDetFrequency()>=1.0) {
 				periods = periods + ",2";
@@ -663,7 +678,7 @@ public class CyberShake_DB_DAXGen {
 		job.addArgument("-c rotd");
 		String periods = "10,7.5,5,4,3";
 		if (params.isStochastic()) {
-			periods = periods + ",1,0.5,0.2,0.1";
+			periods = periods + ",2,1,0.5,0.2,0.1";
 		} else {
 			if (params.getDetFrequency()>=1.0) {
 				periods = periods + ",2";
