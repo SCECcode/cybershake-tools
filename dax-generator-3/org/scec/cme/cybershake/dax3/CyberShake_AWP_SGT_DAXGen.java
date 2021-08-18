@@ -511,25 +511,25 @@ public class CyberShake_AWP_SGT_DAXGen {
 		radiusFile.setRegister(false);
 		sgtcordFile.setRegister(false);
 		
-		preSGTJob.addArgument(riq.getSiteName());
-		preSGTJob.addArgument(riq.getErfID() + "");
-		preSGTJob.addArgument(modelboxFile);
-		preSGTJob.addArgument(gridoutFile);
-		preSGTJob.addArgument(coordFile);
-		preSGTJob.addArgument(fdlocFile);
-		preSGTJob.addArgument(faultlistFile);
-		preSGTJob.addArgument(radiusFile);
-		preSGTJob.addArgument(sgtcordFile);
-		if (spacing>0.0) {
-			preSGTJob.addArgument(spacing + "");
-		} else {
-			preSGTJob.addArgument((0.1/Double.parseDouble(riq.getLowFrequencyCutoffString())) + "");
+		preSGTJob.addArgument("--site " + riq.getSiteName());
+		preSGTJob.addArgument("--erf_id " + riq.getErfID());
+		preSGTJob.addArgument("--modelbox " + modelboxFile);
+		preSGTJob.addArgument("--gridout " + gridoutFile);
+		preSGTJob.addArgument("--coordfile " + coordFile);
+		preSGTJob.addArgument("--fdloc " + fdlocFile);
+		preSGTJob.addArgument("--faultlist " + faultlistFile);
+		preSGTJob.addArgument("--radiusfile " + radiusFile);
+		preSGTJob.addArgument("--sgtcords " + sgtcordFile);
+		if (spacing<=0.0) {
+			spacing = (0.1/Double.parseDouble(riq.getLowFrequencyCutoffString()));
 		}
-		preSGTJob.addArgument(riq.getLowFrequencyCutoffString());
+		preSGTJob.addArgument("--spacing " + spacing);
+		
+		preSGTJob.addArgument("--frequency " + riq.getLowFrequencyCutoffString());
 		
 		//Use Rup Var Scenario ID = 8
 		if (riq.getRuptVarScenID()==8) {
-			preSGTJob.addArgument("rsqsim");
+			preSGTJob.addArgument("--rsqsim");
 		}
 		
 		preSGTJob.uses(modelboxFile, File.LINK.INPUT);
