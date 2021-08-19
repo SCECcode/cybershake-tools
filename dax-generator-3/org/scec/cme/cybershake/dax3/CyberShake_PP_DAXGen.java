@@ -54,7 +54,7 @@ public class CyberShake_PP_DAXGen {
     private final static String COMBINED_DURATION_FILENAME_PREFIX = "Duration_";
     private final static String COMBINED_DURATION_FILENAME_EXTENSION = ".dur";
     
-//  private final static String TMP_FS = "/lustre/scratch/tera3d/tmp";
+//    private final static String TMP_FS = "/lustre/scratch/tera3d/tmp";
     private final static String TMP_FS = "/dev/shm";
     private final static String FD_PATH = "/proc/self/fd";
     private final static String SEISMOGRAM_ENV_VAR = "GRM";
