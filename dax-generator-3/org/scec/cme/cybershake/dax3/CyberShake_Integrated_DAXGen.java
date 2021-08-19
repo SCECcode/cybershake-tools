@@ -32,6 +32,13 @@ public class CyberShake_Integrated_DAXGen {
     private final static String SGT_OUTPUT_DIR_ROOT = "/projects/sciteam/jmz/CyberShake/data/SgtFiles";
     private final static String PP_OUTPUT_DIR_ROOT = "/home/scec-04/tera3d/CyberShake/data/PPFiles";
 
+	private final static String NAMESPACE = "scec";
+    
+    private final static String UPDATERUN_NAME = "UpdateRun";
+    
+    private static boolean runBroadband = false;
+    private static String bbRunID = "-1";
+    
     private static String servername = "focal.usc.edu";
     
     private static ArrayList<RunIDQuery> runIDQueries;
@@ -123,7 +130,26 @@ public class CyberShake_Integrated_DAXGen {
 				System.out.print(" " + a);
 			}
 			System.out.println();
+			
 			CyberShake_Workflow_Container cont = CyberShake_PP_DAXGen.subMain(ppArgArray, false);
+			
+			//Create BB workflow, if requested
+			if (runBroadband) {
+				//CyberShake_Stochastic_DAXGen <runID> <directory> <low-frequency id>;
+				ArrayList<String> bbArgs = new ArrayList<String>();
+				bbArgs.add(bbRunID);
+				bbArgs.add(directory);
+				bbArgs.add(runIDQueries.get(0).getRunID() + "");
+				for (String a: cmdLineSubArgs.get(2)) {
+					bbArgs.add(a);
+				}
+				bbArgs.add("--server");
+				bbArgs.add(servername);
+				
+				cont.setBBWorkflow(
+						CyberShake_Stochastic_DAXGen.subMain(bbArgs.toArray(new String[]{})));
+			}
+
 			//Set up dependencies
 			
 	    	String siteName = cont.getRIQ().getSiteName();
@@ -189,6 +215,49 @@ public class CyberShake_Integrated_DAXGen {
 				jDaxFile.addPhysicalFile("file://" + cont.getParams().getPPDirectory() + "/" + filename, "local");
 				topLevelDax.addFile(jDaxFile);
 			}
+			//BB if we have it
+			DAX bbDax = null;
+			if (runBroadband) {
+				/*Because we're running at the same time, it has its own Run ID
+				* but the state is stuck in SGT_INIT/Initial
+				* Must update to PP_INIT so that the stochastic workflow's update job succeeds
+				* Have to do this as SGT_INIT->SGT_START->PP_INIT
+				*/
+				
+				//SGT_INIT->SGT_START
+		    	String id = UPDATERUN_NAME + bbRunID + "_SGT_START";
+		    	Job updateJob0 = new Job(id, NAMESPACE, UPDATERUN_NAME, "1.0");
+			    updateJob0.addArgument(bbRunID);
+			    updateJob0.addArgument("SGT_INIT");
+		    	updateJob0.addArgument("SGT_START");
+		    	topLevelDax.addJob(updateJob0);
+		    	topLevelDax.addDependency(preD, updateJob0);
+		    	//SGT_START->PP_INIT
+		    	id = UPDATERUN_NAME + bbRunID + "_PP_INIT";
+		    	Job updateJob1 = new Job(id, NAMESPACE, UPDATERUN_NAME, "1.0");
+			    updateJob1.addArgument(bbRunID);
+			    updateJob1.addArgument("SGT_START");
+		    	updateJob1.addArgument("PP_INIT");
+		    	topLevelDax.addJob(updateJob1);
+		    	topLevelDax.addDependency(updateJob0, updateJob1);
+				
+				String bbDAXFile = cont.getBBWorkflow();
+				String bbDAXName = cont.getRIQ().getSiteName() + "_stochDax";
+				bbDax = new DAX(bbDAXName, bbDAXFile);
+				//Makes sure it doesn't prune workflow elements
+				bbDax.addArgument("--force");
+				bbDax.addArgument("-q");
+				bbDax.addArgument("--cleanup none");
+				topLevelDax.addDAX(bbDax);
+				//Broadband workflow is dependent on post-processing and the update job
+				for (int j=0; j<subWfs.size(); j++) {
+					topLevelDax.addDependency(cont.getRIQ().getSiteName() + "_dax_" + j,  bbDAXName);
+				}
+				topLevelDax.addDependency(updateJob1.getId(), bbDAXName);
+				File bbDaxFile = new File(bbDAXFile);
+				bbDaxFile.addPhysicalFile("file://" + cont.getParams().getPPDirectory() + "/" + bbDAXFile, "local");
+				topLevelDax.addFile(bbDaxFile);
+			}
 			
 			//DB
 			String dbDAXFile = cont.getDBWorkflow();
@@ -213,6 +282,9 @@ public class CyberShake_Integrated_DAXGen {
 			topLevelDax.addDAX(postD);
 			if (cont.getParams().getInsert()) {
 				topLevelDax.addDependency(dbDax, postD);
+				if (runBroadband) {
+					topLevelDax.addDependency(bbDax, postD);
+				}
 			} else {
 				for (int j=0; j<subWfs.size(); j++) {
 					topLevelDax.addDependency(cont.getRIQ().getSiteName() + "_dax_" + j, cont.getRIQ().getSiteName() + "_postDax");
@@ -367,6 +439,10 @@ public class CyberShake_Integrated_DAXGen {
         Option sgtArgs = OptionBuilder.withArgName("sgtargs").hasArgs().withDescription("Arguments to pass through to SGT workflow.").withLongOpt("sgtargs").create();
         Option postProcessingArgs = OptionBuilder.withArgName("ppargs").hasArgs().withDescription("Arguments to pass through to post-processing.").withLongOpt("ppargs").create();
         Option server = OptionBuilder.withArgName("server").hasArg().withDescription("Server to use for site parameters and to insert PSA values into").withLongOpt("server").create();
+        Option broadband = new Option("bb", "broadband", false, "Run stochastic high-frequency calculations in addition to deterministic low-frequency.");
+        Option broadbandArgs = OptionBuilder.withArgName("bbargs").hasArgs().withDescription("Arguments to pass through to BB workflow.").withLongOpt("bbargs").create();
+        Option broadbandID = OptionBuilder.withArgName("bbrun").hasArg().withDescription("Run ID for stochastic results.").withLongOpt("broadband-runid").create();
+        Option force_vs30 = OptionBuilder.withArgName("fvs30").hasArg().withDescription("Force Target_Vs30 value.").withLongOpt("force_vs30").create("fvs");
         OptionGroup runIDGroup = new OptionGroup();
         runIDGroup.addOption(runIDFile);
         runIDGroup.addOption(runIDList);
@@ -376,6 +452,10 @@ public class CyberShake_Integrated_DAXGen {
         cmd_opts.addOption(postProcessingArgs);
         cmd_opts.addOption(sgtArgs);
         cmd_opts.addOption(server);
+        cmd_opts.addOption(broadband);
+        cmd_opts.addOption(broadbandArgs);
+        cmd_opts.addOption(broadbandID);
+        cmd_opts.addOption(force_vs30);
 
         String usageString = "CyberShake_Integrated_DAXGen <output filename> <destination directory> [options] [-f <runID file, one per line> | -r <runID1> <runID2> ... ]";
         CommandLineParser parser = new GnuParser();
@@ -387,6 +467,8 @@ public class CyberShake_Integrated_DAXGen {
         	CyberShake_SGT_DAXGen.parseCommandLine(new String[]{"-h"});
         	System.out.println("PP DAX Generator arguments:");
         	CyberShake_PP_DAXGen.parseCommandLine(new String[]{"-h"}, null);
+        	System.out.println("Stochastic DAX Generator arguments:");
+        	CyberShake_Stochastic_DAXGen.parseCommandLine(new String[]{"-h"});
             System.exit(1);
         }
         
@@ -421,9 +503,45 @@ public class CyberShake_Integrated_DAXGen {
 		String[] ppArgs = null;
 		if (line.hasOption(postProcessingArgs.getLongOpt())) {
 			ppArgs = line.getOptionValues(postProcessingArgs.getLongOpt());
+			for (String p : ppArgs ) {
+				System.out.println(p);
+			}
 		}
 		
 		subArgs.add(ppArgs);
+		
+		if (line.hasOption(broadband.getOpt())) {
+			runBroadband = true;
+		}
+		
+		if (runBroadband) {
+			if (line.hasOption(broadbandArgs.getLongOpt())) {
+				String[] bbArgs = line.getOptionValues(broadbandArgs.getLongOpt());
+				//Check to see if force vs30 option needs to be added to BB args
+				if (line.hasOption(force_vs30.getOpt())) {
+					double vs30 = Double.parseDouble(line.getOptionValue(force_vs30.getLongOpt()));
+					String[] tmpBBArgs = new String[bbArgs.length + 2];
+					for (int i=0; i<bbArgs.length; i++) {
+						tmpBBArgs[i] = bbArgs[i];
+					}
+					tmpBBArgs[bbArgs.length] = "-fvs";
+					tmpBBArgs[bbArgs.length+1] = "" + vs30;
+					subArgs.add(tmpBBArgs);
+				} else {
+					subArgs.add(bbArgs);
+				}
+			}
+			if (line.hasOption(broadbandID.getLongOpt())) {
+				bbRunID = line.getOptionValue(broadbandID.getLongOpt());
+			}
+		}
+		
+		if (line.hasOption(force_vs30.getOpt())) {
+			double vs30 = Double.parseDouble(line.getOptionValue(force_vs30.getLongOpt()));
+			for (RunIDQuery r: runIDQueries) {
+				r.setVs30(vs30);
+			}
+		}
 		
 		return subArgs;
 	}
