@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.opensha.commons.data.siteData.impl.ThompsonVs30_2020;
 import org.opensha.commons.data.siteData.impl.WillsMap2006;
 import org.opensha.commons.geo.Location;
 
@@ -31,6 +32,9 @@ public class RunIDQuery {
 	private double max_frequency = 0.5;
 	private int numComponents = 2;
 	private double sourceFrequency;
+	private String host;
+	private enum Vs30_Source { Wills2006, Thompson2020 };
+	private Vs30_Source vs30Source = Vs30_Source.Thompson2020;
 	
 	private DBConnect dbc;
 
@@ -52,55 +56,99 @@ public class RunIDQuery {
 	private final int USGS_ID = 11;
 	private final int STUDY_18_8_ID = 12;
 	
-	private static final String HOSTNAME = "focal.usc.edu";
+	private static String DEFAULT_HOSTNAME = "focal.usc.edu";
 	private final String DB_NAME = "CyberShake";
 	private final String USER = "cybershk_ro";
 	private final String PASS = "CyberShake2007";
 	
 	
 	public RunIDQuery(int runID) {
-		this(runID, HOSTNAME);
+		this(runID, DEFAULT_HOSTNAME);
 	}
 	
 	public RunIDQuery(int runID, String host) {
 		this.runID = runID;
 		System.out.println("Connecting to host " + host);
-		dbc = new DBConnect(host, DB_NAME, USER, PASS);
+		this.host = host;
+		dbc = new DBConnect(this.host, DB_NAME, USER, PASS);
 		populateRunIDInfo();
 		populateSiteInfo();
-		if (max_frequency > low_frequency_cutoff) {
-			retrieveVs30();
-		}
+		retrieveVs30();
 		dbc.closeConnection();
 	}
 
 	private void retrieveVs30() {
+		System.out.println("Determining Vs30.");
+		//Connect to database
+		String pass = null;
 		try {
-			WillsMap2006 wills = new WillsMap2006("/home/scec-02/cybershk/runs/dax-generator/wills2006.bin"); // you'll use the data file constructor here
-			Location loc = new Location(lat, lon);
-			vs30 = wills.getValue(loc);
-			//write to DB
-			String pass = null;
+			BufferedReader br = new BufferedReader(new FileReader("/home/scec-02/cybershk/runs/focal.txt"));
+			pass = br.readLine().trim();
+			br.close();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+		if (pass==null) {
+			System.err.println("Couldn't find a write password for db " + DB_NAME);
+			System.exit(3);
+		}
+		DBConnect dbc = new DBConnect(host, DB_NAME, "cybershk", pass);
+		//See if we have a Vs30 for this run in the DB already -- if so, don't change it
+		String query = "select Target_Vs30 from CyberShake_Runs where Run_ID=" + runID;
+		ResultSet rs = dbc.selectData(query);
+		try {
+			rs.first();
+			if (rs.getRow()==0) {
+				//No hits
+				System.err.println("Can't find run ID " + runID + " in the database on " + host + ", aborting.");
+				dbc.closeConnection();
+				System.exit(2);
+			}
+			double vs30 = rs.getDouble("Target_Vs30");
+			//Null in SQL row is cast to 0
+			if (vs30>0) {
+				System.out.println("Found Vs30 value of " + vs30 + " already present in DB, using that.");
+				dbc.closeConnection();
+				this.vs30 = vs30;
+				return;
+			}
+		} catch (SQLException sqle) {
+			sqle.printStackTrace();
+			dbc.closeConnection();
+			System.exit(3);
+		}
+		
+		if (vs30Source==Vs30_Source.Wills2006) {
 			try {
-				BufferedReader br = new BufferedReader(new FileReader("/home/scec-02/cybershk/runs/focal.txt"));
-				pass = br.readLine().trim();
-				br.close();
+				WillsMap2006 wills = new WillsMap2006("/home/scec-02/cybershk/runs/dax-generator/wills2006.bin"); // you'll use the data file constructor here
+				Location loc = new Location(lat, lon);
+				vs30 = wills.getValue(loc);
 			} catch (IOException ex) {
 				ex.printStackTrace();
+				System.exit(2);
 			}
-			if (pass==null) {
-				System.err.println("Couldn't find a write password for db " + DB_NAME);
-				System.exit(3);
+		} else if (vs30Source==Vs30_Source.Thompson2020) {
+			try {
+				ThompsonVs30_2020 thompson = new ThompsonVs30_2020();
+				Location loc = new Location(lat, lon);
+				vs30 = thompson.getValue(loc);
+			} catch (IOException ex) {
+				ex.printStackTrace();
+				System.exit(2);
 			}
-			DBConnect dbc = new DBConnect(HOSTNAME, DB_NAME, "cybershk", pass);
-			String update = "update CyberShake_Runs set Vs30=" + vs30 + ", Vs30_Source=\"CGS/Wills Site Classification Map (2006)\" where Run_ID=" + runID;
-			dbc.insertData(update);
-			dbc.closeConnection();
-		} catch (IOException ex) {
-			System.err.println("Unable to retrieve Vs30 for site " + this.siteName + ".");
-			ex.printStackTrace();
-			System.exit(-1);
+		} else {
+			System.err.println("Unsure where to get Vs30 value from, aborting.");
+			System.exit(1);
 		}
+		String sourceString = null;
+		if (vs30Source==Vs30_Source.Wills2006) {
+			sourceString = "Wills (2006)";
+		} else if (vs30Source==Vs30_Source.Thompson2020) {
+			sourceString = "Thompson et al. (2020)";
+		}
+		String update = "update CyberShake_Runs set Target_Vs30=" + vs30 + ", Vs30_Source=\"" + sourceString + "\" where Run_ID=" + runID;
+		dbc.insertData(update);
+		dbc.closeConnection();
 	}
 
 	private void populateSiteInfo() {
@@ -302,6 +350,14 @@ public class RunIDQuery {
 		return low_frequency_cutoff;
 	}
 
+	public double getMax_frequency() {
+		return max_frequency;
+	}
+
+	public void setMax_frequency(double max_frequency) {
+		this.max_frequency = max_frequency;
+	}
+
 	public int getNumComponents() {
 		return numComponents;
 	}
@@ -312,6 +368,32 @@ public class RunIDQuery {
 
 	public double getSourceFrequency() {
 		return sourceFrequency;
+	}
+
+	public String getHost() {
+		return host;
+	}
+	
+	//To override Vs30 from Wills or Thompson
+	public void setVs30(double vs30) {
+		//write to DB
+		String pass = null;
+		try {
+			BufferedReader br = new BufferedReader(new FileReader("/home/scec-02/cybershk/runs/focal.txt"));
+			pass = br.readLine().trim();
+			br.close();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+		if (pass==null) {
+			System.err.println("Couldn't find a write password for db " + DB_NAME);
+			System.exit(3);
+		}
+		DBConnect dbc = new DBConnect(host, DB_NAME, "cybershk", pass);
+		String sourceString = "User-provided";
+		String update = "update CyberShake_Runs set Target_Vs30=" + vs30 + ", Vs30_Source=\"" + sourceString + "\" where Run_ID=" + runID;
+		dbc.insertData(update);
+		dbc.closeConnection();
 	}
 
 }
