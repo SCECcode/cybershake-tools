@@ -21,11 +21,14 @@ public class SGT_DAXParameters {
 	private boolean smoothing = true;
 	private boolean boundingBox = false;
 	
+	private double depth = -1.0;
+	private double h_frac = 0.0;
+	
 	public SGT_DAXParameters(String filename) {
 		this.daxFilename = filename;
 		this.directory = ".";
 	}
-
+	
 	public String getDirectory() {
 		return directory;
 	}
@@ -124,6 +127,22 @@ public class SGT_DAXParameters {
 
 	public void setBoundingBox(boolean boundingBox) {
 		this.boundingBox = boundingBox;
+	}
+
+	public double getDepth() {
+		return depth;
+	}
+
+	public void setDepth(double depth) {
+		this.depth = depth;
+	}
+
+	public double getH_frac() {
+		return h_frac;
+	}
+
+	public void setH_frac(double h_frac) {
+		this.h_frac = h_frac;
 	}
 	
 	
