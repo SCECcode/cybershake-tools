@@ -103,7 +103,8 @@ public class CyberShake_SGT_DAXGen {
         		"2 corners of a box, all 4 corners of which must be inside the volume. " +
         		"Default is to only require those two points to be inside the volume.");
         Option depth = OptionBuilder.withArgName("depth").hasArg().withDescription("Depth of simulation volume.  Defaults to 50 km, rounded up to an even number of grid points").create("dep");
-               
+        Option h_frac = OptionBuilder.withArgName("h_fraction").withLongOpt("h_fraction").hasArg().withDescription("Depth, in fractions of a grid point, to query UCVM at when populating the surface points.").create("hf");
+              
         cmd_opts.addOption(help);
         cmd_opts.addOptionGroup(runIDGroup);
         cmd_opts.addOption(splitVelocityJobs);
@@ -117,6 +118,7 @@ public class CyberShake_SGT_DAXGen {
         cmd_opts.addOption(noSmoothing);
         cmd_opts.addOption(boundingBox);
         cmd_opts.addOption(depth);
+        cmd_opts.addOption(h_frac);
         
         String usageString = "CyberShake_SGT_DAXGen <output filename> <destination directory> [options] [-f <runID file, one per line> | -r <runID1> <runID2> ... ]";
         CommandLineParser parser = new GnuParser();
@@ -133,7 +135,7 @@ public class CyberShake_SGT_DAXGen {
             pe.printStackTrace();
             return 2;
         }
-                
+        
 		String outputFilename = args[0]; 
 		String directory = args[1];
 		
@@ -149,19 +151,27 @@ public class CyberShake_SGT_DAXGen {
 		if (line.hasOption(server.getOpt())) {
 			sgt_params.setServer(line.getOptionValue(server.getOpt()));
 		}
-		
-		if (line.hasOption(spacing.getOpt())) {
-			sgt_params.setSpacing(Double.parseDouble(line.getOptionValue(spacing.getOpt())));
-		}
-		
-		if (line.hasOption(minvs.getOpt())) {
-			sgt_params.setMinvs(Double.parseDouble(line.getOptionValue(minvs.getOpt())));
-		}
+		System.out.println("SGT using server: " + sgt_params.getServer());
 		
 		if (line.hasOption(runIDFile.getOpt())) {
 			runIDQueries = runIDsFromFile(line.getOptionValue(runIDFile.getOpt()), sgt_params.getServer());
 		} else {		
 			runIDQueries = runIDsFromArgs(line.getOptionValues(runIDList.getOpt()), sgt_params.getServer());
+		}
+				
+		if (line.hasOption(spacing.getOpt())) {
+			sgt_params.setSpacing(Double.parseDouble(line.getOptionValue(spacing.getOpt())));
+		} else {
+			//Set spacing based on frequency: spacing in km is 0.1/freq
+			double derivedSpacing = 0.1/runIDQueries.get(0).getLowFrequencyCutoff();
+			sgt_params.setSpacing(derivedSpacing);
+		}
+		
+		if (line.hasOption(minvs.getOpt())) {
+			sgt_params.setMinvs(Double.parseDouble(line.getOptionValue(minvs.getOpt())));
+		} else {
+			//Default to 500 m/s
+			sgt_params.setMinvs(500.0);
 		}
 		
 		if (line.hasOption(splitVelocityJobs.getOpt())) {
@@ -193,7 +203,20 @@ public class CyberShake_SGT_DAXGen {
 			sgt_params.setBoundingBox(true);
 		}
 		
+		if (line.hasOption(depth.getOpt())) {
+			sgt_params.setDepth(Double.parseDouble(line.getOptionValue(depth.getOpt())));
+		} else {
+			//Depth should be 50 km rounded up to nearest even number of grid points
+			double derivedDepth = 50.0/sgt_params.getSpacing();
+//			sgt_params.setDepth(derivedDepth);
+		}
+		
+		if (line.hasOption(h_frac.getOpt())) {
+			sgt_params.setH_frac(Double.parseDouble(line.getOptionValue(h_frac.getOpt())));
+		}
+		
 		sgt_params.setRunIDQueries(runIDQueries);
+				
 		return 0;
 	}
 
@@ -513,6 +536,8 @@ public class CyberShake_SGT_DAXGen {
 		if (sgt_params.getMinvs()>0.0) {
 			vMeshJob.addArgument("--min_vs " + sgt_params.getMinvs());
 		}
+		
+		vMeshJob.addArgument("--h_fraction " + sgt_params.getH_frac());
 		
 		gridoutFile.setTransfer(File.TRANSFER.FALSE);
 		coordFile.setTransfer(File.TRANSFER.FALSE);
