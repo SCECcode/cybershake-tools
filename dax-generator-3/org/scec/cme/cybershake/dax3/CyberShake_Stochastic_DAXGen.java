@@ -31,7 +31,7 @@ import edu.isi.pegasus.planner.dax.File.LINK;
 
 public class CyberShake_Stochastic_DAXGen {
 	private RunIDQuery riq;
-	private Stochastic_DAXParameters sParams;
+	private static Stochastic_DAXParameters sParams;
 	
 	//Constants
 	public final String DAX_FILENAME_PREFIX = "CyberShake_Stoch_";
@@ -64,66 +64,76 @@ public class CyberShake_Stochastic_DAXGen {
     private final static String UPDATERUN_NAME = "UpdateRun";
 	
 	//DB constants
-    private final static String DB_SERVER = "focal.usc.edu";
+    private static String DB_SERVER = "focal.usc.edu";
     private final static String DB = "CyberShake";
     private final static String USER = "cybershk_ro";
     private final static String PASS = "CyberShake2007";
-	
-	public CyberShake_Stochastic_DAXGen(int runID, Stochastic_DAXParameters hp) {
-		riq = new RunIDQuery(runID);
-		sParams = hp;
+    
+	public CyberShake_Stochastic_DAXGen(RunIDQuery rq) {
+		riq = rq;
 	}
 
 	
-	private static int parseCommandLine(String[] args, Stochastic_DAXParameters sParams) {
-		String usageString = "CyberShake_Stochastic_DAXGen <runID> <directory>";
+	public static RunIDQuery parseCommandLine(String[] args) {
+		String usageString = "CyberShake_Stochastic_DAXGen <runID> <directory> <low-frequency id>";
 		Options cmd_opts = new Options();
 		
 		Option help = new Option("h", "help", false, "Print help for CyberShake_HF_DAXGen");
 		Option mergeFrequency = OptionBuilder.withArgName("merge_frequency").hasArg().withDescription("Frequency at which to merge the LF and HF seismograms.").create("mf");
+		Option stochFrequency = OptionBuilder.withArgName("stoch_frequency").hasArg().withDescription("Maximum frequency in Hz of stochastic calculations.  Defaults to 10 Hz.").create("sf");
 //		Option lfRunID = OptionBuilder.withArgName("lf_run_id").hasArg().withDescription("Run ID of low-frequency run to use (required).").create("lr");
 		Option noRotd = new Option("nr", "no-rotd", false, "Omit RotD calculations.");
 		Option noSiteResponse = new Option("nsr", "no-site-response", false, "Omit site response calculation.");
 		Option noLFSiteResponse = new Option("nls", "no-low-site-response", false, "Omit site response calculation for low-frequency seismograms.");
 		Option noDuration = new Option("nd", "no-duration", false, "Omit duration calculations.");
-//		Option vs30 = OptionBuilder.withArgName("vs30").hasArg().withDescription("Vs30 value to use for site response.").create("v");
-		Option debug = new Option("d", "debug", false, "Debug flag.");
+		Option force_vs30 = OptionBuilder.withArgName("fvs30").hasArg().withDescription("Force Vs30 value for site response.").withLongOpt("force_vs30").create("fvs");
+        Option debug = new Option("d", "debug", false, "Debug flag.");
+		Option server = OptionBuilder.withArgName("server").withLongOpt("server").hasArg().withDescription("Server to use for site parameters and to insert PSA values into").create("sr");
 		
 		cmd_opts.addOption(help);
 		cmd_opts.addOption(mergeFrequency);
+		cmd_opts.addOption(stochFrequency);
 //		cmd_opts.addOption(lfRunID);
 		cmd_opts.addOption(noRotd);
 		cmd_opts.addOption(noSiteResponse);
 		cmd_opts.addOption(noLFSiteResponse);
 		cmd_opts.addOption(noDuration);
-//		cmd_opts.addOption(vs30);
+		cmd_opts.addOption(force_vs30);
 		cmd_opts.addOption(debug);
+		cmd_opts.addOption(server);
 		
 		CommandLineParser parser = new GnuParser();
         if (args.length<=1) {
         	HelpFormatter formatter = new HelpFormatter();
         	formatter.printHelp(usageString, cmd_opts);
-            return -1;
+            return null;
         }
         CommandLine line = null;
         try {
             line = parser.parse(cmd_opts, args);
         } catch (ParseException pe) {
             pe.printStackTrace();
-            return -2;
+            return null;
         }
         int runID = Integer.parseInt(args[0]);
         String directory = args[1];
+        sParams = new Stochastic_DAXParameters();
         sParams.setDirectory(directory);
         int lfRunID = Integer.parseInt(args[2]);
-        sParams.setLfRunID(lfRunID);
         
         if (line.hasOption(help.getOpt())) {
         	HelpFormatter formatter = new HelpFormatter();
         	formatter.printHelp(usageString, cmd_opts);
-            return -1;
+            return null;
         }
-
+        
+        if (line.hasOption(server.getOpt())) {
+        	DB_SERVER = line.getOptionValue(server.getOpt());
+        }
+    	System.out.println("Stoch using server " + DB_SERVER);
+        
+    	RunIDQuery rq = new RunIDQuery(runID, DB_SERVER);
+    	
         //Required option
 //        if (line.hasOption(lfRunID.getOpt())) {
 //        	sParams.setLfRunID(Integer.parseInt(line.getOptionValue(lfRunID.getOpt())));
@@ -134,6 +144,10 @@ public class CyberShake_Stochastic_DAXGen {
         
         if (line.hasOption(mergeFrequency.getOpt())) {
         	sParams.setMergeFrequency(Double.parseDouble(line.getOptionValue(mergeFrequency.getOpt())));
+        }
+        
+        if (line.hasOption(stochFrequency.getOpt())) {
+        	sParams.setStochFrequency(Double.parseDouble(line.getOptionValue(stochFrequency.getOpt())));
         }
         
         if (line.hasOption(noRotd.getOpt())) {
@@ -152,15 +166,19 @@ public class CyberShake_Stochastic_DAXGen {
         	sParams.setRunDuration(false);
         }
         
-//        if (line.hasOption(vs30.getOpt())) {
-//        	sParams.setVs30(Double.parseDouble(line.getOptionValue(vs30.getOpt())));
-//        }
+        if (line.hasOption(force_vs30.getOpt())) {
+        	rq.setVs30(Double.parseDouble(line.getOptionValue(force_vs30.getOpt())));
+        }
         
         if (line.hasOption(debug.getOpt())) {
         	sParams.setDebug(true);
         }
+
+    	//Put this at the end so we can pick up a different server, if needed
+    	
+    	sParams.setLfRunID(lfRunID, DB_SERVER);
                 
-        return runID;
+        return rq;
 	}
 
     private Job addUpdate(int runid, String from_state, String to_state) {
@@ -208,6 +226,7 @@ public class CyberShake_Stochastic_DAXGen {
 		genStochDAXJob.addArgument("-r " + riq.getRunID());
 		genStochDAXJob.addArgument("-mf " + sParams.getMergeFrequencyString());
 		genStochDAXJob.addArgument("-lr " + sParams.getLfRunID());
+		genStochDAXJob.addArgument("--server " + DB_SERVER);
 		if (!sParams.isRunRotd()) {
 			genStochDAXJob.addArgument("-nr");
 		}
@@ -238,7 +257,7 @@ public class CyberShake_Stochastic_DAXGen {
 		return genStochDAXJob;
 	}
     
-	private void makeDax() {
+	private String makeDax() {
 		//Start with some consistency checking
         if (!sParams.getLowFreqRIQ().getSiteName().equals(riq.getSiteName())) {
         	System.err.println("High and low frequency site names " + riq.getSiteName() + " and " + sParams.getLowFreqRIQ().getSiteName() + " don't agree, aborting.");
@@ -258,12 +277,12 @@ public class CyberShake_Stochastic_DAXGen {
         }
 		
 		if (sParams.getLowFreqRIQ().getLowFrequencyCutoff()>=1.0) {
-			//@1 Hz we use seismograms which are 400s in length
-			sParams.setTlen(400.0);
+			//@1 Hz we use seismograms which are 500s in length
+			sParams.setTlen(500.0);
 		}
 		
 		ADAG topDAX = new ADAG(DAX_FILENAME_PREFIX + riq.getSiteName() + "_top" + DAX_FILENAME_EXTENSION);
-		
+				
 		// Create update run state job
 	    Job updateJob = addUpdate(riq.getRunID(), "PP_START", "PP_END");
 	    topDAX.addJob(updateJob);
@@ -292,7 +311,7 @@ public class CyberShake_Stochastic_DAXGen {
 		
 		CyberShake_DB_DAXGen dbDaxGen = new CyberShake_DB_DAXGen(riq, 1, true, riq.getLowFrequencyCutoff(), false, sParams.isRunRotd(), sParams.isRunDuration(), sParams.getVelocityInfoFile());
 		ADAG dbADAG = dbDaxGen.makeDAX();
-		String dbDAXFilename = DAX_FILENAME_PREFIX + riq.getSiteName() + "_DB_Products" + DAX_FILENAME_EXTENSION;
+		String dbDAXFilename = DAX_FILENAME_PREFIX + riq.getSiteName() + "_Stoch_DB_Products" + DAX_FILENAME_EXTENSION;
 		dbADAG.writeToFile(dbDAXFilename);
 				
 		DAX dbDAX = new DAX("dbDax", dbDAXFilename);
@@ -316,17 +335,20 @@ public class CyberShake_Stochastic_DAXGen {
 		File topDaxFile = new File(topDaxFilename);
 		topDaxFile.addPhysicalFile("file://" + sParams.getDirectory() + "/" + topDaxFilename, "local");
 		topDAX.writeToFile(topDaxFilename);
+		
+		return topDaxFilename;
 	}
 	
+	public static String subMain(String[] args) {
+		RunIDQuery rq = parseCommandLine(args);
+		if (rq==null) {
+			System.exit(-1);
+		}
+		CyberShake_Stochastic_DAXGen hfDax = new CyberShake_Stochastic_DAXGen(rq);
+		return hfDax.makeDax();
+	}
 	
 	public static void main(String[] args) {
-		Stochastic_DAXParameters hfParams = new Stochastic_DAXParameters();
-		int runID = parseCommandLine(args, hfParams);
-		if (runID<0) {
-			System.exit(runID);
-		}
-		
-		CyberShake_Stochastic_DAXGen hfDax = new CyberShake_Stochastic_DAXGen(runID, hfParams);
-		hfDax.makeDax();
+		subMain(args);
 	}
 }
