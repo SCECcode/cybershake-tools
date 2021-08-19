@@ -12,19 +12,24 @@ public class CyberShake_Workflow_Container {
 	private String preWorkflow;
 	private String dbWorkflow;
 	private String postWorkflow;
+	private String bbWorkflow;
 	private ArrayList<String> subWorkflows;
+	private JSON_Specification jsonSpec;
 	
 	
 	public CyberShake_Workflow_Container(RunIDQuery riq, PP_DAXParameters params) {
 		this.riq = riq;
 		this.params = params;
 		subWorkflows = new ArrayList<String>();
+		jsonSpec = new JSON_Specification();
+		jsonSpec.setServer(riq.getHost());
+		jsonSpec.setRun_id(riq.getRunID());
 	}
 	
 	public RunIDQuery getRIQ() {
 		return riq;
 	}
-	
+
 	public PP_DAXParameters getParams() {
 		return params;
 	}
@@ -57,8 +62,20 @@ public class CyberShake_Workflow_Container {
 		return postWorkflow;
 	}
 	
+	public String getBBWorkflow() {
+		return bbWorkflow;
+	}
+
+	public void setBBWorkflow(String bbWorkflow) {
+		this.bbWorkflow = bbWorkflow;
+	}
+
 	public ArrayList<String> getSubWorkflows() {
 		return subWorkflows;
+	}
+	
+	public JSON_Specification getJsonSpec() {
+		return jsonSpec;
 	}
 
 }
