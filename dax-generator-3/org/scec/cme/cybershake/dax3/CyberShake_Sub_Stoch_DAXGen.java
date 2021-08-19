@@ -29,13 +29,11 @@ public class CyberShake_Sub_Stoch_DAXGen {
 	public final String DAX_FILENAME_EXTENSION = ".dax";
 	private final String NAMESPACE = "scec";
 	private final String VERSION = "1.0";
-	private final String VM_FILENAME = "LA_Basin_BBP_14.3.0";
+	private final String VM_FILENAME = "nr02-vs500.fk1d";
 	private final static String SEISMOGRAM_FILENAME_PREFIX = "Seismogram_";
     private final static String SEISMOGRAM_FILENAME_EXTENSION = ".grm";
-    private final static double DX = 2.0;
-    private final static double DY = 2.0;
-    private final static double DT = 0.025;
-	private final static double PSA_FILTER = 20.0;
+    private static double DT = 0.025;
+	private static double PSA_FILTER = 40.0;
 	private final static String PSA_FILENAME_PREFIX = "PeakVals_";
     private final static String PSA_FILENAME_EXTENSION = ".bsa";
 	private final static String ROTD_FILENAME_PREFIX = "RotD_";
@@ -54,7 +52,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
     private final static String UPDATERUN_NAME = "UpdateRun";
 	
 	//DB constants
-    private final static String DB_SERVER = "focal.usc.edu";
+    private static String DB_SERVER = "focal.usc.edu";
     private final static String DB = "CyberShake";
     private final static String USER = "cybershk_ro";
     private final static String PASS = "CyberShake2007";
@@ -67,8 +65,14 @@ public class CyberShake_Sub_Stoch_DAXGen {
 	private Stochastic_DAXParameters sParams;
     
 	public CyberShake_Sub_Stoch_DAXGen(int runID, Stochastic_DAXParameters hp) {
-		riq = new RunIDQuery(runID);
+		riq = new RunIDQuery(runID, DB_SERVER);
 		sParams = hp;
+		if (sParams.getLowFreqRIQ().getLowFrequencyCutoff()>=1.0) {
+			//@1 Hz we use seismograms which are 500s in length
+			sParams.setTlen(500.0);
+		}
+		//Determine dt
+		DT = 0.5/riq.getMax_frequency();
 	}
     
 	public static void main(String[] args) {
@@ -85,6 +89,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		Option noDuration = new Option("nd", "no-duration", false, "Omit duration calculations.");
 		Option velocityFile = OptionBuilder.withArgName("vs30").hasArg().withDescription("Velocity file with Vs0, Vs30, VsD.").create("v");
 		Option outputDAX = OptionBuilder.withArgName("output").hasArg().withDescription("output DAX filename").create("o");
+		Option server = OptionBuilder.withArgName("server").withLongOpt("server").hasArg().withDescription("Server to use for site parameters and to insert PSA values into").create("sr");
 		Option debug = new Option("d", "debug", false, "Debug flag.");
 		
 		cmd_opts.addOption(help);
@@ -97,6 +102,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		cmd_opts.addOption(noDuration);
 		cmd_opts.addOption(velocityFile);
 		cmd_opts.addOption(outputDAX);
+		cmd_opts.addOption(server);
 		cmd_opts.addOption(debug);
 		
 		CommandLineParser parser = new GnuParser();
@@ -129,6 +135,9 @@ public class CyberShake_Sub_Stoch_DAXGen {
         }
         int run_id = Integer.parseInt(line.getOptionValue(runID.getOpt()));
         
+        if (line.hasOption(server.getOpt())) {
+        	DB_SERVER = line.getOptionValue(server.getOpt());
+        }
         
         if (!line.hasOption(lfRunID.getOpt())) {
         	System.err.println("Must specify low frequency runID.");
@@ -137,7 +146,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
         	System.exit(-2);
         }
         int lf_run_id = Integer.parseInt(line.getOptionValue(lfRunID.getOpt()));
-        sParams.setLfRunID(lf_run_id);
+        sParams.setLfRunID(lf_run_id, DB_SERVER);
 
         if (!line.hasOption(velocityFile.getOpt())) {
         	System.err.println("Must specify velocity file.");
@@ -174,7 +183,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
         if (line.hasOption(noDuration.getOpt())) {
         	sParams.setRunDuration(false);
         }
-                
+                        
         if (line.hasOption(debug.getOpt())) {
         	sParams.setDebug(true);
         }
@@ -220,72 +229,121 @@ public class CyberShake_Sub_Stoch_DAXGen {
       	return rs;
 	}
 	
+	
 	//Creates multiple tasks per rupture to keep job runtime low; adds job to combine output files
-	private Job createHFSynthJob(int sourceID, int ruptureID, int numRupVars, int numPoints, int numRows, int numCols, String localVMFilename,
+	private Job[] createHFSynthJob(int sourceID, int ruptureID, int numRupVars, int numPoints, int numRows, int numCols, String localVMFilename,
 			Job localVMJob, Job dirsJob, ADAG dax, double[] velocityArray) {
-		//Figure out how many tasks we need
-		long varsTimesPoints = numRupVars * numPoints;
-		int numTasks = (int)(Math.ceil(varsTimesPoints/10000000.0));
-		int numRupVarsPerTask = (int)(Math.ceil(((double)numRupVars)/((double)numTasks)));
-		
-		Job combineJob = null;
-		if (numTasks>1) {
-			combineJob = new Job("Combine_HF_Synth_" + sourceID + "_" + ruptureID, NAMESPACE, COMBINE_NAME, "1.0");
-		}
 		
 		String dirPrefix = "" + sourceID;
+		Job combineJob = null;
+		Job combinePGAJob = null;
+		int numTasks = 1;
+		int numRupVarsPerTask = -1;
 		
-		for (int i=0; i<numTasks; i++) {
-			int startingRupVar = i*numRupVarsPerTask;
-			int endingRupVar = Math.min((i+1)*numRupVarsPerTask, numRupVars);
-			int numRupVarsThisTask = endingRupVar - startingRupVar;
+		//Figure out how many tasks we need
+		//Number of total rupture variation points per task to aim for
+		if (riq.getRuptVarScenID()==8) {
+			//We're using SRF files, so 1 task per rupture variation
+			numTasks = numRupVars;
+		} else {
+			double POINTS_PER_TASK = 1000000.0;
+			numRupVarsPerTask = (int)Math.ceil(POINTS_PER_TASK/((double)numPoints));
+			numTasks = (int)Math.ceil((double)numRupVars/(double)numRupVarsPerTask);
+		}
 			
+		if (numTasks>1) {
+			combineJob = new Job("Combine_HF_Synth_" + sourceID + "_" + ruptureID, NAMESPACE, COMBINE_NAME, "1.0");
+			combinePGAJob = new Job("Combine_PGA_" + sourceID + "_" + ruptureID, NAMESPACE, COMBINE_NAME, "1.0");
+		}
+
+		for (int i=0; i<numTasks; i++) {
 			String id = "HF_Synth_" + sourceID + "_" + ruptureID;
 			if (numTasks>1) {
 				id += "_t" + i;
 			}
+			Job job = new Job(id, NAMESPACE, HF_SYNTH_NAME, "3.0");
 			
-			Job job = new Job(id, NAMESPACE, HF_SYNTH_NAME, "2.0");
-		
 			job.addArgument("stat=" + riq.getSiteName());
 			job.addArgument("slat=" + riq.getLat());
 			job.addArgument("slon=" + riq.getLon());
-		
-			File rupGeomFile = new File("e" + riq.getErfID() + "_rv" + riq.getRuptVarScenID() + "_" + sourceID + "_" + ruptureID + ".txt");
-			rupGeomFile.setRegister(false);
-			rupGeomFile.setTransfer(TRANSFER.TRUE);
-		
-			job.addArgument("rup_geom_file=" + rupGeomFile.getName());
-			job.uses(rupGeomFile, File.LINK.INPUT); 
-			
+	
 			job.addArgument("source_id=" + sourceID);
 			job.addArgument("rupture_id=" + ruptureID);
-			job.addArgument("num_rup_vars=" + numRupVarsThisTask);
-
+			
 			File seisFile = new File(dirPrefix + java.io.File.separator + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() +
-				"_" + sourceID + "_" + ruptureID + "_hf" + SEISMOGRAM_FILENAME_EXTENSION);
+					"_" + sourceID + "_" + ruptureID + "_hf" + SEISMOGRAM_FILENAME_EXTENSION);
+			File pgaFile = new File(dirPrefix + java.io.File.separator + "HighFreqPGA_" + riq.getSiteName() +
+					"_" + sourceID + "_" + ruptureID + ".txt");
 			if (numTasks>1) {
 				seisFile = new File(dirPrefix + java.io.File.separator + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() +
-						"_" + sourceID + "_" + ruptureID + "_hf_t" + i + SEISMOGRAM_FILENAME_EXTENSION);
-				//Construct rupture variation string
-				StringBuffer rup_var_string = new StringBuffer("");
-				for (int j=startingRupVar; j<endingRupVar; j++) {
-					rup_var_string.append("(" + j + "," + j + "," + 0 + ")");
-					if (j<endingRupVar-1) {
-						rup_var_string.append(";");
+					"_" + sourceID + "_" + ruptureID + "_hf_t" + i + SEISMOGRAM_FILENAME_EXTENSION);
+				pgaFile = new File(dirPrefix + java.io.File.separator + "HighFreqPGA_" + riq.getSiteName() +
+						"_" + sourceID + "_" + ruptureID + "_t" + i + ".txt");
+			}
+			
+			//The rupture variations are handled differently, depending on if we're passing SRFs in
+			if (riq.getRuptVarScenID()==8) {
+				
+				File srfFilename = new File("e" + riq.getErfID() +"_rv" + riq.getRuptVarScenID() + "_" + sourceID + "_" + ruptureID + "_" + i + ".srf");
+				srfFilename.setRegister(false);
+				srfFilename.setTransfer(TRANSFER.TRUE);
+				
+				job.addArgument("infile=" + srfFilename.getName());
+				job.uses(srfFilename, LINK.INPUT);
+				
+				//Source ID and rupture ID were included already
+				job.addArgument("rup_var_id=" + i);
+				
+				//If we're running a BBP validation event, use a custom seed. 
+				//This is not the place to put this long-term, but until we figure out
+				//the suites of validations events we'll be running, leave it here.
+				//Eventually, it should either be moved to a file or the DB.
+				if (riq.getErfID()==60) {
+					//Northridge
+					if (sourceID==0 && ruptureID==0) {
+						job.addArgument("srf_seed=2379646");
 					}
 				}
-				job.addArgument("rup_vars=" + rup_var_string.toString());
+				
+			} else {
+				int startingRupVar = i*numRupVarsPerTask;
+				int endingRupVar = Math.min((i+1)*numRupVarsPerTask, numRupVars);
+				int numRupVarsThisTask = endingRupVar - startingRupVar;
+			
+				File rupGeomFile = new File("e" + riq.getErfID() + "_rv" + riq.getRuptVarScenID() + "_" + sourceID + "_" + ruptureID + ".txt");
+				rupGeomFile.setRegister(false);
+				rupGeomFile.setTransfer(TRANSFER.TRUE);
+	
+				job.addArgument("rup_geom_file=" + rupGeomFile.getName());
+				job.uses(rupGeomFile, File.LINK.INPUT); 
+				
+				job.addArgument("num_rup_vars=" + numRupVarsThisTask);
+				
+				if (numTasks>1) {
+					//Construct rupture variation string
+					StringBuffer rup_var_string = new StringBuffer("");
+					for (int j=startingRupVar; j<endingRupVar; j++) {
+						rup_var_string.append("(" + j + "," + j + "," + 0 + ")");
+						if (j<endingRupVar-1) {
+							rup_var_string.append(";");
+						}
+					}
+					job.addArgument("rup_vars=" + rup_var_string.toString());
+				}
 			}
+		
 			seisFile.setRegister(false);
 			seisFile.setTransfer(TRANSFER.FALSE);
 			job.uses(seisFile, File.LINK.OUTPUT);
 
 			job.addArgument("outfile=" + seisFile.getName());
 
-			job.addArgument("dx=" + DX);
-			job.addArgument("dy=" + DY);
-
+			pgaFile.setRegister(false);
+			pgaFile.setTransfer(TRANSFER.FALSE);
+			job.uses(pgaFile, File.LINK.OUTPUT);
+			
+			job.addArgument("pga_outfile=" + pgaFile.getName());
+			
 			job.addArgument("tlen=" + sParams.getTlen());
 			job.addArgument("dt=" + DT);
 			int doSiteResponse = 1;
@@ -294,7 +352,9 @@ public class CyberShake_Sub_Stoch_DAXGen {
 			}
 			job.addArgument("do_site_response=" + doSiteResponse);
 			if (sParams.isRunSiteResponse()) {
-				job.addArgument("vs30=" + velocityArray[VS30]);
+				job.addArgument("vs30=" + riq.getVs30());
+				job.addArgument("vref=" + sParams.getVref());
+				job.addArgument("vpga=" + sParams.getVpga());
 			}
 			int debug = 0;
 			if (sParams.isDebug()) {
@@ -304,59 +364,69 @@ public class CyberShake_Sub_Stoch_DAXGen {
 
 			File localVMFile = new File(localVMFilename);
 			localVMFile.setRegister(false);
-			localVMFile.setTransfer(TRANSFER.TRUE);
+			//Set transfer to false, because we sometimes run the LocalVM job on the summit site,
+			//but then run the HFSynth job in summit-pilot. If we keep this as transfer=TRUE, a transfer job
+			//copies the file in-place (since summit and summit-pilot use the same directory),
+			//which ends up deleting it.
+			localVMFile.setTransfer(TRANSFER.FALSE);
 			job.uses(localVMFile, LINK.INPUT);
-		
+	
 			job.addArgument("vmod=" + localVMFile.getName());
-
-			job.addProfile("pegasus", "pmc_priority", "" + numPoints);
 		
+			job.addProfile("pegasus", "pmc_priority", "" + numPoints);
+	
 			//Memory usage is the size of the SRF, the size of the output, and the size of some mysterious arrays in srf2stoch.
-			double srfMem = 14.8 * Math.log10(numPoints) * Math.pow(numPoints, 1.14) / (1024.0*1024.0);
-			//Largest RV at dt=0.1 is 75 mb, so cap if larger
-			srfMem = Math.min(srfMem, 80.0);
-			//Adjust rv mem based on dt, since that affects the dt of the SRF too
-			srfMem *= 0.1/DT;
-			double outputMem = sParams.getTlen()/DT * 2.0 * 4.0 / (1024.0 * 1024.0);
-			//slipfile memory:  3 x NP x NQ x LV x sizeof(float)
-			double slipfileMem = 3.0*100.0*600.0*1000.0*4.0 / (1024.0*1024.0);
-//			//Determine memory usage for srf2stoch buffers
-//			int nstk = numCols;
-//			int ndip = numRows;
-//			int nx = (int)(nstk*0.2/2.0+0.5);
-//			int ny = (int)(ndip*0.2/2.0+0.5);
-//			int nxdiv = 1;
-//			while ((nstk*nxdiv)%nx!=0) {
-//				nxdiv++;
-//			}
-//			int nydiv = 1;
-//			while ((ndip*nydiv)%ny!=0) {
-//				nydiv++;
-//			}
-//			double srf2stochBuffers = 3.0*nxdiv*nydiv*nstk*ndip*4.0/(1024.0*1024.0);
-//			int memUsage = (int)(Math.ceil(1.1*(outputMem + srfMem + slipfileMem+srf2stochBuffers)));
-			//srf2stoch_lite: 
+			//double srfMem = 14.8 * Math.log10(numPoints) * Math.pow(numPoints, 1.14) / (1024.0*1024.0);
+			double single_rv_size = (6.491*Math.pow(numPoints, 1.314)*1.1)/(1024.0*1024.0);
+			//Cap at 120 MB
+			if (single_rv_size > 120*1024*1024) {
+				single_rv_size = 120*1024*1024;
+			}	
+			//tmp SRF data is sizeof(complex)*(nstk*ndip*13.8+32.7*max(nstk, ndip)*max(nstk, ndip)
 			int nstk = numCols;
 			int ndip = numRows;
-			double srf2stochBuffers = (4.0*nstk*ndip*4.0)/(1024.0*1024.0);
-			int memUsage = (int)(Math.ceil(1.1*(outputMem + srfMem + slipfileMem+srf2stochBuffers)));
-			
+			double tmpSrfMem = (8.0*(nstk*ndip*13.8+32.7*Math.max(nstk, ndip)*Math.max(nstk, ndip)))/(1024.0*1024.0);
+			double outputMem = sParams.getTlen()/DT * 2.0 * 4.0 / (1024.0 * 1024.0);
+			//slipfile memory:  3 x NP x NQ x LV x sizeof(float)
+			double slipfileMem = 3.0*500.0*2000.0*10.0*4.0 / (1024.0*1024.0);
+			//Srf2stoch mem duplicates the slipfile mem, plus the reallocs
+			int nx = (int)(Math.floor(nstk/5.0 + 0.5));
+			int nxdiv = 1;
+			while ((nstk*nxdiv)%nx!=0) {
+				nxdiv++;
+			}
+			int ny = (int)(Math.floor(ndip/5.0 + 0.5));
+			int nydiv = 1;
+			while ((ndip*nydiv)%ny!=0) {
+				nydiv++;
+			}
+			double srf2stochMem = slipfileMem + (3.0*nxdiv*nydiv*nstk*ndip*4.0+3*nx*ny*4.0)/(1024.0*1024.0);
+			int memUsage = (int)(Math.ceil(1.1*(single_rv_size + tmpSrfMem + outputMem + slipfileMem + srf2stochMem)));
+		
 			job.addProfile("pegasus", "pmc_request_memory", "" + memUsage);
 			job.addProfile("pegasus", "label", "pmc");
-			
+		
 			dax.addJob(job);
 			dax.addDependency(localVMJob, job);
 			dax.addDependency(dirsJob, job);
 			if (numTasks==1) {
-				return job;
+				return new Job[] {job};
 			} else {
 				File combineSeisFile = new File(seisFile.getName());
 				combineJob.addArgument(combineSeisFile.getName());
 				combineSeisFile.setRegister(false);
 				combineSeisFile.setTransfer(TRANSFER.FALSE);
 				combineJob.uses(combineSeisFile, LINK.INPUT);
-				
+			
 				dax.addDependency(job, combineJob);
+				
+				File combinePGAFile = new File(pgaFile.getName());
+				combinePGAJob.addArgument(combinePGAFile.getName());
+				combinePGAFile.setRegister(false);
+				combinePGAFile.setTransfer(TRANSFER.FALSE);
+				combinePGAJob.uses(combinePGAFile, LINK.INPUT);
+				
+				dax.addDependency(job, combinePGAJob);
 			}
 		}
 		File combineSeisOutFile = new File(dirPrefix + java.io.File.separator + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() +
@@ -367,14 +437,13 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		combineJob.uses(combineSeisOutFile, LINK.OUTPUT);
 		
 		combineJob.addProfile("pegasus", "label", "pmc");
-		
-		return combineJob;
+		return new Job[]{combineJob, combinePGAJob};
 	}
 	
 	private Job createLFSiteResponseJob(int sourceID, int ruptureID, int numRupVars, int num_points, double[] velocityArray) {
 		String id = "LF_Site_Response_" + sourceID + "_" + ruptureID;
 
-		Job job = new Job(id, NAMESPACE, LF_SITE_RESPONSE_NAME, "1.0");
+		Job job = new Job(id, NAMESPACE, LF_SITE_RESPONSE_NAME, "2.0");
 
 		File seis_in = new File(SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + sParams.getLowFreqRIQ().getRunID() +
 				"_" + sourceID + "_" + ruptureID + SEISMOGRAM_FILENAME_EXTENSION);
@@ -385,6 +454,14 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		job.uses(seis_in, LINK.INPUT);
 		
 		String dir_prefix = "" + sourceID;
+
+		File pgaFile = new File(dir_prefix + java.io.File.separator + "HighFreqPGA_" + riq.getSiteName() +
+				"_" + sourceID + "_" + ruptureID + ".txt");
+
+		pgaFile.setRegister(false);
+		pgaFile.setTransfer(TRANSFER.FALSE);
+		job.addArgument("pga_infile=" + pgaFile.getName());
+		job.uses(pgaFile, LINK.INPUT);
 		
 		File seis_out = new File(dir_prefix + java.io.File.separator + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + sParams.getLowFreqRIQ().getRunID() +
 				"_" + sourceID + "_" + ruptureID + "_site_response" + SEISMOGRAM_FILENAME_EXTENSION);
@@ -396,15 +473,21 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		
 		job.addArgument("slat=" + riq.getLat());
 		job.addArgument("slon=" + riq.getLon());
-		//Use the cb2014 module when using CyberShake (3D) deterministic seismograms
-		job.addArgument("module=cb2014");
+		//Use the bssa2014 module when using CyberShake (3D) deterministic seismograms
+		job.addArgument("module=bssa2014");
 		//Need to set both Vs30 and Vref
-		job.addArgument("vs30=" + velocityArray[VS30]);
+		//Vs30 becomes vsite; we're using Thompson for this
+		job.addArgument("vs30=" + riq.getVs30());
 		//Vref = Vsite * Vs30 / VsD
 		double vref = velocityArray[VS30] * velocityArray[VSD5H] / velocityArray[VS5H];
 		//Round vref to nearest 0.1
 		vref = ((double)((int)(vref*10.0)))/10.0;
+		//If we're running a validation event, use vref=500.0
+		if (riq.getErfID()==60) {
+			vref = 500.0;
+		}
 		job.addArgument("vref=" + vref);
+		job.addArgument("vpga=" + sParams.getVpga());
 		
 		job.addProfile("pegasus", "label", "pmc");
 		//We only process 1 rupture variation at a time, so very small memory requirements
@@ -426,7 +509,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		job.addArgument(vmOut);
 		
 		vmIn.setRegister(false);
-		vmIn.setTransfer(TRANSFER.TRUE);
+		vmIn.setTransfer(TRANSFER.FALSE);
 		vmOut.setRegister(false);
 		vmOut.setTransfer(TRANSFER.FALSE);
 		
@@ -452,7 +535,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 	private Job createMergeIMJob(int sourceID, int ruptureID, int numRupVars, int numPoints) {
 		String id = "Merge_IM_" + sourceID + "_" + ruptureID;
 
-		Job job = new Job(id, NAMESPACE, MERGE_IM_NAME, VERSION);
+		Job job = new Job(id, NAMESPACE, MERGE_IM_NAME, "2.0");
 		
 		String dirPrefix = "" + sourceID;
 		
@@ -462,7 +545,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 			File lfSeisFile = new File(lfSeisName);
 			lfSeisFile.setTransfer(TRANSFER.FALSE);
 			lfSeisFile.setRegister(false);
-			job.uses(lfSeisFile, LINK.INOUT);
+			job.uses(lfSeisFile, LINK.INPUT);
 			job.addArgument("lf_seis=" + lfSeisFile.getName());
 		} else {
 			String lfSeisName = SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + sParams.getLowFreqRIQ().getRunID() +
@@ -496,8 +579,8 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		
 		//PSA args
 		double psaFilter = PSA_FILTER;
-		if (psaFilter<2.0*riq.getLowFrequencyCutoff()) {
-			psaFilter = 2.0*riq.getLowFrequencyCutoff();
+		if (psaFilter<2.0*sParams.getStochFrequency()) {
+			psaFilter = 2.0*sParams.getStochFrequency();
 		}
 		
 		int nt = (int)((sParams.getTlen()/DT + 0.5));
@@ -631,17 +714,23 @@ public class CyberShake_Sub_Stoch_DAXGen {
 				dirNames.add("" + sourceID);
 				
 				//Handle dependences in the method, because we might be using multiple tasks per rupture
-				Job hfSynthJob = createHFSynthJob(sourceID, ruptureID, numRupVars, numPoints, numRows, numCols, localVMFilename, localVMJob, dirsJob, dax, vsArray);
-				dax.addJob(hfSynthJob);
+				Job[] hfSynthJobs = createHFSynthJob(sourceID, ruptureID, numRupVars, numPoints, numRows, numCols, localVMFilename, localVMJob, dirsJob, dax, vsArray);
+				for (Job j: hfSynthJobs) {
+					dax.addJob(j);
+				}
 				
 				Job mergeIMJob = createMergeIMJob(sourceID, ruptureID, numRupVars, numPoints);
 				dax.addJob(mergeIMJob);
-				dax.addDependency(hfSynthJob, mergeIMJob);
+				for (Job j: hfSynthJobs) {
+					dax.addDependency(j, mergeIMJob);
+				}
 
 				if (sParams.isRunLFSiteResponse()) {
 					Job lfSiteResponseJob = createLFSiteResponseJob(sourceID, ruptureID, numRupVars, numPoints, vsArray);
 					dax.addJob(lfSiteResponseJob);
-					dax.addDependency(dirsJob, lfSiteResponseJob);
+					for (Job j: hfSynthJobs) {
+						dax.addDependency(j, lfSiteResponseJob);
+					}
 					dax.addDependency(lfSiteResponseJob, mergeIMJob);
 				}
 				
