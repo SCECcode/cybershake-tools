@@ -250,7 +250,7 @@ public class CyberShake_PP_DAXGen {
         Option no_seisPSA = new Option("ns", "no-seispsa", false, "Use separate executables for both synthesis and PSA");
         Option no_hf_synth = new Option("nh", "no-hf-synth", false, "Use separate executables for high-frequency srf2stoch and hfsim, rather than hfsynth");
         Option no_merge_psa = new Option("nm", "no-mergepsa", false, "Use separate executables for merging broadband seismograms and PSA, rather than mergePSA");
-        Option high_frequency = OptionBuilder.withArgName("high-frequency").hasOptionalArg().withDescription("Lower-bound frequency cutoff for stochastic high-frequency seismograms (default 1.0), required for high frequency run").create("hf");
+        Option high_frequency = OptionBuilder.withArgName("high-frequency").hasOptionalArg().withDescription("Lower-bound frequency cutoff for stochastic high-frequency seismograms (default 1.0), required for high frequency run").withLongOpt("high-frequency").create("hf");
         Option sqlIndex = new Option("q", "sql", false, "Create sqlite file containing (source, rupture, rv) to sub workflow mapping");
         Option no_mpi_cluster = new Option("nc", "no-mpi-cluster", false, "Do not use pegasus-mpi-cluster");
         Option zip = new Option("z", "zip", false, "Zip seismogram and PSA files before transferring.");
@@ -339,7 +339,13 @@ public class CyberShake_PP_DAXGen {
         if (line.hasOption(no_seisPSA.getOpt())) {
         	pp_params.setSeisPSA(false);
         }
+        if (line.hasOption(directSynth.getOpt())) {
+        	pp_params.setUseDirectSynth(true);
+        	pp_params.setSeisPSA(false);
+        }
+        
         if (line.hasOption(high_frequency.getOpt())) {
+        	System.out.println("PP thinks it's HF.");
         	if (pp_params.isSeisPSA()) {
         		System.out.println("Can't use seisPSA with high-frequency, since we calculate PSA after merging.");
         		return -4;
@@ -357,6 +363,8 @@ public class CyberShake_PP_DAXGen {
         	if (line.hasOption(no_merge_psa.getOpt())) {
         		pp_params.setMergePSA(true);
         	}
+        } else {
+        	System.out.println("PP thinks it's LF.");
         }
         
         if (line.hasOption(sqlIndex.getOpt())) {
@@ -427,10 +435,6 @@ public class CyberShake_PP_DAXGen {
         	pp_params.setNonblockingMD5(true);
         }
         
-        if (line.hasOption(directSynth.getOpt())) {
-        	pp_params.setUseDirectSynth(true);
-        }
-        
         if (line.hasOption(debug.getOpt())) {
         	DEBUG_FLAG = 1;
         }
@@ -477,6 +481,7 @@ public class CyberShake_PP_DAXGen {
 	        //Set frequency-specific things
 	    
 	        params.setDetFrequency(riq.getLowFrequencyCutoff());
+	        params.setStochasticFrequency(riq.getMax_frequency());
 	        
 	        if (params.getSpacing()>0.0) {
 	        	LF_TIMESTEP = "" + (params.getSpacing()/2.0);
@@ -523,6 +528,8 @@ public class CyberShake_PP_DAXGen {
 //			File preDFile = new File(preDAXFile);
 //			preDFile.addPhysicalFile("file://" + params.getPPDirectory() + "/" + preDAXFile, "local");
 //			topLevelDax.addFile(preDFile);
+			
+			
 			
 			int currDax = 0;
 			
@@ -779,6 +786,9 @@ public class CyberShake_PP_DAXGen {
 			directSynthJob = new Job("DirectSynth", NAMESPACE, DIRECT_SYNTH_NAME, "2.0");
 		} else if (riq.getRuptVarScenID()==8) {
 			directSynthJob = new Job("DirectSynth_RSQSim", NAMESPACE, DIRECT_SYNTH_RSQSIM_NAME, "1.0");
+		} else if (riq.getRuptVarScenID()==9) {
+			//Use version linked with rupture generator v5.4.2
+			directSynthJob = new Job("DirectSynth", NAMESPACE, DIRECT_SYNTH_NAME, "3.0");
 		} else {
 			System.err.println("Not sure what version of DirectSynth to use with Rupture Variation Scenario ID " + riq.getRuptVarScenID() + ", aborting.");
 			System.exit(2);
@@ -788,7 +798,7 @@ public class CyberShake_PP_DAXGen {
 		directSynthJob.addArgument("slat=" + riq.getLat());
 		directSynthJob.addArgument("slon=" + riq.getLon());
 		if (riq.getSiteName().equals("TEST")) {
-			NUM_SGT_HANDLERS = 32;
+			NUM_SGT_HANDLERS = 42;
 		}
 		if (riq.getRuptVarScenID()==8) {
 			//Expand to more, since recent tests are yielding 1.2 TB SGTs
@@ -802,7 +812,7 @@ public class CyberShake_PP_DAXGen {
 		
 		if (riq.getRuptVarScenID()==5) {
 			directSynthJob.addArgument("rupture_spacing=random");
-		} else if (riq.getRuptVarScenID()==6 || riq.getRuptVarScenID()==7) {
+		} else if (riq.getRuptVarScenID()!=8) {
 			directSynthJob.addArgument("rupture_spacing=uniform");
 		}
 				
@@ -1515,14 +1525,17 @@ public class CyberShake_PP_DAXGen {
 			System.err.println("Couldn't find a write password for db " + DB);
 			System.exit(3);
 		}
+		params.setStochasticFrequency(riq.getMax_frequency());
 		DBConnect dbc = new DBConnect(DB_SERVER, DB, "cybershk", pass);
 		String update = "update CyberShake_Runs set Max_Frequency=";
+		System.out.println("isStochastic = " + params.isStochastic());
 		if (params.isStochastic()) {
 			update += params.getStochasticFrequency() + ", Low_Frequency_Cutoff=" + params.getStochasticCutoff();
 		} else {
 			update += params.getDetFrequency() + ", Low_Frequency_Cutoff=" + params.getDetFrequency();
 		}
 		update += " where Run_ID=" + riq.getRunID();
+		System.out.println(update);
 		dbc.insertData(update);
 		dbc.closeConnection();
 	}
@@ -1544,7 +1557,9 @@ public class CyberShake_PP_DAXGen {
 	}
 
 	private ADAG genDBProductsDAX(int numSubDAXes) {
-		CyberShake_DB_DAXGen gen = new CyberShake_DB_DAXGen(riq, params, numSubDAXes, params.isZip(), DB_SERVER);
+//		CyberShake_DB_DAXGen gen = new CyberShake_DB_DAXGen(riq, params, numSubDAXes, params.isZip(), DB_SERVER);
+		CyberShake_DB_DAXGen gen = new CyberShake_DB_DAXGen(riq, numSubDAXes, false, params.getStochasticFrequency(), params.isZip(), DB_SERVER, params.isCalculateRotD(), params.isCalculateDurations());
+			
 		ADAG dax = gen.makeDAX();
 			
 		return dax;		
