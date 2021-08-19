@@ -1,6 +1,7 @@
 package org.scec.cme.cybershake.dax3;
 
 public class Stochastic_DAXParameters {
+	private double stochFrequency = 10.0;
 	private double mergeFrequency = 1.0;
 	private int lfRunID = -1;
 	private boolean runRotd = true;
@@ -11,9 +12,18 @@ public class Stochastic_DAXParameters {
 	private boolean debug = false;
 	private RunIDQuery lowFreqRIQ;
 	private double tlen = 300.0;
-	private double vs30 = -1.0;
 	private String velocityInfoFile = null;
+	//vref and vpga are based on 1D velocity model
+	//Set to 500 m/s for now
+	private double vref = 500.0;
+	private double vpga = vref;
 	
+	public double getStochFrequency() {
+		return stochFrequency;
+	}
+	public void setStochFrequency(double stochFrequency) {
+		this.stochFrequency = stochFrequency;
+	}
 	public double getMergeFrequency() {
 		return mergeFrequency;
 	}
@@ -30,6 +40,11 @@ public class Stochastic_DAXParameters {
 		this.lfRunID = lfRunID;
 		this.lowFreqRIQ = new RunIDQuery(this.lfRunID);
 	}
+	public void setLfRunID(int lfRunID, String server) {
+		this.lfRunID = lfRunID;
+		this.lowFreqRIQ = new RunIDQuery(this.lfRunID, server);
+	}
+
 	public RunIDQuery getLowFreqRIQ() {
 		return lowFreqRIQ;
 	}
@@ -63,12 +78,6 @@ public class Stochastic_DAXParameters {
 	public void setTlen(double tlen) {
 		this.tlen = tlen;
 	}
-	public double getVs30() {
-		return vs30;
-	}
-	public void setVs30(double vs30) {
-		this.vs30 = vs30;
-	}
 	public boolean isRunDuration() {
 		return runDuration;
 	}
@@ -86,5 +95,17 @@ public class Stochastic_DAXParameters {
 	}
 	public void setVelocityInfoFile(String velocityInfoFile) {
 		this.velocityInfoFile = velocityInfoFile;
+	}
+	public double getVref() {
+		return vref;
+	}
+	public void setVref(double vref) {
+		this.vref = vref;
+	}
+	public double getVpga() {
+		return vpga;
+	}
+	public void setVpga(double vpga) {
+		this.vpga = vpga;
 	}
 }
