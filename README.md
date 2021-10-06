@@ -11,4 +11,6 @@ For details on creating and running CyberShake workflows, please visit the Cyber
 ## Cloning
 To clone this repository in a terminal, run:
 
-  git clone https://github.com/SCECcode/cybershake-tools.git
+```
+git clone https://github.com/SCECcode/cybershake-tools.git
+```
