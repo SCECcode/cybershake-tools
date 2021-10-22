@@ -196,7 +196,8 @@ public class DBConnect
     //and the contents of the stack
     try
     {
-      Class.forName(drivers).newInstance();
+      Class.forName(drivers).getConstructor(null).newInstance();
+      //Class.forName(drivers).newInstance();
     }
     catch (Exception E)
     {
