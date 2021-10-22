@@ -26,7 +26,7 @@ SITE=$1
 RUN_ID=$2
 
 # Ensure run table exists
-RUN_FILE=${SITE}_PP_dax/run_table.txt
+RUN_FILE=${SITE}_Stoch_dax/run_table.txt
 if [ ! -e ${RUN_FILE} ]; then
     echo "${RUN_FILE} not found"
     exit 1
@@ -56,24 +56,21 @@ fi
 
 
 # Isolate the pegasus run command
-PEGASUS_RUN=`grep pegasus-run ${SITE}_PP_dax/run_${RUN_ID}/log-plan-CyberShake_${SITE}.dax-*`
-which pegasus-run
+PEGASUS_RUN=`grep pegasus-run ${SITE}_Stoch_dax/run_${RUN_ID}/log-plan-CyberShake_Stoch_${SITE}_top.dax-*`
 echo ${PEGASUS_RUN}
-${PEGASUS_RUN} | tee ${SITE}_PP_dax/run_${RUN_ID}/log-run-CyberShake_PP_${SITE}.dax
+${PEGASUS_RUN} | tee ${SITE}_Stoch_dax/run_${RUN_ID}/log-run-CyberShake_Stoch_${SITE}.dax
 
 
 # Isolate condor jobid
-JOBID=`grep "submitted to cluster" ${SITE}_PP_dax/run_$RUN_ID/log-run-CyberShake_PP_${SITE}.dax | head -n 1 | awk '{print $6}' | sed "s/\.//"`
+JOBID=`grep "submitted to cluster" ${SITE}_Stoch_dax/run_${RUN_ID}/log-run-CyberShake_Stoch_${SITE}.dax | head -n 1 | awk '{print $6}' | sed "s/\.//"`
 
 
 # Isolate the condor submit dir
-EXEC_DIR=`grep pegasus-run ${SITE}_PP_dax/run_$RUN_ID/log-plan-CyberShake_${SITE}.dax-* | cut -d" " -f3`
+EXEC_DIR=`grep pegasus-run ${SITE}_Stoch_dax/run_${RUN_ID}/log-plan-CyberShake_Stoch_${SITE}_top.dax-* | cut -d" " -f3`
 
 
 # Save condor_config.local
-if [ -e /usr/local/condor/scec_config/local.shock/condor_config.local ]; then
-        CFG=/usr/local/condor/scec_config/local.shock/condor_config.local
-elif [ -n "${CONDOR_CONFIG+x}" ]; then
+if [ -n "${CONDOR_CONFIG+x}" ]; then
         CFG=${CONDOR_CONFIG}.local
 elif [ -e /etc/condor/condor_config.local ]; then
         CFG=/etc/condor/condor_config.local
@@ -110,7 +107,7 @@ fi
 
 #while read LINE ; do
 #    RUN_ID=`echo $LINE | awk '{print $1}'`
-    /home/scec-02/cybershk/runs/runmanager/edit_run.py ${RUN_ID} "Status=${NEW_STATE}" "Comment=PP workflow submitted" "Job_ID=${SUBHOST}:${JOBID}" "Submit_Dir=${EXEC_DIR}" "Notify_User=${NOTIFY_MOD}"
+    /home/scec-02/cybershk/runs/runmanager/edit_run.py ${RUN_ID} "Status=${NEW_STATE}" "Job_ID=${SUBHOST}:${JOBID}" "Submit_Dir=${EXEC_DIR}" "Notify_User=${NOTIFY_MOD}"
     if [ $? != 0 ]; then
         echo "Unable to update Status, Comment, Job_ID, Submit_Dir, Comment for run ${RUN_ID}"
         # Continue with updates
