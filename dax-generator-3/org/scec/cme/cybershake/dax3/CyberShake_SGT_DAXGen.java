@@ -488,6 +488,7 @@ public class CyberShake_SGT_DAXGen {
 		
 		preCVMJob.addArgument("--server " + sgt_params.getServer());
 		if (sgt_params.getSpacing()>0.0) {
+			System.out.println("Spacing: " + sgt_params.getSpacing());
 			preCVMJob.addArgument("--spacing " + sgt_params.getSpacing());
 		}
 

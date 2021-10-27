@@ -79,7 +79,7 @@ public class CyberShake_AWP_SGT_DAXGen {
         	System.exit(1);
         }
         
-        String db_server = "focal.usc.edu";
+        String db_server = "moment.usc.edu";
         if (line.hasOption(server.getOpt())) {
         	db_server = line.getOptionValue(server.getOpt());
         }
