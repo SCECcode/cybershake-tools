@@ -39,7 +39,7 @@ public class CyberShake_Integrated_DAXGen {
     private static boolean runBroadband = false;
     private static String bbRunID = "-1";
     
-    private static String servername = "focal.usc.edu";
+    private static String servername = "moment.usc.edu";
     
     private static ArrayList<RunIDQuery> runIDQueries;
 	

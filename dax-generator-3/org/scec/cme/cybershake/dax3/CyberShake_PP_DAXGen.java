@@ -105,11 +105,11 @@ public class CyberShake_PP_DAXGen {
     private final static int LARGE_MEM_BUF = 1*512;
     
 	//Database
-    private static String DB_SERVER = "focal.usc.edu";
+    private static String DB_SERVER = "moment.usc.edu";
     private final static String DB = "CyberShake";
     private final static String USER = "cybershk_ro";
     private final static String PASS = "CyberShake2007";
-    private final static String pass_file = "focal.txt";
+    private final static String pass_file = "/home/shock/scottcal/runs/config/moment.txt";
     private static DBConnect dbc = null;
      
     //DirectSynth parameters
