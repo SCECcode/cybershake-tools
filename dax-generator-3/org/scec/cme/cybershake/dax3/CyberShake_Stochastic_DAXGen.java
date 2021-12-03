@@ -303,7 +303,7 @@ public class CyberShake_Stochastic_DAXGen {
 		stochDAX.addArgument("--cluster label");
 		stochDAX.addArgument("--force");
 		stochDAX.addArgument("--q");
-		stochDAX.addArgument("--output shock");
+		stochDAX.addArgument("--output-sites shock");
 
 		stochDAX.addArgument("--basename Sub_Stoch_" + riq.getSiteName());
 		topDAX.addDAX(stochDAX);
