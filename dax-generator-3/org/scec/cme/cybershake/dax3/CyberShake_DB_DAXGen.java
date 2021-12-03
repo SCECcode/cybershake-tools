@@ -14,10 +14,10 @@ public class CyberShake_DB_DAXGen {
 	//Condor will expand this into the submit username
 	public static final String USER = "$ENV(USER)";
 	
-	public static final String DB_CHECK_OUTFILE_DIR = "/home/scec-02/tera3d/CyberShake2007/cybershk/pegasus/db_check_outfiles/";
-	public static final String CURVE_OUTPUT_DIR_PREFIX = "/home/scec-00/" + USER + "/opensha/curves/";
-	public static final String DISAGG_OUTPUT_DIR_PREFIX = "/home/scec-00/" + USER + "/opensha/disagg/";
-	public static final String OPENSHA_CONF_DIR = "/home/scec-00/cybershk/opensha/OpenSHA/src/org/opensha/sha/cybershake/conf/";
+	public static final String DB_CHECK_OUTFILE_DIR = "/home/shock/scottcal/db_products/db_check_outfiles/";
+	public static final String CURVE_OUTPUT_DIR_PREFIX = "/home/shock/scottcal/db_products/curves/";
+	public static final String DISAGG_OUTPUT_DIR_PREFIX = "/home/shock/scottcal/db_products/disagg/";
+	public static final String OPENSHA_CONF_DIR = "/home/shock-ssd/scottcal/opensha/conf/";
 	//public static final String CURVE_ATTEN_REL_XML_FILES = OPENSHA_CONF_DIR + "cb2008.xml"
 	//		+ "," + OPENSHA_CONF_DIR + "ba2008.xml"
 	//		+ "," + OPENSHA_CONF_DIR + "cy2008.xml"
@@ -26,11 +26,11 @@ public class CyberShake_DB_DAXGen {
 			+ "," + OPENSHA_CONF_DIR + "bssa2014.xml"
 			+ "," + OPENSHA_CONF_DIR + "cb2014.xml"
 			+ "," + OPENSHA_CONF_DIR + "cy2014.xml";
-	public static final String DB_PASS_FILE = "/home/scec-00/" + USER + "/config/db_pass.txt";
-	public static final String DB_REPORT_OUTPUT_DIR = "/home/scec-00/" + USER + "/db_reports/";
+	public static final String DB_PASS_FILE = "/home/shock/scottcal/runs/config/db_pass.txt";
+	public static final String DB_REPORT_OUTPUT_DIR = "/home/shock/scottcal/db_products/db_reports/";
 //	public static final String STORAGE_DIR = "/home/scec-02/tera3d/CyberShake2007/data/PPFiles/";
 	//scec-04 storage dir
-	public static final String STORAGE_DIR = "/home/scec-04/tera3d/CyberShake/data/PPFiles/";
+	public static final String STORAGE_DIR = "/project/scec_608/cybershake/results/PPFiles/";
 
 	//Constants
 	public static final String DAX_FILENAME_POST = "_db_products";
@@ -39,6 +39,8 @@ public class CyberShake_DB_DAXGen {
 	public static final String UCERF2_ERF_FILE = OPENSHA_CONF_DIR + "MeanUCERF.xml"; 
 	public static final String RSQSIM_ERF42_FILE = "/home/scec-02/kmilner/simulators/catalogs/rundir2457/erf_params.xml";
 	public static final String RSQSIM_ERF48_FILE = "/home/scec-02/kmilner/simulators/catalogs/rundir2585_1myrs/erf_params.xml";
+	public static final String RSQSIM_ERF61_FILE = "/home/shock-ssd/scottcal/opensha/conf/erf61_params.xml";
+	public static final String RSQSIM_ERF62_FILE = "/home/shock-ssd/scottcal/opensha/conf/erf62_params.xml";
 	public static final String CURVE_CALC_PERIODS = "3,5,10";
 	public static final String CURVE_OUTPUT_TYPES = "pdf,png";
 	public static final double CURVE_DEFAULT_VS30 = 760;
@@ -47,7 +49,7 @@ public class CyberShake_DB_DAXGen {
 	public static final String ROTD_OUTPUT_TYPES = "pdf,png";
 	
 	//DB info
-	public static String DB_SERVER = "focal";
+	public static String DB_SERVER = "moment";
 	
 	//Job names
 	public static final String DB_INSERT_NAME = "Load_Amps";
@@ -245,8 +247,9 @@ public class CyberShake_DB_DAXGen {
 			dax.addDependency(curveCalcJob, disaggJob);
 
 		}
-		Job reportJob = createDBReportJob();
-		dax.addJob(reportJob);
+		//11-21: Remove DB report job from workflow
+		//Job reportJob = createDBReportJob();
+		//dax.addJob(reportJob);
 		Job scatterMapJob = null;
 		if (DO_SCATTER_MAP) {
 			scatterMapJob = createScatterMapJob();
@@ -272,7 +275,7 @@ public class CyberShake_DB_DAXGen {
 		}		
 		
 		// report is a child of check
-		dax.addDependency(dbCheckJob, reportJob);
+		//dax.addDependency(dbCheckJob, reportJob);
 
 		// scatter map is a child of curve calc
 		if (DO_SCATTER_MAP) {
@@ -281,7 +284,7 @@ public class CyberShake_DB_DAXGen {
 			dax.addDependency(scatterMapJob, notifyJob);
 		} else {
 		    // notification is child of report
-			dax.addDependency(reportJob, notifyJob);
+			//dax.addDependency(reportJob, notifyJob);
 		}
 
 		return dax;

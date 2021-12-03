@@ -29,8 +29,8 @@ public class CyberShake_Integrated_DAXGen {
     private final static String PP_DAX_FILENAME_PREFIX = "CyberShake";
     private final static String DAX_FILENAME_EXTENSION = ".dax";
     
-    private final static String SGT_OUTPUT_DIR_ROOT = "/projects/sciteam/jmz/CyberShake/data/SgtFiles";
-    private final static String PP_OUTPUT_DIR_ROOT = "/home/scec-04/tera3d/CyberShake/data/PPFiles";
+    private final static String SGT_OUTPUT_DIR_ROOT = "/gpfs/alpine/scratch/callag/geo112/SgtFiles";
+    private final static String PP_OUTPUT_DIR_ROOT = "/project/scec_608/cybershake/results/PPFiles";
 
 	private final static String NAMESPACE = "scec";
     
@@ -157,12 +157,20 @@ public class CyberShake_Integrated_DAXGen {
 	    	//PRE workflow
 	    	String preDAXFilename = cont.getPreWorkflow();
 	    	DAX preD = new DAX(cont.getRIQ().getSiteName() + "_preDAX", preDAXFilename);
-			preD.addArgument("--force");
+			//Combine arguments into one to deal with 5.0 planning bug
+			/*preD.addArgument("--force");
 			preD.addArgument("-q");
 			preD.addArgument("--cleanup none");
 			if (cont.getParams().getPPSite()!=null) {
 				preD.addArgument("-s " + cont.getParams().getPPSite() + ",shock,local");
-			}
+			}*/
+			StringBuffer argString = new StringBuffer("--force");
+			argString.append(" -q");
+			argString.append(" --cleanup none");
+			if (cont.getParams().getPPSite()!=null) {
+            	argString.append(" -s " + cont.getParams().getPPSite() + ",shock,local");
+            }
+			preD.addArgument(argString.toString());
 			//Add the dax to the top-level dax like a job
 			topLevelDax.addDAX(preD);
 			//Create a file object
@@ -185,21 +193,32 @@ public class CyberShake_Integrated_DAXGen {
 			for (int j=0; j<subWfs.size(); j++) {
 				String filename = subWfs.get(j);
 				DAX jDax = new DAX(cont.getRIQ().getSiteName() + "_dax_" + j, filename);
+				//Create single arg string for Pegasus 5.0 issue
+				argString = new StringBuffer("");
 				if (cont.getParams().isMPICluster()) {
-					jDax.addArgument("--cluster label");
+					//jDax.addArgument("--cluster label");
+					argString.append("--cluster label");
 				} else {
-					jDax.addArgument("--cluster horizontal");
+					//jDax.addArgument("--cluster horizontal");
+					argString.append("--cluster horizontal");
 				}
 				//Makes sure it doesn't prune workflow elements
-				jDax.addArgument("--force");
+				/*jDax.addArgument("--force");
 				jDax.addArgument("-q");
-				jDax.addArgument("--cleanup none");
+				jDax.addArgument("--cleanup none");*/
+				argString.append(" --force");
+				argString.append(" -q");
+				argString.append(" --cleanup none");
 				if (cont.getParams().getPPSite()!=null) {
-					jDax.addArgument("-s " + cont.getParams().getPPSite());
+					//jDax.addArgument("-s " + cont.getParams().getPPSite());
+					argString.append(" -s " + cont.getParams().getPPSite());
 				}
 				//Force stage-out of zip files
-				jDax.addArgument("--output shock");
-				jDax.addArgument("--output-dir " + PP_OUTPUT_DIR_ROOT + "/" + siteName + "/" + cont.getRIQ().getRunID());
+				//jDax.addArgument("--output-sites shock");
+				argString.append(" --output-sites shock");
+				//jDax.addArgument("--output-dir " + PP_OUTPUT_DIR_ROOT + "/" + siteName + "/" + cont.getRIQ().getRunID());
+				argString.append(" --output-dir " + PP_OUTPUT_DIR_ROOT + "/" + siteName + "/" + cont.getRIQ().getRunID());
+				jDax.addArgument(argString.toString());
 				jDax.addProfile("dagman", "category", "subwf");
 				topLevelDax.addDAX(jDax);
 				//Only add a dependency if we're not using the no-blocking MD5 sums
@@ -245,9 +264,14 @@ public class CyberShake_Integrated_DAXGen {
 				String bbDAXName = cont.getRIQ().getSiteName() + "_stochDax";
 				bbDax = new DAX(bbDAXName, bbDAXFile);
 				//Makes sure it doesn't prune workflow elements
-				bbDax.addArgument("--force");
-				bbDax.addArgument("-q");
-				bbDax.addArgument("--cleanup none");
+				argString = new StringBuffer("");
+				//bbDax.addArgument("--force");
+				//bbDax.addArgument("-q");
+				//bbDax.addArgument("--cleanup none");
+				argString.append("--force");
+				argString.append(" -q");
+				argString.append(" --cleanup none");
+				bbDax.addArgument(argString.toString());
 				topLevelDax.addDAX(bbDax);
 				//Broadband workflow is dependent on post-processing and the update job
 				for (int j=0; j<subWfs.size(); j++) {
@@ -262,9 +286,14 @@ public class CyberShake_Integrated_DAXGen {
 			//DB
 			String dbDAXFile = cont.getDBWorkflow();
 			DAX dbDax = new DAX(cont.getRIQ().getSiteName() + "_dbDax", dbDAXFile);
-			dbDax.addArgument("--force");
-			dbDax.addArgument("-q");
-			dbDax.addArgument("--cleanup none");
+			argString = new StringBuffer("");
+			//dbDax.addArgument("--force");
+			//dbDax.addArgument("-q");
+			//dbDax.addArgument("--cleanup none");
+			argString.append(" --force");
+			argString.append(" -q");
+			argString.append(" --cleanup none");
+			dbDax.addArgument(argString.toString());
 			topLevelDax.addDAX(dbDax);
 			for (int j=0; j<subWfs.size(); j++) {
 				topLevelDax.addDependency(cont.getRIQ().getSiteName() + "_dax_" + j, cont.getRIQ().getSiteName() + "_dbDax");
@@ -276,9 +305,14 @@ public class CyberShake_Integrated_DAXGen {
 			//Post
 			String postDAXFile = cont.getPostWorkflow();
 			DAX postD = new DAX(cont.getRIQ().getSiteName() + "_postDax", postDAXFile);
-			postD.addArgument("--force");
-			postD.addArgument("-q");
-			postD.addArgument("--cleanup none");
+			argString = new StringBuffer("");
+			//postD.addArgument("--force");
+			//postD.addArgument("-q");
+			//postD.addArgument("--cleanup none");
+			argString.append(" --force");
+			argString.append(" -q");
+			argString.append(" --cleanup none");
+			postD.addArgument(argString.toString());
 			topLevelDax.addDAX(postD);
 			if (cont.getParams().getInsert()) {
 				topLevelDax.addDependency(dbDax, postD);
@@ -309,7 +343,7 @@ public class CyberShake_Integrated_DAXGen {
 				//Avoid pruning of jobs
 				sgtDaxJobs[i].addArgument("--force");
 				//Force stage-out and registration
-				sgtDaxJobs[i].addArgument("--output-site bluewaters");
+				sgtDaxJobs[i].addArgument("--output-sites bluewaters");
 				sgtDaxJobs[i].addArgument("--output-dir " + SGT_OUTPUT_DIR_ROOT + "/" + runIDQueries.get(i).getSiteName());
 				topLevelDax.addDAX(sgtDaxJobs[i]);
 
@@ -369,7 +403,7 @@ public class CyberShake_Integrated_DAXGen {
 					jDax.addArgument("--force");
 					jDax.addArgument("-q");
 					//Force stage-out of zip files
-					jDax.addArgument("--output shock");
+					jDax.addArgument("--output-sites shock");
 					jDax.addArgument("--output-dir " + PP_OUTPUT_DIR_ROOT + "/" + siteName + "/" + cont.getRIQ().getRunID());
 					jDax.addProfile("dagman", "category", "subwf");
 					topLevelDax.addDAX(jDax);
