@@ -22,7 +22,8 @@ public class SGT_DAXParameters {
 	private boolean boundingBox = false;
 	
 	private double depth = -1.0;
-	private double h_frac = 0.0;
+	//Change default to h/4
+	private double h_frac = 0.25;
 	
 	public SGT_DAXParameters(String filename) {
 		this.daxFilename = filename;
