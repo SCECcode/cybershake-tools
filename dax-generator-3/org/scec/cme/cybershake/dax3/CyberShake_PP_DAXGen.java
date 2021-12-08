@@ -271,6 +271,7 @@ public class CyberShake_PP_DAXGen {
         Option spacingOpt = OptionBuilder.withArgName("spacing").hasArg().withDescription("Override the default grid spacing, in km.").create("sp");
         Option server = OptionBuilder.withArgName("server").withLongOpt("server").hasArg().withDescription("Server to use for site parameters and to insert PSA values into").create("sr");
         Option durations = new Option("du", "duration", false, "Calculate duration metrics and insert them into the database.");
+        Option seis_length = OptionBuilder.withArgName("seis_length").hasArg().withDescription("Length of output seismograms in seconds. Default is 500.").create("sl");
         Option debug = new Option("d", "debug", false, "Debug flag.");
 
         
@@ -304,6 +305,7 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(spacingOpt);
         cmd_opts.addOption(server);
         cmd_opts.addOption(durations);
+        cmd_opts.addOption(seis_length);
 
         CommandLineParser parser = new GnuParser();
         if (args.length<=1) {
@@ -462,6 +464,10 @@ public class CyberShake_PP_DAXGen {
         if (line.hasOption(durations.getOpt())) {
         	pp_params.setCalculateDurations(true);
         }
+        
+        if (line.hasOption(seis_length.getOpt())) {
+        	pp_params.setSeisLength(Double.parseDouble(line.getOptionValue(seis_length.getOpt())));
+        }
         //Removing notifications
         pp_params.setNotifyGroupSize(pp_params.getNumOfDAXes()+1);
         
@@ -491,14 +497,14 @@ public class CyberShake_PP_DAXGen {
 	        
 	        //Adjust a few parameters accordingly
 	        if (params.getDetFrequency()==1.0) {
-	        	//Timesteps should be enough for 500 sec of simulation, rounded up to nearest 1k
+	        	//Timesteps should be enough for seisLength sec of simulation, rounded up to nearest 1k
 	        	NUMTIMESTEPS = "10000";
 	        	if (params.getSpacing()>0.0) {
-	        		NUMTIMESTEPS = "" + 1000*(int)(Math.ceil((500.0/Double.parseDouble(LF_TIMESTEP))/1000));
+	        		NUMTIMESTEPS = "" + 1000*(int)(Math.ceil((params.getSeisLength()/Double.parseDouble(LF_TIMESTEP))/1000));
 	        	}
 	        }			
 
-	        SEIS_LENGTH = "300.0";
+	        SEIS_LENGTH = "" + params.getSeisLength();
 			
 			//Check to make sure RV model is consistent with in-memory choice
 			//since if we generate rupture variations in memory, we only support RV ID 4
