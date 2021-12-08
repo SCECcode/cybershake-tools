@@ -60,6 +60,9 @@ public class PP_DAXParameters {
 	//BW has 56 GB permitted per node
 	private int seisPSAMemCutoff = 56*1024;
 
+	//Length of seismogram in seconds
+	private double seisLength = 500.0;
+	
 	public PP_DAXParameters() {
 		numOfDAXes = 1;
 		notifyGroupSize = 1;
@@ -358,6 +361,14 @@ public class PP_DAXParameters {
 
 	public void setPPSite(String ppSite) {
 		this.ppSite = ppSite;
+	}
+
+	public double getSeisLength() {
+		return seisLength;
+	}
+
+	public void setSeisLength(double seisLength) {
+		this.seisLength = seisLength;
 	}
 
 	public double getSpacing() {
