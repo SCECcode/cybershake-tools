@@ -353,10 +353,10 @@ public class CyberShake_DB_DAXGen {
 		job.addArgument("-run " + riq.getRunID());
 		String periods = "10,7.5,5,4,3";
 		if (params.getDetFrequency()>=1.0) {
-			periods = periods + ",2";
+			periods = periods + ",2,PGV";
 		}
 		if (params.isStochastic()) {
-			periods = periods + ",1,0.75,0.5,0.4,0.3,0.2,0.1,PGA,PGV";
+			periods = periods + ",1,0.75,0.5,0.4,0.3,0.2,0.1,PGA";
 			if (params.getStochasticFrequency()>10.0) {
 				periods = periods + ",0.075,0.05";
 			}
