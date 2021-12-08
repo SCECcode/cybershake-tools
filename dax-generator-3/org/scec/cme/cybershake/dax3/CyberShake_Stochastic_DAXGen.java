@@ -64,7 +64,7 @@ public class CyberShake_Stochastic_DAXGen {
     private final static String UPDATERUN_NAME = "UpdateRun";
 	
 	//DB constants
-    private static String DB_SERVER = "focal.usc.edu";
+    private static String DB_SERVER = "moment.usc.edu";
     private final static String DB = "CyberShake";
     private final static String USER = "cybershk_ro";
     private final static String PASS = "CyberShake2007";
@@ -303,7 +303,7 @@ public class CyberShake_Stochastic_DAXGen {
 		stochDAX.addArgument("--cluster label");
 		stochDAX.addArgument("--force");
 		stochDAX.addArgument("--q");
-		stochDAX.addArgument("--output shock");
+		stochDAX.addArgument("--output-sites shock");
 
 		stochDAX.addArgument("--basename Sub_Stoch_" + riq.getSiteName());
 		topDAX.addDAX(stochDAX);
