@@ -56,11 +56,11 @@ public class RunIDQuery {
 	private final int USGS_ID = 11;
 	private final int STUDY_18_8_ID = 12;
 	
-	private static String DEFAULT_HOSTNAME = "focal.usc.edu";
+	private static String DEFAULT_HOSTNAME = "moment.usc.edu";
 	private final String DB_NAME = "CyberShake";
 	private final String USER = "cybershk_ro";
 	private final String PASS = "CyberShake2007";
-	
+    private final String passFile = "/home/shock/scottcal/runs/config/moment.txt";
 	
 	public RunIDQuery(int runID) {
 		this(runID, DEFAULT_HOSTNAME);
@@ -82,7 +82,7 @@ public class RunIDQuery {
 		//Connect to database
 		String pass = null;
 		try {
-			BufferedReader br = new BufferedReader(new FileReader("/home/scec-02/cybershk/runs/focal.txt"));
+			BufferedReader br = new BufferedReader(new FileReader(passFile));
 			pass = br.readLine().trim();
 			br.close();
 		} catch (IOException ex) {

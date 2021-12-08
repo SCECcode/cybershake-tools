@@ -79,7 +79,7 @@ public class CyberShake_AWP_SGT_DAXGen {
         	System.exit(1);
         }
         
-        String db_server = "focal.usc.edu";
+        String db_server = "moment.usc.edu";
         if (line.hasOption(server.getOpt())) {
         	db_server = line.getOptionValue(server.getOpt());
         }
@@ -459,16 +459,17 @@ public class CyberShake_AWP_SGT_DAXGen {
 					procDims[2] = 1;
 				} else {
 					//Study 18.8: change to 40x30x1
-					if (dims[0] % 80 != 0) {
-						System.err.println("One of the volume dimensions is " + dims[0] + " which is not divisible by 80.  Aborting.");
+					//Go back to 20x20x1 for Summit testing
+					if (dims[0] % 40 != 0) {
+						System.err.println("One of the volume dimensions is " + dims[0] + " which is not divisible by 40.  Aborting.");
 						System.exit(3);
 					}
-					if (dims[1] % 60 != 0) {
+					if (dims[1] % 40 != 0) {
 						System.err.println("One of the volume dimensions is " + dims[1] + " which is not divisible by 40.  Aborting.");
 						System.exit(3);
 					}
-					procDims[0] = 40;
-					procDims[1] = 30;
+					procDims[0] = 20;
+					procDims[1] = 20;
 					procDims[2] = 1;
 				}
 				
@@ -513,13 +514,13 @@ public class CyberShake_AWP_SGT_DAXGen {
 		
 		preSGTJob.addArgument("--site " + riq.getSiteName());
 		preSGTJob.addArgument("--erf_id " + riq.getErfID());
-		preSGTJob.addArgument("--modelbox " + modelboxFile);
-		preSGTJob.addArgument("--gridout " + gridoutFile);
-		preSGTJob.addArgument("--coordfile " + coordFile);
-		preSGTJob.addArgument("--fdloc " + fdlocFile);
-		preSGTJob.addArgument("--faultlist " + faultlistFile);
-		preSGTJob.addArgument("--radiusfile " + radiusFile);
-		preSGTJob.addArgument("--sgtcords " + sgtcordFile);
+		preSGTJob.addArgument("--modelbox " + modelboxFile.getName());
+		preSGTJob.addArgument("--gridout " + gridoutFile.getName());
+		preSGTJob.addArgument("--coordfile " + coordFile.getName());
+		preSGTJob.addArgument("--fdloc " + fdlocFile.getName());
+		preSGTJob.addArgument("--faultlist " + faultlistFile.getName());
+		preSGTJob.addArgument("--radiusfile " + radiusFile.getName());
+		preSGTJob.addArgument("--sgtcords " + sgtcordFile.getName());
 		if (spacing<=0.0) {
 			spacing = (0.1/Double.parseDouble(riq.getLowFrequencyCutoffString()));
 		}

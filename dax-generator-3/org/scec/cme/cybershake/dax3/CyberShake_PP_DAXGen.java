@@ -105,11 +105,11 @@ public class CyberShake_PP_DAXGen {
     private final static int LARGE_MEM_BUF = 1*512;
     
 	//Database
-    private static String DB_SERVER = "focal.usc.edu";
+    private static String DB_SERVER = "moment.usc.edu";
     private final static String DB = "CyberShake";
     private final static String USER = "cybershk_ro";
     private final static String PASS = "CyberShake2007";
-    private final static String pass_file = "focal.txt";
+    private final static String pass_file = "/home/shock/scottcal/runs/config/moment.txt";
     private static DBConnect dbc = null;
      
     //DirectSynth parameters
@@ -179,7 +179,7 @@ public class CyberShake_PP_DAXGen {
 				jDax.addArgument("-s " + cont.getParams().getPPSite() + ",shock");
 			}
 			//Force stage-out of zip files
-			jDax.addArgument("--output shock");
+			jDax.addArgument("--output-sites shock");
 			jDax.addArgument("--output-dir " + OUTPUT_DIR + "/" + siteName + "/" + cont.getRIQ().getRunID());
 			jDax.addProfile("dagman", "category", "subwf");
 			topLevelDax.addDAX(jDax);
@@ -1011,7 +1011,7 @@ public class CyberShake_PP_DAXGen {
 		}
 		
 		edu.isi.pegasus.planner.dax.File rupListFile = new File(rup_list_file);
-		rupListFile.addPhysicalFile("file://" + fullPath);
+		rupListFile.addPhysicalFile("file://" + fullPath, "local");
 		dax.addFile(rupListFile);
 	
 		directSynthJob.addArgument("rup_list_file=" + rup_list_file);
@@ -1092,7 +1092,7 @@ public class CyberShake_PP_DAXGen {
 				e.printStackTrace();
 			}
 			edu.isi.pegasus.planner.dax.File dirListFile = new File(dirFilename);
-			dirListFile.addPhysicalFile("file://" + dirFileFullPath);
+			dirListFile.addPhysicalFile("file://" + dirFileFullPath, "local");
 			dax.addFile(dirListFile);
 			dirListFile.setTransfer(TRANSFER.TRUE);
 			
@@ -1294,7 +1294,7 @@ public class CyberShake_PP_DAXGen {
 		jDax.addArgument("--force");
 		jDax.addArgument("-q");
 		//Force stage-out of zip files
-		jDax.addArgument("--output shock");
+		jDax.addArgument("--output-sites shock");
 		jDax.addArgument("--output-dir " + OUTPUT_DIR + "/" + riq.getSiteName() + "/" + riq.getRunID());
 		jDax.addProfile("dagman", "category", "subwf");
 		topLevelDax.addDAX(jDax);

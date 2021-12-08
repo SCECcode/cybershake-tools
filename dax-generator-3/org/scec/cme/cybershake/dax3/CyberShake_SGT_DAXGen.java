@@ -52,8 +52,8 @@ public class CyberShake_SGT_DAXGen {
 				DAX sgtDaxJob = new DAX("SGT_" + runIDQueries.get(i).getSiteName(), daxFileName);
 				//Avoid pruning of jobs
 				sgtDaxJob.addArgument("--force");
-				//Copy results to bluewaters unpurged directory
-				sgtDaxJob.addArgument("-o bluewaters");
+				//Copy results to SGT storage directory
+				sgtDaxJob.addArgument("-o summit");
 				topLevelDAX.addDAX(sgtDaxJob);
 			
 				File sgtDaxFile = new File(daxFileName);
@@ -302,12 +302,37 @@ public class CyberShake_SGT_DAXGen {
 			workflowDAX.addDependency(preCVM, genSGTDAX);
 			
 			DAX sgtDAX = new DAX("AWP_SGT_" + riq.getSiteName(), genSGTDaxFile.getName());
-			sgtDAX.addArgument("--force");
+			StringBuffer args = new StringBuffer("");
+			args.append("--force");
+			//sgtDAX.addArgument("--force");
 			if (sgt_params.getSgtSite()!=null) {
-				sgtDAX.addArgument("-s " + sgt_params.getSgtSite());
+				//sgtDAX.addArgument("-s " + sgt_params.getSgtSite());
+				args.append(" -s" + sgt_params.getSgtSite());
 			}
-			sgtDAX.addArgument("--basename AWP_SGT_" + riq.getSiteName());
-			sgtDAX.addArgument("--cleanup inplace");
+			//sgtDAX.addArgument("--basename AWP_SGT_" + riq.getSiteName());
+			//sgtDAX.addArgument("--cleanup inplace");
+			args.append(" --basename AWP_SGT_" + riq.getSiteName());
+			args.append(" --cleanup inplace");
+			sgtDAX.addArgument(args);
+
+			//With Pegasus 5, also need to explicitly add uses for gridout, model_coords, and modelbox files, otherwise AWP subworkflow jobs can't pick up these files for their jobs
+	        File modelboxFile = new File(riq.getSiteName() + ".modelbox");
+	        File gridoutFile = new File("gridout_" + riq.getSiteName());
+	        File coordFile = new File("model_coords_GC_" + riq.getSiteName());
+			File awpDaxFile = new File("AWP_SGT_" + riq.getSiteName() + ".dax");
+
+			modelboxFile.setTransfer(File.TRANSFER.TRUE);
+			gridoutFile.setTransfer(File.TRANSFER.TRUE);
+			coordFile.setTransfer(File.TRANSFER.TRUE);
+			awpDaxFile.setTransfer(File.TRANSFER.TRUE);
+
+			awpDaxFile.setRegister(false);
+
+			sgtDAX.uses(modelboxFile, File.LINK.INPUT);
+            sgtDAX.uses(gridoutFile, File.LINK.INPUT);
+            sgtDAX.uses(coordFile, File.LINK.INPUT);
+			sgtDAX.uses(awpDaxFile, File.LINK.INPUT);
+					
 			workflowDAX.addDAX(sgtDAX);
 			workflowDAX.addDependency(preCVM, sgtDAX);
 			workflowDAX.addDependency(genSGTDAX, sgtDAX);
@@ -390,7 +415,9 @@ public class CyberShake_SGT_DAXGen {
 		Job genSGTDAXJob = new Job(id, NAMESPACE, "GenSGTDax", VERSION);
 
 		File gridoutFile = new File("gridout_" + riq.getSiteName());
-		
+        File modelboxFile = new File(riq.getSiteName() + ".modelbox");
+        File coordFile = new File("model_coords_GC_" + riq.getSiteName());
+	
 		genSGTDAXJob.addArgument("-r " + riq.getRunID());
 		genSGTDAXJob.addArgument("-gf " + gridoutFile.getName());
 		genSGTDAXJob.addArgument("-o " + daxFile.getName());
@@ -420,7 +447,12 @@ public class CyberShake_SGT_DAXGen {
 		
 		genSGTDAXJob.uses(gridoutFile, LINK.INPUT);
 		genSGTDAXJob.uses(daxFile, LINK.OUTPUT);
-		
+		//We're adding these so they get transferred in, since the AWP DAX needs them in order to resolve dependencies within the AWP subworkflow.	
+		genSGTDAXJob.uses(modelboxFile, LINK.INPUT);
+		genSGTDAXJob.uses(coordFile, LINK.INPUT);
+		modelboxFile.setTransfer(TRANSFER.TRUE);
+		coordFile.setTransfer(TRANSFER.TRUE);
+	
 		daxFile.setRegister(false);
 		daxFile.setTransfer(TRANSFER.TRUE);
 		
@@ -488,6 +520,7 @@ public class CyberShake_SGT_DAXGen {
 		
 		preCVMJob.addArgument("--server " + sgt_params.getServer());
 		if (sgt_params.getSpacing()>0.0) {
+			System.out.println("Spacing: " + sgt_params.getSpacing());
 			preCVMJob.addArgument("--spacing " + sgt_params.getSpacing());
 		}
 

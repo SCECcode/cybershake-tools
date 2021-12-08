@@ -14,7 +14,7 @@ public class SGT_DAXParameters {
 	
 	private String sgtSite = null;
 	
-	private String server = "focal.usc.edu";
+	private String server = "moment.usc.edu";
 	private double spacing = -1.0;
 	private double minvs = -1.0;
 	
