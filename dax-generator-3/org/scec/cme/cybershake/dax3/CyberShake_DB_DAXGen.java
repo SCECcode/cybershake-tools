@@ -70,6 +70,8 @@ public class CyberShake_DB_DAXGen {
 	private PP_DAXParameters params;
 	// Insert duration results
 	private boolean insertDurations = false;
+	// Insert PSA results
+	private boolean insertPSA = false;
 	// File with Vs30 value, for use when calculating comparison curves with stochastic results
 	private String velocityFile = null;
 	
@@ -190,18 +192,46 @@ public class CyberShake_DB_DAXGen {
 				
 		// Add workflow jobs
 		Job rotDJob = null;
-		Job insertJob = createDBInsertionJob();
-		dax.addJob(insertJob);
-		//If we needed to add local zip jobs, add dependency on PSA zip
-		if (!params.isZip() && !(params.isFileForward() || params.isPipeForward())) {
-			dax.addDependency(zipPSAJob, insertJob);
+		Job prevInsertJob = null;
+		if (insertPSA==true) {
+			Job insertJob = createDBInsertionJob();
+			dax.addJob(insertJob);
+			//If we needed to add local zip jobs, add dependency on PSA zip
+			if (!params.isZip() && !(params.isFileForward() || params.isPipeForward())) {
+				dax.addDependency(zipPSAJob, insertJob);
+			}
+			prevInsertJob = insertJob;
+			Job dbCheckJob = createDBCheckJob();
+			dax.addJob(dbCheckJob);
+			dax.addDependency(insertJob, dbCheckJob);
+			if (DO_CURVE_GEN) {
+				Job curveCalcJob = createCurveCalcJob();
+				dax.addJob(curveCalcJob);
+				dax.addDependency(dbCheckJob, curveCalcJob);
+			}
 		}
-		
+		Job curveCalcJob = null;
 		if (params.isCalculateRotD()) {
 			rotDJob = createRotDInsertionJob();
 			dax.addJob(rotDJob);
-			//Make this a child of insertJob to avoid having both insertion jobs hit the DB at the same time
-			dax.addDependency(insertJob, rotDJob);
+			if (prevInsertJob!=null) {
+				//Make this a child of insertJob to avoid having both insertion jobs hit the DB at the same time
+				dax.addDependency(prevInsertJob, rotDJob);
+			}
+			prevInsertJob = rotDJob;
+			Job rotdCheckJob = createDBCheckRotDJob();
+			dax.addJob(rotdCheckJob);
+			dax.addDependency(rotDJob, rotdCheckJob);
+			Job rotd100CalcJob = createRotD100CurveCalcJob();
+			dax.addJob(rotd100CalcJob);
+			dax.addDependency(rotdCheckJob, rotd100CalcJob);
+			Job rotd50CalcJob = createRotD50CurveCalcJob();
+			curveCalcJob = rotd50CalcJob;
+			dax.addJob(rotd50CalcJob);
+			dax.addDependency(rotdCheckJob, rotd50CalcJob);
+			Job disaggJob = createDisaggJob();
+			dax.addJob(disaggJob);
+			dax.addDependency(rotd50CalcJob, disaggJob);
 		}
 		
 		Job durationJob = null;
@@ -209,44 +239,14 @@ public class CyberShake_DB_DAXGen {
 			durationJob = createInsertDurationJob();
 			dax.addJob(durationJob);
 			//Make this a child so we don't have multiple insertion jobs running at the same time
-			if (rotDJob!=null) {
-				dax.addDependency(rotDJob, durationJob);
-			} else {
-				dax.addDependency(insertJob, durationJob);
+			if (prevInsertJob!=null) {
+				dax.addDependency(prevInsertJob, durationJob);
 			}
+			Job durationCheckJob = createDurationCheckJob();
+			dax.addJob(durationCheckJob);
+			dax.addDependency(durationJob, durationCheckJob);
 		}
-		
-		Job dbCheckJob = createDBCheckJob();
-		dax.addJob(dbCheckJob);
-		
-		Job curveCalcJob = null;
-		Job disaggJob = null;
-		if (DO_CURVE_GEN) {
-			curveCalcJob = createCurveCalcJob();
-			dax.addJob(curveCalcJob);
-			dax.addDependency(dbCheckJob, curveCalcJob);
-			if (params.isCalculateRotD()) {
-				Job rotdCheckJob = createDBCheckRotDJob();
-				dax.addJob(rotdCheckJob);
-				dax.addDependency(rotDJob, rotdCheckJob);
-				Job rotd100CalcJob = createRotD100CurveCalcJob();
-				dax.addJob(rotd100CalcJob);
-				dax.addDependency(rotdCheckJob, rotd100CalcJob);
-				Job rotd50CalcJob = createRotD50CurveCalcJob();
-				dax.addJob(rotd50CalcJob);
-				dax.addDependency(rotdCheckJob, rotd50CalcJob);
-			}
-			if (insertDurations) {
-				Job durationCheckJob = createDurationCheckJob();
-				dax.addJob(durationCheckJob);
-				dax.addDependency(durationJob, durationCheckJob);
-			}
-			
-			disaggJob = createDisaggJob();
-			dax.addJob(disaggJob);
-			dax.addDependency(curveCalcJob, disaggJob);
-
-		}
+				
 		//11-21: Remove DB report job from workflow
 		//Job reportJob = createDBReportJob();
 		//dax.addJob(reportJob);
@@ -262,18 +262,7 @@ public class CyberShake_DB_DAXGen {
 		dax.addJob(notifyJob);
 		
 		// PARENT CHILD RELATIONSHIPS
-		
-		// check is a child of insert
-		dax.addDependency(insertJob, dbCheckJob);
-		if (params.isCalculateRotD()) {
-			dax.addDependency(rotDJob, dbCheckJob);
-		}
-		
-		// curve calc is a child of check
-		if (DO_CURVE_GEN) {
-			
-		}		
-		
+				
 		// report is a child of check
 		//dax.addDependency(dbCheckJob, reportJob);
 
@@ -385,11 +374,17 @@ public class CyberShake_DB_DAXGen {
 		disaggJob.addArgument("--probs 4.0e-4");
 		disaggJob.addArgument("--output-dir " + DISAGG_OUTPUT_DIR_PREFIX);
 		disaggJob.addArgument("--type pdf,png,txt");
+		//Changing default component to RotD50
+		disaggJob.addArgument("--component RotD50");
 		String erfFile = UCERF2_ERF_FILE;
 		if (riq.getErfID()==42) {
 			erfFile = RSQSIM_ERF42_FILE;
 		} else if (riq.getErfID()==48){
 			erfFile = RSQSIM_ERF48_FILE;
+		} else if (riq.getErfID()==61) {
+			erfFile = RSQSIM_ERF61_FILE;
+		} else if (riq.getErfID()==61) {
+			erfFile = RSQSIM_ERF62_FILE;
 		}
 		disaggJob.addArgument("--erf-file " + erfFile);
 		
