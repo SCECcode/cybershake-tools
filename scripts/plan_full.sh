@@ -1,5 +1,7 @@
 #!/bin/sh
 
+ROOT_RUN_DIR="/home/shock/scottcal/runs"
+
 if [ $# -lt 2 ]; then
 	echo "Usage:  $0 < <integrated dir> | <site run_ID> > remote_site"
 	echo "Example: $0  1234543210_Integrated_dax bluewaters"
@@ -66,7 +68,7 @@ else
         	FILE_RUN_ID=`echo $LINE | awk '{print $1}'`
         	SITE_NAME=`echo $LINE | awk '{print $2}'`
 		if [ "$FILE_RUN_ID" -eq "$RUN_ID" ]; then
-		        /home/scec-02/cybershk/runs/runmanager/valid_run.py ${RUN_ID} ${SITE_NAME} SGT_PLAN
+		        ${ROOT_RUN_DIR}/cybershake-tools/runmanager/valid_run.py ${RUN_ID} ${SITE_NAME} SGT_PLAN
 		        if [ $? != 0 ]; then
 		            echo "Run ${RUN_ID} not in expected state"
 		            exit 1
@@ -83,7 +85,7 @@ else
 	while read LINE; do
 		RUN_ID=`echo $LINE | awk '{print $1}'`
                 SITE_NAME=`echo $LINE | awk '{print $2}'`
-                /home/scec-02/cybershk/runs/runmanager/valid_run.py ${RUN_ID} ${SITE_NAME} SGT_PLAN
+                ${ROOT_RUN_DIR}/cybershake-tools/runmanager/valid_run.py ${RUN_ID} ${SITE_NAME} SGT_PLAN
                 if [ $? != 0 ]; then
                 	echo "Run ${RUN_ID} not in expected state"
                         exit 1
@@ -96,7 +98,7 @@ fi
 rm log-plan-${TOP_DAX}-*
 
 # Modify properties file if 2 levels
-propfile=/home/scec-02/cybershk/runs/config/properties.full
+propfile=${ROOT_RUN_DIR}/config/properties.full
 OUTPUT_SITE=$REMOTE_SITE
 
 if [ "$REMOTE_SITE" == "bluewaters" ]; then
@@ -124,8 +126,8 @@ if [ $TWO_LEVELS -eq 1 ]; then
 #	echo "pegasus.dir.storage=data/PPFiles/${TIMESTAMP}" >> properties.full.top
 	echo "pegasus.dagman.maxjobs=15" >> properties.full.top
 	newpropfile=`pwd`/properties.full.top
-	echo "pegasus-plan --conf=${newpropfile} --dax $TOP_DAX --rescue 100 -s $REMOTE_SITE,shock,local --output-site ${REMOTE_SITE} --dir dags -f --nocleanup | tee log-plan-${TOP_DAX}-${REMOTE_SITE}"
-	pegasus-plan --conf=${newpropfile} --dax $TOP_DAX --rescue 100 -s $REMOTE_SITE,shock,local -o $OUTPUT_SITE --dir dags -f --nocleanup | tee log-plan-${TOP_DAX}-${REMOTE_SITE}
+	echo "pegasus-plan --conf=${newpropfile} --rescue 100 -s $REMOTE_SITE,shock,local --output-site ${REMOTE_SITE} --dir dags -f --cleanup none $TOP_DAX | tee log-plan-${TOP_DAX}-${REMOTE_SITE}"
+	pegasus-plan --conf=${newpropfile} --rescue 100 -s $REMOTE_SITE,shock,local -o $OUTPUT_SITE --dir dags -f --cleanup none --dax $TOP_DAX | tee log-plan-${TOP_DAX}-${REMOTE_SITE}
 	if [ $? != 0 ]; then
 	    echo "Failed to plan workflow."
 	    exit 1
@@ -135,8 +137,8 @@ else
 	newpropfile=`pwd`/properties.full.onesite
 #        echo "pegasus.dir.storage=data/SgtFiles/${SITE}" >> properties.full.onesite
 #	echo "pegasus.dir.storage=data/PPFiles/${SITE}/${RUN_ID}" >> properties.full.onesite
-	echo "pegasus-plan --conf=${newpropfile} --dax $TOP_DAX --rescue 100 -s $REMOTE_SITE,shock,local --output-site ${REMOTE_SITE} --output-site bluewaters --dir dags -f --nocleanup | tee log-plan-${TOP_DAX}-${REMOTE_SITE}"
-        pegasus-plan --conf=${newpropfile} --dax $TOP_DAX --rescue 100 -s $REMOTE_SITE,shock,local -o $OUTPUT_SITE -o bluewaters --dir dags -f --nocleanup | tee log-plan-${TOP_DAX}-${REMOTE_SITE}
+	echo "pegasus-plan --conf=${newpropfile} --rescue 100 -s $REMOTE_SITE,shock,local --output-site ${REMOTE_SITE} --output-site summit --dir dags -f --cleanup none $TOP_DAX | tee log-plan-${TOP_DAX}-${REMOTE_SITE}"
+        pegasus-plan --conf=${newpropfile} --rescue 100 -s $REMOTE_SITE,shock,local -o $OUTPUT_SITE -o summit --dir dags -f --cleanup none $TOP_DAX | tee log-plan-${TOP_DAX}-${REMOTE_SITE}
 	if [ $? != 0 ]; then
         	echo "Failed to plan workflow."
         	exit 1
@@ -195,14 +197,14 @@ REMOTE_PART=${OUTPUT_SITE%%_*}
 if [ "$TWO_LEVELS" -eq 1 ]; then
 	while read LINE ; do
 	    RUN_ID=`echo $LINE | awk '{print $1}'`
-	    /home/scec-02/cybershk/runs/runmanager/edit_run.py ${RUN_ID} "Status=Initial" "SGT_Host=${REMOTE_PART}" "Comment=Planned SGT DAX, assigned sgt host" "Job_ID=NULL" "PP_Host=${REMOTE_PART}"
+	    ${ROOT_RUN_DIR}/cybershake-tools/runmanager/edit_run.py ${RUN_ID} "Status=Initial" "SGT_Host=${REMOTE_PART}" "Comment=Planned SGT DAX, assigned sgt host" "Job_ID=NULL" "PP_Host=${REMOTE_PART}"
 	    if [ $? != 0 ]; then
 		echo "Unable to update Status, SGT_Host, Comment, Job_ID for run ${RUN_ID}"
 		exit 1
 	    fi
 	done < ${RUN_FILE}
 else
-	/home/scec-02/cybershk/runs/runmanager/edit_run.py ${RUN_ID} "Status=Initial" "SGT_Host=${REMOTE_PART}" "Comment=Planned SGT DAX, assigned sgt host" "Job_ID=NULL" "PP_Host=${REMOTE_PART}"
+	${ROOT_RUN_DIR}/cybershake-tools/runmanager/edit_run.py ${RUN_ID} "Status=Initial" "SGT_Host=${REMOTE_PART}" "Comment=Planned SGT DAX, assigned sgt host" "Job_ID=NULL" "PP_Host=${REMOTE_PART}"
         if [ $? != 0 ]; then
                 echo "Unable to update Status, SGT_Host, Comment, Job_ID for run ${RUN_ID}"
                 exit 1
@@ -212,7 +214,7 @@ fi
 #Set hosts for accompanying broadband part, if it exists
 if [ -f linked_bb_run_id.txt ]; then
 	BB_RUN_ID=`cat linked_bb_run_id.txt`
-	/home/scec-02/cybershk/runs/runmanager/edit_run.py ${BB_RUN_ID} "Status=Initial" "SGT_Host=${REMOTE_PART}" "Comment=Assigned hosts" "Job_ID=NULL" "PP_Host=${REMOTE_PART}"
+	${ROOT_RUN_DIR}/cybershake-tools/runmanager/edit_run.py ${BB_RUN_ID} "Status=Initial" "SGT_Host=${REMOTE_PART}" "Comment=Assigned hosts" "Job_ID=NULL" "PP_Host=${REMOTE_PART}"
 	if [ $? != 0 ]; then
         	echo "Unable to update Status, SGT_Host, Comment, Job_ID for run ${BB_RUN_ID}"
                 exit 1

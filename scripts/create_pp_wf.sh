@@ -1,9 +1,16 @@
 #!/bin/bash
 
+ROOT_RUN_DIR="/home/shock/scottcal/runs"
+ROOT_DIR=`dirname $0`/..
+DAX_GEN_DIR="${ROOT_DIR}/dax-generator-3"
+
+COMPILE_CMD="javac -classpath .:${DAX_GEN_DIR}:${DAX_GEN_DIR}/lib/jackson-core-2.9.10.jar:${DAX_GEN_DIR}/lib/org.everit.json.schema-1.12.0.jar:${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3:${DAX_GEN_DIR}/lib/mysql-connector-java-5.0.5-bin.jar:${DAX_GEN_DIR}/lib/pegasus.jar:${DAX_GEN_DIR}/lib/globus_rls_client.jar:${DAX_GEN_DIR}/lib/commons-cli-1.1.jar:${DAX_GEN_DIR}/lib/opensha-cybershake-all.jar ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/CyberShake_PP_DAXGen.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/CyberShake_DB_DAXGen.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/DBConnect.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/PP_DAXParameters.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/RunIDQuery.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/RuptureVariationDB.java"
+
+RUN_CMD="java -classpath .:${DAX_GEN_DIR}:${DAX_GEN_DIR}/lib/snakeyaml-1.25.jar:${DAX_GEN_DIR}/lib/jackson-coreutils-1.8.jar:${DAX_GEN_DIR}/lib/jackson-annotations-2.9.10.jar:${DAX_GEN_DIR}/lib/mysql-connector-java-5.0.5-bin.jar:${DAX_GEN_DIR}/lib/pegasus.jar:${DAX_GEN_DIR}/lib/jackson-databind-2.9.10.jar:${DAX_GEN_DIR}/lib/jackson-dataformat-yaml-2.9.10.jar:${DAX_GEN_DIR}/lib/jackson-core-2.9.10.jar:${DAX_GEN_DIR}/lib/globus_rls_client.jar:${DAX_GEN_DIR}/lib/commons-cli-1.1.jar:${DAX_GEN_DIR}/lib/opensha-cybershake-all.jar org/scec/cme/cybershake/dax3/CyberShake_PP_DAXGen"
+
 show_help() {
-	DAX_GEN_DIR="dax-generator"
-        javac -classpath .:${DAX_GEN_DIR}:${DAX_GEN_DIR}/lib/sqlitejdbc-v056.jar:${DAX_GEN_DIR}/lib/opensha-commons-1.1.4.jar:${DAX_GEN_DIR}/lib/mysql-connector-java-5.0.5-bin.jar:${DAX_GEN_DIR}/lib/pegasus.jar:${DAX_GEN_DIR}/lib/globus_rls_client.jar:${DAX_GEN_DIR}/lib/commons-cli-1.1.jar ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/CyberShake_PP_DAXGen.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/CyberShake_DB_DAXGen.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/DBConnect.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/PP_DAXParameters.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/RunIDQuery.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/RuptureVariationDB.java
-        JAVA_OUT=`java -Xmx8192m -classpath .:${DAX_GEN_DIR}:${DAX_GEN_DIR}/lib/sqlitejdbc-v056.jar:${DAX_GEN_DIR}/lib/opensha-commons-1.1.4.jar:${DAX_GEN_DIR}/lib/mysql-connector-java-5.0.5-bin.jar:${DAX_GEN_DIR}/lib/pegasus.jar:${DAX_GEN_DIR}/lib/globus_rls_client.jar:${DAX_GEN_DIR}/lib/commons-cli-1.1.jar org/scec/cme/cybershake/dax3/CyberShake_PP_DAXGen --help`
+	$COMPILE_CMD
+	JAVA_OUT=`$RUN_CMD -h`
 	cat << EOF
 	Usage: $0 [-h] <-v VELOCITY MODEL> <-e ERF_ID> <-r RV_ID> <-g SGT_ID> <-f FREQ> <-s SITE> [-q SRC_FREQ] [--ppargs DAX generator args]
 		-h                      display this help and exit
@@ -68,7 +75,7 @@ while getopts ":hv:e:r:g:f:q:s:" opt $getopts_args; do
                 *)      break
         esac
 done
-shift "$((OPTIND-1))"
+shift "$((OPTIND))"
 
 if [ "$VEL_STR" == "" ]; then
         echo "Must specify velocity model."
@@ -157,7 +164,7 @@ RUN_FILE=${SITE}_PP_dax/run_table.txt
 RUN_ID_STRING=""
 if [ ! -e ${RUN_FILE} ]; then
     echo "find_run.py ${SITE} ${ERF} ${SGT_VAR} ${RUP_VAR} ${VEL_ID} ${FREQ} ${SRC_FREQ}"
-    RUN_ID=`/home/scec-02/cybershk/runs/runmanager/find_run.py ${SITE} ${ERF} ${SGT_VAR} ${RUP_VAR} ${VEL_ID} ${FREQ} ${SRC_FREQ}`
+    RUN_ID=`${ROOT_RUN_DIR}/cybershake-tools/runmanager/find_run.py ${SITE} ${ERF} ${SGT_VAR} ${RUP_VAR} ${VEL_ID} ${FREQ} ${SRC_FREQ}`
     if [ $? -ne 0 ]; then
 	echo "Failed to find matching run."
 	exit 1
@@ -207,8 +214,8 @@ else
                 continue
         fi
         FOUND=1
-	echo "/home/scec-02/cybershk/runs/runmanager/valid_run.py ${RUN_ID} ${SITE_NAME} PP_PLAN"
-        /home/scec-02/cybershk/runs/runmanager/valid_run.py ${RUN_ID} ${SITE_NAME} PP_PLAN
+	echo "${ROOT_RUN_DIR}/cybershake-tools/runmanager/valid_run.py ${RUN_ID} ${SITE_NAME} PP_PLAN"
+        ${ROOT_RUN_DIR}/cybershake-tools/runmanager/valid_run.py ${RUN_ID} ${SITE_NAME} PP_PLAN
         if [ $? != 0 ]; then
             echo "Run ${RUN_ID} not in expected state"
             exit 1
@@ -221,7 +228,7 @@ else
     if [[ "${FOUND}" == 0 ]]; then
 	#We didn't find a run match.  Create a new run.
         echo "find_run.py ${SITE} ${ERF} ${SGT_VAR} ${RUP_VAR} ${VEL_ID} ${FREQ} ${SRC_FREQ}"
-        RUN_ID=`/home/scec-02/cybershk/runs/runmanager/find_run.py ${SITE} ${ERF} ${SGT_VAR} ${RUP_VAR} ${VEL_ID} ${FREQ} ${SRC_FREQ}`
+        RUN_ID=`${ROOT_RUN_DIR}/cybershake-tools/runmanager/find_run.py ${SITE} ${ERF} ${SGT_VAR} ${RUP_VAR} ${VEL_ID} ${FREQ} ${SRC_FREQ}`
         if [ $? -ne 0 ]; then
             echo "Failed to find matching run."
             exit 2
@@ -243,8 +250,7 @@ RUN_ID_STRING="${RUN_ID}"
 mkdir ${SITE}_PP_dax/run_${RUN_ID}
 
 # Compile the DAX generator
-DAX_GEN_DIR="dax-generator"
-javac -classpath .:${DAX_GEN_DIR}:${DAX_GEN_DIR}/lib/sqlitejdbc-v056.jar:${DAX_GEN_DIR}/lib/opensha-commons-1.1.4.jar:${DAX_GEN_DIR}/lib/mysql-connector-java-5.0.5-bin.jar:${DAX_GEN_DIR}/lib/pegasus.jar:${DAX_GEN_DIR}/lib/globus_rls_client.jar:${DAX_GEN_DIR}/lib/commons-cli-1.1.jar ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/CyberShake_PP_DAXGen.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/CyberShake_DB_DAXGen.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/DBConnect.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/PP_DAXParameters.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/RunIDQuery.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/RuptureVariationDB.java
+$COMPILE_CMD
 
 if [ $? -ne 0 ]; then
 	exit 1
@@ -252,9 +258,9 @@ fi
 
 
 # Run the DAX generator
-echo "java -classpath .:${DAX_GEN_DIR}:${DAX_GEN_DIR}/lib/sqlitejdbc-v056.jar:${DAX_GEN_DIR}/lib/mysql-connector-java-5.0.5-bin.jar:${DAX_GEN_DIR}/lib/pegasus.jar:${DAX_GEN_DIR}/lib/globus_rls_client.jar:${DAX_GEN_DIR}/lib/commons-cli-1.1.jar org/scec/cme/cybershake/dax/CyberShake_PP_DAXGen ${RUN_ID_STRING} `pwd`/${SITE}_PP_dax/run_${RUN_ID} ${OPT_ARGS}"
-java -classpath .:${DAX_GEN_DIR}:${DAX_GEN_DIR}/lib/sqlitejdbc-v056.jar:${DAX_GEN_DIR}/lib/opensha-commons-1.1.4.jar:${DAX_GEN_DIR}/lib/mysql-connector-java-5.0.5-bin.jar:${DAX_GEN_DIR}/lib/pegasus.jar:${DAX_GEN_DIR}/lib/globus_rls_client.jar:${DAX_GEN_DIR}/lib/commons-cli-1.1.jar org/scec/cme/cybershake/dax3/CyberShake_PP_DAXGen ${RUN_ID_STRING} `pwd`/${SITE}_PP_dax/run_${RUN_ID} ${OPT_ARGS}
-
+full_cmd="$RUN_CMD ${RUN_ID_STRING} `pwd`/${SITE}_PP_dax/run_${RUN_ID} ${OPT_ARGS}"
+echo $full_cmd
+$full_cmd
 
 if [ $? -ne 0 ]; then
 	exit 1
@@ -266,7 +272,7 @@ mv ${SITE}.db ${SITE}_PP_dax/run_${RUN_ID}
 
 
 # Update comment, for this run
-/home/scec-02/cybershk/runs/runmanager/edit_run.py ${RUN_ID} "Comment=PP DAX created"
+${ROOT_RUN_DIR}/cybershake-tools/runmanager/edit_run.py ${RUN_ID} "Comment=PP DAX created"
 if [ $? != 0 ]; then
         echo "Unable to update comment for run ${RUN_ID}"
 	exit 1	

@@ -6,6 +6,8 @@ RESTART=0
 RESTART_SGT=0
 RESTART_PP=0
 
+ROOT_RUN_DIR="/home/shock/scottcal/runs"
+
 if [ $# -lt 2 ]; then
     echo "Usage: $0 [-r] [-n notify_user] <site run_id | -t timestamp>"
     exit 1
@@ -52,9 +54,9 @@ else
 	while read LINE ; do
         	RUN_ID=`echo $LINE | awk '{print $1}'`
         	SITE_NAME=`echo $LINE | awk '{print $2}'`
-        	/home/scec-02/cybershk/runs/runmanager/valid_run.py ${RUN_ID} ${SITE_NAME} SGT_PLAN
+        	${ROOT_RUN_DIR}/cybershake-tools/runmanager/valid_run.py ${RUN_ID} ${SITE_NAME} SGT_PLAN
         	if [ $? != 0 ]; then
-		    /home/scec-02/cybershk/runs/runmanager/valid_run.py ${RUN_ID} ${SITE_NAME} PP_PLAN
+		    ${ROOT_RUN_DIR}/cybershake-tools/runmanager/valid_run.py ${RUN_ID} ${SITE_NAME} PP_PLAN
 		    if [ $? != 0 ]; then
 		            echo "Run ${RUN_ID} not in expected state"
 		            exit 1
@@ -75,9 +77,9 @@ else
         	FILE_RUN_ID=`echo $LINE | awk '{print $1}'`
                 SITE_NAME=`echo $LINE | awk '{print $2}'`
                 if [ "$FILE_RUN_ID" -eq "$RUN_ID" ]; then
-			/home/scec-02/cybershk/runs/runmanager/valid_run.py ${RUN_ID} ${SITE_NAME} SGT_PLAN
+					${ROOT_RUN_DIR}/cybershake-tools/runmanager/valid_run.py ${RUN_ID} ${SITE_NAME} SGT_PLAN
                		if [ $? != 0 ]; then
-                    		/home/scec-02/cybershk/runs/runmanager/valid_run.py ${RUN_ID} ${SITE_NAME} PP_PLAN
+                    		${ROOT_RUN_DIR}/cybershake-tools/runmanager/valid_run.py ${RUN_ID} ${SITE_NAME} PP_PLAN
                     		if [ $? != 0 ]; then
                         	    echo "Run ${RUN_ID} not in expected state"
                         	    exit 1
@@ -92,9 +94,9 @@ else
 			FOUND=1
 			if [ -f $RUN_DIR/linked_bb_run_id.txt ]; then
 				BB_RUN_ID=`cat $RUN_DIR/linked_bb_run_id.txt`
-				/home/scec-02/cybershk/runs/runmanager/valid_run.py ${BB_RUN_ID} ${SITE_NAME} SGT_PLAN
+				${ROOT_RUN_DIR}/cybershake-tools/runmanager/valid_run.py ${BB_RUN_ID} ${SITE_NAME} SGT_PLAN
 				if [ $? != 0 ]; then
-					/home/scec-02/cybershk/runs/runmanager/valid_run.py ${BB_RUN_ID} ${SITE_NAME} PP_PLAN
+					${ROOT_RUN_DIR}/cybershake-tools/runmanager/valid_run.py ${BB_RUN_ID} ${SITE_NAME} PP_PLAN
 					if [ $? != 0 ]; then
                                     		echo "Run ${BB_RUN_ID} not in expected state"
                                     		exit 1
@@ -118,7 +120,8 @@ fi
 
 PEGASUS_RUN=`grep pegasus-run ${RUN_DIR}/log-plan-CyberShake_Integrated_${ID}* | head -n 1`
 echo $PEGASUS_RUN
-${PEGASUS_RUN} | tee ${RUN_DIR}/log-run-CyberShake_Integrated_${ID} 
+# Redirect stderr to stdout, so we can capture the job id in the tee file
+${PEGASUS_RUN} 2>&1 | tee ${RUN_DIR}/log-run-CyberShake_Integrated_${ID} 
 
 # Isolate condor jobid
 JOBID=`grep "submitted to cluster" ${RUN_DIR}/log-run-CyberShake_Integrated_${ID} | head -n 1 | awk '{print $6}' | sed "s/\.//"`
@@ -156,18 +159,18 @@ fi
 if [ -n "$TIMESTAMP" ]; then
 	while read LINE ; do
 	    RUN_ID=`echo $LINE | awk '{print $1}'`
-	    /home/scec-02/cybershk/runs/runmanager/edit_run.py ${RUN_ID} "Status=${NEW_STATE}" "Comment=workflow submitted" "Job_ID=${SUBHOST}:${JOBID}" "Submit_Dir=${EXEC_DIR}" "Notify_User=${NOTIFY_MOD}"
+	    ${ROOT_RUN_DIR}/cybershake-tools/runmanager/edit_run.py ${RUN_ID} "Status=${NEW_STATE}" "Comment=workflow submitted" "Job_ID=${SUBHOST}:${JOBID}" "Submit_Dir=${EXEC_DIR}" "Notify_User=${NOTIFY_MOD}"
 	    if [ $? != 0 ]; then
 	        echo "Unable to update Status, Comment, Job_ID, Submit_Dir, Notify_User for run ${RUN_ID}"
 	        # Continue with updates
 	    fi
 	done < ${RUN_FILE}
 else
-	/home/scec-02/cybershk/runs/runmanager/edit_run.py ${RUN_ID} "Status=${NEW_STATE}" "Comment=workflow submitted" "Job_ID=${SUBHOST}:${JOBID}" "Submit_Dir=${EXEC_DIR}" "Notify_User=${NOTIFY_MOD}"
+	${ROOT_RUN_DIR}/cybershake-tools/runmanager/edit_run.py ${RUN_ID} "Status=${NEW_STATE}" "Comment=workflow submitted" "Job_ID=${SUBHOST}:${JOBID}" "Submit_Dir=${EXEC_DIR}" "Notify_User=${NOTIFY_MOD}"
 fi
 
 if [ -f $RUN_DIR/linked_bb_run_id.txt ]; then
 	BB_RUN_ID=`cat $RUN_DIR/linked_bb_run_id.txt`
-	/home/scec-02/cybershk/runs/runmanager/edit_run.py ${BB_RUN_ID} "Status=${NEW_STATE}" "Comment=workflow submitted" "Job_ID=${SUBHOST}:${JOBID}" "Submit_Dir=${EXEC_DIR}" "Notify_User=${NOTIFY_MOD}"
+	${ROOT_RUN_DIR}/cybershake-tools/runmanager/edit_run.py ${BB_RUN_ID} "Status=${NEW_STATE}" "Comment=workflow submitted" "Job_ID=${SUBHOST}:${JOBID}" "Submit_Dir=${EXEC_DIR}" "Notify_User=${NOTIFY_MOD}"
 fi
 
