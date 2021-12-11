@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import sys
 import os
@@ -61,12 +61,12 @@ def init():
     if (argc == 2):
         DB_FILE = sys.argv[1]
     elif (argc > 2):
-        print "Usage: " + sys.argv[0] + " [DB file]"
-        print "Example: " + sys.argv[0] + " conwatch.db"
+        print("Usage: " + sys.argv[0] + " [DB file]")
+        print("Example: " + sys.argv[0] + " conwatch.db")
         return 1
     
-    print "Configuration:"
-    print "DB File:\t\t" + DB_FILE
+    print("Configuration:")
+    print("DB File:\t\t" + DB_FILE)
     
     # Create DB connection
     conn = sqlite3.connect(DB_FILE)
@@ -171,12 +171,12 @@ def getJobList():
     count = 0
     done = False
     while ((count < CONDOR_RETRY) and (not done)):
-        print "Querying condor_q for all jobs"
+        print("Querying condor_q for all jobs")
         p = subprocess.Popen(condorcmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         joblist = p.communicate()[0]
         retcode = p.returncode
         if retcode != 0:
-            print "condor_q failure, retcode=" + str(retcode)
+            print("condor_q failure, retcode=" + str(retcode))
             count = count + 1
             time.sleep(CONDOR_WAIT)
         else:
@@ -200,9 +200,9 @@ def getJobList():
             parsedlist.append(row)
         # Ignore empty/incorrectly formatted lines (should only have empty lines)
         else:
-            print "Warning: Incorrectly formatted condor_q row: " + str(row)
+            print("Warning: Incorrectly formatted condor_q row: " + str(row))
             
-    print "Found " + str(len(parsedlist)) + " jobs"
+    print("Found " + str(len(parsedlist)) + " jobs")
         
     return (0, parsedlist)
 
@@ -217,12 +217,12 @@ def deleteOldDAGs():
     try:
         c.execute('select dagid from dags where submit_time < ?', (deltime,))
         daglist = c.fetchall()
-        print "Found " + str(len(daglist)) + " old DAGs to delete"
+        print("Found " + str(len(daglist)) + " old DAGs to delete")
         c.executemany('delete from jobs where dagid = ?', daglist)
         c.executemany('delete from dags where dagid = ?', daglist)
     except:
-        print "Unable to delete old DAGs from DB"
-        print sys.exc_info()
+        print("Unable to delete old DAGs from DB")
+        print(sys.exc_info())
         return 1
 
     # Commit changes
@@ -243,14 +243,14 @@ def getDAGs():
         
         return daglist
     except:
-        print "Unable to retrieve DAGs from DB"
-        print sys.exc_info()
+        print("Unable to retrieve DAGs from DB")
+        print(sys.exc_info())
         return []
 
 
 # Save changes to dags in the DB
 def saveDAGs(daglist):
-    print "Updating dags in DB"
+    print("Updating dags in DB")
     numupdate = 0
     for dag in daglist:
         dagid = dag[TABLE_DAG_POS_DAGID]
@@ -263,10 +263,10 @@ def saveDAGs(daglist):
             c.execute('update dags set status = ?, errors = ? where dagid = ?', (status, errors, dagid,))
             numupdate = numupdate + 1
         except:
-            print "Unable to update dags table in DB for DAG " + jobid + ":" + notify
-            print sys.exc_info()
+            print("Unable to update dags table in DB for DAG " + jobid + ":" + notify)
+            print(sys.exc_info())
  
-    print "Updated " + str(numupdate) + " rows"
+    print("Updated " + str(numupdate) + " rows")
     
     # Commit changes
     conn.commit()   
@@ -280,7 +280,7 @@ def saveJobs(daglist, jobmap):
     # Get current system time
     curtime = int(time.time())
     
-    print "Saving error jobs in DB"
+    print("Saving error jobs in DB")
     numinsert = 0
     for dag in daglist:
         dagid = dag[TABLE_DAG_POS_DAGID]
@@ -308,11 +308,11 @@ def saveJobs(daglist, jobmap):
                 c.executemany("insert into jobs values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", insertlist)
                 numinsert = numinsert + len(insertlist)
             except:
-                print "Unable to save jobs for DAG " + jobid + ":" + notify
-                print sys.exc_info()
+                print("Unable to save jobs for DAG " + jobid + ":" + notify)
+                print(sys.exc_info())
                 
     
-    print "Inserted " + str(numinsert) + " rows"
+    print("Inserted " + str(numinsert) + " rows")
 
     # Commit changes
     conn.commit()   
@@ -346,7 +346,7 @@ def checkStatus(daglist, jobmap):
     # Get current system time
     curtime = int(time.time())
     
-    print "Checking status of DAGs"
+    print("Checking status of DAGs")
     for row in daglist:
         errmsg = ""
         newrow = list(row)
@@ -368,15 +368,15 @@ def checkStatus(daglist, jobmap):
         # Check that this DAG exists in the queue
         keys = jobmap.keys()
         if (not jobid in keys):
-                print "DAG " + jobid + ": not currently in queue - marking completed"
+                print("DAG " + jobid + ": not currently in queue - marking completed")
                 errmsg = errmsg + "DAG " + jobid + ": not currently in queue - marking completed\n"
                 newrow[TABLE_DAG_POS_STATUS] = STATUS_DONE
         else:                
             # If this job needs glideins, check that they are running
             if (glidein == 'Y'):
-                print "DAG " + jobid + ": Checking for glideins"
+                print("DAG " + jobid + ": Checking for glideins")
                 if (not have_glideins):
-                    print "DAG " + jobid + ": No running glideins found"
+                    print("DAG " + jobid + ": No running glideins found")
                     errmsg = errmsg + "DAG " + jobid + ": No running glideins found\n"
 
             # Pull out statistics from jobmap
@@ -411,8 +411,8 @@ def checkStatus(daglist, jobmap):
                     jobmap[j][MAP_POS_HAS_ERROR] = 'Y'
 
             # Check that all jobs associated with DAG are in good state (1, 2)
-            print "DAG " + jobid + ": Checking for jobs in error status"
-            print "DAG " + jobid + ": Jobs in error status, count=" + str(len(errjids))
+            print("DAG " + jobid + ": Checking for jobs in error status")
+            print("DAG " + jobid + ": Jobs in error status, count=" + str(len(errjids)))
             if (len(errjids) > 0):
                 errmsg = errmsg + "DAG " + jobid + ": Children in error status:\n"
                 i = 0
@@ -423,25 +423,25 @@ def checkStatus(daglist, jobmap):
                         errmsg = errmsg + "\r\n"
 
             # Check that there is at least one non-dag child running for this workflow
-            print "DAG " + jobid + ": Checking for presence of non-DAG jobs"
+            print("DAG " + jobid + ": Checking for presence of non-DAG jobs")
             if (numnotdag == 0):
-                print "DAG " + jobid + ": No non-DAGs running for this workflow"
+                print("DAG " + jobid + ": No non-DAGs running for this workflow")
                 errmsg = errmsg + "DAG " + jobid + ": No non-DAGs running for this workflow\n"
             else:
-                print "DAG " + jobid + ": Non-DAG jobs found, count=" + str(numnotdag)
+                print("DAG " + jobid + ": Non-DAG jobs found, count=" + str(numnotdag))
                 # Check that the jobs in the DAG haven't been stuck in the same state for too long.
                 # This does not necessarily indicate an error condition - the job may legitimately be
                 # waiting for computing resources to become available
-                print "DAG " + jobid + ": Checking for jobs stuck in IDLE state"
+                print("DAG " + jobid + ": Checking for jobs stuck in IDLE state")
                 if (len(idlejids) == numnotdag):
-                    print "DAG " + jobid + ": All jobs IDLE for > 6hrs"
+                    print("DAG " + jobid + ": All jobs IDLE for > 6hrs")
                     errmsg = errmsg + "DAG " + jobid + ": All jobs IDLE for > 6hrs\n" 
                 else:
-                    print "DAG " + jobid + ": Jobs idle for > 6hrs, count=" + str(len(idlejids))
+                    print("DAG " + jobid + ": Jobs idle for > 6hrs, count=" + str(len(idlejids)))
 
             # Check that there are no restarts
-            print "DAG " + jobid + ": Checking for jobs with restarts"
-            print "DAG " + jobid + ": Jobs with restarts, count=" + str(len(restartjids))
+            print("DAG " + jobid + ": Checking for jobs with restarts")
+            print("DAG " + jobid + ": Jobs with restarts, count=" + str(len(restartjids)))
             if (len(restartjids) > 0):
                 errmsg = errmsg + "DAG " + jobid + ": Children with restarts:\n"
                 i = 0
@@ -454,7 +454,7 @@ def checkStatus(daglist, jobmap):
         # Compare old and new error list for this DAG. If different, send email. Otherwise,
         # if this is a new job, send email
         if ((errors != errmsg) and (errmsg != "")):
-            print "DAG " + jobid + ": Error list has changed since previous check"
+            print("DAG " + jobid + ": Error list has changed since previous check")
             sendNotification(jobid, desc, errmsg, notify)
 
         # Update new row with new error list, and move new DAGs to run state
@@ -481,23 +481,23 @@ def main():
 
     # Get list of current DAGs and check their status
     daglist = getDAGs()
-    print "Found " + str(len(daglist)) + " DAGs to monitor"
+    print("Found " + str(len(daglist)) + " DAGs to monitor")
     for row in daglist:
-        print row
+        print(row)
         
     if (len(daglist) == 0):
-        print "No work to do - exiting"
+        print("No work to do - exiting")
         return 0
 
     # Get list of current condor jobs
     (retcode, joblist) = getJobList();
     if (retcode != 0):
-        print "Fatal error querying condor for job list"
+        print("Fatal error querying condor for job list")
         return 1
             
     # Check that job information exists, print warning but continue
     if (len(joblist) == 0):    
-        print "Unable to find any jobs in queue"
+        print("Unable to find any jobs in queue")
         pass
     
     # Convert into a dictionary mapping jobs to status info and children
@@ -505,7 +505,7 @@ def main():
     
     # Check that conversion to job map successful, print warning but continue
     if (len(jobmap.keys()) == 0):    
-        print "Unable to find any jobs in map"
+        print("Unable to find any jobs in map")
         pass
     
     # Check status of each dag
