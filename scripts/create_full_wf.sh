@@ -1,10 +1,16 @@
 #!/bin/bash
 
+ROOT_RUN_DIR="/home/shock/scottcal/runs"
+ROOT_DIR=`dirname $0`/..
+DAX_GEN_DIR="${ROOT_DIR}/dax-generator-3"
+
+COMPILE_CMD="javac -classpath .:${DAX_GEN_DIR}:${DAX_GEN_DIR}/lib/jackson-core-2.9.10.jar:${DAX_GEN_DIR}/lib/org.everit.json.schema-1.12.0.jar:${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3:${DAX_GEN_DIR}/lib/mysql-connector-java-5.0.5-bin.jar:${DAX_GEN_DIR}/lib/pegasus.jar:${DAX_GEN_DIR}/lib/globus_rls_client.jar:${DAX_GEN_DIR}/lib/commons-cli-1.1.jar:${DAX_GEN_DIR}/lib/opensha-cybershake-all.jar ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/CyberShake_Integrated_DAXGen.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/DBConnect.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/RunIDQuery.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/CyberShake_SGT_DAXGen.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/SGT_DAXParameters.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/CyberShake_PP_DAXGen.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/PP_DAXParameters.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/CyberShake_Workflow_Container.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/JSON_Specification.java"
+
+RUN_CMD="java -classpath .:${DAX_GEN_DIR}:${DAX_GEN_DIR}/lib/snakeyaml-1.25.jar:${DAX_GEN_DIR}/lib/jackson-coreutils-1.8.jar:${DAX_GEN_DIR}/lib/jackson-annotations-2.9.10.jar:${DAX_GEN_DIR}/lib/mysql-connector-java-5.0.5-bin.jar:${DAX_GEN_DIR}/lib/pegasus.jar:${DAX_GEN_DIR}/lib/jackson-databind-2.9.10.jar:${DAX_GEN_DIR}/lib/jackson-dataformat-yaml-2.9.10.jar:${DAX_GEN_DIR}/lib/jackson-core-2.9.10.jar:${DAX_GEN_DIR}/lib/globus_rls_client.jar:${DAX_GEN_DIR}/lib/commons-cli-1.1.jar:${DAX_GEN_DIR}/lib/opensha-cybershake-all.jar org/scec/cme/cybershake/dax3/CyberShake_Integrated_DAXGen"
+
 show_help() {
-	ROOT_DIR=`dirname $0`
-	DAX_GEN_DIR="${ROOT_DIR}/dax-generator"
-	javac -classpath .:${DAX_GEN_DIR}:${DAX_GEN_DIR}/lib/gson-2.8.6.jar:${DAX_GEN_DIR}/lib/org.everit.json.schema-1.12.0.jar:${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3:${DAX_GEN_DIR}/lib/mysql-connector-java-5.0.5-bin.jar:${DAX_GEN_DIR}/lib/pegasus.jar:${DAX_GEN_DIR}/lib/globus_rls_client.jar:${DAX_GEN_DIR}/lib/commons-cli-1.1.jar:${DAX_GEN_DIR}/lib/opensha-commons-all.jar ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/CyberShake_Integrated_DAXGen.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/DBConnect.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/RunIDQuery.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/CyberShake_SGT_DAXGen.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/SGT_DAXParameters.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/CyberShake_PP_DAXGen.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/PP_DAXParameters.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/CyberShake_Workflow_Container.java
-	JAVA_OUT=`java -classpath .:${DAX_GEN_DIR}:${DAX_GEN_DIR}/lib/mysql-connector-java-5.0.5-bin.jar:${DAX_GEN_DIR}/lib/pegasus.jar:${DAX_GEN_DIR}/lib/globus_rls_client.jar:${DAX_GEN_DIR}/lib/commons-cli-1.1.jar:${DAX_GEN_DIR}/lib/opensha-commons-all.jar org/scec/cme/cybershake/dax3/CyberShake_Integrated_DAXGen -h`
+	$COMPILE_CMD
+	JAVA_OUT=`$RUN_CMD -h`
 	cat << EOF
 	Usage: $0 [-h] <-v VELOCITY_MODEL> <-e ERF_ID> <-r RUP_VAR_ID> <-g SGT_ID> <-f FREQ> <-s SITE> [-q SRC_FREQ] [-bb] [--sgtargs <SGT dax generator args>] [--ppargs <post-processing args>] [--bbargs <stochastic args>]
 		-h			display this help and exit
@@ -204,7 +210,7 @@ fi
 	else
 		#One site, use site name
 		RUN_DIR=${SITES[0]}_Integrated_dax
-		mkdir $RUN_DIR
+		mkdir -p $RUN_DIR
 		mv /tmp/sites.list ${RUN_DIR}/sites.list
 		DAX_FILE=CyberShake_Integrated_${SITES[0]}.dax
 	fi
@@ -241,9 +247,9 @@ if [ ! -e ${RUN_FILE} ]; then
     for SITE in ${SITES[@]}; do
 	echo "Creating run for site ${SITE}"
         # Create new run
-	run_id_cmd="/home/scec-02/cybershk/runs/runmanager/create_run.py ${SITE} ${ERF} ${SGT_VAR} ${VEL_ID} ${RUP_VAR} ${FREQ} ${SRC_FREQ}"
+	run_id_cmd="${ROOT_RUN_DIR}/cybershake-tools/runmanager/create_run.py ${SITE} ${ERF} ${SGT_VAR} ${VEL_ID} ${RUP_VAR} ${FREQ} ${SRC_FREQ}"
 	RUN_ID=`$run_id_cmd`
-	#RUN_ID=`/home/scec-02/cybershk/runs/runmanager/create_run.py ${SITE} ${ERF} ${SGT_VAR} ${VEL_ID} ${RUP_VAR} ${FREQ} ${SRC_FREQ}`
+	#RUN_ID=`${ROOT_RUN_DIR}/cybershake-tools/runmanager/create_run.py ${SITE} ${ERF} ${SGT_VAR} ${VEL_ID} ${RUP_VAR} ${FREQ} ${SRC_FREQ}`
 	if [ $? -ne 0 ]; then
 	    echo "Failed to create new run for ${SITE}."
 	    exit 1
@@ -268,13 +274,13 @@ else
 		FOUND=0
 		RUN_ID=`echo $LINE | awk '{print $1}'`
 		SITE_NAME=`echo $LINE | awk '{print $2}'`
-        	RF_ERF_ID=`echo $LINE | awk '{print $3}'`
-        	RF_SGT_VAR=`echo $LINE | awk '{print $4}'`
-        	RF_RUP_VAR=`echo $LINE | awk '{print $5}'`
-        	RF_VEL_ID=`echo $LINE | awk '{print $6}'`
+        RF_ERF_ID=`echo $LINE | awk '{print $3}'`
+        RF_SGT_VAR=`echo $LINE | awk '{print $4}'`
+        RF_RUP_VAR=`echo $LINE | awk '{print $5}'`
+        RF_VEL_ID=`echo $LINE | awk '{print $6}'`
 		RF_FREQ=`echo $LINE | awk '{print $7}'`
 		RF_SRC_FREQ=$RF_FREQ
-                if [[ `echo $LINE | awk '{print NF}'` -ge 8 ]]; then
+        if [[ `echo $LINE | awk '{print NF}'` -ge 8 ]]; then
                         #Then we've specificed a different source frequency
                         RF_SRC_FREQ=`echo $LINE | awk '{print $8}'`
                 fi
@@ -305,8 +311,8 @@ else
 		if [[ "$RF_SRC_FREQ" != "" && "$RF_SRC_FREQ" != "$SRC_FREQ" ]]; then
                         continue
                 fi
-		echo "/home/scec-02/cybershk/runs/runmanager/valid_run.py ${RUN_ID} ${SITE_NAME} SGT_PLAN"
-		/home/scec-02/cybershk/runs/runmanager/valid_run.py ${RUN_ID} ${SITE_NAME} SGT_PLAN
+		echo "${ROOT_RUN_DIR}/cybershake-tools/runmanager/valid_run.py ${RUN_ID} ${SITE_NAME} SGT_PLAN"
+		${ROOT_RUN_DIR}/cybershake-tools/runmanager/valid_run.py ${RUN_ID} ${SITE_NAME} SGT_PLAN
 		if [ $? != 0 ]; then
         	    echo "Run ${RUN_ID} not in expected state"
 		    #Don't create new run here; keep checking in the run file
@@ -319,9 +325,9 @@ else
 	done < ${RUN_FILE}
 	if [ $FOUND -eq 0 ]; then
 		#need to create new run
-	        run_id_cmd="/home/scec-02/cybershk/runs/runmanager/create_run.py ${SITE} ${ERF} ${SGT_VAR} ${VEL_ID} ${RUP_VAR} ${FREQ} ${SRC_FREQ}"
+	        run_id_cmd="${ROOT_RUN_DIR}/cybershake-tools/runmanager/create_run.py ${SITE} ${ERF} ${SGT_VAR} ${VEL_ID} ${RUP_VAR} ${FREQ} ${SRC_FREQ}"
 	        RUN_ID=`$run_id_cmd`
-		#RUN_ID=`/home/scec-02/cybershk/runs/runmanager/create_run.py ${SITE} ${ERF} ${SGT_VAR} ${VEL_ID} ${RUP_VAR} ${FREQ} ${SRC_FREQ}`
+		#RUN_ID=`${ROOT_RUN_DIR}/cybershake-tools/runmanager/create_run.py ${SITE} ${ERF} ${SGT_VAR} ${VEL_ID} ${RUP_VAR} ${FREQ} ${SRC_FREQ}`
                 if [ $? -ne 0 ]; then
                 	echo "Failed to create run."
                 	exit 2
@@ -342,9 +348,9 @@ if [ $BB_SIM -eq 1 ]; then
         for SITE in ${SITES[@]}; do
             echo "Creating run for site ${SITE}"
             # Create new run
-            run_id_cmd="/home/scec-02/cybershk/runs/runmanager/create_run.py ${SITE} ${ERF} ${SGT_VAR} ${VEL_ID} ${RUP_VAR} ${FREQ} ${SRC_FREQ} ${STOCH_FREQ}"
+            run_id_cmd="${ROOT_RUN_DIR}/cybershake-tools/runmanager/create_run.py ${SITE} ${ERF} ${SGT_VAR} ${VEL_ID} ${RUP_VAR} ${FREQ} ${SRC_FREQ} ${STOCH_FREQ}"
             BB_RUN_ID=`$run_id_cmd`
-            #RUN_ID=`/home/scec-02/cybershk/runs/runmanager/create_run.py ${SITE} ${ERF} ${SGT_VAR} ${VEL_ID} ${RUP_VAR} ${FREQ} ${SRC_FREQ}`
+            #RUN_ID=`${ROOT_RUN_DIR}/cybershake-tools/runmanager/create_run.py ${SITE} ${ERF} ${SGT_VAR} ${VEL_ID} ${RUP_VAR} ${FREQ} ${SRC_FREQ}`
             if [ $? -ne 0 ]; then
                 echo "Failed to create new run for ${SITE}."
                 exit 1
@@ -416,8 +422,8 @@ if [ $BB_SIM -eq 1 ]; then
                 if [[ "$RF_STOCH_FREQ" == "" && "$STOCH_FREQ" != "" ]]; then
                         continue
                 fi
-                echo "/home/scec-02/cybershk/runs/runmanager/valid_run.py ${BB_RUN_ID} ${SITE_NAME} SGT_PLAN"
-                /home/scec-02/cybershk/runs/runmanager/valid_run.py ${BB_RUN_ID} ${SITE_NAME} SGT_PLAN
+                echo "${ROOT_RUN_DIR}/cybershake-tools/runmanager/valid_run.py ${BB_RUN_ID} ${SITE_NAME} SGT_PLAN"
+                ${ROOT_RUN_DIR}/cybershake-tools/runmanager/valid_run.py ${BB_RUN_ID} ${SITE_NAME} SGT_PLAN
                 if [ $? != 0 ]; then
                     echo "Run ${BB_RUN_ID} not in expected state"
                     #Don't create new run here; keep checking in the run file
@@ -433,9 +439,9 @@ if [ $BB_SIM -eq 1 ]; then
             done < ${RUN_FILE}
             if [ $FOUND -eq 0 ]; then
                 #need to create new run
-                run_id_cmd="/home/scec-02/cybershk/runs/runmanager/create_run.py ${SITE} ${ERF} ${SGT_VAR} ${VEL_ID} ${RUP_VAR} ${FREQ} ${SRC_FREQ} ${STOCH_FREQ}"
+                run_id_cmd="${ROOT_RUN_DIR}/cybershake-tools/runmanager/create_run.py ${SITE} ${ERF} ${SGT_VAR} ${VEL_ID} ${RUP_VAR} ${FREQ} ${SRC_FREQ} ${STOCH_FREQ}"
                 BB_RUN_ID=`$run_id_cmd`
-                #RUN_ID=`/home/scec-02/cybershk/runs/runmanager/create_run.py ${SITE} ${ERF} ${SGT_VAR} ${VEL_ID} ${RUP_VAR} ${FREQ} ${SRC_FREQ}`
+                #RUN_ID=`${ROOT_RUN_DIR}/cybershake-tools/runmanager/create_run.py ${SITE} ${ERF} ${SGT_VAR} ${VEL_ID} ${RUP_VAR} ${FREQ} ${SRC_FREQ}`
                 if [ $? -ne 0 ]; then
                         echo "Failed to create run."
                         exit 2
@@ -464,8 +470,8 @@ if [ ${#SITES[@]} -eq 1 ]; then
 fi
 
 # Compile the DAX generator
-DAX_GEN_DIR="dax-generator"
-javac -classpath .:${DAX_GEN_DIR}:${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3:${DAX_GEN_DIR}/lib/mysql-connector-java-5.0.5-bin.jar:${DAX_GEN_DIR}/lib/pegasus.jar:${DAX_GEN_DIR}/lib/globus_rls_client.jar:${DAX_GEN_DIR}/lib/commons-cli-1.1.jar:${DAX_GEN_DIR}/lib/opensha-commons-all.jar ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/CyberShake_Integrated_DAXGen.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/DBConnect.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/RunIDQuery.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/CyberShake_SGT_DAXGen.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/SGT_DAXParameters.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/CyberShake_PP_DAXGen.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/PP_DAXParameters.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/CyberShake_Workflow_Container.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/Stochastic_DAXParameters.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/CyberShake_Sub_Stoch_DAXGen.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/CyberShake_Stochastic_DAXGen.java
+$COMPILE_CMD
+#javac -classpath .:${DAX_GEN_DIR}:${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3:${DAX_GEN_DIR}/lib/jackson-core-2.9.10.jar:${DAX_GEN_DIR}/lib/mysql-connector-java-5.0.5-bin.jar:${DAX_GEN_DIR}/lib/pegasus.jar:${DAX_GEN_DIR}/lib/globus_rls_client.jar:${DAX_GEN_DIR}/lib/commons-cli-1.1.jar:${DAX_GEN_DIR}/lib/opensha-cybershake-all.jar ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/CyberShake_Integrated_DAXGen.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/DBConnect.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/RunIDQuery.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/CyberShake_SGT_DAXGen.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/SGT_DAXParameters.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/CyberShake_PP_DAXGen.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/PP_DAXParameters.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/CyberShake_Workflow_Container.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/Stochastic_DAXParameters.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/CyberShake_Sub_Stoch_DAXGen.java ${DAX_GEN_DIR}/org/scec/cme/cybershake/dax3/CyberShake_Stochastic_DAXGen.java
 
 if [ $? -ne 0 ]; then
 	exit 1
@@ -477,8 +483,12 @@ if [ $BB_SIM -eq 1 ]; then
 fi
 echo $DAX_FILE
 # Run the DAX generator
-echo "java -classpath .:${DAX_GEN_DIR}:${DAX_GEN_DIR}/lib/mysql-connector-java-5.0.5-bin.jar:${DAX_GEN_DIR}/lib/pegasus.jar:${DAX_GEN_DIR}/lib/globus_rls_client.jar:${DAX_GEN_DIR}/lib/commons-cli-1.1.jar:${DAX_GEN_DIR}/lib/opensha-commons-all.jar org/scec/cme/cybershake/dax3/CyberShake_Integrated_DAXGen $DAX_FILE `pwd`/${RUN_DIR} ${VEL_STR} $@ -rl ${RUN_ID_STRING}"
-java -classpath .:${DAX_GEN_DIR}:${DAX_GEN_DIR}/lib/mysql-connector-java-5.0.5-bin.jar:${DAX_GEN_DIR}/lib/pegasus.jar:${DAX_GEN_DIR}/lib/globus_rls_client.jar:${DAX_GEN_DIR}/lib/commons-cli-1.1.jar:${DAX_GEN_DIR}/lib/opensha-commons-all.jar org/scec/cme/cybershake/dax3/CyberShake_Integrated_DAXGen $DAX_FILE `pwd`/${RUN_DIR} $@ -rl ${RUN_ID_ARG}
+full_cmd="$RUN_CMD $DAX_FILE `pwd`/${RUN_DIR} ${VEL_STR} $@ -rl ${RUN_ID_STRING}"
+echo $full_cmd
+$full_cmd
+
+#echo "java -classpath .:${DAX_GEN_DIR}:${DAX_GEN_DIR}/lib/mysql-connector-java-5.0.5-bin.jar:${DAX_GEN_DIR}/lib/jackson-core-2.9.10.jar:${DAX_GEN_DIR}/lib/pegasus.jar:${DAX_GEN_DIR}/lib/globus_rls_client.jar:${DAX_GEN_DIR}/lib/commons-cli-1.1.jar:${DAX_GEN_DIR}/lib/opensha-cybershake-all.jar org/scec/cme/cybershake/dax3/CyberShake_Integrated_DAXGen $DAX_FILE `pwd`/${RUN_DIR} ${VEL_STR} $@ -rl ${RUN_ID_STRING}"
+#java -classpath .:${DAX_GEN_DIR}:${DAX_GEN_DIR}/lib/mysql-connector-java-5.0.5-bin.jar:${DAX_GEN_DIR}/lib/jackson-core-2.9.10.jar:${DAX_GEN_DIR}/lib/pegasus.jar:${DAX_GEN_DIR}/lib/globus_rls_client.jar:${DAX_GEN_DIR}/lib/commons-cli-1.1.jar:${DAX_GEN_DIR}/lib/opensha-cybershake-all.jar org/scec/cme/cybershake/dax3/CyberShake_Integrated_DAXGen $DAX_FILE `pwd`/${RUN_DIR} $@ -rl ${RUN_ID_ARG}
 
 if [ $? -ne 0 ]; then
 	exit 1
@@ -508,7 +518,7 @@ fi
 
 # Update status, comment on each run
 for RUN_ID in $RUN_ID_STRING; do
-    /home/scec-02/cybershk/runs/runmanager/edit_run.py ${RUN_ID} "Status=Initial" "Comment=SGT DAX created" "Job_ID=NULL" "Submit_Dir=NULL"
+    ${ROOT_RUN_DIR}/cybershake-tools/runmanager/edit_run.py ${RUN_ID} "Status=Initial" "Comment=SGT DAX created" "Job_ID=NULL" "Submit_Dir=NULL"
     if [ $? != 0 ]; then
         echo "Unable to update Status, Comment, Job_ID, Submit_Dir for run ${RUN_ID}"
         # Continue updating runs
@@ -517,7 +527,7 @@ done
 
 if [ $BB_SIM -eq 1 ]; then
     #Update this run ID also
-    /home/scec-02/cybershk/runs/runmanager/edit_run.py ${BB_RUN_ID} "Status=Initial" "Comment=SGT DAX created" "Job_ID=NULL" "Submit_Dir=NULL"
+    ${ROOT_RUN_DIR}/cybershake-tools/runmanager/edit_run.py ${BB_RUN_ID} "Status=Initial" "Comment=SGT DAX created" "Job_ID=NULL" "Submit_Dir=NULL"
     if [ $? != 0 ]; then
         echo "Unable to update Status, Comment, Job_ID, Submit_Dir for run ${RUN_ID}"
     fi

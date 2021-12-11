@@ -1,5 +1,7 @@
 #!/bin/bash
 
+ROOT_RUN_DIR="/home/shock/scottcal/runs"
+
 # Parse options
 NOTIFY=""
 RESTART=0
@@ -39,7 +41,7 @@ else
         FILE_RUN_ID=`echo $LINE | awk '{print $1}'`
         SITE_NAME=`echo $LINE | awk '{print $2}'`
  	if [ "${FILE_RUN_ID}" -eq "${RUN_ID}" ]; then
-	        /home/scec-02/cybershk/runs/runmanager/valid_run.py ${RUN_ID} ${SITE_NAME} PP_PLAN
+	        ${ROOT_RUN_DIR}/cybershake-tools/runmanager/valid_run.py ${RUN_ID} ${SITE_NAME} PP_PLAN
 	        if [ $? != 0 ]; then
 	            echo "Run ${RUN_ID} not in expected state"
 	            exit 1
@@ -71,8 +73,8 @@ EXEC_DIR=`grep pegasus-run ${SITE}_PP_dax/run_$RUN_ID/log-plan-CyberShake_${SITE
 
 
 # Save condor_config.local
-if [ -e /usr/local/condor/scec_config/local.shock/condor_config.local ]; then
-        CFG=/usr/local/condor/scec_config/local.shock/condor_config.local
+if [ -e /home/shock-ssd/scottcal/condor/condor_config.local ]; then
+        CFG=/home/shock-ssd/scottcal/condor/condor_config.local
 elif [ -n "${CONDOR_CONFIG+x}" ]; then
         CFG=${CONDOR_CONFIG}.local
 elif [ -e /etc/condor/condor_config.local ]; then
@@ -110,7 +112,7 @@ fi
 
 #while read LINE ; do
 #    RUN_ID=`echo $LINE | awk '{print $1}'`
-    /home/scec-02/cybershk/runs/runmanager/edit_run.py ${RUN_ID} "Status=${NEW_STATE}" "Comment=PP workflow submitted" "Job_ID=${SUBHOST}:${JOBID}" "Submit_Dir=${EXEC_DIR}" "Notify_User=${NOTIFY_MOD}"
+    ${ROOT_RUN_DIR}/cybershake-tools/runmanager/edit_run.py ${RUN_ID} "Status=${NEW_STATE}" "Comment=PP workflow submitted" "Job_ID=${SUBHOST}:${JOBID}" "Submit_Dir=${EXEC_DIR}" "Notify_User=${NOTIFY_MOD}"
     if [ $? != 0 ]; then
         echo "Unable to update Status, Comment, Job_ID, Submit_Dir, Comment for run ${RUN_ID}"
         # Continue with updates

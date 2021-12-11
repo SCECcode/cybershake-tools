@@ -1,28 +1,24 @@
 #!/bin/bash
 
-if [ $# -ne 5 ]; then
-	echo "Usage: $0 <site> <run_id> <remote_site> <gridshib user> <gridshib user email>"
-	echo "Example: $0 USC 135 abe scottcal scottcal@usc.edu"
+ROOT_RUN_DIR="/home/shock/scottcal/runs"
+
+if [ $# -ne 3 ]; then
+	echo "Usage: $0 <site> <run_id> <remote_site>"
+	echo "Example: $0 USC 135 abe"
 	exit 1
 fi
 
 SITE=$1
 RUN_ID=$2
 REMOTE_SITE=$3
-USER=$4
-EMAIL=$5
 
-OUTPUT_DIR_ROOT=/home/scec-02/tera3d/CyberShake2007
+OUTPUT_DIR_ROOT=/project/scec_608/cybershake/results
 NEW_PROXY=$X509_USER_PROXY
 
 #if Blue Waters, use scottcal proxy
 if [ "$REMOTE_SITE" == "bluewaters" ]; then
         echo "Using Blue Waters proxy"
         #NEW_PROXY=/tmp/x509up_u33527
-else
-	#initialize saml certificate
-	/home/scec-00/cybershk/gridshib/issue-saml-cert.sh $USER $EMAIL
-	NEW_PROXY=/tmp/${USER}_gridshib_proxy.pem
 fi
 
 export X509_USER_PROXY=$NEW_PROXY
@@ -46,7 +42,7 @@ else
         FILE_RUN_ID=`echo $LINE | awk '{print $1}'`
         SITE_NAME=`echo $LINE | awk '{print $2}'`
 	if [ "$FILE_RUN_ID" -eq "$RUN_ID" ]; then
-	        /home/scec-02/cybershk/runs/runmanager/valid_run.py ${RUN_ID} ${SITE_NAME} PP_PLAN
+	        ${ROOT_RUN_DIR}/cybershake-tools/runmanager/valid_run.py ${RUN_ID} ${SITE_NAME} PP_PLAN
 	        if [ $? != 0 ]; then
 	            echo "Run ${RUN_ID} not in expected state"
 	            exit 1
@@ -62,7 +58,7 @@ fi
 
 
 # Modify the planning properties file
-propfile=/home/scec-02/cybershk/runs/config/properties.mpi-cluster.pp
+propfile=${ROOT_RUN_DIR}/config/properties.mpi-cluster.pp
 #propfile=/home/scec-02/cybershk/runs/config/properties.full
 
 if [ "${REMOTE_SITE}" == "bluewaters" ]; then
@@ -70,7 +66,7 @@ if [ "${REMOTE_SITE}" == "bluewaters" ]; then
 	export X509_USER_PROXY=/tmp/x509up_u33527
 	propfile=/home/scec-02/cybershk/runs/config/properties.bluewaters
 else
-	export X509_USER_PROXY=/tmp/x509up_u801878
+	export X509_USER_PROXY=/home/shock-ssd/scottcal/condor/x509up_u7588
 fi
 
 UPDATE_SITE=${REMOTE_SITE}
@@ -93,12 +89,12 @@ rm run_${RUN_ID}/log-plan-${DAX}-*
 
 # Perform the planning
 cd run_${RUN_ID}
-#echo pegasus-plan -Denv.X509_USER_PROXY=${NEW_PROXY} --conf ${propfile} --rescue 100 --dax ${DAX} -s $REMOTE_SITE,shock,opensha --output-site shock --dir dags -f --cluster label --nocleanup --output-dir $OUTPUT_DIR_ROOT/data/PPFiles/${SITE}/${RUN_ID}| tee log-plan-${DAX}-${REMOTE_SITE}
-echo pegasus-plan --conf ${propfile} --rescue 100 --dax ${DAX} -s $REMOTE_SITE,shock,opensha --output-site shock --dir dags -f --cluster label --nocleanup --output-dir $OUTPUT_DIR_ROOT/data/PPFiles/${SITE}/${RUN_ID}| tee log-plan-${DAX}-${REMOTE_SITE}
+#echo pegasus-plan -Denv.X509_USER_PROXY=${NEW_PROXY} --conf ${propfile} --rescue 100 --dax ${DAX} -s $REMOTE_SITE,shock,opensha --output-site shock --dir dags -f --cluster label --nocleanup --output-dir $OUTPUT_DIR_ROOT/PPFiles/${SITE}/${RUN_ID}| tee log-plan-${DAX}-${REMOTE_SITE}
+echo pegasus-plan --conf ${propfile} --rescue 100 -s $REMOTE_SITE,shock --output-site shock --dir dags -f --cluster label --cleanup none --output-dir $OUTPUT_DIR_ROOT/PPFiles/${SITE}/${RUN_ID} ${DAX} | tee log-plan-${DAX}-${REMOTE_SITE}
 
 which pegasus-plan
-#pegasus-plan -Denv.X509_USER_PROXY=${NEW_PROXY} --conf ${propfile} --rescue 100 --dax ${DAX} -s $REMOTE_SITE,shock,opensha --output-site shock --dir dags -f --cluster label --nocleanup --output-dir $OUTPUT_DIR_ROOT/data/PPFiles/${SITE}/${RUN_ID}| tee log-plan-${DAX}-${REMOTE_SITE}
-pegasus-plan -vv --conf ${propfile} --rescue 100 --dax ${DAX} -s $REMOTE_SITE,shock,opensha --output-site shock --dir dags -f --cluster label --nocleanup | tee log-plan-${DAX}-${REMOTE_SITE}
+#pegasus-plan -Denv.X509_USER_PROXY=${NEW_PROXY} --conf ${propfile} --rescue 100 --dax ${DAX} -s $REMOTE_SITE,shock,opensha --output-site shock --dir dags -f --cluster label --nocleanup --output-dir $OUTPUT_DIR_ROOT/PPFiles/${SITE}/${RUN_ID}| tee log-plan-${DAX}-${REMOTE_SITE}
+pegasus-plan -vv --conf ${propfile} --rescue 100 -s $REMOTE_SITE,shock --output-site shock --dir dags -f --cluster label --cleanup none ${DAX} | tee log-plan-${DAX}-${REMOTE_SITE}
 
 
 # Modify the run-time user properties file
@@ -135,7 +131,7 @@ if [ -e ${SITE_NAME}.db ]; then
 	mv ${SITE_NAME}.db ${EXEC_DIR}/${SITE_NAME}_${RUN_ID}.db
 fi
 
-/home/scec-02/cybershk/runs/runmanager/edit_run.py ${RUN_ID} "Status=SGT Generated" "PP_Host=${UPDATE_SITE}" "Comment=Planned, assigned pp host" "Job_ID=NULL"
+${ROOT_RUN_DIR}/cybershake-tools/runmanager/edit_run.py ${RUN_ID} "Status=SGT Generated" "PP_Host=${UPDATE_SITE}" "Comment=Planned, assigned pp host" "Job_ID=NULL"
 if [ $? != 0 ]; then
         echo "Unable to update Status, PP_Host, Job_ID for run ${RUN_ID}"
         exit 1

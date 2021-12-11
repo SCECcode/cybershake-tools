@@ -1,5 +1,7 @@
 #!/bin/bash
 
+ROOT_RUN_DIR="/home/shock/scottcal/runs"
+
 if [ $# -lt 2 ]; then
 	echo "Usage:  $0 < SGT_dir | site run_id > remote_site"
 	echo "Example: $0 1234543210_SGT_dax ranger"
@@ -22,12 +24,12 @@ else
 	
 fi
 
-if [ $REMOTE_SITE == "titan" || $REMOTE_SITE == "summit" ]; then
+if [ $REMOTE_SITE == "summit" ]; then
 	echo "Using OLCF proxy."
-	export X509_USER_PROXY=/tmp/x509up_u7588
+	export X509_USER_PROXY=/home/shock-ssd/scottcal/condor/x509up_u7588
 fi
 
-propfile=/home/scec-02/cybershk/runs/config/properties.sgt
+propfile=${ROOT_RUN_DIR}/config/properties.sgt
 
 #To pick up the reservation parameters
 if [ $REMOTE_SITE == "bluewaters" ]; then
@@ -96,7 +98,7 @@ else
 	while read LINE; do
 		RUN_ID=`echo $LINE | awk '{print $1}'`
                 SITE_NAME=`echo $LINE | awk '{print $2}'`
-		/home/scec-02/cybershk/runs/runmanager/valid_run.py ${RUN_ID} ${SITE_NAME} SGT_PLAN
+		${ROOT_RUN_DIR}/cybershake-tools/runmanager/valid_run.py ${RUN_ID} ${SITE_NAME} SGT_PLAN
 		if [ $? != 0 ]; then
                 	echo "Run ${RUN_ID} not in expected state"
                         exit 1
@@ -109,7 +111,7 @@ else
         	FILE_RUN_ID=`echo $LINE | awk '{print $1}'`
         	SITE_NAME=`echo $LINE | awk '{print $2}'`
 		if [ "$FILE_RUN_ID" -eq "$RUN_ID" ]; then
-		        /home/scec-02/cybershk/runs/runmanager/valid_run.py ${RUN_ID} ${SITE_NAME} SGT_PLAN
+		        ${ROOT_RUN_DIR}/cybershake-tools/runmanager/valid_run.py ${RUN_ID} ${SITE_NAME} SGT_PLAN
         		if [ $? != 0 ]; then
         		    echo "Run ${RUN_ID} not in expected state"
         		    exit 1
@@ -150,14 +152,14 @@ else
 	cp $propfile properties.sgt.onesite
 	#pegasus.dir.storage replaced by --output-dir
         #echo "pegasus.dir.storage=data/SgtFiles/${SITE}" >> properties.sgt.onesite
-	if [ $REMOTE_SITE == "titan" || $REMOTE_SITE == "summit" ]; then
+	if [ $REMOTE_SITE == "summit" ]; then
 	        sed -i 's/u801878/u7588/g' properties.sgt.onesite
 		#Add titan-pilot to remote site list so we can use pilot jobs for SGTs
 		#REMOTE_SITE=$REMOTE_SITE,titan-pilot
 	fi
-	echo "pegasus-plan -vv --conf=${propfile} --dax $TOP_DAX --rescue 100 -s $REMOTE_SITE,shock -o ${OUTPUT_SITE} --dir dags -f --nocleanup --output-dir data/SgtFiles/${SITE} | tee log-plan-${TOP_DAX}-${REMOTE_SITE}"
+	echo "pegasus-plan --conf=${propfile} --rescue 100 -s $REMOTE_SITE,shock -o ${OUTPUT_SITE} --dir dags -f --cleanup none --output-dir data/SgtFiles/${SITE} $TOP_DAX | tee log-plan-${TOP_DAX}-${REMOTE_SITE}"
 	echo $PATH
-        pegasus-plan -vv --conf=properties.sgt.onesite --dax $TOP_DAX --rescue 100 -s $REMOTE_SITE,shock -o $OUTPUT_SITE --dir dags -f --nocleanup --output-dir data/SgtFiles/${SITE} | tee log-plan-${TOP_DAX}-${REMOTE_SITE}
+        pegasus-plan --conf=${propfile} --rescue 100 -s $REMOTE_SITE,shock -o $OUTPUT_SITE --dir dags -f --cleanup none --output-dir data/SgtFiles/${SITE} $TOP_DAX | tee log-plan-${TOP_DAX}-${REMOTE_SITE}
 	if [ $? != 0 ]; then
         	echo "Failed to plan workflow."
         	exit 1
@@ -171,7 +173,7 @@ REMOTE_PART=${OUTPUT_SITE%%_*}
 if [ "$ONE_SITE" -eq 0 ]; then
 	while read LINE ; do
 	    RUN_ID=`echo $LINE | awk '{print $1}'`
-	    /home/scec-02/cybershk/runs/runmanager/edit_run.py ${RUN_ID} "Status=Initial" "SGT_Host=${REMOTE_PART}" "Comment=Planned SGT DAX, assigned sgt host" "Job_ID=NULL"
+	    ${ROOT_RUN_DIR}/cybershake-tools/runmanager/edit_run.py ${RUN_ID} "Status=Initial" "SGT_Host=${REMOTE_PART}" "Comment=Planned SGT DAX, assigned sgt host" "Job_ID=NULL"
 	    if [ $? != 0 ]; then
 		echo "Unable to update Status, SGT_Host, Comment, Job_ID for run ${RUN_ID}"
 		exit 1
@@ -179,7 +181,7 @@ if [ "$ONE_SITE" -eq 0 ]; then
 	done < ${RUN_FILE}
 else
 	#We already know the 1 run ID
-	/home/scec-02/cybershk/runs/runmanager/edit_run.py ${RUN_ID} "Status=Initial" "SGT_Host=${REMOTE_PART}" "Comment=Planned SGT DAX, assigned sgt host" "Job_ID=NULL"
+	${ROOT_RUN_DIR}/cybershake-tools/runmanager/edit_run.py ${RUN_ID} "Status=Initial" "SGT_Host=${REMOTE_PART}" "Comment=Planned SGT DAX, assigned sgt host" "Job_ID=NULL"
 	if [ $? != 0 ]; then
                 echo "Unable to update Status, SGT_Host, Comment, Job_ID for run ${RUN_ID}"
                 exit 1
