@@ -1,8 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 # DB File location
-DB_FILE = '/home/scec-00/cybershk/conwatch/conwatch.db'
+DB_FILE = '/home/shock/scottcal/runs/cybershake-tools/conwatch/conwatch.db'
 
 # Condor retry attempts
 CONDOR_RETRY = 5
