@@ -383,7 +383,7 @@ public class CyberShake_DB_DAXGen {
 			erfFile = RSQSIM_ERF48_FILE;
 		} else if (riq.getErfID()==61) {
 			erfFile = RSQSIM_ERF61_FILE;
-		} else if (riq.getErfID()==61) {
+		} else if (riq.getErfID()==62) {
 			erfFile = RSQSIM_ERF62_FILE;
 		}
 		disaggJob.addArgument("--erf-file " + erfFile);
