@@ -42,6 +42,7 @@ public class CyberShake_AWP_SGT_DAXGen {
         Option minvs = OptionBuilder.withArgName("minvs").hasArg().withDescription("Override the minimum Vs value").create("mv");
         Option server = OptionBuilder.withArgName("server").hasArg().withDescription("Server to use for site parameters and to insert PSA values into").create("sr");
         Option noSmoothing = new Option("ns", "no-smoothing", false, "Turn off smoothing (default is to smooth)");
+		Option h_frac = OptionBuilder.withArgName("h_fraction").withLongOpt("h_fraction").hasArg().withDescription("Depth, in fractions of a grid point, to query UCVM at when populating the surface points.").create("hf");
         
         cmd_opts.addOption(runIDopt);
         cmd_opts.addOption(gridoutFile);
@@ -54,6 +55,7 @@ public class CyberShake_AWP_SGT_DAXGen {
         cmd_opts.addOption(minvs);
         cmd_opts.addOption(server);
         cmd_opts.addOption(noSmoothing);
+		cmd_opts.addOption(h_frac);
         
         String usageString = "CyberShake_AWP_SGT_DAXGen [options]";
         CommandLineParser parser = new GnuParser();
@@ -139,7 +141,13 @@ public class CyberShake_AWP_SGT_DAXGen {
 		if (line.hasOption(noSmoothing.getOpt())) {
 			smoothing = false;
 		}
-		
+	
+		//Set default h_frac to 0.25
+		double h_frac_val = 0.25;	
+		if (line.hasOption(h_frac.getOpt())) {
+			h_frac_val = Double.parseDouble(line.getOptionValue(h_frac.getOpt()));
+		}
+
 		ADAG sgtDAX = new ADAG("AWP_SGT_" + riq.getSiteName() + ".dax");
 		
 		Job velocityJob = null;
@@ -154,7 +162,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 			
 			velocityJob = vMeshMerge;
 		} else {
-			Job vMeshJob = addVMeshSingle(spacing, min_vs);
+			Job vMeshJob = addVMeshSingle(spacing, min_vs, h_frac_val);
 			sgtDAX.addJob(vMeshJob);
 			
 			velocityJob = vMeshJob;
@@ -710,7 +718,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		return awpJob;
 	}
 		
-	private static Job addVMeshSingle(double spacing, double min_vs) {
+	private static Job addVMeshSingle(double spacing, double min_vs, double h_frac_val) {
 		String id = "UCVMMesh_" + riq.getSiteName();
 		Job vMeshJob = new Job(id, "scec", "UCVMMesh", "1.0");
 		
@@ -741,7 +749,9 @@ public class CyberShake_AWP_SGT_DAXGen {
 		if (min_vs>0.0) {
 			vMeshJob.addArgument("--min_vs " + min_vs);
 		}
-		
+	
+		vMeshJob.addArgument("--h_fraction " + h_frac_val);
+	
 		gridoutFile.setTransfer(File.TRANSFER.TRUE);
 		coordFile.setTransfer(File.TRANSFER.TRUE);
 		

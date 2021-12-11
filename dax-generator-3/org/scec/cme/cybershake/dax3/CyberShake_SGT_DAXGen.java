@@ -53,7 +53,7 @@ public class CyberShake_SGT_DAXGen {
 				//Avoid pruning of jobs
 				sgtDaxJob.addArgument("--force");
 				//Copy results to SGT storage directory
-				sgtDaxJob.addArgument("-o summit");
+				sgtDaxJob.addArgument("--output-sites summit");
 				topLevelDAX.addDAX(sgtDaxJob);
 			
 				File sgtDaxFile = new File(daxFileName);
@@ -313,7 +313,8 @@ public class CyberShake_SGT_DAXGen {
 			//sgtDAX.addArgument("--cleanup inplace");
 			args.append(" --basename AWP_SGT_" + riq.getSiteName());
 			args.append(" --cleanup inplace");
-			sgtDAX.addArgument(args);
+			args.append(" --output-sites summit");
+			sgtDAX.addArgument(args.toString());
 
 			//With Pegasus 5, also need to explicitly add uses for gridout, model_coords, and modelbox files, otherwise AWP subworkflow jobs can't pick up these files for their jobs
 	        File modelboxFile = new File(riq.getSiteName() + ".modelbox");
