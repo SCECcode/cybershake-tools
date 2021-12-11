@@ -150,11 +150,16 @@ public class CyberShake_PP_DAXGen {
     	//PRE workflow
     	String preDAXFilename = cont.getPreWorkflow();
     	DAX preD = new DAX("preDAX", preDAXFilename);
-		preD.addArgument("--force");
-		preD.addArgument("-q");
+		StringBuffer daxArgs = new StringBuffer("");
+		daxArgs.append("--force");
+		daxArgs.append(" -q");
+		//preD.addArgument("--force");
+		//preD.addArgument("-q");
 		if (cont.getParams().getPPSite()!=null) {
-			preD.addArgument("-s " + cont.getParams().getPPSite() + ",shock");
+			//preD.addArgument("-s " + cont.getParams().getPPSite() + ",shock");
+			daxArgs.append(" -s " + cont.getParams().getPPSite() + ",shock");
 		}
+		preD.addArgument(daxArgs.toString());
 		//Add the dax to the top-level dax like a job
 		topLevelDax.addDAX(preD);
 		//Create a file object
@@ -167,20 +172,29 @@ public class CyberShake_PP_DAXGen {
 		for (int i=0; i<subWfs.size(); i++) {
 			String filename = subWfs.get(i);
 			DAX jDax = new DAX("dax_" + i, filename);
+			daxArgs = new StringBuffer("");
 			if (cont.getParams().isMPICluster()) {
-				jDax.addArgument("--cluster label");
+				daxArgs.append("--cluster label");
+				//jDax.addArgument("--cluster label");
 			} else {
-				jDax.addArgument("--cluster horizontal");
+				daxArgs.append("--cluster horizontal");
+				//jDax.addArgument("--cluster horizontal");
 			}
 			//Makes sure it doesn't prune workflow elements
-			jDax.addArgument("--force");
-			jDax.addArgument("-q");
+			daxArgs.append(" --force");
+			daxArgs.append(" -q");
+			//jDax.addArgument("--force");
+			//jDax.addArgument("-q");
 			if (cont.getParams().getPPSite()!=null) {
-				jDax.addArgument("-s " + cont.getParams().getPPSite() + ",shock");
+				//jDax.addArgument("-s " + cont.getParams().getPPSite() + ",shock");
+				daxArgs.append(" -s " + cont.getParams().getPPSite() + ",shock");
 			}
 			//Force stage-out of zip files
-			jDax.addArgument("--output-sites shock");
-			jDax.addArgument("--output-dir " + OUTPUT_DIR + "/" + siteName + "/" + cont.getRIQ().getRunID());
+			//jDax.addArgument("--output-sites shock");
+			//jDax.addArgument("--output-dir " + OUTPUT_DIR + "/" + siteName + "/" + cont.getRIQ().getRunID());
+			daxArgs.append(" --output-sites shock");
+			daxArgs.append(" --output-dir " + OUTPUT_DIR + "/" + siteName + "/" + cont.getRIQ().getRunID());
+			jDax.addArgument(daxArgs.toString());
 			jDax.addProfile("dagman", "category", "subwf");
 			topLevelDax.addDAX(jDax);
 			//Only add a dependency if we're not using the no-blocking MD5 sums
@@ -195,8 +209,12 @@ public class CyberShake_PP_DAXGen {
 		//DB
 		String dbDAXFile = cont.getDBWorkflow();
 		DAX dbDax = new DAX("dbDax", dbDAXFile);
-		dbDax.addArgument("--force");
-		dbDax.addArgument("-q");
+		daxArgs = new StringBuffer("");
+		daxArgs.append("--force");
+		daxArgs.append(" -q");
+		//dbDax.addArgument("--force");
+		//dbDax.addArgument("-q");
+		dbDax.addArgument(daxArgs.toString());
 		topLevelDax.addDAX(dbDax);
 		for (int i=0; i<subWfs.size(); i++) {
 			topLevelDax.addDependency("dax_" + i, "dbDax");
@@ -208,8 +226,12 @@ public class CyberShake_PP_DAXGen {
 		//Post
 		String postDAXFile = cont.getPostWorkflow();
 		DAX postD = new DAX("postDax", postDAXFile);
-		postD.addArgument("--force");
-		postD.addArgument("-q");
+		daxArgs = new StringBuffer("");
+		daxArgs.append("--force");
+		daxArgs.append(" -q");
+		//postD.addArgument("--force");
+		//postD.addArgument("-q");
+		postD.addArgument(daxArgs.toString());
 		topLevelDax.addDAX(postD);
 		if (cont.getParams().getInsert()) {
 			topLevelDax.addDependency(dbDax, postD);
@@ -806,9 +828,9 @@ public class CyberShake_PP_DAXGen {
 		if (riq.getSiteName().equals("TEST")) {
 			NUM_SGT_HANDLERS = 42;
 		}
-		if (riq.getRuptVarScenID()==8) {
-			//Expand to more, since recent tests are yielding 1.2 TB SGTs
-			directSynthJob.addArgument("sgt_handlers=" + 1520);
+		//For Study 21.12
+		if (riq.getRuptVarScenID()==8 && riq.getErfID()==62) {
+			directSynthJob.addArgument("sgt_handlers=" + 420);
 		} else {
 			directSynthJob.addArgument("sgt_handlers=" + NUM_SGT_HANDLERS);
 		}
