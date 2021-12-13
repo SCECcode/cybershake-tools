@@ -468,7 +468,11 @@ public class CyberShake_DB_DAXGen {
 			erfFile = RSQSIM_ERF42_FILE;
 		} else if (riq.getErfID()==48){
 			erfFile = RSQSIM_ERF48_FILE;
-		}
+		} else if (riq.getErfID()==61) {
+            erfFile = RSQSIM_ERF61_FILE;
+        } else if (riq.getErfID()==62) {
+            erfFile = RSQSIM_ERF62_FILE;
+        }
 		job.addArgument("--erf-file " + erfFile);
 		//Comment this out until we update so that we can use Velocity_Model_ID=4 data
 		job.addArgument("--atten-rel-file " + CURVE_ATTEN_REL_XML_FILES);
@@ -534,7 +538,11 @@ public class CyberShake_DB_DAXGen {
 			erfFile = RSQSIM_ERF42_FILE;
 		} else if (riq.getErfID()==48){
 			erfFile = RSQSIM_ERF48_FILE;
-		}
+		} else if (riq.getErfID()==61) {
+            erfFile = RSQSIM_ERF61_FILE;
+        } else if (riq.getErfID()==62) {
+            erfFile = RSQSIM_ERF62_FILE;
+        }
 		job.addArgument("--erf-file " + erfFile);
 		//Comment this out until we update so that we can use Velocity_Model_ID=4 data
 		job.addArgument("--atten-rel-file " + CURVE_ATTEN_REL_XML_FILES);
@@ -600,7 +608,11 @@ public class CyberShake_DB_DAXGen {
 			erfFile = RSQSIM_ERF42_FILE;
 		} else if (riq.getErfID()==48){
 			erfFile = RSQSIM_ERF48_FILE;
-		}
+		} else if (riq.getErfID()==61) {
+            erfFile = RSQSIM_ERF61_FILE;
+        } else if (riq.getErfID()==62) {
+            erfFile = RSQSIM_ERF62_FILE;
+        }
 		job.addArgument("--erf-file " + erfFile);
 		//Comment this out until we update so that we can use Velocity_Model_ID=4 data
 		job.addArgument("--atten-rel-file " + CURVE_ATTEN_REL_XML_FILES);
