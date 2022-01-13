@@ -146,8 +146,13 @@ public class CyberShake_Integrated_DAXGen {
 				bbArgs.add("--server");
 				bbArgs.add(servername);
 				
+				String[] bbArgArray = bbArgs.toArray(new String[]{});
+				System.out.print("BB args: ");
+				for (String a: bbArgArray) {
+					System.out.print(" " + a);
+				}
 				cont.setBBWorkflow(
-						CyberShake_Stochastic_DAXGen.subMain(bbArgs.toArray(new String[]{})));
+						CyberShake_Stochastic_DAXGen.subMain(bbArgArray));
 			}
 
 			//Set up dependencies
