@@ -447,6 +447,9 @@ public class CyberShake_SGT_DAXGen {
 		if (sgt_params.isSmoothing()==false) {
 			genSGTDAXJob.addArgument("-ns");
 		}
+		if (sgt_params.getH_frac()>=0.0) {
+			genSGTDAXJob.addArgument("--h_fraction " + sgt_params.getH_frac());
+		}
 		
 		genSGTDAXJob.uses(gridoutFile, LINK.INPUT);
 		genSGTDAXJob.uses(daxFile, LINK.OUTPUT);
