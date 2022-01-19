@@ -212,7 +212,9 @@ public class CyberShake_SGT_DAXGen {
 		}
 		
 		if (line.hasOption(h_frac.getOpt())) {
-			sgt_params.setH_frac(Double.parseDouble(line.getOptionValue(h_frac.getOpt())));
+			double h_frac_val = Double.parseDouble(line.getOptionValue(h_frac.getOpt()));
+			System.out.println("Updating h_frac to " + h_frac_val);
+			sgt_params.setH_frac(h_frac_val);
 		}
 		
 		sgt_params.setRunIDQueries(runIDQueries);
@@ -527,6 +529,10 @@ public class CyberShake_SGT_DAXGen {
 
 		if (sgt_params.isBoundingBox()) {
 			preCVMJob.addArgument("--bounding-box ");
+		}
+		
+		if (sgt_params.getDepth()>0.0) {
+			preCVMJob.addArgument("--depth " + sgt_params.getDepth());
 		}
 		
 		preCVMJob.uses(modelboxFile, File.LINK.OUTPUT);
