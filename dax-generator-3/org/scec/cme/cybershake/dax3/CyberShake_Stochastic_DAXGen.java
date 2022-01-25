@@ -300,12 +300,15 @@ public class CyberShake_Stochastic_DAXGen {
 		topDAX.addDependency(velocityJob, genStochDAX);
 		
 		DAX stochDAX = new DAX("Sub_Stoch_" + riq.getSiteName(), genStochDaxFile.getName());
-		stochDAX.addArgument("--cluster label");
-		stochDAX.addArgument("--force");
-		stochDAX.addArgument("--q");
-		stochDAX.addArgument("--output-sites shock");
-
-		stochDAX.addArgument("--basename Sub_Stoch_" + riq.getSiteName());
+		StringBuffer args = new StringBuffer("");
+		args.append("--cluster label");
+		args.append(" --force");
+		args.append(" --q");
+		args.append(" --output-sites shock");
+		args.append(" --basename Sub_Stoch_" + riq.getSiteName());
+		stochDAX.addArgument(args.toString());
+		stochDAX.uses(genStochDaxFile, File.LINK.INPUT);
+		
 		topDAX.addDAX(stochDAX);
 		topDAX.addDependency(genStochDAX, stochDAX);
 		
@@ -315,8 +318,10 @@ public class CyberShake_Stochastic_DAXGen {
 		dbADAG.writeToFile(dbDAXFilename);
 				
 		DAX dbDAX = new DAX("dbDax", dbDAXFilename);
-		dbDAX.addArgument("--force");
-		dbDAX.addArgument("--q");
+		args = new StringBuffer("");
+		args.append("--force");
+		args.append(" --q");
+		dbDAX.addArgument(args.toString());
 		//Track the velocity file so it gets staged
 		File velocityFile = new File(sParams.getVelocityInfoFile());
 		velocityFile.setRegister(false);
@@ -328,6 +333,7 @@ public class CyberShake_Stochastic_DAXGen {
 		topDAX.addDAX(dbDAX);
 		topDAX.addFile(dbDAXFile);
 		topDAX.addDependency(stochDAX, dbDAX);
+		topDAX.addDependency(genStochDAX, dbDAX);
 		topDAX.addDependency(dbDAX, updateJob);
 		topDAX.addDependency(velocityJob, dbDAX);
 	    
