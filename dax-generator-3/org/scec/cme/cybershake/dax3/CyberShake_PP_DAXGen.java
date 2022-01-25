@@ -831,6 +831,9 @@ public class CyberShake_PP_DAXGen {
 		//For Study 21.12
 		if (riq.getRuptVarScenID()==8 && riq.getErfID()==62) {
 			directSynthJob.addArgument("sgt_handlers=" + 420);
+		//For BBP validation
+		} else if (riq.getRuptVarScenID()==8 && riq.getErfID()==60) {
+			directSynthJob.addArgument("sgt_handlers=" + 324);
 		} else {
 			directSynthJob.addArgument("sgt_handlers=" + NUM_SGT_HANDLERS);
 		}
