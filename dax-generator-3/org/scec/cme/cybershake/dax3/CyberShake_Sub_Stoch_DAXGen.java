@@ -310,7 +310,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 				      	    System.err.println("No seeds found for source " + sourceID + ", rupture " + ruptureID + "rup var " + i + ".");
 				      	    System.exit(1);
 				      	}
-						int srf_seed = rs.getInt(0);
+						int srf_seed = rs.getInt("Rup_Var_Seed");
 						job.addArgument("srf_seed=" + srf_seed);
 					} catch (SQLException e) {
 						e.printStackTrace();
@@ -728,9 +728,6 @@ public class CyberShake_Sub_Stoch_DAXGen {
 				
 				//Handle dependences in the method, because we might be using multiple tasks per rupture
 				Job[] hfSynthJobs = createHFSynthJob(sourceID, ruptureID, numRupVars, numPoints, numRows, numCols, localVMFilename, localVMJob, dirsJob, dax, vsArray);
-				for (Job j: hfSynthJobs) {
-					dax.addJob(j);
-				}
 				
 				Job mergeIMJob = createMergeIMJob(sourceID, ruptureID, numRupVars, numPoints);
 				dax.addJob(mergeIMJob);
