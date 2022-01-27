@@ -758,7 +758,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 			bw.close();
 			
 			edu.isi.pegasus.planner.dax.File dirsPegasusFile = new File(dirsInputFilename);
-			dirsPegasusFile.addPhysicalFile("file://" + fullPath);
+			dirsPegasusFile.addPhysicalFile("file://" + fullPath, "local");
 			dax.addFile(dirsPegasusFile);
 		} catch (SQLException se) {
 			se.printStackTrace();
