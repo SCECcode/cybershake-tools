@@ -310,7 +310,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 				      	    System.err.println("No seeds found for source " + sourceID + ", rupture " + ruptureID + "rup var " + i + ".");
 				      	    System.exit(1);
 				      	}
-						int srf_seed = rs.getInt(0);
+						int srf_seed = rs.getInt("Rup_Var_Seed");
 						job.addArgument("srf_seed=" + srf_seed);
 					} catch (SQLException e) {
 						e.printStackTrace();
