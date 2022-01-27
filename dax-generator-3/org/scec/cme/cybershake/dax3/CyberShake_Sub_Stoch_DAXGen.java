@@ -261,6 +261,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 			if (numTasks>1) {
 				id += "_t" + i;
 			}
+			System.out.println("Creating job " + id);
 			Job job = new Job(id, NAMESPACE, HF_SYNTH_NAME, "3.0");
 			
 			job.addArgument("stat=" + riq.getSiteName());
@@ -300,8 +301,20 @@ public class CyberShake_Sub_Stoch_DAXGen {
 				//Eventually, it should either be moved to a file or the DB.
 				if (riq.getErfID()==60) {
 					//Northridge
-					if (sourceID==0 && ruptureID==0) {
-						job.addArgument("srf_seed=2379646");
+					DBConnect dbc = new DBConnect(DB_SERVER, DB, USER, PASS);
+					String query = "select Rup_Var_Seed from Rup_Var_Seeds where ERF_ID=" + riq.getErfID() + " and Rup_Var_Scenario_ID=" + riq.getRuptVarScenID() + " and Source_ID=" + sourceID + " and Rupture_ID=" + ruptureID + " and Rup_Var_ID=" + i;
+					ResultSet rs = dbc.selectData(query);
+					try {
+						rs.first();
+					 	if (rs.getRow()==0) {
+				      	    System.err.println("No seeds found for source " + sourceID + ", rupture " + ruptureID + "rup var " + i + ".");
+				      	    System.exit(1);
+				      	}
+						int srf_seed = rs.getInt(0);
+						job.addArgument("srf_seed=" + srf_seed);
+					} catch (SQLException e) {
+						e.printStackTrace();
+						System.exit(2);
 					}
 				}
 				
