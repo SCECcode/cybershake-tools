@@ -240,11 +240,14 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		int numTasks = 1;
 		int numRupVarsPerTask = -1;
 		
+		DBConnect dbc = null;
 		//Figure out how many tasks we need
 		//Number of total rupture variation points per task to aim for
 		if (riq.getRuptVarScenID()==8) {
 			//We're using SRF files, so 1 task per rupture variation
 			numTasks = numRupVars;
+			//Create a dbc connection; we'll need it later
+			dbc = new DBConnect(DB_SERVER, DB, USER, PASS);
 		} else {
 			double POINTS_PER_TASK = 1000000.0;
 			numRupVarsPerTask = (int)Math.ceil(POINTS_PER_TASK/((double)numPoints));
@@ -284,8 +287,25 @@ public class CyberShake_Sub_Stoch_DAXGen {
 			
 			//The rupture variations are handled differently, depending on if we're passing SRFs in
 			if (riq.getRuptVarScenID()==8) {
-				
-				File srfFilename = new File("e" + riq.getErfID() +"_rv" + riq.getRuptVarScenID() + "_" + sourceID + "_" + ruptureID + "_" + i + ".srf");
+				//Get SRF filename from database
+				String query = "select Rup_Var_LFN " + 
+						"from Rupture_Variations " + 
+						"where Rup_Var_Scenario_ID=" + riq.getRuptVarScenID() + " and ERF_ID=" + riq.getErfID() + " " + 
+						"and Source_ID=" + sourceID + " and Rupture_ID=" + ruptureID + " and Rup_Var_ID=0";
+				ResultSet rs = dbc.selectData(query);
+				String rupVarLFN = null;
+				try {
+					rs.first();
+				 	if (rs.getRow()==0) {
+			      	    System.err.println("No Rup_Var_LFN found for query '" + query + "'.");
+			      	    System.exit(1);
+			      	}
+					rupVarLFN = rs.getString("Rup_Var_LFN");
+				} catch (SQLException e) {
+					e.printStackTrace();
+					System.exit(2);
+				}
+				File srfFilename = new File(rupVarLFN);
 				srfFilename.setRegister(false);
 				srfFilename.setTransfer(TRANSFER.TRUE);
 				
@@ -300,10 +320,8 @@ public class CyberShake_Sub_Stoch_DAXGen {
 				//the suites of validations events we'll be running, leave it here.
 				//Eventually, it should either be moved to a file or the DB.
 				if (riq.getErfID()==60) {
-					//Northridge
-					DBConnect dbc = new DBConnect(DB_SERVER, DB, USER, PASS);
-					String query = "select Rup_Var_Seed from Rup_Var_Seeds where ERF_ID=" + riq.getErfID() + " and Rup_Var_Scenario_ID=" + riq.getRuptVarScenID() + " and Source_ID=" + sourceID + " and Rupture_ID=" + ruptureID + " and Rup_Var_ID=" + i;
-					ResultSet rs = dbc.selectData(query);
+					query = "select Rup_Var_Seed from Rup_Var_Seeds where ERF_ID=" + riq.getErfID() + " and Rup_Var_Scenario_ID=" + riq.getRuptVarScenID() + " and Source_ID=" + sourceID + " and Rupture_ID=" + ruptureID + " and Rup_Var_ID=" + i;
+					rs = dbc.selectData(query);
 					try {
 						rs.first();
 					 	if (rs.getRow()==0) {
