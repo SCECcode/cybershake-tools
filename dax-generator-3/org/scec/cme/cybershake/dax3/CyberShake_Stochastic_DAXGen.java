@@ -71,6 +71,8 @@ public class CyberShake_Stochastic_DAXGen {
     
 	public CyberShake_Stochastic_DAXGen(RunIDQuery rq) {
 		riq = rq;
+		sParams.setMergeFrequency(riq.getLowFrequencyCutoff());
+		sParams.setStochFrequency(riq.getMax_frequency());
 	}
 
 	
@@ -142,13 +144,18 @@ public class CyberShake_Stochastic_DAXGen {
 //        	return -3;
 //        }
         
-        if (line.hasOption(mergeFrequency.getOpt())) {
-        	sParams.setMergeFrequency(Double.parseDouble(line.getOptionValue(mergeFrequency.getOpt())));
-        }
-        
-        if (line.hasOption(stochFrequency.getOpt())) {
-        	sParams.setStochFrequency(Double.parseDouble(line.getOptionValue(stochFrequency.getOpt())));
-        }
+    	/*We don't process these args and instead get this info from the DB
+    	 However, we need to leave them in the parser because -mf and -sf are specified at
+    	 workflow creation time, so that the create script can populate the DB
+    	 with the correct information and check for the right Run ID to use. 
+    	*/
+//        if (line.hasOption(mergeFrequency.getOpt())) {
+//        	sParams.setMergeFrequency(Double.parseDouble(line.getOptionValue(mergeFrequency.getOpt())));
+//        }
+//        
+//        if (line.hasOption(stochFrequency.getOpt())) {
+//        	sParams.setStochFrequency(Double.parseDouble(line.getOptionValue(stochFrequency.getOpt())));
+//        }
         
         if (line.hasOption(noRotd.getOpt())) {
         	sParams.setRunRotd(false);
@@ -224,9 +231,7 @@ public class CyberShake_Stochastic_DAXGen {
 		File velocityFile = new File("velocity_info_" + riq.getSiteName() + ".txt");
 		
 		genStochDAXJob.addArgument("-r " + riq.getRunID());
-		genStochDAXJob.addArgument("-mf " + sParams.getMergeFrequencyString());
 		genStochDAXJob.addArgument("-lr " + sParams.getLfRunID());
-		genStochDAXJob.addArgument("-sf " + sParams.getStochFrequency());
 		genStochDAXJob.addArgument("--server " + DB_SERVER);
 		if (!sParams.isRunRotd()) {
 			genStochDAXJob.addArgument("-nr");

@@ -71,8 +71,11 @@ public class CyberShake_Sub_Stoch_DAXGen {
 			//@1 Hz we use seismograms which are 500s in length
 			sParams.setTlen(500.0);
 		}
+		sParams.setStochFrequency(riq.getMax_frequency());
+		sParams.setMergeFrequency(riq.getLowFrequencyCutoff());
 		//Determine dt
-		DT = 0.5/riq.getMax_frequency();
+		//DT = 0.5/riq.getMax_frequency();
+		DT = 0.5/sParams.getStochFrequency();
 	}
     
 	public static void main(String[] args) {
@@ -82,8 +85,6 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		Option help = new Option("h", "help", false, "Print help for CyberShake_HF_DAXGen");
 		Option runID = OptionBuilder.withArgName("run_id").hasArg().withDescription("Stochastic simulation run ID").create("r");
 		Option lfRunID = OptionBuilder.withArgName("lf_run_id").hasArg().withDescription("Low-frequency simulation run ID").create("lr");
-		Option mergeFrequency = OptionBuilder.withArgName("merge_frequency").hasArg().withDescription("Frequency at which to merge the LF and HF seismograms.").create("mf");
-		Option stochFrequency = OptionBuilder.withArgName("stoch_frequency").hasArg().withDescription("Maximum frequency in Hz of stochastic calculations.  Defaults to 10 Hz.").create("sf");
 		Option noRotd = new Option("nr", "no-rotd", false, "Omit RotD calculations.");
 		Option noSiteResponse = new Option("nsr", "no-site-response", false, "Omit site response calculation.");
 		Option noLFSiteResponse = new Option("nls", "no-low-site-response", false, "Omit site response calculation for low-frequency seismograms.");
@@ -96,8 +97,6 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		cmd_opts.addOption(help);
 		cmd_opts.addOption(runID);
 		cmd_opts.addOption(lfRunID);
-		cmd_opts.addOption(mergeFrequency);
-		cmd_opts.addOption(stochFrequency);
 		cmd_opts.addOption(noRotd);
 		cmd_opts.addOption(noSiteResponse);
 		cmd_opts.addOption(noLFSiteResponse);
@@ -165,15 +164,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
         	System.exit(-2);
         }
         String daxFilename = line.getOptionValue(outputDAX.getOpt());
-        
-        if (line.hasOption(mergeFrequency.getOpt())) {
-        	sParams.setMergeFrequency(Double.parseDouble(line.getOptionValue(mergeFrequency.getOpt())));
-        }
-        
-        if (line.hasOption(stochFrequency.getOpt())) {
-        	sParams.setStochFrequency(Double.parseDouble(line.getOptionValue(stochFrequency.getOpt())));
-        }
-        
+               
         if (line.hasOption(noRotd.getOpt())) {
         	sParams.setRunRotd(false);
         }
