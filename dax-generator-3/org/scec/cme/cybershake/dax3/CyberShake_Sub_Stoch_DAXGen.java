@@ -97,6 +97,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		cmd_opts.addOption(runID);
 		cmd_opts.addOption(lfRunID);
 		cmd_opts.addOption(mergeFrequency);
+		cmd_opts.addOption(stochFrequency);
 		cmd_opts.addOption(noRotd);
 		cmd_opts.addOption(noSiteResponse);
 		cmd_opts.addOption(noLFSiteResponse);
