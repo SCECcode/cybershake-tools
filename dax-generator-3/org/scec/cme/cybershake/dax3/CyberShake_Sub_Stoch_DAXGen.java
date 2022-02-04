@@ -170,7 +170,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
         }
         
         if (line.hasOption(stochFrequency.getOpt())) {
-        	sParams.setMergeFrequency(Double.parseDouble(line.getOptionValue(stochFrequency.getOpt())));
+        	sParams.setStochFrequency(Double.parseDouble(line.getOptionValue(stochFrequency.getOpt())));
         }
         
         if (line.hasOption(noRotd.getOpt())) {
