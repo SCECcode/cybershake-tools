@@ -83,6 +83,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		Option runID = OptionBuilder.withArgName("run_id").hasArg().withDescription("Stochastic simulation run ID").create("r");
 		Option lfRunID = OptionBuilder.withArgName("lf_run_id").hasArg().withDescription("Low-frequency simulation run ID").create("lr");
 		Option mergeFrequency = OptionBuilder.withArgName("merge_frequency").hasArg().withDescription("Frequency at which to merge the LF and HF seismograms.").create("mf");
+		Option stochFrequency = OptionBuilder.withArgName("stoch_frequency").hasArg().withDescription("Maximum frequency in Hz of stochastic calculations.  Defaults to 10 Hz.").create("sf");
 		Option noRotd = new Option("nr", "no-rotd", false, "Omit RotD calculations.");
 		Option noSiteResponse = new Option("nsr", "no-site-response", false, "Omit site response calculation.");
 		Option noLFSiteResponse = new Option("nls", "no-low-site-response", false, "Omit site response calculation for low-frequency seismograms.");
@@ -166,6 +167,10 @@ public class CyberShake_Sub_Stoch_DAXGen {
         
         if (line.hasOption(mergeFrequency.getOpt())) {
         	sParams.setMergeFrequency(Double.parseDouble(line.getOptionValue(mergeFrequency.getOpt())));
+        }
+        
+        if (line.hasOption(stochFrequency.getOpt())) {
+        	sParams.setMergeFrequency(Double.parseDouble(line.getOptionValue(stochFrequency.getOpt())));
         }
         
         if (line.hasOption(noRotd.getOpt())) {

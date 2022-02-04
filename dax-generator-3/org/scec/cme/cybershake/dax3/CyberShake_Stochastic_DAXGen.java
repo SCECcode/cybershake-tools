@@ -226,6 +226,7 @@ public class CyberShake_Stochastic_DAXGen {
 		genStochDAXJob.addArgument("-r " + riq.getRunID());
 		genStochDAXJob.addArgument("-mf " + sParams.getMergeFrequencyString());
 		genStochDAXJob.addArgument("-lr " + sParams.getLfRunID());
+		genStochDAXJob.addArgument("-sf " + sParams.getStochFrequency());
 		genStochDAXJob.addArgument("--server " + DB_SERVER);
 		if (!sParams.isRunRotd()) {
 			genStochDAXJob.addArgument("-nr");
