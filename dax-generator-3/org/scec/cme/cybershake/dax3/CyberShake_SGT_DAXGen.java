@@ -104,7 +104,8 @@ public class CyberShake_SGT_DAXGen {
         		"Default is to only require those two points to be inside the volume.");
         Option depth = OptionBuilder.withArgName("depth").hasArg().withDescription("Depth of simulation volume.  Defaults to 50 km, rounded up to an even number of grid points").create("dep");
         Option h_frac = OptionBuilder.withArgName("h_fraction").withLongOpt("h_fraction").hasArg().withDescription("Depth, in fractions of a grid point, to query UCVM at when populating the surface points.").create("hf");
-              
+        Option rotation = OptionBuilder.withArgName("rotation").withLongOpt("rotation").hasArg().withDescription("Rotation angle of simulation volume, in degrees.  Defaults to -55.").create("rt");
+        
         cmd_opts.addOption(help);
         cmd_opts.addOptionGroup(runIDGroup);
         cmd_opts.addOption(splitVelocityJobs);
@@ -119,6 +120,7 @@ public class CyberShake_SGT_DAXGen {
         cmd_opts.addOption(boundingBox);
         cmd_opts.addOption(depth);
         cmd_opts.addOption(h_frac);
+        cmd_opts.addOption(rotation);
         
         String usageString = "CyberShake_SGT_DAXGen <output filename> <destination directory> [options] [-f <runID file, one per line> | -r <runID1> <runID2> ... ]";
         CommandLineParser parser = new GnuParser();
@@ -215,6 +217,11 @@ public class CyberShake_SGT_DAXGen {
 			double h_frac_val = Double.parseDouble(line.getOptionValue(h_frac.getOpt()));
 			System.out.println("Updating h_frac to " + h_frac_val);
 			sgt_params.setH_frac(h_frac_val);
+		}
+		
+		if (line.hasOption(rotation.getOpt())) {
+			double rot_val = Double.parseDouble(line.getOptionValue(rotation.getOpt()));
+			sgt_params.setRotation(rot_val);
 		}
 		
 		sgt_params.setRunIDQueries(runIDQueries);
@@ -520,6 +527,7 @@ public class CyberShake_SGT_DAXGen {
 		preCVMJob.addArgument("--paramsfile " + paramFile.getName());
 		preCVMJob.addArgument("--boundsfile " + boundsFile.getName());
 		preCVMJob.addArgument("--frequency " + riq.getLowFrequencyCutoffString());
+
 		if (riq.getSgtString().contains("gpu")) {
 			preCVMJob.addArgument("--gpu");
 		}
@@ -537,6 +545,8 @@ public class CyberShake_SGT_DAXGen {
 		if (sgt_params.getDepth()>0.0) {
 			preCVMJob.addArgument("--depth " + sgt_params.getDepth());
 		}
+		
+		preCVMJob.addArgument("--rotation " + sgt_params.getRotation());
 		
 		preCVMJob.uses(modelboxFile, File.LINK.OUTPUT);
 		preCVMJob.uses(gridfileFile, File.LINK.OUTPUT);
