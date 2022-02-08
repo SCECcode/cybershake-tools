@@ -5,11 +5,15 @@
 #DB_HOST = "focal.usc.edu"
 DB_HOST = "moment.usc.edu"
 DB_PORT = 3306
-DB_USER_WR = "cybershk"
-DB_PASS_WR = "re@lStil1"
 DB_USER = "cybershk_ro"
 DB_PASS = "CyberShake2007"
 DB_NAME = "CyberShake"
+DB_WR_FILE = "/home/shock/scottcal/runs/config/db_pass.txt"
+with open(DB_WR_FILE, "r") as fp_in:
+    pieces = fp_in.readline().split(":")
+    DB_USER_WR = pieces[0]
+    DB_PASS_WR = pieces[1]
+    fp_in.close() 
 
 # Valid computing resources
 HOST_LIST = ["unknown", "hpc", "mercury", "abe", "ranger", "kraken", \
