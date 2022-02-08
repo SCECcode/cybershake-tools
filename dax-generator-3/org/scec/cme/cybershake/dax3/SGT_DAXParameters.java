@@ -24,6 +24,8 @@ public class SGT_DAXParameters {
 	private double depth = -1.0;
 	//Change default to h/4
 	private double h_frac = 0.25;
+	//Default rotation of -55 degrees
+	private double rotation = -55.0;
 	
 	public SGT_DAXParameters(String filename) {
 		this.daxFilename = filename;
@@ -144,6 +146,14 @@ public class SGT_DAXParameters {
 
 	public void setH_frac(double h_frac) {
 		this.h_frac = h_frac;
+	}
+
+	public double getRotation() {
+		return rotation;
+	}
+
+	public void setRotation(double rotation) {
+		this.rotation = rotation;
 	}
 	
 	
