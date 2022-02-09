@@ -92,6 +92,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		Option velocityFile = OptionBuilder.withArgName("vs30").hasArg().withDescription("Velocity file with Vs0, Vs30, VsD.").create("v");
 		Option outputDAX = OptionBuilder.withArgName("output").hasArg().withDescription("output DAX filename").create("o");
 		Option server = OptionBuilder.withArgName("server").withLongOpt("server").hasArg().withDescription("Server to use for site parameters and to insert PSA values into").create("sr");
+		Option mergeFrequency = OptionBuilder.withArgName("merge_frequency").withLongOpt("merge_frequency").hasArg().withDescription("(Deprecated) merge frequency.  This is now taken from the DB.").create("mf");
 		Option debug = new Option("d", "debug", false, "Debug flag.");
 		
 		cmd_opts.addOption(help);
@@ -104,6 +105,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		cmd_opts.addOption(velocityFile);
 		cmd_opts.addOption(outputDAX);
 		cmd_opts.addOption(server);
+		cmd_opts.addOption(mergeFrequency);
 		cmd_opts.addOption(debug);
 		
 		CommandLineParser parser = new GnuParser();
