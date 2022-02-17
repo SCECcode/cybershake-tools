@@ -513,9 +513,9 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		//Round vref to nearest 0.1
 		vref = ((double)((int)(vref*10.0)))/10.0;
 		//If we're running a validation event, use vref=500.0
-		if (riq.getErfID()==60) {
-			vref = 500.0;
-		}
+//		if (riq.getErfID()==60) {
+//			vref = 500.0;
+//		}
 		job.addArgument("vref=" + vref);
 		job.addArgument("vpga=" + sParams.getVpga());
 		
