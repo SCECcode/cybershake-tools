@@ -91,6 +91,7 @@ public class CyberShake_Stochastic_DAXGen {
 		Option force_vs30 = OptionBuilder.withArgName("fvs30").hasArg().withDescription("Force Vs30 value for site response.").withLongOpt("force_vs30").create("fvs");
         Option debug = new Option("d", "debug", false, "Debug flag.");
 		Option server = OptionBuilder.withArgName("server").withLongOpt("server").hasArg().withDescription("Server to use for site parameters and to insert PSA values into").create("sr");
+        Option h_frac = OptionBuilder.withArgName("h_fraction").withLongOpt("h_fraction").hasArg().withDescription("Depth, in fractions of a grid point, to query UCVM at when populating the surface points.").create("hf");
 		
 		cmd_opts.addOption(help);
 		cmd_opts.addOption(mergeFrequency);
@@ -103,6 +104,7 @@ public class CyberShake_Stochastic_DAXGen {
 		cmd_opts.addOption(force_vs30);
 		cmd_opts.addOption(debug);
 		cmd_opts.addOption(server);
+		cmd_opts.addOption(h_frac);
 		
 		CommandLineParser parser = new GnuParser();
         if (args.length<=1) {
@@ -181,6 +183,10 @@ public class CyberShake_Stochastic_DAXGen {
         	sParams.setDebug(true);
         }
 
+        if (line.hasOption(h_frac.getOpt())) {
+        	sParams.setH_frac(Double.parseDouble(line.getOptionValue(h_frac.getOpt())));
+        }
+        
     	//Put this at the end so we can pick up a different server, if needed
     	
     	sParams.setLfRunID(lfRunID, DB_SERVER);
@@ -210,7 +216,8 @@ public class CyberShake_Stochastic_DAXGen {
     	velocityJob.addArgument(riq.getVelModelString());
     	int gridSpacing = (int)(100.0/riq.getLowFrequencyCutoff());
     	velocityJob.addArgument(gridSpacing + "");
-    	
+    	double surfaceDepth = gridSpacing*sParams.getH_frac();
+    	velocityJob.addArgument(surfaceDepth + "");
     	File velocityInfoFile = new File("velocity_info_" + riq.getSiteName() + ".txt");
     	sParams.setVelocityInfoFile(velocityInfoFile.getName());
     	velocityInfoFile.setRegister(false);

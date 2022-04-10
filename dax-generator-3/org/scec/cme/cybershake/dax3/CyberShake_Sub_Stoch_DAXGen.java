@@ -406,11 +406,12 @@ public class CyberShake_Sub_Stoch_DAXGen {
 			job.addProfile("pegasus", "pmc_priority", "" + numPoints);
 	
 			//Memory usage is the size of the SRF, the size of the output, and the size of some mysterious arrays in srf2stoch.
+			//Everything is tracked in MB.
 			//double srfMem = 14.8 * Math.log10(numPoints) * Math.pow(numPoints, 1.14) / (1024.0*1024.0);
 			double single_rv_size = (6.491*Math.pow(numPoints, 1.314)*1.1)/(1024.0*1024.0);
 			//Cap at 120 MB
-			if (single_rv_size > 120*1024*1024) {
-				single_rv_size = 120*1024*1024;
+			if (single_rv_size > 120) {
+				single_rv_size = 120;
 			}	
 			//tmp SRF data is sizeof(complex)*(nstk*ndip*13.8+32.7*max(nstk, ndip)*max(nstk, ndip)
 			int nstk = numCols;
@@ -663,10 +664,12 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		}
 		
 		job.addProfile("pegasus", "label", "pmc");
-		//Must read in both rupture files at once
-		double lfMem = numRupVars * 2.0 * nt;
-		double hfMem = numRupVars * 2.0 * nt;
-		double totMem = (int)Math.ceil(1.1*(lfMem + hfMem)/(1024.0*1024.0));
+		//Must read in both rupture files at once, merged seismogram, plus array in RotD code
+		double lfMem = numRupVars * 2.0 * nt * 4;
+		double hfMem = numRupVars * 2.0 * nt * 4;
+		double mergeMem = numRupVars * 2.0 * nt * 4;
+		double rotdMem = 4*2000000.0;
+		double totMem = (int)Math.ceil(1.1*(lfMem + hfMem + rotdMem)/(1024.0*1024.0));
 		job.addProfile("pegasus", "pmc_request_memory", "" + totMem);
 		
 		return job;

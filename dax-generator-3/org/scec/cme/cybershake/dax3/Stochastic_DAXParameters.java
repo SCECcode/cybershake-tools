@@ -17,6 +17,8 @@ public class Stochastic_DAXParameters {
 	//Set to 500 m/s for now
 	private double vref = 500.0;
 	private double vpga = vref;
+	//Change default to h/4
+	private double h_frac = 0.25;
 	
 	public double getStochFrequency() {
 		return stochFrequency;
@@ -107,5 +109,11 @@ public class Stochastic_DAXParameters {
 	}
 	public void setVpga(double vpga) {
 		this.vpga = vpga;
+	}
+	public double getH_frac() {
+		return h_frac;
+	}
+	public void setH_frac(double h_frac) {
+		this.h_frac = h_frac;
 	}
 }
