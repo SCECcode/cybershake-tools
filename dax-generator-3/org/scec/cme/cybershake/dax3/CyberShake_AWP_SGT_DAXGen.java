@@ -243,6 +243,9 @@ public class CyberShake_AWP_SGT_DAXGen {
 		sgtDAX.addDependency(nanCheckX, updateEnd);
 		sgtDAX.addDependency(nanCheckY, updateEnd);
 		
+		//Add dependency on VelocityParams, since otherwise update can run even though velocityParams fails
+		sgtDAX.addDependency(velocityParams, updateEnd);
+		
 		if (handoffJob==true) {
 			Job handoff = addHandoff();
 			sgtDAX.addJob(handoff);
@@ -256,6 +259,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 			}
 			sgtDAX.addDependency(handoff, updateEnd);
 		}
+
 		
 		sgtDAX.writeToFile(outputDAXFilename);
 		
