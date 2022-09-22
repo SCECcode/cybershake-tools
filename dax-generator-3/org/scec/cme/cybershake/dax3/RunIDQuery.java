@@ -11,6 +11,7 @@ import java.sql.Statement;
 
 import org.opensha.commons.data.siteData.impl.ThompsonVs30_2020;
 import org.opensha.commons.data.siteData.impl.WillsMap2006;
+import org.opensha.commons.data.siteData.impl.WaldAllenGlobalVs30;
 import org.opensha.commons.geo.Location;
 
 public class RunIDQuery {
@@ -33,7 +34,7 @@ public class RunIDQuery {
 	private int numComponents = 2;
 	private double sourceFrequency;
 	private String host;
-	private enum Vs30_Source { Wills2006, Thompson2020 };
+	private enum Vs30_Source { Wills2006, Thompson2020, WaldAllenTopoSlope };
 	private Vs30_Source vs30Source = Vs30_Source.Thompson2020;
 	
 	private DBConnect dbc;
@@ -136,6 +137,18 @@ public class RunIDQuery {
 				ex.printStackTrace();
 				System.exit(2);
 			}
+			//If not in Thompson (2020), default to topo slope
+			if (Double.isNaN(vs30)) {
+				try {
+					WaldAllenGlobalVs30 waldallen = new WaldAllenGlobalVs30();
+					Location loc = new Location(lat, lon);
+	                vs30 = waldallen.getValue(loc);
+					vs30Source=Vs30_Source.WaldAllenTopoSlope;
+				} catch (IOException ex) {
+                	ex.printStackTrace();
+                	System.exit(2);
+            	}
+			}			
 		} else {
 			System.err.println("Unsure where to get Vs30 value from, aborting.");
 			System.exit(1);
@@ -379,7 +392,7 @@ public class RunIDQuery {
 		//write to DB
 		String pass = null;
 		try {
-			BufferedReader br = new BufferedReader(new FileReader("/home/scec-02/cybershk/runs/focal.txt"));
+			BufferedReader br = new BufferedReader(new FileReader(passFile));
 			pass = br.readLine().trim();
 			br.close();
 		} catch (IOException ex) {
