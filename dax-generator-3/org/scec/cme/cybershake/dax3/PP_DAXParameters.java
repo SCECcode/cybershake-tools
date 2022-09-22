@@ -63,6 +63,9 @@ public class PP_DAXParameters {
 	//Length of seismogram in seconds
 	private double seisLength = 500.0;
 	
+	//Use rvfrac value from database
+	private boolean useDBrvfracSeed = false;
+	
 	public PP_DAXParameters() {
 		numOfDAXes = 1;
 		notifyGroupSize = 1;
@@ -385,5 +388,13 @@ public class PP_DAXParameters {
 	
 	public boolean isCalculateDurations() {
 		return this.calculateDurations;
+	}
+
+	public boolean isUseDBrvfracSeed() {
+		return useDBrvfracSeed;
+	}
+
+	public void setUseDBrvfracSeed(boolean useDBrvfrac) {
+		this.useDBrvfracSeed = useDBrvfrac;
 	}
 }

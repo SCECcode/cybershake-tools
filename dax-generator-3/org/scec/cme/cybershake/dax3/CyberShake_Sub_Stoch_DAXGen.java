@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.HashSet;
 
 import org.apache.commons.cli.CommandLine;
@@ -93,6 +94,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		Option outputDAX = OptionBuilder.withArgName("output").hasArg().withDescription("output DAX filename").create("o");
 		Option server = OptionBuilder.withArgName("server").withLongOpt("server").hasArg().withDescription("Server to use for site parameters and to insert PSA values into").create("sr");
 		Option mergeFrequency = OptionBuilder.withArgName("merge_frequency").withLongOpt("merge_frequency").hasArg().withDescription("(Deprecated) merge frequency.  This is now taken from the DB.").create("mf");
+        Option db_rvfrac_seed = new Option("dbrs", "db-rv-seed", false, "Use rvfrac value and seed from the database, if provided.");
 		Option debug = new Option("d", "debug", false, "Debug flag.");
 		
 		cmd_opts.addOption(help);
@@ -106,6 +108,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		cmd_opts.addOption(outputDAX);
 		cmd_opts.addOption(server);
 		cmd_opts.addOption(mergeFrequency);
+		cmd_opts.addOption(db_rvfrac_seed);
 		cmd_opts.addOption(debug);
 		
 		CommandLineParser parser = new GnuParser();
@@ -187,6 +190,10 @@ public class CyberShake_Sub_Stoch_DAXGen {
         	sParams.setDebug(true);
         }
         
+        if (line.hasOption(db_rvfrac_seed.getOpt())) {
+        	sParams.setUseDBrvfracSeed(true);
+        }
+        
         sParams.setDirectory(".");
         CyberShake_Sub_Stoch_DAXGen ssd = new CyberShake_Sub_Stoch_DAXGen(run_id, sParams);
         ADAG stochADAG = new ADAG(daxFilename);
@@ -258,6 +265,11 @@ public class CyberShake_Sub_Stoch_DAXGen {
 			combinePGAJob = new Job("Combine_PGA_" + sourceID + "_" + ruptureID, NAMESPACE, COMBINE_NAME, "1.0");
 		}
 
+		HashMap<String, String> rvSeedMap = null;
+		if (sParams.isUseDBrvfracSeed()) {
+			rvSeedMap = populateRvfracSeedInfo();
+		}
+		
 		for (int i=0; i<numTasks; i++) {
 			String id = "HF_Synth_" + sourceID + "_" + ruptureID;
 			if (numTasks>1) {
@@ -272,6 +284,10 @@ public class CyberShake_Sub_Stoch_DAXGen {
 	
 			job.addArgument("source_id=" + sourceID);
 			job.addArgument("rupture_id=" + ruptureID);
+			
+			if (sParams.isUseDBrvfracSeed()) {
+				job.addArgument("rvfrac_seed_given=1");
+			}
 			
 			File seisFile = new File(dirPrefix + java.io.File.separator + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() +
 					"_" + sourceID + "_" + ruptureID + "_hf" + SEISMOGRAM_FILENAME_EXTENSION);
@@ -352,12 +368,33 @@ public class CyberShake_Sub_Stoch_DAXGen {
 				if (numTasks>1) {
 					//Construct rupture variation string
 					StringBuffer rup_var_string = new StringBuffer("");
-					for (int j=startingRupVar; j<endingRupVar; j++) {
-						rup_var_string.append("(" + j + "," + j + "," + 0 + ")");
-						if (j<endingRupVar-1) {
-							rup_var_string.append(";");
+					//If we're including rvfrac and seed
+					if (sParams.isUseDBrvfracSeed()==true) {
+						String key, value;
+						double rvfrac;
+						int seed;
+						for (int j=startingRupVar; j<endingRupVar; j++) {
+							key = sourceID + "_" + ruptureID + "_" + j;
+							value = rvSeedMap.get(key);
+							rvfrac = Double.parseDouble(value.split("_")[0]);
+							seed = Integer.parseInt(value.split("_")[1]);
+							//(<rv_id>,<slip_id>,<hypo_id>,<rvfrac>,<seed>);(...)
+							rup_var_string.append("(" + j + "," + j + "," + 0 + "," + rvfrac + "," + seed + ")");
+							if (j<endingRupVar-1) {
+								rup_var_string.append(";");
+							}
+						}
+					} else {
+						//If we aren't including rvfrac and seed
+						for (int j=startingRupVar; j<endingRupVar; j++) {
+							//(<rv_id>,<slip_id>,<hypo_id>);(...)
+							rup_var_string.append("(" + j + "," + j + "," + 0 + ")");
+							if (j<endingRupVar-1) {
+								rup_var_string.append(";");
+							}
 						}
 					}
+
 					job.addArgument("rup_vars=" + rup_var_string.toString());
 				}
 			}
@@ -468,6 +505,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		combineJob.uses(combineSeisOutFile, LINK.OUTPUT);
 		
 		combineJob.addProfile("pegasus", "label", "pmc");
+		dbc.closeConnection();
 		return new Job[]{combineJob, combinePGAJob};
 	}
 	
@@ -788,5 +826,56 @@ public class CyberShake_Sub_Stoch_DAXGen {
 			System.exit(4);
 		}
 		
+	}
+	
+	HashMap<String, String> populateRvfracSeedInfo() {
+		DBConnect dbc = new DBConnect(DB_SERVER, DB, USER, PASS);
+		HashMap<String, String> rvSeedMap = new HashMap<String, String>();
+		//Get rvfrac and seed values
+		double cutoffDist = 200.0;
+		if (riq.getSiteName().equals("TEST")) {
+			cutoffDist = 20.0;
+		}
+		String query = "select V.Source_ID, V.Rupture_ID, V.Rup_Var_ID, V.rvfrac, D.Rup_Var_Seed " + 
+				"from Rupture_Variations V, Rup_Var_Seeds D, CyberShake_Site_Ruptures SR, CyberShake_Sites S " + 
+				"where S.CS_Short_Name='" + riq.getSiteName() + "' " +
+				"and S.CS_Site_ID=SR.CS_Site_ID " + 
+				"and SR.ERF_ID=" + riq.getErfID() + " " +
+				"and SR.ERF_ID=V.ERF_ID " + 
+				"and SR.Source_ID=V.Source_ID " + 
+				"and SR.Rupture_ID=V.Rupture_ID " + 
+				"and SR.Cutoff_Dist= " + cutoffDist + " " +
+				"and V.Rup_Var_Scenario_ID=" + riq.getRuptVarScenID() + 
+				"and D.Rup_Var_Scenario_ID=V.Rup_Var_Scenario_ID " + 
+				"and D.ERF_ID=SR.ERF_ID " + 
+				"and D.Source_ID=V.Source_ID " + 
+				"and D.Rupture_ID=V.Rupture_ID " + 
+				"and D.Rup_Var_ID=V.Rup_Var_ID " + 
+				"order by D.Source_ID asc, D.Rupture_ID asc, D.Rup_Var_ID asc";
+		ResultSet ruptures = dbc.selectData(query);
+		try {
+			ruptures.first();
+			if (ruptures.getRow()==0) {
+				System.err.println("No ruptures found for site " + riq.getSiteName() + ", aborting.");
+				System.exit(1);
+			}
+			while (!ruptures.isAfterLast()) {
+				int source_id = ruptures.getInt("V.Source_ID");
+				int rupture_id = ruptures.getInt("V.Rupture_ID");
+				int rup_var_id = ruptures.getInt("V.Rup_Var_ID");
+				double rvfrac = ruptures.getDouble("V.rvfrac");
+				int seed = ruptures.getInt("D.Rup_Var_Seed");
+				String key = source_id + "_" + rupture_id + "_" + rup_var_id;
+				String value = rvfrac + "_" + seed;
+				rvSeedMap.put(key, value);
+			}
+			
+		} catch (SQLException sqe) {
+			sqe.printStackTrace();
+			dbc.closeConnection();
+			System.exit(2);
+		}
+		dbc.closeConnection();
+		return rvSeedMap;
 	}
 }

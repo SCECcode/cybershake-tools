@@ -19,6 +19,7 @@ public class Stochastic_DAXParameters {
 	private double vpga = vref;
 	//Change default to h/4
 	private double h_frac = 0.25;
+	private boolean useDBrvfracSeed = false;
 	
 	public double getStochFrequency() {
 		return stochFrequency;
@@ -115,5 +116,12 @@ public class Stochastic_DAXParameters {
 	}
 	public void setH_frac(double h_frac) {
 		this.h_frac = h_frac;
+	}
+	public boolean isUseDBrvfracSeed() {
+		return useDBrvfracSeed;
+	}
+
+	public void setUseDBrvfracSeed(boolean useDBrvfrac) {
+		this.useDBrvfracSeed = useDBrvfrac;
 	}
 }
