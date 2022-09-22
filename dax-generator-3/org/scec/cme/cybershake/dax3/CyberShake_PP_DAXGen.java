@@ -294,6 +294,7 @@ public class CyberShake_PP_DAXGen {
         Option server = OptionBuilder.withArgName("server").withLongOpt("server").hasArg().withDescription("Server to use for site parameters and to insert PSA values into").create("sr");
         Option durations = new Option("du", "duration", false, "Calculate duration metrics and insert them into the database.");
         Option seis_length = OptionBuilder.withArgName("seis_length").hasArg().withDescription("Length of output seismograms in seconds. Default is 500.").create("sl");
+        Option db_rvfrac_seed = new Option("dbrs", "db-rv-seed", false, "Use rvfrac value and seed from the database, if provided.");
         Option debug = new Option("d", "debug", false, "Debug flag.");
 
         
@@ -328,6 +329,7 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(server);
         cmd_opts.addOption(durations);
         cmd_opts.addOption(seis_length);
+        cmd_opts.addOption(db_rvfrac_seed);
 
         CommandLineParser parser = new GnuParser();
         if (args.length<=1) {
@@ -489,6 +491,10 @@ public class CyberShake_PP_DAXGen {
         
         if (line.hasOption(seis_length.getOpt())) {
         	pp_params.setSeisLength(Double.parseDouble(line.getOptionValue(seis_length.getOpt())));
+        }
+        
+        if (line.hasOption(db_rvfrac_seed.getOpt())) {
+        	pp_params.setUseDBrvfracSeed(true);
         }
         //Removing notifications
         pp_params.setNotifyGroupSize(pp_params.getNumOfDAXes()+1);
@@ -846,8 +852,80 @@ public class CyberShake_PP_DAXGen {
 		} else if (riq.getRuptVarScenID()!=8) {
 			directSynthJob.addArgument("rupture_spacing=uniform");
 		}
-				
+		
 		directSynthJob.addArgument("ntout=" + NUMTIMESTEPS);
+		
+		if (params.isUseDBrvfracSeed()) {
+			/*
+			 * Need to create file in format
+			 * number of RVs
+			 * <src id> <rup id> <rv_id> <rvfrac> <seed>
+			 */
+			try {
+				String rvfrac_seed_filename = "rvfrac_seed_values_" + riq.getSiteName();
+				java.io.File rsJavaFile = new java.io.File(params.getPPDirectory() + "/" + rvfrac_seed_filename);
+		
+				double cutoffDist = 200.0;
+				if (riq.getSiteName().equals("TEST")) {
+					cutoffDist = 20.0;
+				}
+				String query = "select V.Source_ID, V.Rupture_ID, V.Rup_Var_ID, V.rvfrac, D.Rup_Var_Seed " + 
+						"from Rupture_Variations V, Rup_Var_Seeds D, CyberShake_Site_Ruptures SR, CyberShake_Sites S " + 
+						"where S.CS_Short_Name='" + riq.getSiteName() + "' " +
+						"and S.CS_Site_ID=SR.CS_Site_ID " + 
+						"and SR.ERF_ID=" + riq.getErfID() + " " +
+						"and SR.ERF_ID=V.ERF_ID " + 
+						"and SR.Source_ID=V.Source_ID " + 
+						"and SR.Rupture_ID=V.Rupture_ID " + 
+						"and SR.Cutoff_Dist= " + cutoffDist + " " +
+						"and V.Rup_Var_Scenario_ID=" + riq.getRuptVarScenID() + 
+						"and D.Rup_Var_Scenario_ID=V.Rup_Var_Scenario_ID " + 
+						"and D.ERF_ID=SR.ERF_ID " + 
+						"and D.Source_ID=V.Source_ID " + 
+						"and D.Rupture_ID=V.Rupture_ID " + 
+						"and D.Rup_Var_ID=V.Rup_Var_ID " + 
+						"order by D.Source_ID asc, D.Rupture_ID asc, D.Rup_Var_ID asc";
+				ResultSet ruptures = dbc.selectData(query);
+				ruptures.first();
+			 	if (ruptures.getRow()==0) {
+			   	    System.err.println("No ruptures found for site " + riq.getSiteName() + ", aborting.");
+			   	    System.exit(1);
+			   	}
+				
+				ruptures.last();
+				int rupture_count = ruptures.getRow();
+				ruptures.first();
+				
+				String fullPath = rsJavaFile.getCanonicalPath();
+				BufferedWriter bw = new BufferedWriter(new FileWriter(fullPath));
+				bw.write(rupture_count + "\n");
+				// <src id> <rup id> <rv_id> <rvfrac> <seed>
+				while (!ruptures.isAfterLast()) {
+					int source_id = ruptures.getInt("V.Source_ID");
+					int rupture_id = ruptures.getInt("V.Rupture_ID");
+					int rup_var_id = ruptures.getInt("V.Rup_Var_ID");
+					double rvfrac = ruptures.getDouble("V.rvfrac");
+					int seed = ruptures.getInt("D.Rup_Var_Seed");
+					bw.write(source_id + " " + rupture_id + " " + rup_var_id + " " + rvfrac + " " + seed + "\n");
+				}
+				bw.flush();
+				bw.close();
+
+				edu.isi.pegasus.planner.dax.File rsFile = new File(rvfrac_seed_filename);
+				rsFile.addPhysicalFile("file://" + fullPath, "local");
+				dax.addFile(rsFile);
+			
+				directSynthJob.addArgument("rv_info_file=" + rvfrac_seed_filename);
+				rsFile.setTransfer(TRANSFER.TRUE);
+			} catch (IOException ioe) {
+				ioe.printStackTrace();
+				System.exit(3);
+			} catch (SQLException e) {
+				e.printStackTrace();
+				System.exit(2);
+			}
+		}
+
 		
 		String rup_list_file = "rupture_file_list_" + riq.getSiteName();
 		java.io.File javaFile = new java.io.File(params.getPPDirectory() + "/" + rup_list_file);
@@ -866,7 +944,7 @@ public class CyberShake_PP_DAXGen {
 					cutoffDist = 20.0;
 				}
 				
-				String query = "select SR.Source_ID, SR.Rupture_ID, R.Num_Points, R.Mag, count(*) " +
+				String query = "select SR.Source_ID, SR.Rupture_ID, R.Num_Rows, R.Num_Columns, R.Mag, count(*) " +
 						"from CyberShake_Site_Ruptures SR, CyberShake_Sites S, Ruptures R, Rupture_Variations V " +
 						"where S.CS_Short_Name='" + riq.getSiteName() + "' and S.CS_Site_ID=SR.CS_Site_ID " +
 						"and SR.ERF_ID=" + riq.getErfID() + " and R.ERF_ID=" + riq.getErfID() + " and SR.Cutoff_Dist=" + cutoffDist + " " +
@@ -913,9 +991,10 @@ public class CyberShake_PP_DAXGen {
 						directSynthJob.uses(rupture_file, LINK.INPUT);
 					}
 					int slips = ruptures.getInt("count(*)");
-					int rupture_pts = ruptures.getInt("R.Num_Points");
+					int num_rows = ruptures.getInt("R.Num_Rows");
+					int num_columns = ruptures.getInt("R.Num_Columns");
 					double mag = ruptures.getDouble("R.Mag");
-					bw.write(rupture_path + " " + slips + " 1 " + rupture_pts + " " + String.format("%.2f", mag) + "\n");
+					bw.write(rupture_path + " " + slips + " 1 " + num_rows + " " + num_columns + " " + String.format("%.2f", mag) + "\n");
 					//Also add this to Pegasus file management
 					File seisFile = new File(directory + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
 							riq.getRunID() + "_" + source_id + "_" + rupture_id + SEISMOGRAM_FILENAME_EXTENSION);

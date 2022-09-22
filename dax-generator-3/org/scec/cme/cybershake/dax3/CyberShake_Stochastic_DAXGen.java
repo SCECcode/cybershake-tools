@@ -92,7 +92,9 @@ public class CyberShake_Stochastic_DAXGen {
         Option debug = new Option("d", "debug", false, "Debug flag.");
 		Option server = OptionBuilder.withArgName("server").withLongOpt("server").hasArg().withDescription("Server to use for site parameters and to insert PSA values into").create("sr");
         Option h_frac = OptionBuilder.withArgName("h_fraction").withLongOpt("h_fraction").hasArg().withDescription("Depth, in fractions of a grid point, to query UCVM at when populating the surface points.").create("hf");
-		
+        Option db_rvfrac_seed = new Option("dbrs", "db-rv-seed", false, "Use rvfrac value and seed from the database, if provided.");
+        
+        
 		cmd_opts.addOption(help);
 		cmd_opts.addOption(mergeFrequency);
 		cmd_opts.addOption(stochFrequency);
@@ -105,6 +107,7 @@ public class CyberShake_Stochastic_DAXGen {
 		cmd_opts.addOption(debug);
 		cmd_opts.addOption(server);
 		cmd_opts.addOption(h_frac);
+		cmd_opts.addOption(db_rvfrac_seed);
 		
 		CommandLineParser parser = new GnuParser();
         if (args.length<=1) {
@@ -187,6 +190,10 @@ public class CyberShake_Stochastic_DAXGen {
         	sParams.setH_frac(Double.parseDouble(line.getOptionValue(h_frac.getOpt())));
         }
         
+        if (line.hasOption(db_rvfrac_seed.getOpt())) {
+        	sParams.setUseDBrvfracSeed(true);
+        }
+        
     	//Put this at the end so we can pick up a different server, if needed
     	
     	sParams.setLfRunID(lfRunID, DB_SERVER);
@@ -254,6 +261,9 @@ public class CyberShake_Stochastic_DAXGen {
 		}
 		if (sParams.isDebug()) {
 			genStochDAXJob.addArgument("-d");
+		}
+		if (sParams.isUseDBrvfracSeed()) {
+			genStochDAXJob.addArgument("-dbrs");
 		}
 
 		genStochDAXJob.addArgument("-o " + daxFile.getName());

@@ -33,7 +33,7 @@ public class RunIDQuery {
 	private int numComponents = 2;
 	private double sourceFrequency;
 	private String host;
-	private enum Vs30_Source { Wills2006, Thompson2020 };
+	private enum Vs30_Source { Wills2006, Thompson2020, User };
 	private Vs30_Source vs30Source = Vs30_Source.Thompson2020;
 	
 	private DBConnect dbc;
@@ -379,7 +379,7 @@ public class RunIDQuery {
 		//write to DB
 		String pass = null;
 		try {
-			BufferedReader br = new BufferedReader(new FileReader("/home/scec-02/cybershk/runs/focal.txt"));
+			BufferedReader br = new BufferedReader(new FileReader(passFile));
 			pass = br.readLine().trim();
 			br.close();
 		} catch (IOException ex) {
