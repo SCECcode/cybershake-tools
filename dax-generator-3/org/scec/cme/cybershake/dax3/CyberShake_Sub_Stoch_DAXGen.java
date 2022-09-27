@@ -485,7 +485,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 				combineSeisFile.setRegister(false);
 				combineSeisFile.setTransfer(TRANSFER.FALSE);
 				combineJob.uses(combineSeisFile, LINK.INPUT);
-			
+				dax.addJob(combineJob);
 				dax.addDependency(job, combineJob);
 				
 				File combinePGAFile = new File(pgaFile.getName());
@@ -493,7 +493,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 				combinePGAFile.setRegister(false);
 				combinePGAFile.setTransfer(TRANSFER.FALSE);
 				combinePGAJob.uses(combinePGAFile, LINK.INPUT);
-				
+				dax.addJob(combinePGAJob);
 				dax.addDependency(job, combinePGAJob);
 			}
 		}
