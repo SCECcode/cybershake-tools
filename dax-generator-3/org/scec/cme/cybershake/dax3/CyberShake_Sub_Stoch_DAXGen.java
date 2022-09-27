@@ -507,7 +507,9 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		combineJob.uses(combineSeisOutFile, LINK.OUTPUT);
 		
 		combineJob.addProfile("pegasus", "label", "pmc");
-		dbc.closeConnection();
+		if (dbc!=null) {
+			dbc.closeConnection();
+		}
 		return new Job[]{combineJob, combinePGAJob};
 	}
 	
