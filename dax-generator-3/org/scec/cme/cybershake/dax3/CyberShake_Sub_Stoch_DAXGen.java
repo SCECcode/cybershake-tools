@@ -507,6 +507,15 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		combineJob.uses(combineSeisOutFile, LINK.OUTPUT);
 		
 		combineJob.addProfile("pegasus", "label", "pmc");
+		
+		File combinePGAOutFile = new File(dirPrefix + java.io.File.separator + "HighFreqPGA_" + riq.getSiteName() +
+				"_" + sourceID + "_" + ruptureID + ".txt");
+		combinePGAOutFile.setRegister(false);
+		combinePGAOutFile.setTransfer(TRANSFER.FALSE);
+		combinePGAJob.addArgument(combinePGAOutFile.getName());
+		combinePGAJob.uses(combinePGAOutFile, LINK.OUTPUT);
+		combinePGAJob.addProfile("pegasus", "label", "pmc");
+		
 		if (dbc!=null) {
 			dbc.closeConnection();
 		}
