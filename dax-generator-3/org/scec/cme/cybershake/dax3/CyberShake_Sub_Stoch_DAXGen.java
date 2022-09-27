@@ -262,7 +262,9 @@ public class CyberShake_Sub_Stoch_DAXGen {
 			
 		if (numTasks>1) {
 			combineJob = new Job("Combine_HF_Synth_" + sourceID + "_" + ruptureID, NAMESPACE, COMBINE_NAME, "1.0");
+			dax.addJob(combineJob);
 			combinePGAJob = new Job("Combine_PGA_" + sourceID + "_" + ruptureID, NAMESPACE, COMBINE_NAME, "1.0");
+			dax.addJob(combinePGAJob);
 		}
 
 		HashMap<String, String> rvSeedMap = null;
@@ -485,7 +487,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 				combineSeisFile.setRegister(false);
 				combineSeisFile.setTransfer(TRANSFER.FALSE);
 				combineJob.uses(combineSeisFile, LINK.INPUT);
-				dax.addJob(combineJob);
+
 				dax.addDependency(job, combineJob);
 				
 				File combinePGAFile = new File(pgaFile.getName());
@@ -493,7 +495,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 				combinePGAFile.setRegister(false);
 				combinePGAFile.setTransfer(TRANSFER.FALSE);
 				combinePGAJob.uses(combinePGAFile, LINK.INPUT);
-				dax.addJob(combinePGAJob);
+
 				dax.addDependency(job, combinePGAJob);
 			}
 		}
