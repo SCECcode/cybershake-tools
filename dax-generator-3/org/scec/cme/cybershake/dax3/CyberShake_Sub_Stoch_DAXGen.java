@@ -845,7 +845,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 				"and SR.Source_ID=V.Source_ID " + 
 				"and SR.Rupture_ID=V.Rupture_ID " + 
 				"and SR.Cutoff_Dist= " + cutoffDist + " " +
-				"and V.Rup_Var_Scenario_ID=" + riq.getRuptVarScenID() + 
+				"and V.Rup_Var_Scenario_ID=" + riq.getRuptVarScenID() + " " +  
 				"and D.Rup_Var_Scenario_ID=V.Rup_Var_Scenario_ID " + 
 				"and D.ERF_ID=SR.ERF_ID " + 
 				"and D.Source_ID=V.Source_ID " + 
@@ -868,6 +868,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 				String key = source_id + "_" + rupture_id + "_" + rup_var_id;
 				String value = rvfrac + "_" + seed;
 				rvSeedMap.put(key, value);
+				ruptures.next();
 			}
 			
 		} catch (SQLException sqe) {
