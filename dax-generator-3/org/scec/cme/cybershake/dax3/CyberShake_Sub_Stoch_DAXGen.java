@@ -622,7 +622,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 			File lfSeisFile = new File(lfSeisName);
 			lfSeisFile.setTransfer(TRANSFER.TRUE);
 			lfSeisFile.setRegister(false);
-			job.uses(lfSeisFile, LINK.INOUT);
+			job.uses(lfSeisFile, LINK.INPUT);
 			job.addArgument("lf_seis=" + lfSeisFile.getName());
 		}
 		
