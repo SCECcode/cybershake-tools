@@ -922,6 +922,7 @@ public class CyberShake_PP_DAXGen {
 			
 				directSynthJob.addArgument("rv_info_file=" + rvfrac_seed_filename);
 				rsFile.setTransfer(TRANSFER.TRUE);
+				directSynthJob.uses(rsFile, LINK.INPUT);
 			} catch (IOException ioe) {
 				ioe.printStackTrace();
 				System.exit(3);
