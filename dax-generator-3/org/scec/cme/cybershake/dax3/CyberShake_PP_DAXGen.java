@@ -881,13 +881,14 @@ public class CyberShake_PP_DAXGen {
 						"and SR.Source_ID=V.Source_ID " + 
 						"and SR.Rupture_ID=V.Rupture_ID " + 
 						"and SR.Cutoff_Dist= " + cutoffDist + " " +
-						"and V.Rup_Var_Scenario_ID=" + riq.getRuptVarScenID() + 
+						"and V.Rup_Var_Scenario_ID=" + riq.getRuptVarScenID() + " " +
 						"and D.Rup_Var_Scenario_ID=V.Rup_Var_Scenario_ID " + 
 						"and D.ERF_ID=SR.ERF_ID " + 
 						"and D.Source_ID=V.Source_ID " + 
 						"and D.Rupture_ID=V.Rupture_ID " + 
 						"and D.Rup_Var_ID=V.Rup_Var_ID " + 
 						"order by D.Source_ID asc, D.Rupture_ID asc, D.Rup_Var_ID asc";
+				System.out.println(query);
 				ResultSet ruptures = dbc.selectData(query);
 				ruptures.first();
 			 	if (ruptures.getRow()==0) {
@@ -910,6 +911,7 @@ public class CyberShake_PP_DAXGen {
 					double rvfrac = ruptures.getDouble("V.rvfrac");
 					int seed = ruptures.getInt("D.Rup_Var_Seed");
 					bw.write(source_id + " " + rupture_id + " " + rup_var_id + " " + rvfrac + " " + seed + "\n");
+					ruptures.next();
 				}
 				bw.flush();
 				bw.close();
@@ -923,9 +925,12 @@ public class CyberShake_PP_DAXGen {
 			} catch (IOException ioe) {
 				ioe.printStackTrace();
 				System.exit(3);
-			} catch (SQLException e) {
-				e.printStackTrace();
+			} catch (SQLException sqe) {
+				sqe.printStackTrace();
 				System.exit(2);
+			} catch (Exception e) {
+				e.printStackTrace();
+				System.exit(4);
 			}
 		}
 
