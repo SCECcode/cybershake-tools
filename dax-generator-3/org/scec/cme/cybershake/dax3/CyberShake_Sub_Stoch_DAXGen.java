@@ -868,6 +868,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 				String key = source_id + "_" + rupture_id + "_" + rup_var_id;
 				String value = rvfrac + "_" + seed;
 				rvSeedMap.put(key, value);
+				ruptures.next();
 			}
 			
 		} catch (SQLException sqe) {
