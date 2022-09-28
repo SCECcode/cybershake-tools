@@ -367,7 +367,9 @@ public class CyberShake_Sub_Stoch_DAXGen {
 				
 				job.addArgument("num_rup_vars=" + numRupVarsThisTask);
 				
-				if (numTasks>1) {
+				//Let's just always add this string, even if we're running all the RVs for a rupture
+				//We need the rvfrac and seed, and it simplifies this code
+//				if (numTasks>1) {
 					//Construct rupture variation string
 					StringBuffer rup_var_string = new StringBuffer("");
 					//If we're including rvfrac and seed
