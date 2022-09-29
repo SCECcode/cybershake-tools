@@ -397,7 +397,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 								rup_var_string.append(";");
 							}
 						}
-					}
+//					}
 
 					job.addArgument("rup_vars=" + rup_var_string.toString());
 				}
