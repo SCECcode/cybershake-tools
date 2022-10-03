@@ -238,7 +238,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 	
 	//Creates multiple tasks per rupture to keep job runtime low; adds job to combine output files
 	private Job[] createHFSynthJob(int sourceID, int ruptureID, int numRupVars, int numPoints, int numRows, int numCols, String localVMFilename,
-			Job localVMJob, Job dirsJob, ADAG dax, double[] velocityArray) {
+			Job localVMJob, Job dirsJob, ADAG dax, double[] velocityArray, HashMap<String, String> rvSeedMap) {
 		
 		String dirPrefix = "" + sourceID;
 		Job combineJob = null;
@@ -265,11 +265,6 @@ public class CyberShake_Sub_Stoch_DAXGen {
 			dax.addJob(combineJob);
 			combinePGAJob = new Job("Combine_PGA_" + sourceID + "_" + ruptureID, NAMESPACE, COMBINE_NAME, "1.0");
 			dax.addJob(combinePGAJob);
-		}
-
-		HashMap<String, String> rvSeedMap = null;
-		if (sParams.isUseDBrvfracSeed()) {
-			rvSeedMap = populateRvfracSeedInfo();
 		}
 		
 		for (int i=0; i<numTasks; i++) {
@@ -786,6 +781,12 @@ public class CyberShake_Sub_Stoch_DAXGen {
 			
 			int index = 0;
 			
+			//Create this out here so we only do it once
+			HashMap<String, String> rvSeedMap = null;
+			if (sParams.isUseDBrvfracSeed()) {
+				rvSeedMap = populateRvfracSeedInfo();
+			}
+			
 			while (!ruptureSet.isAfterLast()) {
 				if ((index+1)%1000==0) {
 					System.out.println((index+1) + " ruptures processed.");
@@ -800,7 +801,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 				dirNames.add("" + sourceID);
 				
 				//Handle dependences in the method, because we might be using multiple tasks per rupture
-				Job[] hfSynthJobs = createHFSynthJob(sourceID, ruptureID, numRupVars, numPoints, numRows, numCols, localVMFilename, localVMJob, dirsJob, dax, vsArray);
+				Job[] hfSynthJobs = createHFSynthJob(sourceID, ruptureID, numRupVars, numPoints, numRows, numCols, localVMFilename, localVMJob, dirsJob, dax, vsArray, rvSeedMap);
 				
 				Job mergeIMJob = createMergeIMJob(sourceID, ruptureID, numRupVars, numPoints);
 				dax.addJob(mergeIMJob);
