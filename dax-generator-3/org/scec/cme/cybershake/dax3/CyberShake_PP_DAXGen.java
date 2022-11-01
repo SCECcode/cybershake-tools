@@ -823,6 +823,9 @@ public class CyberShake_PP_DAXGen {
 		} else if (riq.getRuptVarScenID()==9) {
 			//Use version linked with rupture generator v5.4.2
 			directSynthJob = new Job("DirectSynth", NAMESPACE, DIRECT_SYNTH_NAME, "3.0");
+		} else if (riq.getRuptVarScenID()==10) {
+			//Use version linked with rupture generator v5.5.2
+			directSynthJob = new Job("DirectSynth", NAMESPACE, DIRECT_SYNTH_NAME, "4.0");
 		} else {
 			System.err.println("Not sure what version of DirectSynth to use with Rupture Variation Scenario ID " + riq.getRuptVarScenID() + ", aborting.");
 			System.exit(2);
