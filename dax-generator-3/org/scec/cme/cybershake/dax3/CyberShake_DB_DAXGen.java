@@ -42,6 +42,8 @@ public class CyberShake_DB_DAXGen {
 	public static final String RSQSIM_ERF61_FILE = "/home/shock-ssd/scottcal/opensha/conf/erf61_params.xml";
 	public static final String RSQSIM_ERF62_FILE = "/home/shock-ssd/scottcal/opensha/conf/erf62_params.xml";
 	public static final String RSQSIM_ERF63_FILE = "/home/shock-ssd/scottcal/opensha/conf/erf63_params.xml";
+	public static final String PLOT_CHARS_FILE = "/home/shock-ssd/scottcal/opensha/conf/robPlot.xml";
+
 	public static final String CURVE_CALC_PERIODS = "3,5,10";
 	public static final String CURVE_OUTPUT_TYPES = "pdf,png";
 	public static final double CURVE_DEFAULT_VS30 = 760;
@@ -502,7 +504,8 @@ public class CyberShake_DB_DAXGen {
 			// this makes it just calculate the curve, without plotting
 			job.addArgument("--calc-only");
 		}
-		
+		// Use robPlot plot chars file, to get denser points per curve
+		job.addArgument("--plot-chars-file " + PLOT_CHARS_FILE);
 		
 		job.addProfile("globus", "maxWallTime", "15");
 		job.addProfile("hints","executionPool", "local");
@@ -574,6 +577,9 @@ public class CyberShake_DB_DAXGen {
 			job.addArgument("--calc-only");
 		}
 		
+		// Use robPlot plot chars file, to get denser points per curve
+		job.addArgument("--plot-chars-file " + PLOT_CHARS_FILE);
+		
 		job.addProfile("globus", "maxWallTime", "15");
 		job.addProfile("hints","executionPool", "local");
 		
@@ -643,6 +649,9 @@ public class CyberShake_DB_DAXGen {
 			// this makes it just calculate the curve, without plotting
 			job.addArgument("--calc-only");
 		}
+		
+		// Use robPlot plot chars file, to get denser points per curve
+		job.addArgument("--plot-chars-file " + PLOT_CHARS_FILE);
 		
 		job.addProfile("globus", "maxWallTime", "15");
 		job.addProfile("hints","executionPool", "local");
