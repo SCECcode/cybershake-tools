@@ -27,6 +27,9 @@ public class SGT_DAXParameters {
 	//Default rotation of -55 degrees
 	private double rotation = -55.0;
 	
+	private String taperMode = "none";
+	private double taperDepth = 700.0;
+	
 	public SGT_DAXParameters(String filename) {
 		this.daxFilename = filename;
 		this.directory = ".";
@@ -154,6 +157,22 @@ public class SGT_DAXParameters {
 
 	public void setRotation(double rotation) {
 		this.rotation = rotation;
+	}
+
+	public String getTaperMode() {
+		return taperMode;
+	}
+
+	public void setTaperMode(String taperMode) {
+		this.taperMode = taperMode;
+	}
+
+	public double getTaperDepth() {
+		return taperDepth;
+	}
+
+	public void setTaperDepth(double taperDepth) {
+		this.taperDepth = taperDepth;
 	}
 	
 	

@@ -105,6 +105,9 @@ public class CyberShake_SGT_DAXGen {
         Option depth = OptionBuilder.withArgName("depth").hasArg().withDescription("Depth of simulation volume.  Defaults to 50 km, rounded up to an even number of grid points").create("dep");
         Option h_frac = OptionBuilder.withArgName("h_fraction").withLongOpt("h_fraction").hasArg().withDescription("Depth, in fractions of a grid point, to query UCVM at when populating the surface points.").create("hf");
         Option rotation = OptionBuilder.withArgName("rotation").withLongOpt("rotation").hasArg().withDescription("Rotation angle of simulation volume, in degrees.  Defaults to -55.").create("rt");
+        Option elyTaper = OptionBuilder.withArgName("ely-taper").hasArg().withDescription("Ely taper mode to use, either 'all' (always use the taper), 'none' (the default: use the model, never the taper), or 'ifless' (at each point, use the approach with the smaller Vs)").create("et");
+        Option taperDepthOpt = OptionBuilder.withArgName("taper-depth").hasArg().withDescription("Depth in meters to use with Ely taper for 'all' or 'ifless' modes.  Default is 700.").create("td");
+
         
         cmd_opts.addOption(help);
         cmd_opts.addOptionGroup(runIDGroup);
@@ -121,6 +124,8 @@ public class CyberShake_SGT_DAXGen {
         cmd_opts.addOption(depth);
         cmd_opts.addOption(h_frac);
         cmd_opts.addOption(rotation);
+        cmd_opts.addOption(elyTaper);
+        cmd_opts.addOption(taperDepthOpt);
         
         String usageString = "CyberShake_SGT_DAXGen <output filename> <destination directory> [options] [-f <runID file, one per line> | -r <runID1> <runID2> ... ]";
         CommandLineParser parser = new GnuParser();
@@ -222,6 +227,16 @@ public class CyberShake_SGT_DAXGen {
 		if (line.hasOption(rotation.getOpt())) {
 			double rot_val = Double.parseDouble(line.getOptionValue(rotation.getOpt()));
 			sgt_params.setRotation(rot_val);
+		}
+		
+		if (line.hasOption(elyTaper.getOpt())) {
+			String taperMode = line.getOptionValue(elyTaper.getOpt());
+			sgt_params.setTaperMode(taperMode);
+		}
+		
+		if (line.hasOption(taperDepthOpt.getOpt())) {
+			double taperDepth = Double.parseDouble(line.getOptionValue(taperDepthOpt.getOpt()));
+			sgt_params.setTaperDepth(taperDepth);
 		}
 		
 		sgt_params.setRunIDQueries(runIDQueries);
@@ -456,6 +471,10 @@ public class CyberShake_SGT_DAXGen {
 		}
 		if (sgt_params.getH_frac()>=0.0) {
 			genSGTDAXJob.addArgument("--h_fraction " + sgt_params.getH_frac());
+		}
+		genSGTDAXJob.addArgument("--ely-taper " + sgt_params.getTaperMode());
+		if (!sgt_params.getTaperMode().equals("none")) {
+			genSGTDAXJob.addArgument("--taper-depth " + sgt_params.getTaperDepth());
 		}
 		
 		genSGTDAXJob.uses(gridoutFile, LINK.INPUT);
