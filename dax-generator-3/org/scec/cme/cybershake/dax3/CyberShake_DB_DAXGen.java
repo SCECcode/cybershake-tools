@@ -41,6 +41,7 @@ public class CyberShake_DB_DAXGen {
 	public static final String RSQSIM_ERF48_FILE = "/home/scec-02/kmilner/simulators/catalogs/rundir2585_1myrs/erf_params.xml";
 	public static final String RSQSIM_ERF61_FILE = "/home/shock-ssd/scottcal/opensha/conf/erf61_params.xml";
 	public static final String RSQSIM_ERF62_FILE = "/home/shock-ssd/scottcal/opensha/conf/erf62_params.xml";
+	public static final String RSQSIM_ERF63_FILE = "/home/shock-ssd/scottcal/opensha/conf/erf63_params.xml";
 	public static final String PLOT_CHARS_FILE = "/home/shock-ssd/scottcal/opensha/conf/robPlot.xml";
 
 	public static final String CURVE_CALC_PERIODS = "3,5,10";
@@ -387,6 +388,8 @@ public class CyberShake_DB_DAXGen {
 			erfFile = RSQSIM_ERF61_FILE;
 		} else if (riq.getErfID()==62) {
 			erfFile = RSQSIM_ERF62_FILE;
+		} else if (riq.getErfID()==63) {
+			erfFile = RSQSIM_ERF63_FILE;
 		}
 		disaggJob.addArgument("--erf-file " + erfFile);
 		
