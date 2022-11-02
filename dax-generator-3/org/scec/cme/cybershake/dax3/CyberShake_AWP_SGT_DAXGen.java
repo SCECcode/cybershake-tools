@@ -43,8 +43,8 @@ public class CyberShake_AWP_SGT_DAXGen {
         Option server = OptionBuilder.withArgName("server").hasArg().withDescription("Server to use for site parameters and to insert PSA values into").create("sr");
         Option noSmoothing = new Option("ns", "no-smoothing", false, "Turn off smoothing (default is to smooth)");
 		Option h_frac = OptionBuilder.withArgName("h_fraction").withLongOpt("h_fraction").hasArg().withDescription("Depth, in fractions of a grid point, to query UCVM at when populating the surface points.").create("hf");
-        Option elyTaper = OptionBuilder.withArgName("ely-taper").hasArg().withDescription("Ely taper mode to use, either 'all' (always use the taper), 'none' (the default: use the model, never the taper), or 'ifless' (at each point, use the approach with the smaller Vs)").create("et");
-        Option taperDepthOpt = OptionBuilder.withArgName("taper-depth").hasArg().withDescription("Depth in meters to use with Ely taper for 'all' or 'ifless' modes.  Default is 700.").create("td");
+        Option elyTaper = OptionBuilder.withArgName("ely-taper").hasArg().withDescription("Ely taper mode to use, either 'all' (always use the taper), 'none' (the default: use the model, never the taper), or 'ifless' (at each point, use the approach with the smaller Vs)").withLongOpt("ely-taper").create("et");
+        Option taperDepthOpt = OptionBuilder.withArgName("taper-depth").hasArg().withDescription("Depth in meters to use with Ely taper for 'all' or 'ifless' modes.  Default is 700.").withLongOpt("taper-depth").create("td");
         
         cmd_opts.addOption(runIDopt);
         cmd_opts.addOption(gridoutFile);
