@@ -33,8 +33,8 @@ public class CyberShake_Sub_Stoch_DAXGen {
 	private final String VM_FILENAME = "nr02-vs500.fk1d";
 	private final static String SEISMOGRAM_FILENAME_PREFIX = "Seismogram_";
     private final static String SEISMOGRAM_FILENAME_EXTENSION = ".grm";
-    private static double DT = 0.025;
-	private static double PSA_FILTER = 40.0;
+    private static double DT = 0.01;
+	private static double PSA_FILTER = 100.0;
 	private final static String PSA_FILENAME_PREFIX = "PeakVals_";
     private final static String PSA_FILENAME_EXTENSION = ".bsa";
 	private final static String ROTD_FILENAME_PREFIX = "RotD_";
@@ -70,7 +70,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		sParams = hp;
 		if (sParams.getLowFreqRIQ().getLowFrequencyCutoff()>=1.0) {
 			//@1 Hz we use seismograms which are 500s in length
-			sParams.setTlen(500.0);
+			sParams.setTlen(400.0);
 		}
 		sParams.setStochFrequency(riq.getMax_frequency());
 		sParams.setMergeFrequency(riq.getLowFrequencyCutoff());
