@@ -8,7 +8,7 @@ fi
 RUN_ID=$1
 PP_SITE=$2
 
-/home/scec-02/cybershk/runs/runmanager/edit_run.py ${RUN_ID} "PP_Host=${PP_SITE}"
+/home/shock/scottcal/runs/cybershake-tools/runmanager/edit_run.py ${RUN_ID} "PP_Host=${PP_SITE}"
 if [ $? != 0 ]; then
         echo "Unable to update Job ID for run ${RUN_ID}"
         exit 2
