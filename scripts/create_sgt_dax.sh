@@ -161,6 +161,10 @@ elif [ $VEL_STR == "v188" ]; then
         #Study 18.8 model
         #CCA-06, USGS Bay Area, CVM-S4.26.M01
         VEL_ID="12"
+elif [ $VEL_STR == "vtaper" ]; then
+    #Study 22.12 model
+    #CVM-S4.26.M01 merged with Ely taper
+    VEL_ID="13"
 else
 	echo "$VEL_STR is not a recognized velocity model (-v4, -vh, -vsi, -vs1, -vhng, or -vbbp)"
 	exit 2

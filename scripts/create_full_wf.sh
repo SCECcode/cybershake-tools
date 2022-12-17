@@ -140,6 +140,10 @@ elif [ $VEL_STR == "v188" ]; then
 	#Study 18.8 model
 	#CCA-06, USGS Bay Area, CVM-S4.26.M01
 	VEL_ID="12"
+elif [ $VEL_STR == "vtaper" ]; then
+	#Study 22.12 model
+	#CVM-S4.26.M01 merged with Ely taper
+	VEL_ID="13"
 else
 	echo "$VEL_STR is not a recognized velocity model."
 	exit 2
@@ -483,7 +487,7 @@ if [ $BB_SIM -eq 1 ]; then
 fi
 echo $DAX_FILE
 # Run the DAX generator
-full_cmd="$RUN_CMD $DAX_FILE `pwd`/${RUN_DIR} ${VEL_STR} $@ -rl ${RUN_ID_STRING}"
+full_cmd="$RUN_CMD $DAX_FILE `pwd`/${RUN_DIR} ${VEL_STR} $@ -rl ${RUN_ID_ARG}"
 echo $full_cmd
 $full_cmd
 
