@@ -77,6 +77,12 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		//Determine dt
 		//DT = 0.5/riq.getMax_frequency();
 		DT = 0.5/sParams.getStochFrequency();
+		//Occasionally there is some kind of problem with the stochastic frequency
+		//Add a check so that if it's not at least 10 Hz/DT is less than/equal to 0.05, we abort.
+		if (DT>0.05) {
+			System.err.println("When setting DT value, found that stochastic freq in DB is set to only " + sParams.getStochFrequency() + " Hz.  Should be at least 10 Hz, aborting.");
+			System.exit(3);
+		}
 	}
     
 	public static void main(String[] args) {

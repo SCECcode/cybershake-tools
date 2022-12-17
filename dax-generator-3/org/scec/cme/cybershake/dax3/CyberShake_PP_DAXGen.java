@@ -526,7 +526,7 @@ public class CyberShake_PP_DAXGen {
 	        //Adjust a few parameters accordingly
 	        if (params.getDetFrequency()==1.0) {
 	        	//Timesteps should be enough for seisLength sec of simulation, rounded up to nearest 1k
-	        	NUMTIMESTEPS = "10000";
+	        	NUMTIMESTEPS = "8000";
 	        	if (params.getSpacing()>0.0) {
 	        		NUMTIMESTEPS = "" + 1000*(int)(Math.ceil((params.getSeisLength()/Double.parseDouble(LF_TIMESTEP))/1000));
 	        	}
