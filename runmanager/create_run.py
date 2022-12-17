@@ -62,7 +62,7 @@ def init():
 
 def main():
     global info
-
+    
     rm = RunManager(readonly=False)
     rm.useHTML(False)
     if (not rm.isValid()):

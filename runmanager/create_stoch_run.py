@@ -1,8 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Add RunManager modules to PYTHONPATH
 import sys
-sys.path.append('/home/scec-02/cybershk/runs/runmanager/RunManager')
+import os
+sys.path.append("%s/RunManager" % os.path.dirname(os.path.realpath(__file__)))
 
 
 # General imports
@@ -22,7 +23,7 @@ def init():
     
     # Check command line arguments
     if (argc != 7):
-        print "Usage: " + sys.argv[0] + " <site> [lf run id] [erf id] [rup var id] [merge freq] [stoch freq]"
+        print("Usage: " + sys.argv[0] + " <site> [lf run id] [erf id] [rup var id] [merge freq] [stoch freq]")
         return -1
 
     # Parse command line args
@@ -48,19 +49,19 @@ def main():
     rm = RunManager(readonly=False)
     rm.useHTML(False)
     if (not rm.isValid()):
-        print "Failed to instantiate run manager."
+        print("Failed to instantiate run manager.")
         return -1
 
     lf_run = rm.getRunByID(info.lf_run_id)
     #See if this run is in an OK state
     if lf_run.getStatus()!="Verified":
-	print "Low-frequency run ID %d isn't in verified status, so it can't be used, aborting." % info.lf_run_id
-	return -1
+        print("Low-frequency run ID %d isn't in verified status, so it can't be used, aborting." % info.lf_run_id)
+        return -1
  
     #Check that parameters match
     if lf_run.getERFID()!=info.erf or lf_run.getRupVarID()!=info.rup_var or lf_run.getSite().getShortName()!=info.site:
-	print "Low-frequency parameters don't match stochastic parameters, aborting."
-	return -2
+        print("Low-frequency parameters don't match stochastic parameters, aborting.")
+        return -2
 
     rm.beginTransaction()
 
@@ -70,7 +71,7 @@ def main():
         run = rm.createRunByParam(info.site, info.erf, lf_run.getSGTVarID(), lf_run.getVelID(), info.rup_var, freq=info.merge_freq, src_freq=lf_run.getSrcFreq(), max_freq=info.stoch_freq, status="SGT Generated", sgthost=lf_run.getSGTHost())
 
     if (run == None):
-        print "Run insert failed."
+        print("Run insert failed.")
         rm.rollbackTransaction()
         return -1
 
@@ -78,7 +79,7 @@ def main():
     rm.commitTransaction()
     
     #run.dumpToScreen()
-    print run.getRunID()
+    print(run.getRunID())
 
     return 0
 
