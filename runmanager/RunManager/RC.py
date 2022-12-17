@@ -12,10 +12,12 @@ import subprocess
 
 # Constants
 # These might get picked up from ~/.pegasusrc, but put them here just in case
+#RC_HOST = "localhost:3306"
+#RC_DB = "replica_catalog"
+#RC_USER = "globus"
+#RC_PASS = "GoTrojans!"
 RC_HOST = "localhost:3306"
-RC_DB = "replica_catalog"
-RC_USER = "globus"
-RC_PASS = "GoTrojans!"
+RC_DB = "/home/shock-ssd/scottcal/workflow/RC.sqlite"
 
 # Globals
 
@@ -33,12 +35,15 @@ class RC:
     properties = None
 
     def __init__(self, rc_host=RC_HOST, rc_db=RC_DB):
-        self.rc_path = "jdbc:mysql://%s/%s" % (rc_host, rc_db)
-        self.properties = "-Dpegasus.catalog.replica=JDBCRC -Dpegasus.catalog.replica.db.driver=MySQL -Dpegasus.catalog.replica.db.url=%s -Dpegasus.catalog.replica.db.user=%s -Dpegasus.catalog.replica.db.password=%s" % (
-            self.rc_path, RC_USER, RC_PASS)
+        #self.rc_path = "jdbc:mysql://%s/%s" % (rc_host, rc_db)
+        #self.properties = "-Dpegasus.catalog.replica=JDBCRC -Dpegasus.catalog.replica.db.driver=MySQL -Dpegasus.catalog.replica.db.url=%s -Dpegasus.catalog.replica.db.user=%s -Dpegasus.catalog.replica.db.password=%s" % (
+        #    self.rc_path, RC_USER, RC_PASS)
+        self.rc_path = "jdbc:sqlite:%s" % (rc_db)
+        self.properties = "-Dpegasus.catalog.replica=JDBCRC -Dpegasus.catalog.replica.db.driver=sqlite -Dpegasus.catalog.replica.db.url=%s" % (self.rc_path)
         return
 
     def __runCommand(self, cmd):
+        print("Running %s" % cmd, file=sys.stderr)
         try:
             p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                  stderr=subprocess.STDOUT)
