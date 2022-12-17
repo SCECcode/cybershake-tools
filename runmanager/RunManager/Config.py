@@ -11,8 +11,8 @@ DB_NAME = "CyberShake"
 DB_WR_FILE = "/home/shock/scottcal/runs/config/db_pass.txt"
 with open(DB_WR_FILE, "r") as fp_in:
     pieces = fp_in.readline().split(":")
-    DB_USER_WR = pieces[0]
-    DB_PASS_WR = pieces[1]
+    DB_USER_WR = pieces[0].strip()
+    DB_PASS_WR = pieces[1].strip()
     fp_in.close() 
 
 # Valid computing resources
