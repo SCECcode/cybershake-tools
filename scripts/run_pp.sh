@@ -61,7 +61,8 @@ fi
 PEGASUS_RUN=`grep pegasus-run ${SITE}_PP_dax/run_${RUN_ID}/log-plan-CyberShake_${SITE}.dax-*`
 which pegasus-run
 echo ${PEGASUS_RUN}
-${PEGASUS_RUN} | tee ${SITE}_PP_dax/run_${RUN_ID}/log-run-CyberShake_PP_${SITE}.dax
+# Redirect stderr to stdout, so we can capture the job id in the tee file
+${PEGASUS_RUN} 2>&1 | tee ${SITE}_PP_dax/run_${RUN_ID}/log-run-CyberShake_PP_${SITE}.dax
 
 
 # Isolate condor jobid

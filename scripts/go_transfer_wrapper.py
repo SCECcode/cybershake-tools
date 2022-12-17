@@ -124,6 +124,11 @@ def goTransferSubmit(go_src_host, go_dst_host, go_filename):
     cmd = "/home1/scottcal/.local/bin/globus transfer --batch %s %s %s" % (go_filename, go_src_endpoint, go_dst_endpoint)
     cp = subprocess.run(cmd.split(),stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     output_string = cp.stdout.decode('utf-8')
+    error_string = cp.stderr.decode('utf-8')
+    #Check for needed activation
+    if error_string.find("The endpoint could not be auto-activated")>-1:
+        print(error_string, file=sys.stderr)
+        sys.exit(2)
     print(output_string)
     task_id = output_string.split(":")[2]
     return task_id
