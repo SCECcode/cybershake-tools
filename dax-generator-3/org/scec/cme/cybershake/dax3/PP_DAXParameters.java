@@ -14,7 +14,7 @@ public class PP_DAXParameters {
 	//Maximum deterministic frequency
 	private double detFrequency = 0.5;
 	private double stochasticCutoff = 0.0;
-	private double stochasticFrequency = 10.0;
+	private double stochasticFrequency = 50.0;
 	private boolean hfsynth = true;
 	private boolean mergePSA = true;
 	
@@ -61,7 +61,7 @@ public class PP_DAXParameters {
 	private int seisPSAMemCutoff = 56*1024;
 
 	//Length of seismogram in seconds
-	private double seisLength = 500.0;
+	private double seisLength = 400.0;
 	
 	//Use rvfrac value from database
 	private boolean useDBrvfracSeed = false;
