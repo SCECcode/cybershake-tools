@@ -93,7 +93,8 @@ fi
 LOG_PLAN_FILE=`ls -t ${PLAN_LOG_DIR}/log-plan-CyberShake_SGT_${ID}* | head -n 1`
 PEGASUS_RUN=`grep pegasus-run ${LOG_PLAN_FILE} | head -n 1`
 echo $PEGASUS_RUN
-${PEGASUS_RUN} | tee ${PLAN_LOG_DIR}/log-run-CyberShake_SGT_${ID} 
+# Redirect stderr to stdout, so we can capture the job id in the tee file
+${PEGASUS_RUN} 2>&1 | tee ${PLAN_LOG_DIR}/log-run-CyberShake_SGT_${ID} 
 
 # Isolate condor jobid
 JOBID=`grep "submitted to cluster" ${PLAN_LOG_DIR}/log-run-CyberShake_SGT_${ID} | head -n 1 | awk '{print $6}' | sed "s/\.//"`

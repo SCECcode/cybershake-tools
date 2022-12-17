@@ -1,5 +1,7 @@
 #!/bin/bash
 
+ROOT_RUN_DIR="/home/shock/scottcal/runs"
+
 # Parse options
 NOTIFY=""
 RESTART=0
@@ -39,7 +41,7 @@ else
         FILE_RUN_ID=`echo $LINE | awk '{print $1}'`
         SITE_NAME=`echo $LINE | awk '{print $2}'`
  	if [ "${FILE_RUN_ID}" -eq "${RUN_ID}" ]; then
-	        /home/scec-02/cybershk/runs/runmanager/valid_run.py ${RUN_ID} ${SITE_NAME} PP_PLAN
+	        ${ROOT_RUN_DIR}/cybershake-tools/runmanager/valid_run.py ${RUN_ID} ${SITE_NAME} PP_PLAN
 	        if [ $? != 0 ]; then
 	            echo "Run ${RUN_ID} not in expected state"
 	            exit 1
@@ -58,7 +60,8 @@ fi
 # Isolate the pegasus run command
 PEGASUS_RUN=`grep pegasus-run ${SITE}_Stoch_dax/run_${RUN_ID}/log-plan-CyberShake_Stoch_${SITE}_top.dax-*`
 echo ${PEGASUS_RUN}
-${PEGASUS_RUN} | tee ${SITE}_Stoch_dax/run_${RUN_ID}/log-run-CyberShake_Stoch_${SITE}.dax
+# Redirect stderr to stdout, so we can capture the job id in the tee file
+${PEGASUS_RUN} 2>&1 | tee ${SITE}_Stoch_dax/run_${RUN_ID}/log-run-CyberShake_Stoch_${SITE}.dax
 
 
 # Isolate condor jobid
@@ -79,8 +82,11 @@ elif [ -e ~condor/condor_config.local ]; then
 elif [ -e ${GLOBUS_LOCATION}/etc/condor_config ]; then
         CFG=${GLOBUS_LOCATION}/etc/condor_config
 else
-        echo "No condor config file found."
-        exit 1
+		CFG=`condor_config_val LOCAL_CONFIG_FILE`
+		if [ $? -ne 0 ]; then
+	        echo "No condor config file found."
+	        exit 1
+		fi
 fi
 echo "Condor config local $CFG" >> ${EXEC_DIR}/metadata.local
 more $CFG >> ${EXEC_DIR}/metadata.local
@@ -88,7 +94,7 @@ more $CFG >> ${EXEC_DIR}/metadata.local
 
 # Submit jobid to condor watch if monitoring enabled
 if [ "${NOTIFY}" != "" ]; then
-    conwatch/Watch.py ${JOBID} "${SITE} PP Workflow" ${NOTIFY}
+    ../conwatch/Watch.py ${JOBID} "${SITE} PP Workflow" ${NOTIFY}
 fi
 
 
@@ -107,7 +113,7 @@ fi
 
 #while read LINE ; do
 #    RUN_ID=`echo $LINE | awk '{print $1}'`
-    /home/scec-02/cybershk/runs/runmanager/edit_run.py ${RUN_ID} "Status=${NEW_STATE}" "Job_ID=${SUBHOST}:${JOBID}" "Submit_Dir=${EXEC_DIR}" "Notify_User=${NOTIFY_MOD}"
+    ${ROOT_RUN_DIR}/cybershake-tools/runmanager/edit_run.py ${RUN_ID} "Status=${NEW_STATE}" "Job_ID=${SUBHOST}:${JOBID}" "Submit_Dir=${EXEC_DIR}" "Notify_User=${NOTIFY_MOD}"
     if [ $? != 0 ]; then
         echo "Unable to update Status, Comment, Job_ID, Submit_Dir, Comment for run ${RUN_ID}"
         # Continue with updates
