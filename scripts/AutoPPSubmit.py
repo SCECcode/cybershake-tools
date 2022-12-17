@@ -33,7 +33,7 @@ FP = open(PENDING_FILE, "r+")
 LOG_FILE = "%s/auto_submit.log" % ROOT_DIR
 logFP = open(LOG_FILE, 'a')
 
-MAX_SIMUL_SUBMIT = 3
+MAX_SIMUL_SUBMIT = 1
 
 # This represents a remote resource available for running workflows
 
@@ -198,7 +198,7 @@ def getRunsToSubmit(pendingList, cursor):
         logFP.write("stdout: %s, stderr: %s\n" % (output[0], output[1]))
         return sitesToSubmit
     # See how many are running -- use condor_q instead of DB, since if jobs are submitted but there aren't any glideins, jobs won't show up in the DB
-    command = 'condor_q -dag | grep -E "dagman|running" | grep cybershk | cut -d " " -f2'
+    command = 'condor_q -nobatch -dag | grep dagman | grep scottcal | cut -d" " -f1'
     print(command)
     p = subprocess.Popen(command,shell=True,stdout=subprocess.PIPE)
     output = p.communicate()[0].decode('utf-8')
@@ -213,6 +213,7 @@ def getRunsToSubmit(pendingList, cursor):
         # p = subprocess.Popen('condor_q -long %s | grep UserLog | grep _Integrated_' % candidate.strip(), shell=True, stdout=subprocess.PIPE)
         # Combine user log and execution sites to minimize condor_q calls
         cmd = 'condor_q -long %s | grep -E "UserLog|pegasus_execution_sites" ' % candidate.strip()
+        print(cmd)
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
         output = p.communicate()[0]
         if output!="":
@@ -221,14 +222,15 @@ def getRunsToSubmit(pendingList, cursor):
             # UserLog = "/home/scec-02/cybershk/runs/SMCA_SGT_dax/run_3864/dags/cybershk/pegasus/CyberShake_SGT_SMCA.dax/20150331T092702-0700/CyberShake_SGT_SMCA.dax-0.dag.dagman.log"
             # pegasus_execution_sites = "titan,shock"
             numRunningJobs += 1
-            userLog = output.split("\n")[0]
+            userLog = output.decode('utf-8').split("\n")[1]
             pieces = userLog.split("/")
             for piece in pieces:
                 if re.match("run_\d+", piece):
                     # runningJobSites.append(piece.split("_")[0])
                     runningRunIDs.append(piece.split("_")[1])
-            pegasusExecutionSites = output.split("\n")[1]
-            remoteSite = pegasusExecutionSites.split('"')[1].split(",")[0]
+            pegasusExecutionSites = output.decode('utf-8').split("\n")[0]
+            print(pegasusExecutionSites)
+            remoteSite = pegasusExecutionSites.split('"')[1].split(",")[1]
             # if remoteSite=="titan" and userLog.find("Integrated")!=-1:
                 # Should check and see which stage it's in
                 # If in AWP, give to titan; else give to bluewaters
@@ -589,9 +591,11 @@ def submitRuns(runsToSubmit):
         executeString = "%s; %s" % (executeString, runString)
         print(executeString, file=sys.stderr)
         rc = os.system(executeString)
-        return rc
+        if rc!=0:
+            return rc
+    return rc
 
-        '''
+    '''
         if not restart:
             # createString = "./create_full_wf.sh %s %d %d %d %s %s" % (vel_model, erf_id, rv_id, sgt_id, site, opt_args)
             createString = "./create_pp_wf.sh %s %s %d %d %d -p %d %s %s" % (site, vel_model, erf_id, rv_id, sgt_id, partitions, hf_string, opt_args)
