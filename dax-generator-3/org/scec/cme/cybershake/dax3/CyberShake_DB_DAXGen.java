@@ -353,7 +353,7 @@ public class CyberShake_DB_DAXGen {
 				periods = periods + ",0.075,0.05";
 			}
 			if (params.getStochasticFrequency()>20.0) {
-				periods = periods + "0.04,0.03,0.02,0.01";
+				periods = periods + ",0.04,0.03,0.02,0.01";
 			}
 		} else {
 			if (params.getDetFrequency()>=2.0) {
