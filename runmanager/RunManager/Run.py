@@ -30,6 +30,7 @@ class Run:
     low_freq_cutoff = None
     max_freq = None
     src_freq = None
+    min_vs = None
 
     def __init__(self):
         self.run_id = None
@@ -52,7 +53,7 @@ class Run:
         self.low_freq_cutoff = None
         self.max_freq = None
         self.src_freq = None
-
+        self.min_vs = None
 
     def copy(self, obj):
         self.run_id = obj.run_id
@@ -75,7 +76,7 @@ class Run:
         self.low_freq_cutoff = obj.low_freq_cutoff
         self.max_freq = obj.max_freq
         self.src_freq = obj.src_freq
-
+        self.min_vs = obj.min_vs
 
     #@staticmethod
     def formatHeader(self):
@@ -298,6 +299,12 @@ class Run:
 
     def getSrcFreq(self):
         return self.src_freq
+
+    def setMinVs(self, min_vs):
+        self.min_vs = min_vs
+
+    def getMinVs(self):
+        return self.min_vs
 
     def dumpToScreen(self):
         if (self.site_obj != None):
