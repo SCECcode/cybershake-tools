@@ -54,6 +54,7 @@ public class CyberShake_Stochastic_DAXGen {
 	
 	//Transformation names
     private final static String GET_VELOCITY_INFO = "Velocity_Info";
+    private final static String VEL_INSERT = "BB_Velocity_Insert";
     private final static String GEN_STOCH_DAX = "GenStochDax";
     private final static String LOCAL_VM_NAME = "Local_VM";
     private final static String CREATE_DIRS_NAME = "Create_Dirs";
@@ -237,6 +238,20 @@ public class CyberShake_Stochastic_DAXGen {
     	return velocityJob;
     }
 
+    private Job getVelInsertJob() {
+    	String id = VEL_INSERT;
+    	Job velocityInsertJob = new Job(id, NAMESPACE, VEL_INSERT, VERSION);
+    	
+    	File velocityInfoFile = new File(sParams.getVelocityInfoFile());
+    	velocityInsertJob.uses(velocityInfoFile, LINK.INPUT);
+    	
+    	velocityInsertJob.addArgument("-vi " + sParams.getVelocityInfoFile());
+    	velocityInsertJob.addArgument("-bbid " + riq.getRunID());
+    	velocityInsertJob.addArgument("-lfid " + sParams.getLfRunID());
+    	
+    	return velocityInsertJob;
+    }
+    
 	private Job genStochDAX(File daxFile) {
 		//Runs a job which creates a DAX for running the SGT jobs
 		String id = GEN_STOCH_DAX + "_" + riq.getSiteName();
@@ -314,6 +329,11 @@ public class CyberShake_Stochastic_DAXGen {
 	    Job velocityJob = getVelInfo();
 	    topDAX.addJob(velocityJob);
 
+	    // Create job to populate DB with Vs30, Z1.0, Z2.5 for broadband run
+	    Job velocityInsertJob = getVelInsertJob();
+	    topDAX.addJob(velocityInsertJob);
+	    topDAX.addDependency(velocityJob, velocityInsertJob);
+	    
 	    File genStochDaxFile = new File(DAX_FILENAME_PREFIX + riq.getSiteName() + DAX_FILENAME_EXTENSION);
 	    genStochDaxFile.setRegister(false);
 	    genStochDaxFile.setTransfer(TRANSFER.FALSE);
