@@ -135,6 +135,10 @@ fi
 
 OUTPUT_SITE=$REMOTE_SITE
 
+if [ $REMOTE_SITE == "summit" ]; then
+    REMOTE_SITE=$REMOTE_SITE,summit-pilot
+fi
+
 # Modify properties file if 2 levels
 if [ $TWO_LEVELS -eq 1 ]; then
 	cp $propfile properties.sgt.top
@@ -169,7 +173,7 @@ fi
 # Update run state, use the remote site with "_noglideins" stripped off as the host name
 # Use output site, it can't have titan-pilot added to it
 REMOTE_PART=${OUTPUT_SITE%%_*}
-
+echo "Setting SGT Host to $REMOTE_PART"
 if [ "$ONE_SITE" -eq 0 ]; then
 	while read LINE ; do
 	    RUN_ID=`echo $LINE | awk '{print $1}'`
