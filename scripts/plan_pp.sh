@@ -15,11 +15,18 @@ REMOTE_SITE=$3
 OUTPUT_DIR_ROOT=/project/scec_608/cybershake/results
 NEW_PROXY=$X509_USER_PROXY
 
+OUTPUT_SITE=$REMOTE_SITE
+
 #if Blue Waters, use scottcal proxy
 if [ "$REMOTE_SITE" == "bluewaters" ]; then
         echo "Using Blue Waters proxy"
         #NEW_PROXY=/tmp/x509up_u33527
 fi
+
+if [ "$REMOTE_SITE" == "summit" ]; then
+    REMOTE_SITE=$REMOTE_SITE,summit-pilot
+fi
+
 
 export X509_USER_PROXY=$NEW_PROXY
 
@@ -69,7 +76,7 @@ else
 	export X509_USER_PROXY=/home/shock-ssd/scottcal/condor/x509up_u7588
 fi
 
-UPDATE_SITE=${REMOTE_SITE}
+UPDATE_SITE=${OUTPUT_SITE}
 #Add titan-pilot to remote site list so we can use pilot jobs for post-processing
 #if [ "${REMOTE_SITE}" == "titan" ]; then
 #	REMOTE_SITE=$REMOTE_SITE,titan-pilot
