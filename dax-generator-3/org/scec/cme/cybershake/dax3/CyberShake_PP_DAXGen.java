@@ -185,10 +185,10 @@ public class CyberShake_PP_DAXGen {
 			daxArgs.append(" -q");
 			//jDax.addArgument("--force");
 			//jDax.addArgument("-q");
-			if (cont.getParams().getPPSite()!=null) {
+			//if (cont.getParams().getPPSite()!=null) {
 				//jDax.addArgument("-s " + cont.getParams().getPPSite() + ",shock");
-				daxArgs.append(" -s " + cont.getParams().getPPSite() + ",shock");
-			}
+			//	daxArgs.append(" -s " + cont.getParams().getPPSite() + ",shock");
+			//}
 			//Force stage-out of zip files
 			//jDax.addArgument("--output-sites shock");
 			//jDax.addArgument("--output-dir " + OUTPUT_DIR + "/" + siteName + "/" + cont.getRIQ().getRunID());

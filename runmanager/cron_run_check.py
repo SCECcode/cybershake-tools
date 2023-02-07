@@ -325,9 +325,9 @@ def createCompCurves(rm, m):
                 if c.getIMComponent()!="RotD50":
                     continue
                 if (period_list == ''):
-                    period_list = str(int(round(c.getIMValue())))
+                    period_list = str(float(c.getIMValue()))
                 else:
-                    period_list = '%s,%s' % (period_list, str(int(round(c.getIMValue()))))
+                    period_list = '%s,%s' % (period_list, str(float(c.getIMValue())))
 
             # Construct path
             output_dir = '%s%s' % (CURVE_DIR, run.getSite().getShortName())

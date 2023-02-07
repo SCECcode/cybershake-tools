@@ -199,6 +199,8 @@ class RunManager:
             fields["Max_Frequency"] = run.getMaxFreq()
         if (run.getSrcFreq() != None):
             fields["SGT_Source_Filter_Frequency"] = run.getSrcFreq()
+        if (run.getMinVs() != None):
+            fields["Minimum_Vs"] = run.getMinVs()
             
         return fields
 
@@ -657,7 +659,7 @@ class RunManager:
     
 
     def createRunByParam(self, site_name, erf_id, sgt_var_id, vel_id, 
-                         rup_var_id, freq=0.5, src_freq=None, max_freq=None, status=None, sgthost=None):
+                         rup_var_id, freq=0.5, src_freq=None, max_freq=None, status=None, sgthost=None, min_vs=500.0):
         if ((site_name == None) or (erf_id == None) or \
                 (sgt_var_id == None) or (rup_var_id == None)):
             return None
@@ -681,6 +683,8 @@ class RunManager:
             run.setStatus(status)
         if sgthost!=None:
             run.setSGTHost(sgthost)
+        if min_vs!=None:
+            run.setMinVs(min_vs)
 
         return (self.createRun(run))
 
