@@ -94,7 +94,7 @@ public class CyberShake_Stochastic_DAXGen {
 		Option server = OptionBuilder.withArgName("server").withLongOpt("server").hasArg().withDescription("Server to use for site parameters and to insert PSA values into").create("sr");
         Option h_frac = OptionBuilder.withArgName("h_fraction").withLongOpt("h_fraction").hasArg().withDescription("Depth, in fractions of a grid point, to query UCVM at when populating the surface points.").create("hf");
         Option db_rvfrac_seed = new Option("dbrs", "db-rv-seed", false, "Use rvfrac value and seed from the database, if provided.");
-        
+        Option hf_velocity_model = OptionBuilder.withArgName("hf_vel_model").withLongOpt("hf_vel_model").hasArg().withDescription("1D velocity model to use for high-frequency synth. Options are 'labasin' (default) or 'mojave').").create("hfv");
         
 		cmd_opts.addOption(help);
 		cmd_opts.addOption(mergeFrequency);
@@ -109,6 +109,7 @@ public class CyberShake_Stochastic_DAXGen {
 		cmd_opts.addOption(server);
 		cmd_opts.addOption(h_frac);
 		cmd_opts.addOption(db_rvfrac_seed);
+		cmd_opts.addOption(hf_velocity_model);
 		
 		CommandLineParser parser = new GnuParser();
         if (args.length<=1) {
@@ -193,6 +194,10 @@ public class CyberShake_Stochastic_DAXGen {
         
         if (line.hasOption(db_rvfrac_seed.getOpt())) {
         	sParams.setUseDBrvfracSeed(true);
+        }
+        
+        if (line.hasOption(hf_velocity_model.getOpt())) {
+        	sParams.setHfVelocityModel(line.getOptionValue(hf_velocity_model.getOpt()));
         }
         
     	//Put this at the end so we can pick up a different server, if needed

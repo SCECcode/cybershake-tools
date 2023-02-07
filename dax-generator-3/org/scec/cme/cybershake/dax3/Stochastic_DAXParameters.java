@@ -20,6 +20,7 @@ public class Stochastic_DAXParameters {
 	//Change default to h/4
 	private double h_frac = 0.25;
 	private boolean useDBrvfracSeed = false;
+	private String hfVelocityModel = "labasin";
 	
 	public double getStochFrequency() {
 		return stochFrequency;
@@ -123,5 +124,11 @@ public class Stochastic_DAXParameters {
 
 	public void setUseDBrvfracSeed(boolean useDBrvfrac) {
 		this.useDBrvfracSeed = useDBrvfrac;
+	}
+	public String getHfVelocityModel() {
+		return hfVelocityModel;
+	}
+	public void setHfVelocityModel(String hfVelocityModel) {
+		this.hfVelocityModel = hfVelocityModel;
 	}
 }

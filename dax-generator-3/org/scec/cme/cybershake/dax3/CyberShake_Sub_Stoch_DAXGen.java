@@ -31,6 +31,8 @@ public class CyberShake_Sub_Stoch_DAXGen {
 	private final String NAMESPACE = "scec";
 	private final String VERSION = "1.0";
 	private final String VM_FILENAME = "nr02-vs500.fk1d";
+	private final String MOJAVE_VM_FILENAME = "mj-vs500.fk1d";
+	private final HashMap<String, String> hf_vel_model_map;
 	private final static String SEISMOGRAM_FILENAME_PREFIX = "Seismogram_";
     private final static String SEISMOGRAM_FILENAME_EXTENSION = ".grm";
     private static double DT = 0.01;
@@ -83,6 +85,10 @@ public class CyberShake_Sub_Stoch_DAXGen {
 			System.err.println("When setting DT value, found that stochastic freq in DB is set to only " + sParams.getStochFrequency() + " Hz.  Should be at least 10 Hz, aborting.");
 			System.exit(3);
 		}
+		//Create and populate argument string to LFN map for 1D HF velocity files
+		hf_vel_model_map = new HashMap<String, String>();
+		hf_vel_model_map.put("labasin", VM_FILENAME);
+		hf_vel_model_map.put("mojave", MOJAVE_VM_FILENAME);
 	}
     
 	public static void main(String[] args) {
@@ -774,8 +780,9 @@ public class CyberShake_Sub_Stoch_DAXGen {
       		Job updateJob = addUpdate(riq.getRunID(), "PP_INIT", "PP_START");
       		dax.addJob(updateJob);
 			
-			String localVMFilename = VM_FILENAME + ".local";
-			Job localVMJob = createLocalVMJob(VM_FILENAME, localVMFilename);
+			String localVMFilename = hf_vel_model_map.get(sParams.getHfVelocityModel()) + ".local";
+			
+			Job localVMJob = createLocalVMJob(hf_vel_model_map.get(sParams.getHfVelocityModel()), localVMFilename);
 			dax.addJob(localVMJob);
 			dax.addDependency(updateJob, localVMJob);
 			
