@@ -107,7 +107,8 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		Option server = OptionBuilder.withArgName("server").withLongOpt("server").hasArg().withDescription("Server to use for site parameters and to insert PSA values into").create("sr");
 		Option mergeFrequency = OptionBuilder.withArgName("merge_frequency").withLongOpt("merge_frequency").hasArg().withDescription("(Deprecated) merge frequency.  This is now taken from the DB.").create("mf");
         Option db_rvfrac_seed = new Option("dbrs", "db-rv-seed", false, "Use rvfrac value and seed from the database, if provided.");
-		Option debug = new Option("d", "debug", false, "Debug flag.");
+        Option hf_velocity_model = OptionBuilder.withArgName("hf_vel_model").withLongOpt("hf_vel_model").hasArg().withDescription("1D velocity model to use for high-frequency synth. Options are 'labasin' (default) or 'mojave').").create("hfv");
+        Option debug = new Option("d", "debug", false, "Debug flag.");
 		
 		cmd_opts.addOption(help);
 		cmd_opts.addOption(runID);
@@ -121,6 +122,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		cmd_opts.addOption(server);
 		cmd_opts.addOption(mergeFrequency);
 		cmd_opts.addOption(db_rvfrac_seed);
+		cmd_opts.addOption(hf_velocity_model);
 		cmd_opts.addOption(debug);
 		
 		CommandLineParser parser = new GnuParser();
@@ -204,6 +206,10 @@ public class CyberShake_Sub_Stoch_DAXGen {
         
         if (line.hasOption(db_rvfrac_seed.getOpt())) {
         	sParams.setUseDBrvfracSeed(true);
+        }
+        
+        if (line.hasOption(hf_velocity_model.getOpt())) {
+        	sParams.setHfVelocityModel(line.getOptionValue(hf_velocity_model.getOpt()));
         }
         
         sParams.setDirectory(".");
