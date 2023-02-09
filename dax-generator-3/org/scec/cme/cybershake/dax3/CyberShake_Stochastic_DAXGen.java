@@ -288,7 +288,7 @@ public class CyberShake_Stochastic_DAXGen {
 
 		genStochDAXJob.addArgument("-o " + daxFile.getName());
 		genStochDAXJob.addArgument("-v " + velocityFile.getName());
-		genStochDAXJob.addArgument("-hvf " + sParams.getHfVelocityModel());
+		genStochDAXJob.addArgument("-hfv " + sParams.getHfVelocityModel());
 		
 		genStochDAXJob.uses(velocityFile, LINK.INPUT);
 		genStochDAXJob.uses(daxFile, LINK.OUTPUT);
