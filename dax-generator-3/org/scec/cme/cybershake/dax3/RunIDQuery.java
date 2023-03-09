@@ -159,6 +159,8 @@ public class RunIDQuery {
 			sourceString = "Wills (2006)";
 		} else if (vs30Source==Vs30_Source.Thompson2020) {
 			sourceString = "Thompson et al. (2020)";
+		} else if (vs30Source==Vs30_Source.WaldAllenTopoSlope) {
+			sourceString = "Topographic Slope (Wald & Allen 2008)";
 		}
 		String update = "update CyberShake_Runs set Target_Vs30=" + vs30 + ", Vs30_Source=\"" + sourceString + "\" where Run_ID=" + runID;
 		dbc.insertData(update);
