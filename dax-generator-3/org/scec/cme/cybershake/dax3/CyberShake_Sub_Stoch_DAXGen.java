@@ -474,6 +474,8 @@ public class CyberShake_Sub_Stoch_DAXGen {
 			if (nstk==-1 || ndip==-1) {
 				numCols = Math.min(300, (int)(Math.sqrt(numPoints)));
 				numRows = (int)Math.ceil(numPoints/numCols);
+				nstk = numCols;
+				ndip = numRows;
 			}
 			double tmpSrfMem = (8.0*(nstk*ndip*13.8+32.7*Math.max(nstk, ndip)*Math.max(nstk, ndip)))/(1024.0*1024.0);
 			double outputMem = sParams.getTlen()/DT * 2.0 * 4.0 / (1024.0 * 1024.0);
