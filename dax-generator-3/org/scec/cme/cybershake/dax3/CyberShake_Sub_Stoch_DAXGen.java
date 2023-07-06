@@ -470,6 +470,11 @@ public class CyberShake_Sub_Stoch_DAXGen {
 			//tmp SRF data is sizeof(complex)*(nstk*ndip*13.8+32.7*max(nstk, ndip)*max(nstk, ndip)
 			int nstk = numCols;
 			int ndip = numRows;
+			//If numRows and NumCols are both -1, use min(sqrt(numPoints), 300) for numRows
+			if (nstk==-1 || ndip==-1) {
+				numCols = Math.min(300, (int)(Math.sqrt(numPoints)));
+				numRows = (int)Math.ceil(numPoints/numCols);
+			}
 			double tmpSrfMem = (8.0*(nstk*ndip*13.8+32.7*Math.max(nstk, ndip)*Math.max(nstk, ndip)))/(1024.0*1024.0);
 			double outputMem = sParams.getTlen()/DT * 2.0 * 4.0 / (1024.0 * 1024.0);
 			//slipfile memory:  3 x NP x NQ x LV x sizeof(float)
