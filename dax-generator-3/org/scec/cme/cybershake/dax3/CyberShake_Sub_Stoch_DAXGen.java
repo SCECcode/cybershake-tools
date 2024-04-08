@@ -33,6 +33,8 @@ public class CyberShake_Sub_Stoch_DAXGen {
 	private final String VM_FILENAME = "nr02-vs500.fk1d";
 	private final String MOJAVE_VM_FILENAME = "mj-vs500.fk1d";
 	private final String SOUTHERN_SIERRA_VM_FILENAME = "ssn2-vs500.fk1d";
+	private final String CENTRAL_CAL_VM_FILENAME = "pf01-vs500.fk1d";
+	private final String NO_CAL_VM_FILENAME = "lp-vs500.fk1d";
 	private final HashMap<String, String> hf_vel_model_map;
 	private final static String SEISMOGRAM_FILENAME_PREFIX = "Seismogram_";
     private final static String SEISMOGRAM_FILENAME_EXTENSION = ".grm";
@@ -91,6 +93,8 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		hf_vel_model_map.put("labasin", VM_FILENAME);
 		hf_vel_model_map.put("mojave", MOJAVE_VM_FILENAME);
 		hf_vel_model_map.put("southernsierra", SOUTHERN_SIERRA_VM_FILENAME);
+		hf_vel_model_map.put("centralcal", CENTRAL_CAL_VM_FILENAME);
+		hf_vel_model_map.put("nocal", NO_CAL_VM_FILENAME);
 	}
     
 	public static void main(String[] args) {
