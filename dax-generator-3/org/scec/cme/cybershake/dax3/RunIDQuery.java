@@ -57,6 +57,7 @@ public class RunIDQuery {
 	private final int USGS_ID = 11;
 	private final int STUDY_18_8_ID = 12;
 	private final int STUDY_22_12_ID = 13;
+	private final int SFCVM_ID = 14;
 	
 	private static String DEFAULT_HOSTNAME = "moment.usc.edu";
 	private final String DB_NAME = "CyberShake";
@@ -265,6 +266,8 @@ public class RunIDQuery {
     			velModelString = "cca,usgs,cvmsi";
     		} else if (velModelID==STUDY_22_12_ID) {
     			velModelString = "cvmsi";
+    		} else if (velModelID==SFCVM_ID) {
+    			velModelString = "sfcvm";
     		} else {
     			System.err.println("Velocity model ID " + velModelID + " can't be converted to a string representation.");
     			System.exit(3);
