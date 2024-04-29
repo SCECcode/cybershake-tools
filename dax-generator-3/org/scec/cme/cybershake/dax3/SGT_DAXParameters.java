@@ -29,6 +29,7 @@ public class SGT_DAXParameters {
 	
 	private String taperMode = "none";
 	private double taperDepth = 700.0;
+	private String taperModels = "all";
 	
 	public SGT_DAXParameters(String filename) {
 		this.daxFilename = filename;
@@ -173,6 +174,14 @@ public class SGT_DAXParameters {
 
 	public void setTaperDepth(double taperDepth) {
 		this.taperDepth = taperDepth;
+	}
+
+	public void setTaperModels(String taperModelString) {
+		this.taperModels = taperModelString;
+	}
+	
+	public String getTaperModels() {
+		return this.taperModels;
 	}
 	
 	

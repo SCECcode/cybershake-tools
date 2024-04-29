@@ -107,6 +107,7 @@ public class CyberShake_SGT_DAXGen {
         Option rotation = OptionBuilder.withArgName("rotation").withLongOpt("rotation").hasArg().withDescription("Rotation angle of simulation volume, in degrees.  Defaults to -55.").create("rt");
         Option elyTaper = OptionBuilder.withArgName("ely-taper").hasArg().withDescription("Ely taper mode to use, either 'all' (always use the taper), 'none' (the default: use the model, never the taper), or 'ifless' (at each point, use the approach with the smaller Vs)").withLongOpt("ely-taper").create("et");
         Option taperDepthOpt = OptionBuilder.withArgName("taper-depth").hasArg().withDescription("Depth in meters to use with Ely taper for 'all' or 'ifless' modes.  Default is 700.").withLongOpt("taper-depth").create("td");
+        Option taperModels = OptionBuilder.withArgName("taper-models").hasArg().withDescription("List of models to apply the taper to, 'all', or 'none'.  Default is 'all'.").withLongOpt("taper-models").create("tm");
 
         
         cmd_opts.addOption(help);
@@ -126,6 +127,7 @@ public class CyberShake_SGT_DAXGen {
         cmd_opts.addOption(rotation);
         cmd_opts.addOption(elyTaper);
         cmd_opts.addOption(taperDepthOpt);
+        cmd_opts.addOption(taperModels);
         
         String usageString = "CyberShake_SGT_DAXGen <output filename> <destination directory> [options] [-f <runID file, one per line> | -r <runID1> <runID2> ... ]";
         CommandLineParser parser = new GnuParser();
@@ -237,6 +239,11 @@ public class CyberShake_SGT_DAXGen {
 		if (line.hasOption(taperDepthOpt.getOpt())) {
 			double taperDepth = Double.parseDouble(line.getOptionValue(taperDepthOpt.getOpt()));
 			sgt_params.setTaperDepth(taperDepth);
+		}
+		
+		if (line.hasOption(taperModels.getOpt())) {
+			String taperModelString = line.getOptionValue(taperModels.getOpt());
+			sgt_params.setTaperModels(taperModelString);
 		}
 		
 		sgt_params.setRunIDQueries(runIDQueries);
