@@ -482,6 +482,7 @@ public class CyberShake_SGT_DAXGen {
 		genSGTDAXJob.addArgument("--ely-taper " + sgt_params.getTaperMode());
 		if (!sgt_params.getTaperMode().equals("none")) {
 			genSGTDAXJob.addArgument("--taper-depth " + sgt_params.getTaperDepth());
+			genSGTDAXJob.addArgument("--taper-models " + sgt_params.getTaperModels());
 		}
 		
 		genSGTDAXJob.uses(gridoutFile, LINK.INPUT);
@@ -600,7 +601,8 @@ public class CyberShake_SGT_DAXGen {
 		if (sgtType.contains("rwg")) {
 			vMeshJob.addArgument("--format rwg");
 		} else if (sgtType.contains("awp")) {
-			vMeshJob.addArgument("--format awp");
+			//Switch default AWP mode to AWP with fast Z queries, faster on Frontier
+			vMeshJob.addArgument("--format awpz");
 		} else {
 			System.err.println("SGT type " + sgtType + " is not RWG or AWP.  Not sure what velocity mesh format to use, aborting.");
 			System.exit(1);

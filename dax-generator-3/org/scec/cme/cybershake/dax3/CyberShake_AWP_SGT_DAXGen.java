@@ -45,6 +45,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		Option h_frac = OptionBuilder.withArgName("h_fraction").withLongOpt("h_fraction").hasArg().withDescription("Depth, in fractions of a grid point, to query UCVM at when populating the surface points.").create("hf");
         Option elyTaper = OptionBuilder.withArgName("ely-taper").hasArg().withDescription("Ely taper mode to use, either 'all' (always use the taper), 'none' (the default: use the model, never the taper), or 'ifless' (at each point, use the approach with the smaller Vs)").withLongOpt("ely-taper").create("et");
         Option taperDepthOpt = OptionBuilder.withArgName("taper-depth").hasArg().withDescription("Depth in meters to use with Ely taper for 'all' or 'ifless' modes.  Default is 700.").withLongOpt("taper-depth").create("td");
+        Option taperModels = OptionBuilder.withArgName("taper-models").hasArg().withDescription("List of models to apply the taper to, 'all', or 'none'.  Default is 'all'.").withLongOpt("taper-models").create("tm");
         
         cmd_opts.addOption(runIDopt);
         cmd_opts.addOption(gridoutFile);
@@ -60,6 +61,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		cmd_opts.addOption(h_frac);
 		cmd_opts.addOption(elyTaper);
 		cmd_opts.addOption(taperDepthOpt);
+		cmd_opts.addOption(taperModels);
         
         String usageString = "CyberShake_AWP_SGT_DAXGen [options]";
         CommandLineParser parser = new GnuParser();
@@ -163,6 +165,11 @@ public class CyberShake_AWP_SGT_DAXGen {
 			taperDepth = Double.parseDouble(line.getOptionValue(taperDepthOpt.getOpt()));
 		}
 		
+		String taperModelsString = "none";
+		if (line.hasOption(taperModels.getOpt())) {
+			taperModelsString = line.getOptionValue(taperModels.getOpt());
+		}
+		
 		ADAG sgtDAX = new ADAG("AWP_SGT_" + riq.getSiteName() + ".dax");
 		
 		Job velocityJob = null;
@@ -177,7 +184,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 			
 			velocityJob = vMeshMerge;
 		} else {
-			Job vMeshJob = addVMeshSingle(spacing, min_vs, h_frac_val, taperMode, taperDepth);
+			Job vMeshJob = addVMeshSingle(spacing, min_vs, h_frac_val, taperMode, taperDepth, taperModelsString);
 			sgtDAX.addJob(vMeshJob);
 			
 			velocityJob = vMeshJob;
@@ -737,7 +744,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		return awpJob;
 	}
 		
-	private static Job addVMeshSingle(double spacing, double min_vs, double h_frac_val, String taperMode, double taperDepth) {
+	private static Job addVMeshSingle(double spacing, double min_vs, double h_frac_val, String taperMode, double taperDepth, String taperModels) {
 		String id = "UCVMMesh_" + riq.getSiteName();
 		Job vMeshJob = new Job(id, "scec", "UCVMMesh", "1.0");
 		
@@ -774,6 +781,8 @@ public class CyberShake_AWP_SGT_DAXGen {
 		vMeshJob.addArgument("--ely-taper " + taperMode);
 		
 		vMeshJob.addArgument("--taper-depth " + taperDepth);
+		
+		vMeshJob.addArgument("--taper-models " + taperModels);
 		
 		gridoutFile.setTransfer(File.TRANSFER.TRUE);
 		coordFile.setTransfer(File.TRANSFER.TRUE);
