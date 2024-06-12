@@ -694,7 +694,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		smoothJob.addArgument("--mesh " + inputMeshFile.getName());
 		smoothJob.addArgument("--mesh-out " + outputMeshFile.getName());
 				
-		smoothJob.addProfile("globus", "hostcount", "2");
+		//smoothJob.addProfile("globus", "hostcount", "2");
 //		smoothJob.addProfile("globus", "count", "64");
 //		smoothJob.addProfile("pegasus", "cores", "64");
 		
