@@ -108,7 +108,7 @@ public class CyberShake_SGT_DAXGen {
         Option elyTaper = OptionBuilder.withArgName("ely-taper").hasArg().withDescription("Ely taper mode to use, either 'all' (always use the taper), 'none' (the default: use the model, never the taper), or 'ifless' (at each point, use the approach with the smaller Vs)").withLongOpt("ely-taper").create("et");
         Option taperDepthOpt = OptionBuilder.withArgName("taper-depth").hasArg().withDescription("Depth in meters to use with Ely taper for 'all' or 'ifless' modes.  Default is 700.").withLongOpt("taper-depth").create("td");
         Option taperModels = OptionBuilder.withArgName("taper-models").hasArg().withDescription("List of models to apply the taper to, 'all', or 'none'.  Default is 'all'.").withLongOpt("taper-models").create("tm");
-
+        Option z_comp = new Option("z", "z_comp", false, "Calculate SGTs for the vertical Z component.");
         
         cmd_opts.addOption(help);
         cmd_opts.addOptionGroup(runIDGroup);
@@ -128,6 +128,7 @@ public class CyberShake_SGT_DAXGen {
         cmd_opts.addOption(elyTaper);
         cmd_opts.addOption(taperDepthOpt);
         cmd_opts.addOption(taperModels);
+        cmd_opts.addOption(z_comp);
         
         String usageString = "CyberShake_SGT_DAXGen <output filename> <destination directory> [options] [-f <runID file, one per line> | -r <runID1> <runID2> ... ]";
         CommandLineParser parser = new GnuParser();
@@ -244,6 +245,10 @@ public class CyberShake_SGT_DAXGen {
 		if (line.hasOption(taperModels.getOpt())) {
 			String taperModelString = line.getOptionValue(taperModels.getOpt());
 			sgt_params.setTaperModels(taperModelString);
+		}
+		
+		if (line.hasOption(z_comp.getOpt())) {
+			sgt_params.setZComp(true);
 		}
 		
 		sgt_params.setRunIDQueries(runIDQueries);
@@ -483,6 +488,10 @@ public class CyberShake_SGT_DAXGen {
 		if (!sgt_params.getTaperMode().equals("none")) {
 			genSGTDAXJob.addArgument("--taper-depth " + sgt_params.getTaperDepth());
 			genSGTDAXJob.addArgument("--taper-models " + sgt_params.getTaperModels());
+		}
+		
+		if (sgt_params.isZComp()) {
+			genSGTDAXJob.addArgument("--z_comp");
 		}
 		
 		genSGTDAXJob.uses(gridoutFile, LINK.INPUT);
@@ -936,6 +945,10 @@ public class CyberShake_SGT_DAXGen {
 		//Only need to reformat velocity if we ran separate velocity jobs
 		if (sgt_params.isSeparateVelocityJobs()) {
 			preAWPJob.addArgument("--velocity-prefix " + mergeVelocityFile);
+		}
+		
+		if (sgt_params.isZComp()) {
+			preAWPJob.addArgument("--z-component");
 		}
 		
 		preAWPJob.uses(gridoutFile, LINK.INPUT);

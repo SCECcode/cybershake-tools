@@ -295,6 +295,7 @@ public class CyberShake_PP_DAXGen {
         Option durations = new Option("du", "duration", false, "Calculate duration metrics and insert them into the database.");
         Option seis_length = OptionBuilder.withArgName("seis_length").hasArg().withDescription("Length of output seismograms in seconds. Default is 500.").create("sl");
         Option db_rvfrac_seed = new Option("dbrs", "db-rv-seed", false, "Use rvfrac value and seed from the database, if provided.");
+        Option z_comp = new Option("z", "z_comp", false, "Calculate seismograms and IMs for the vertical Z component.");
         Option debug = new Option("d", "debug", false, "Debug flag.");
 
         
@@ -330,6 +331,7 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(durations);
         cmd_opts.addOption(seis_length);
         cmd_opts.addOption(db_rvfrac_seed);
+        cmd_opts.addOption(z_comp);
 
         CommandLineParser parser = new GnuParser();
         if (args.length<=1) {
@@ -495,6 +497,10 @@ public class CyberShake_PP_DAXGen {
         
         if (line.hasOption(db_rvfrac_seed.getOpt())) {
         	pp_params.setUseDBrvfracSeed(true);
+        }
+        
+        if (line.hasOption(z_comp.getOpt())) {
+        	pp_params.setZComp(true);
         }
         //Removing notifications
         pp_params.setNotifyGroupSize(pp_params.getNumOfDAXes()+1);
@@ -1135,6 +1141,7 @@ public class CyberShake_PP_DAXGen {
 		
         File sgt_xfile = new File(riq.getSiteName()+"_fx_" + riq.getRunID() + ".sgt");
         File sgt_yfile = new File(riq.getSiteName()+"_fy_" + riq.getRunID() + ".sgt");
+        File sgt_zfile = null;
         sgt_xfile.setTransfer(TRANSFER.TRUE);
         sgt_yfile.setTransfer(TRANSFER.TRUE);
         sgt_xfile.setRegister(false);
@@ -1145,6 +1152,7 @@ public class CyberShake_PP_DAXGen {
 		
         File sgt_x_header = new File(riq.getSiteName()+"_fx_" + riq.getRunID() + ".sgthead");
         File sgt_y_header = new File(riq.getSiteName()+"_fy_" + riq.getRunID() + ".sgthead");
+        File sgt_z_header = null;
 		
         sgt_x_header.setTransfer(TRANSFER.TRUE);
         sgt_y_header.setTransfer(TRANSFER.TRUE);
@@ -1153,13 +1161,24 @@ public class CyberShake_PP_DAXGen {
 		
 		directSynthJob.addArgument("x_header=" + sgt_x_header.getName());
 		directSynthJob.addArgument("y_header=" + sgt_y_header.getName());
+		
+		if (params.isZComp()) {
+			sgt_zfile = new File(riq.getSiteName()+"_fz_" + riq.getRunID() + ".sgt");
+			sgt_zfile.setTransfer(TRANSFER.TRUE);
+			sgt_zfile.setRegister(false);
+			directSynthJob.addArgument("sgt_zfile=" + sgt_zfile.getName());
+	        sgt_z_header = new File(riq.getSiteName()+"_fz_" + riq.getRunID() + ".sgthead");
+	        sgt_z_header.setTransfer(TRANSFER.TRUE);
+	        sgt_z_header.setRegister(false);
+		}
+		
 		directSynthJob.addArgument("det_max_freq=" + params.getDetFrequency());
 		if (params.isStochastic()) {
 			directSynthJob.addArgument("stoch_max_freq=" + params.getStochasticFrequency());
 		} else {
 			directSynthJob.addArgument("stoch_max_freq=-1.0"); //signify no stochastic components
 		}
-		directSynthJob.addArgument("run_psa=1");
+		directSynthJob.addArgument("run_psa=0");
 		
 		if (params.isCalculateRotD()) {
 			directSynthJob.addArgument("run_rotd=1");
@@ -1178,7 +1197,11 @@ public class CyberShake_PP_DAXGen {
 		}
 		
 		directSynthJob.addArgument("dtout=" + LF_TIMESTEP);
-		directSynthJob.addArgument("simulation_out_pointsX=2");
+		if (params.isZComp()==false) {
+			directSynthJob.addArgument("simulation_out_pointsX=2");
+		} else {
+			directSynthJob.addArgument("simulation_out_pointsX=3");
+		}
 		directSynthJob.addArgument("simulation_out_pointsY=1");
 		directSynthJob.addArgument("simulation_out_timesamples=" + NUMTIMESTEPS);
 		directSynthJob.addArgument("simulation_out_timeskip=" + LF_TIMESTEP);
@@ -1193,6 +1216,12 @@ public class CyberShake_PP_DAXGen {
 		directSynthJob.uses(sgt_yfile, LINK.INPUT);
 		directSynthJob.uses(sgt_x_header, LINK.INPUT);
 		directSynthJob.uses(sgt_y_header, LINK.INPUT);
+		
+		if (params.isZComp()==true) {
+			directSynthJob.uses(sgt_zfile, LINK.INPUT);
+			directSynthJob.uses(sgt_z_header, LINK.INPUT);
+		}
+		
 		directSynthJob.uses(rup_list_file, LINK.INPUT);
 		
 		dax.addJob(directSynthJob);

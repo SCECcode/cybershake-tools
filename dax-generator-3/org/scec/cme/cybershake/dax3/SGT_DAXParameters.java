@@ -31,6 +31,8 @@ public class SGT_DAXParameters {
 	private double taperDepth = 700.0;
 	private String taperModels = "all";
 	
+	private boolean zComp = false;
+	
 	public SGT_DAXParameters(String filename) {
 		this.daxFilename = filename;
 		this.directory = ".";
@@ -182,6 +184,14 @@ public class SGT_DAXParameters {
 	
 	public String getTaperModels() {
 		return this.taperModels;
+	}
+
+	public boolean isZComp() {
+		return zComp;
+	}
+
+	public void setZComp(boolean zComp) {
+		this.zComp = zComp;
 	}
 	
 	

@@ -66,6 +66,8 @@ public class PP_DAXParameters {
 	//Use rvfrac value from database
 	private boolean useDBrvfracSeed = false;
 	
+	private boolean zComp = false;
+	
 	public PP_DAXParameters() {
 		numOfDAXes = 1;
 		notifyGroupSize = 1;
@@ -396,5 +398,13 @@ public class PP_DAXParameters {
 
 	public void setUseDBrvfracSeed(boolean useDBrvfrac) {
 		this.useDBrvfracSeed = useDBrvfrac;
+	}
+
+	public boolean isZComp() {
+		return zComp;
+	}
+
+	public void setZComp(boolean zComp) {
+		this.zComp = zComp;
 	}
 }
