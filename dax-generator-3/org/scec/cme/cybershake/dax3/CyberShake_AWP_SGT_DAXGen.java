@@ -812,7 +812,12 @@ public class CyberShake_AWP_SGT_DAXGen {
 		if (sgtType.contains("rwg")) {
 			vMeshJob.addArgument("--format rwg");
 		} else if (sgtType.contains("awp")) {
-			vMeshJob.addArgument("--format awp");
+			//Use awpz if we're only selecting a subset of taper models
+			if (taperModels.equals("none") || taperModels.equals("all") || taperModels.equals("")) {
+				vMeshJob.addArgument("--format awpz");
+			} else {
+				vMeshJob.addArgument("--format awp");
+			}
 		} else {
 			System.err.println("SGT type " + sgtType + " is not RWG or AWP.  Not sure what velocity mesh format to use, aborting.");
 			System.exit(1);
