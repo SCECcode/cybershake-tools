@@ -46,6 +46,7 @@ public class CyberShake_AWP_SGT_DAXGen {
         Option elyTaper = OptionBuilder.withArgName("ely-taper").hasArg().withDescription("Ely taper mode to use, either 'all' (always use the taper), 'none' (the default: use the model, never the taper), or 'ifless' (at each point, use the approach with the smaller Vs)").withLongOpt("ely-taper").create("et");
         Option taperDepthOpt = OptionBuilder.withArgName("taper-depth").hasArg().withDescription("Depth in meters to use with Ely taper for 'all' or 'ifless' modes.  Default is 700.").withLongOpt("taper-depth").create("td");
         Option taperModels = OptionBuilder.withArgName("taper-models").hasArg().withDescription("List of models to apply the taper to, 'all', or 'none'.  Default is 'all'.").withLongOpt("taper-models").create("tm");
+        Option z_comp = new Option("z", "z_comp", false, "Calculate SGTs for the vertical Z component.");
         
         cmd_opts.addOption(runIDopt);
         cmd_opts.addOption(gridoutFile);
@@ -62,6 +63,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		cmd_opts.addOption(elyTaper);
 		cmd_opts.addOption(taperDepthOpt);
 		cmd_opts.addOption(taperModels);
+		cmd_opts.addOption(z_comp);
         
         String usageString = "CyberShake_AWP_SGT_DAXGen [options]";
         CommandLineParser parser = new GnuParser();
@@ -170,6 +172,11 @@ public class CyberShake_AWP_SGT_DAXGen {
 			taperModelsString = line.getOptionValue(taperModels.getOpt());
 		}
 		
+		boolean runZComp = false;
+		if (line.hasOption(z_comp.getOpt())) {
+			runZComp = true;
+		}
+		
 		ADAG sgtDAX = new ADAG("AWP_SGT_" + riq.getSiteName() + ".dax");
 		
 		Job velocityJob = null;
@@ -209,7 +216,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		}
 		sgtDAX.addDependency(preSGT, velocityParams);
 		
-		Job preAWP = addPreAWP(separateVelJobs, procDims, spacing, smoothing);
+		Job preAWP = addPreAWP(separateVelJobs, procDims, spacing, smoothing, runZComp);
 		sgtDAX.addJob(preAWP);
 		sgtDAX.addDependency(preSGT, preAWP);
 		sgtDAX.addDependency(velocityJob, preAWP);
@@ -222,9 +229,17 @@ public class CyberShake_AWP_SGT_DAXGen {
 		sgtDAX.addJob(awpSGTx);
 		Job awpSGTy = addAWPSGTGen("y", procDims);
 		sgtDAX.addJob(awpSGTy);
+		Job awpSGTz = null;
+		if (runZComp==true) {
+			awpSGTz = addAWPSGTGen("z", procDims);
+			sgtDAX.addJob(awpSGTz);
+		}
 		
 		sgtDAX.addDependency(preAWP, awpSGTx);
 		sgtDAX.addDependency(preAWP, awpSGTy);
+		if (runZComp==true) {
+			sgtDAX.addDependency(preAWP, awpSGTz);
+		}
 		
 		Job postAWPX = addPostAWP("x", separateVelJobs, separateMD5, smoothing);
 		sgtDAX.addJob(postAWPX);
@@ -237,6 +252,15 @@ public class CyberShake_AWP_SGT_DAXGen {
 			sgtDAX.addDependency(smoothingJob, postAWPX);
 			sgtDAX.addDependency(smoothingJob, postAWPY);
 		}
+		Job postAWPZ = null;
+		if (runZComp==true) {
+			postAWPZ = addPostAWP("z", separateVelJobs, separateMD5, smoothing);
+			sgtDAX.addJob(postAWPZ);
+			sgtDAX.addDependency(awpSGTz, postAWPZ);
+			if (smoothing) {
+				sgtDAX.addDependency(smoothingJob, postAWPZ);
+			}
+		}
 
 		Job nanCheckX = addAWPNanCheck("x");
 		sgtDAX.addJob(nanCheckX);
@@ -244,12 +268,18 @@ public class CyberShake_AWP_SGT_DAXGen {
 		Job nanCheckY = addAWPNanCheck("y");
 		sgtDAX.addJob(nanCheckY);
 		sgtDAX.addDependency(awpSGTy, nanCheckY);
+		Job nanCheckZ = null;
+		if (runZComp==true) {
+			nanCheckZ = addAWPNanCheck("z");
+			sgtDAX.addJob(nanCheckZ);
+			sgtDAX.addDependency(awpSGTz, nanCheckZ);
+		}
 		
 		Job updateEnd = addUpdate("SGT_START", "SGT_END");
 		sgtDAX.addJob(updateEnd);
 		
-		Job md5X, md5Y;
-		md5X = md5Y = null;
+		Job md5X, md5Y, md5Z;
+		md5X = md5Y = md5Z = null;
 		
 		if (separateMD5) {
 			md5X = addMD5("x");
@@ -258,12 +288,23 @@ public class CyberShake_AWP_SGT_DAXGen {
 			sgtDAX.addJob(md5Y);
 			sgtDAX.addDependency(md5X, updateEnd);
 			sgtDAX.addDependency(md5Y, updateEnd);
+			if (runZComp==true) {
+				md5Z = addMD5("z");
+				sgtDAX.addJob(md5Z);
+				sgtDAX.addDependency(md5Z, updateEnd);
+			}
 		} else {		
 			sgtDAX.addDependency(postAWPX, updateEnd);
 			sgtDAX.addDependency(postAWPY, updateEnd);
+			if (runZComp==true) {
+				sgtDAX.addDependency(postAWPZ, updateEnd);
+			}
 		}
 		sgtDAX.addDependency(nanCheckX, updateEnd);
 		sgtDAX.addDependency(nanCheckY, updateEnd);
+		if (runZComp==true) {
+			sgtDAX.addDependency(nanCheckZ, updateEnd);
+		}
 		
 		//Add dependency on VelocityParams, since otherwise update can run even though velocityParams fails
 		sgtDAX.addDependency(velocityParams, updateEnd);
@@ -278,6 +319,13 @@ public class CyberShake_AWP_SGT_DAXGen {
 			if (separateMD5) {
 				sgtDAX.addDependency(md5X, handoff);
 				sgtDAX.addDependency(md5Y, handoff);
+			}
+			if (runZComp==true) {
+				sgtDAX.addDependency(postAWPZ, handoff);
+				sgtDAX.addDependency(nanCheckZ, handoff);
+				if (separateMD5) {
+					sgtDAX.addDependency(md5Z, handoff);
+				}
 			}
 			sgtDAX.addDependency(handoff, updateEnd);
 		}
@@ -579,7 +627,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 	}
 
 	
-	private static Job addPreAWP(boolean separate, int[] procDims, double spacing, boolean smoothing) {
+	private static Job addPreAWP(boolean separate, int[] procDims, double spacing, boolean smoothing, boolean zComp) {
 		String jobname = "PreAWP";
 		if (riq.getSgtString().equals("awp_gpu")) {
 			jobname = "PreAWP_GPU";
@@ -634,6 +682,10 @@ public class CyberShake_AWP_SGT_DAXGen {
 			preAWPJob.uses(mergeVelocityFile, LINK.INPUT);
 
 			preAWPJob.addArgument("--velocity-prefix " + mergeVelocityFile);
+		}
+
+		if (zComp==true) {
+			preAWPJob.addArgument("--z_comp");
 		}
 		
 		preAWPJob.uses(gridoutFile, LINK.INPUT);

@@ -482,6 +482,7 @@ public class CyberShake_Integrated_DAXGen {
         Option broadbandArgs = OptionBuilder.withArgName("bbargs").hasArgs().withDescription("Arguments to pass through to BB workflow.").withLongOpt("bbargs").create();
         Option broadbandID = OptionBuilder.withArgName("bbrun").hasArg().withDescription("Run ID for stochastic results.").withLongOpt("broadband-runid").create();
         Option force_vs30 = OptionBuilder.withArgName("fvs30").hasArg().withDescription("Force Target_Vs30 value.").withLongOpt("force_vs30").create("fvs");
+        Option z_comp = new Option("z", "z_comp", false, "Include calculation of Z-component SGTs, seismograms, and IMs.");
         OptionGroup runIDGroup = new OptionGroup();
         runIDGroup.addOption(runIDFile);
         runIDGroup.addOption(runIDList);
@@ -495,6 +496,7 @@ public class CyberShake_Integrated_DAXGen {
         cmd_opts.addOption(broadbandArgs);
         cmd_opts.addOption(broadbandID);
         cmd_opts.addOption(force_vs30);
+        cmd_opts.addOption(z_comp);
 
         String usageString = "CyberShake_Integrated_DAXGen <output filename> <destination directory> [options] [-f <runID file, one per line> | -r <runID1> <runID2> ... ]";
         CommandLineParser parser = new GnuParser();
@@ -530,11 +532,25 @@ public class CyberShake_Integrated_DAXGen {
 			runIDQueries = runIDsFromArgs(line.getOptionValues(runIDList.getOpt()));
 		}
 		
+		boolean runZComp = false;
+		if (line.hasOption(z_comp.getOpt())) {
+			runZComp = true;
+		}
+		
 		ArrayList<String[]> subArgs = new ArrayList<String[]>();
 		
 		String[] sgtArgStrings = null;
 		if (line.hasOption(sgtArgs.getLongOpt())) {
 			sgtArgStrings = line.getOptionValues(sgtArgs.getLongOpt());
+		}
+		//If running the z-component, pass it through
+		if (runZComp==true) {
+			String[] tmpArray = new String[sgtArgStrings.length + 1];
+			for (int i=0; i<sgtArgStrings.length; i++) {
+				tmpArray[i] = sgtArgStrings[i];
+			}
+			tmpArray[tmpArray.length - 1] = "--z_comp";
+			sgtArgStrings = tmpArray;
 		}
 		subArgs.add(sgtArgStrings);
 		
@@ -546,7 +562,15 @@ public class CyberShake_Integrated_DAXGen {
 				System.out.println(p);
 			}
 		}
-		
+		//If running the Z component, pass it through
+		if (runZComp==true) {
+			String[] tmpArray = new String[ppArgs.length + 1];
+			for (int i=0; i<ppArgs.length; i++) {
+				tmpArray[i] = ppArgs[i];
+			}
+			tmpArray[ppArgs.length] = "--z_comp";
+			ppArgs = tmpArray;
+		}
 		subArgs.add(ppArgs);
 		
 		if (line.hasOption(broadband.getOpt())) {
