@@ -1100,11 +1100,13 @@ public class CyberShake_PP_DAXGen {
 					seisFile.setRegister(true);
 					seisFile.setTransfer(TRANSFER.TRUE);
 					directSynthJob.uses(seisFile, LINK.OUTPUT);
-					File psaFile = new File(directory + PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
+					if (params.isCalculatePSA()) {
+						File psaFile = new File(directory + PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
 							riq.getRunID() + "_" + source_id + "_" + rupture_id + PEAKVALS_FILENAME_EXTENSION);
-					psaFile.setRegister(true);
-					psaFile.setTransfer(TRANSFER.TRUE);
-					directSynthJob.uses(psaFile, LINK.OUTPUT);
+						psaFile.setRegister(true);
+						psaFile.setTransfer(TRANSFER.TRUE);
+						directSynthJob.uses(psaFile, LINK.OUTPUT);
+					}
 					if (params.isCalculateRotD()) {
 						File rotdFile = new File(directory + ROTD_FILENAME_PREFIX + riq.getSiteName() + "_" +
 							riq.getRunID() + "_" + source_id + "_" + rupture_id + ROTD_FILENAME_EXTENSION);
@@ -1179,7 +1181,12 @@ public class CyberShake_PP_DAXGen {
 		} else {
 			directSynthJob.addArgument("stoch_max_freq=-1.0"); //signify no stochastic components
 		}
-		directSynthJob.addArgument("run_psa=0");
+
+		if (params.isCalculatePSA()) {
+			directSynthJob.addArgument("run_psa=1");
+		} else {
+			directSynthJob.addArgument("run_psa=0");
+		}
 		
 		if (params.isCalculateRotD()) {
 			directSynthJob.addArgument("run_rotd=1");

@@ -46,6 +46,7 @@ public class PP_DAXParameters {
 	
 	private boolean sourceForward = false;
 	
+	private boolean calculatePSA = false;
 	private boolean calculateRotD = false;
 	private boolean calculateDurations = false;
 	
@@ -328,6 +329,14 @@ public class PP_DAXParameters {
 		this.sourceForward = sourceForward;
 	}
 
+	public boolean isCalculatePSA() {
+		return calculatePSA;
+	}
+
+	public void setCalculatePSA(boolean calculatePSA) {
+		this.calculatePSA = calculatePSA;
+	}
+	
 	public boolean isCalculateRotD() {
 		return calculateRotD;
 	}
