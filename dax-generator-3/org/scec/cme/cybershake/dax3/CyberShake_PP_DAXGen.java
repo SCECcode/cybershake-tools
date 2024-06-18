@@ -1170,6 +1170,7 @@ public class CyberShake_PP_DAXGen {
 	        sgt_z_header = new File(riq.getSiteName()+"_fz_" + riq.getRunID() + ".sgthead");
 	        sgt_z_header.setTransfer(TRANSFER.TRUE);
 	        sgt_z_header.setRegister(false);
+			directSynthJob.addArgument("z_header=" + sgt_z_header.getName());
 		}
 		
 		directSynthJob.addArgument("det_max_freq=" + params.getDetFrequency());
