@@ -275,7 +275,7 @@ public class CyberShake_PP_DAXGen {
         Option high_frequency = OptionBuilder.withArgName("high-frequency").hasOptionalArg().withDescription("Lower-bound frequency cutoff for stochastic high-frequency seismograms (default 1.0), required for high frequency run").withLongOpt("high-frequency").create("hf");
         Option sqlIndex = new Option("q", "sql", false, "Create sqlite file containing (source, rupture, rv) to sub workflow mapping");
         Option no_mpi_cluster = new Option("nc", "no-mpi-cluster", false, "Do not use pegasus-mpi-cluster");
-        Option zip = new Option("z", "zip", false, "Zip seismogram and PSA files before transferring.");
+        Option zip = new Option("zp", "zip", false, "Zip seismogram and PSA files before transferring.");
         Option separate_zip = new Option("s", "separate-zip", false, "Run zip jobs as separate seismogram and PSA zip jobs.");
         Option dir_hierarchy = new Option("dh", "dir-hierarchy", false, "Use directory hierarchy on compute resource for input and output files.");
         Option file_forward = new Option("ff", "file-forward", false, "Use file-forwarding option.  Requires PMC.");
