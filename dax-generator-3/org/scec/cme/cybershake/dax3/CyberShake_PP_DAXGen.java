@@ -93,6 +93,7 @@ public class CyberShake_PP_DAXGen {
     private final static String DIRECT_SYNTH_RSQSIM_NAME = "DirectSynth_RSQSim";
     private final static String SET_PP_HOST_NAME = "SetPPHost";
     private final static String DIR_CREATE_NAME = "DirCreate";
+    private final static String COPY_NAME = "CopyToCARC";
 	
     //Simulation parameters
     private static String NUMTIMESTEPS = "3000";
@@ -1803,6 +1804,10 @@ public class CyberShake_PP_DAXGen {
       		// Create CheckSGT jobs for X, Y components
       		Job	checkSgtXJob = addCheck(preDax, stationName, "x");
       		Job	checkSgtYJob = addCheck(preDax, stationName, "y");
+      		if (params.isZComp()) {
+      			Job checkSgtZJob = addCheck(preDax, stationName, "z");
+      			preDax.addDependency(updateJob, checkSgtZJob);
+      		}
 	    
   			// Create Notify job
   			//Skip notify
@@ -1866,6 +1871,26 @@ public class CyberShake_PP_DAXGen {
       			//No dependencies
       		}
 	    
+      		//Job to copy rupture list and rvfrac files
+      		String id = COPY_NAME + "_" + riq.getSiteName();
+      		Job copyFilesToGO = new Job(id, NAMESPACE, COPY_NAME, VERSION);
+      		if (params.isUseDBrvfracSeed()) {
+				String rvfrac_seed_filename = "rvfrac_seed_values_" + riq.getSiteName();
+				java.io.File rsJavaFile = new java.io.File(params.getPPDirectory() + "/" + rvfrac_seed_filename);
+				edu.isi.pegasus.planner.dax.File rsFile = new File(rvfrac_seed_filename);
+				copyFilesToGO.addArgument(rsJavaFile.getCanonicalPath());
+				copyFilesToGO.uses(rsFile, LINK.INOUT);
+				rsFile.setRegister(true);
+      		}
+    		String rup_list_file = "rupture_file_list_" + riq.getSiteName();
+    		java.io.File javaFile = new java.io.File(params.getPPDirectory() + "/" + rup_list_file);
+    		edu.isi.pegasus.planner.dax.File rupListFile = new File(rup_list_file);
+    		copyFilesToGO.addArgument(javaFile.getCanonicalPath());
+    		copyFilesToGO.uses(rupListFile, LINK.INOUT);
+    		rupListFile.setRegister(true);
+    		
+    		preDax.addJob(copyFilesToGO);
+    		
       		// Save the DAX
       		String daxFile = DAX_FILENAME_PREFIX + stationName + "_pre" + DAX_FILENAME_EXTENSION;
       		preDax.writeToFile(daxFile);

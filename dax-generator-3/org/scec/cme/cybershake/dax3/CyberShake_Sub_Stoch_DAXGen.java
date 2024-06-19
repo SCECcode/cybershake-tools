@@ -67,6 +67,8 @@ public class CyberShake_Sub_Stoch_DAXGen {
     private final static int VS5H = 1;
     private final static int VSD5H = 2;
 	
+    private final static String CARC_GO_ENDPOINT = "56569ec1-af41-4745-a8d1-8514231c7a6d";
+    
 	private RunIDQuery riq;
 	private Stochastic_DAXParameters sParams;
     
@@ -864,7 +866,9 @@ public class CyberShake_Sub_Stoch_DAXGen {
 			bw.close();
 			
 			edu.isi.pegasus.planner.dax.File dirsPegasusFile = new File(dirsInputFilename);
-			dirsPegasusFile.addPhysicalFile("file://" + fullPath, "local");
+			//Switch this to using the GO endpoint
+			dirsPegasusFile.addPhysicalFile("go://" + CARC_GO_ENDPOINT + fullPath, "local");
+			//dirsPegasusFile.addPhysicalFile("file://" + fullPath, "local");
 			dax.addFile(dirsPegasusFile);
 		} catch (SQLException se) {
 			se.printStackTrace();
