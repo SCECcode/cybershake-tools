@@ -1879,14 +1879,16 @@ public class CyberShake_PP_DAXGen {
 				java.io.File rsJavaFile = new java.io.File(params.getPPDirectory() + "/" + rvfrac_seed_filename);
 				edu.isi.pegasus.planner.dax.File rsFile = new File(rvfrac_seed_filename);
 				copyFilesToGO.addArgument(rsJavaFile.getCanonicalPath());
-				copyFilesToGO.uses(rsFile, LINK.INOUT);
+				copyFilesToGO.uses(rsFile, LINK.INPUT);
+				copyFilesToGO.uses(rsFile, LINK.OUTPUT);
 				rsFile.setRegister(true);
       		}
     		String rup_list_file = "rupture_file_list_" + riq.getSiteName();
     		java.io.File javaFile = new java.io.File(params.getPPDirectory() + "/" + rup_list_file);
     		edu.isi.pegasus.planner.dax.File rupListFile = new File(rup_list_file);
     		copyFilesToGO.addArgument(javaFile.getCanonicalPath());
-    		copyFilesToGO.uses(rupListFile, LINK.INOUT);
+    		copyFilesToGO.uses(rupListFile, LINK.INPUT);
+    		copyFilesToGO.uses(rupListFile, LINK.OUTPUT);
     		rupListFile.setRegister(true);
     		
     		preDax.addJob(copyFilesToGO);
