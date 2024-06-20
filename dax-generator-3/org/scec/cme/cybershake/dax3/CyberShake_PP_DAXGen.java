@@ -875,7 +875,7 @@ public class CyberShake_PP_DAXGen {
 			 * <src id> <rup id> <rv_id> <rvfrac> <seed>
 			 */
 			try {
-				String rvfrac_seed_filename = "rvfrac_seed_values_" + riq.getSiteName();
+				String rvfrac_seed_filename = "rvfrac_seed_values_" + riq.getSiteName() + "_" + riq.getRunID();
 				java.io.File rsJavaFile = new java.io.File(params.getPPDirectory() + "/" + rvfrac_seed_filename);
 		
 				double cutoffDist = 200.0;
@@ -946,7 +946,7 @@ public class CyberShake_PP_DAXGen {
 		}
 
 		
-		String rup_list_file = "rupture_file_list_" + riq.getSiteName();
+		String rup_list_file = "rupture_file_list_" + riq.getSiteName() + "_" + riq.getRunID();
 		java.io.File javaFile = new java.io.File(params.getPPDirectory() + "/" + rup_list_file);
 		String fullPath = "";
 		String dirFilename = "directory_list.txt";
@@ -1875,7 +1875,7 @@ public class CyberShake_PP_DAXGen {
       		String id = COPY_NAME + "_" + riq.getSiteName();
       		Job copyFilesToGO = new Job(id, NAMESPACE, COPY_NAME, VERSION);
       		if (params.isUseDBrvfracSeed()) {
-				String rvfrac_seed_filename = "rvfrac_seed_values_" + riq.getSiteName();
+				String rvfrac_seed_filename = "rvfrac_seed_values_" + riq.getSiteName() + "_" + riq.getRunID();
 				java.io.File rsJavaFile = new java.io.File(params.getPPDirectory() + "/" + rvfrac_seed_filename);
 				edu.isi.pegasus.planner.dax.File rsFile = new File(rvfrac_seed_filename);
 				copyFilesToGO.addArgument(rsJavaFile.getCanonicalPath());
@@ -1883,7 +1883,7 @@ public class CyberShake_PP_DAXGen {
 				copyFilesToGO.uses(rsFile, LINK.OUTPUT);
 				rsFile.setRegister(true);
       		}
-    		String rup_list_file = "rupture_file_list_" + riq.getSiteName();
+    		String rup_list_file = "rupture_file_list_" + riq.getSiteName() + "_" + riq.getRunID();
     		java.io.File javaFile = new java.io.File(params.getPPDirectory() + "/" + rup_list_file);
     		edu.isi.pegasus.planner.dax.File rupListFile = new File(rup_list_file);
     		copyFilesToGO.addArgument(javaFile.getCanonicalPath());
