@@ -21,12 +21,15 @@ import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import com.google.common.io.Files;
+
 import edu.isi.pegasus.planner.dax.ADAG;
 import edu.isi.pegasus.planner.dax.DAX;
 import edu.isi.pegasus.planner.dax.File;
 import edu.isi.pegasus.planner.dax.Job;
 import edu.isi.pegasus.planner.dax.File.LINK;
 import edu.isi.pegasus.planner.dax.File.TRANSFER;
+import jdk.internal.foreign.abi.Binding.Copy;
 
 
 public class CyberShake_PP_DAXGen {
@@ -63,7 +66,9 @@ public class CyberShake_PP_DAXGen {
     //Output directory for Study 13.4
 //    private final static String OUTPUT_DIR = "/home/scec-02/tera3d/CyberShake2007/data/PPFiles";
     private final static String OUTPUT_DIR = "/home/scec-04/tera3d/CyberShake/data/PPFiles";
-	
+	private final static String CARC_STAGING_DIR = "/scratch1/scottcal/cybershake/staging";
+	private final static String CARC_GO_PREFIX = "56569ec1-af41-4745-a8d1-8514231c7a6d";
+    
 	//Job names
     private final static String UPDATERUN_NAME = "UpdateRun";
     private final static String CYBERSHAKE_NOTIFY_NAME = "CyberShakeNotify";
@@ -926,8 +931,12 @@ public class CyberShake_PP_DAXGen {
 				bw.flush();
 				bw.close();
 
+				//Copy file to CARC filesystem
+				java.io.File dstFile = new java.io.File(CARC_STAGING_DIR + java.io.File.separator + rvfrac_seed_filename); 
+				Files.copy(rsJavaFile, dstFile);
+				
 				edu.isi.pegasus.planner.dax.File rsFile = new File(rvfrac_seed_filename);
-				rsFile.addPhysicalFile("file://" + fullPath, "local");
+				rsFile.addPhysicalFile("go://" + CARC_GO_PREFIX + "/" + dstFile.getAbsolutePath(), "local");
 				dax.addFile(rsFile);
 			
 				directSynthJob.addArgument("rv_info_file=" + rvfrac_seed_filename);
@@ -1134,9 +1143,18 @@ public class CyberShake_PP_DAXGen {
 			sqe.printStackTrace();
 			System.exit(4);
 		}
+
+		//Copy file to CARC filesystem
+		java.io.File dstFile = new java.io.File(CARC_STAGING_DIR + java.io.File.separator + rup_list_file); 
+		try {
+			Files.copy(javaFile, dstFile);
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		
 		edu.isi.pegasus.planner.dax.File rupListFile = new File(rup_list_file);
-		rupListFile.addPhysicalFile("file://" + fullPath, "local");
+		rupListFile.addPhysicalFile("go://" + CARC_GO_PREFIX + "/" + dstFile.getAbsolutePath(), "local");
 		dax.addFile(rupListFile);
 	
 		directSynthJob.addArgument("rup_list_file=" + rup_list_file);
@@ -1871,27 +1889,27 @@ public class CyberShake_PP_DAXGen {
       			//No dependencies
       		}
 	    
-      		//Job to copy rupture list and rvfrac files
-      		String id = COPY_NAME + "_" + riq.getSiteName();
-      		Job copyFilesToGO = new Job(id, NAMESPACE, COPY_NAME, VERSION);
-      		if (params.isUseDBrvfracSeed()) {
-				String rvfrac_seed_filename = "rvfrac_seed_values_" + riq.getSiteName() + "_" + riq.getRunID();
-				java.io.File rsJavaFile = new java.io.File(params.getPPDirectory() + "/" + rvfrac_seed_filename);
-				edu.isi.pegasus.planner.dax.File rsFile = new File(rvfrac_seed_filename);
-				copyFilesToGO.addArgument(rsJavaFile.getCanonicalPath());
-				copyFilesToGO.uses(rsFile, LINK.INPUT);
-				copyFilesToGO.uses(rsFile, LINK.OUTPUT);
-				rsFile.setRegister(true);
-      		}
-    		String rup_list_file = "rupture_file_list_" + riq.getSiteName() + "_" + riq.getRunID();
-    		java.io.File javaFile = new java.io.File(params.getPPDirectory() + "/" + rup_list_file);
-    		edu.isi.pegasus.planner.dax.File rupListFile = new File(rup_list_file);
-    		copyFilesToGO.addArgument(javaFile.getCanonicalPath());
-    		copyFilesToGO.uses(rupListFile, LINK.INPUT);
-    		copyFilesToGO.uses(rupListFile, LINK.OUTPUT);
-    		rupListFile.setRegister(true);
-    		
-    		preDax.addJob(copyFilesToGO);
+//      		//Job to copy rupture list and rvfrac files
+//      		String id = COPY_NAME + "_" + riq.getSiteName();
+//      		Job copyFilesToGO = new Job(id, NAMESPACE, COPY_NAME, VERSION);
+//      		if (params.isUseDBrvfracSeed()) {
+//				String rvfrac_seed_filename = "rvfrac_seed_values_" + riq.getSiteName() + "_" + riq.getRunID();
+//				java.io.File rsJavaFile = new java.io.File(params.getPPDirectory() + "/" + rvfrac_seed_filename);
+//				edu.isi.pegasus.planner.dax.File rsFile = new File(rvfrac_seed_filename);
+//				copyFilesToGO.addArgument(rsJavaFile.getCanonicalPath());
+//				copyFilesToGO.uses(rsFile, LINK.INPUT);
+//				copyFilesToGO.uses(rsFile, LINK.OUTPUT);
+//				rsFile.setRegister(true);
+//      		}
+//    		String rup_list_file = "rupture_file_list_" + riq.getSiteName() + "_" + riq.getRunID();
+//    		java.io.File javaFile = new java.io.File(params.getPPDirectory() + "/" + rup_list_file);
+//    		edu.isi.pegasus.planner.dax.File rupListFile = new File(rup_list_file);
+//    		copyFilesToGO.addArgument(javaFile.getCanonicalPath());
+//    		copyFilesToGO.uses(rupListFile, LINK.INPUT);
+//    		copyFilesToGO.uses(rupListFile, LINK.OUTPUT);
+//    		rupListFile.setRegister(true);
+//    		
+//    		preDax.addJob(copyFilesToGO);
     		
       		// Save the DAX
       		String daxFile = DAX_FILENAME_PREFIX + stationName + "_pre" + DAX_FILENAME_EXTENSION;
