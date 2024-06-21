@@ -459,6 +459,12 @@ public class CyberShake_Sub_Stoch_DAXGen {
 				debug = 1;
 			}
 			job.addArgument("debug=" + debug);
+			if (sParams.isZComp()) {
+				job.addArgument("num_comps=3");
+			} else {
+				job.addArgument("num_comps=2");
+			}
+
 
 			File localVMFile = new File(localVMFilename);
 			localVMFile.setRegister(false);
