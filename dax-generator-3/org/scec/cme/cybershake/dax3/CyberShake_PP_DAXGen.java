@@ -198,7 +198,7 @@ public class CyberShake_PP_DAXGen {
 			//jDax.addArgument("--output-sites shock");
 			//jDax.addArgument("--output-dir " + OUTPUT_DIR + "/" + siteName + "/" + cont.getRIQ().getRunID());
 			daxArgs.append(" --output-sites shock");
-			daxArgs.append(" --output-dir " + OUTPUT_DIR + "/" + siteName + "/" + cont.getRIQ().getRunID());
+			//daxArgs.append(" --output-dir " + OUTPUT_DIR + "/" + siteName + "/" + cont.getRIQ().getRunID());
 			jDax.addArgument(daxArgs.toString());
 			jDax.addProfile("dagman", "category", "subwf");
 			topLevelDax.addDAX(jDax);
