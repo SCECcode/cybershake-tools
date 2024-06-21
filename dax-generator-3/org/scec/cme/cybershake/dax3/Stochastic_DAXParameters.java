@@ -21,6 +21,7 @@ public class Stochastic_DAXParameters {
 	private double h_frac = 0.25;
 	private boolean useDBrvfracSeed = false;
 	private String hfVelocityModel = "labasin";
+	private boolean zComp = false;
 	
 	public double getStochFrequency() {
 		return stochFrequency;
@@ -130,5 +131,11 @@ public class Stochastic_DAXParameters {
 	}
 	public void setHfVelocityModel(String hfVelocityModel) {
 		this.hfVelocityModel = hfVelocityModel;
+	}
+	public boolean isZComp() {
+		return zComp;
+	}
+	public void setZComp(boolean zComp) {
+		this.zComp = zComp;
 	}
 }

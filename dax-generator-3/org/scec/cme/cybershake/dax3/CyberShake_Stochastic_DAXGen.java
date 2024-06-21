@@ -95,6 +95,7 @@ public class CyberShake_Stochastic_DAXGen {
         Option h_frac = OptionBuilder.withArgName("h_fraction").withLongOpt("h_fraction").hasArg().withDescription("Depth, in fractions of a grid point, to query UCVM at when populating the surface points.").create("hf");
         Option db_rvfrac_seed = new Option("dbrs", "db-rv-seed", false, "Use rvfrac value and seed from the database, if provided.");
         Option hf_velocity_model = OptionBuilder.withArgName("hf_vel_model").withLongOpt("hf_vel_model").hasArg().withDescription("1D velocity model to use for high-frequency synth. Options are 'labasin' (default) or 'mojave').").create("hfv");
+        Option z_comp = new Option("z", "z_comp", false, "Calculate seismograms and IMs for the vertical Z component.");        
         
 		cmd_opts.addOption(help);
 		cmd_opts.addOption(mergeFrequency);
@@ -110,6 +111,7 @@ public class CyberShake_Stochastic_DAXGen {
 		cmd_opts.addOption(h_frac);
 		cmd_opts.addOption(db_rvfrac_seed);
 		cmd_opts.addOption(hf_velocity_model);
+		cmd_opts.addOption(z_comp);
 		
 		CommandLineParser parser = new GnuParser();
         if (args.length<=1) {
@@ -200,6 +202,10 @@ public class CyberShake_Stochastic_DAXGen {
         	sParams.setHfVelocityModel(line.getOptionValue(hf_velocity_model.getOpt()));
         }
         
+        if (line.hasOption(z_comp.getOpt())) {
+        	sParams.setZComp(true);
+        }
+        
     	//Put this at the end so we can pick up a different server, if needed
     	
     	sParams.setLfRunID(lfRunID, DB_SERVER);
@@ -284,6 +290,9 @@ public class CyberShake_Stochastic_DAXGen {
 		}
 		if (sParams.isUseDBrvfracSeed()) {
 			genStochDAXJob.addArgument("-dbrs");
+		}
+		if (sParams.isZComp()) {
+			genStochDAXJob.addArgument("-z");
 		}
 
 		genStochDAXJob.addArgument("-o " + daxFile.getName());

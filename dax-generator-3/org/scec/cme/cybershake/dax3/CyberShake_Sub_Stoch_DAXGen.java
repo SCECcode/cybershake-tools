@@ -116,6 +116,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		Option mergeFrequency = OptionBuilder.withArgName("merge_frequency").withLongOpt("merge_frequency").hasArg().withDescription("(Deprecated) merge frequency.  This is now taken from the DB.").create("mf");
         Option db_rvfrac_seed = new Option("dbrs", "db-rv-seed", false, "Use rvfrac value and seed from the database, if provided.");
         Option hf_velocity_model = OptionBuilder.withArgName("hf_vel_model").withLongOpt("hf_vel_model").hasArg().withDescription("1D velocity model to use for high-frequency synth. Options are 'labasin' (default) or 'mojave').").create("hfv");
+        Option z_comp = new Option("z", "z_comp", false, "Calculate seismograms and IMs for the vertical Z component.");
         Option debug = new Option("d", "debug", false, "Debug flag.");
 		
 		cmd_opts.addOption(help);
@@ -132,6 +133,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		cmd_opts.addOption(db_rvfrac_seed);
 		cmd_opts.addOption(hf_velocity_model);
 		cmd_opts.addOption(debug);
+		cmd_opts.addOption(z_comp);
 		
 		CommandLineParser parser = new GnuParser();
         if (args.length<=1) {
@@ -218,6 +220,10 @@ public class CyberShake_Sub_Stoch_DAXGen {
         
         if (line.hasOption(hf_velocity_model.getOpt())) {
         	sParams.setHfVelocityModel(line.getOptionValue(hf_velocity_model.getOpt()));
+        }
+        
+        if (line.hasOption(z_comp.getOpt())) {
+        	sParams.setZComp(true);
         }
         
         sParams.setDirectory(".");
@@ -686,7 +692,11 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		job.addArgument("seis_out=" + mergedSeisFile.getName());
 		
 		job.addArgument("freq=" + sParams.getMergeFrequencyString());
-		job.addArgument("comps=2");
+		if (sParams.isZComp()) {
+			job.addArgument("comps=3");
+		} else {
+			job.addArgument("comps=2");
+		}
 		job.addArgument("num_rup_vars=" + numRupVars);
 		
 		//PSA args
