@@ -935,7 +935,7 @@ public class CyberShake_PP_DAXGen {
 				Files.copy(rsJavaFile, dstFile);
 				
 				edu.isi.pegasus.planner.dax.File rsFile = new File(rvfrac_seed_filename);
-				rsFile.addPhysicalFile("go://" + CARC_GO_PREFIX + "/" + dstFile.getAbsolutePath(), "local");
+				rsFile.addPhysicalFile("go://" + CARC_GO_PREFIX + "/" + dstFile.getAbsolutePath(), "shock");
 				dax.addFile(rsFile);
 			
 				directSynthJob.addArgument("rv_info_file=" + rvfrac_seed_filename);
@@ -1153,7 +1153,7 @@ public class CyberShake_PP_DAXGen {
 		}
 		
 		edu.isi.pegasus.planner.dax.File rupListFile = new File(rup_list_file);
-		rupListFile.addPhysicalFile("go://" + CARC_GO_PREFIX + "/" + dstFile.getAbsolutePath(), "local");
+		rupListFile.addPhysicalFile("go://" + CARC_GO_PREFIX + "/" + dstFile.getAbsolutePath(), "shock");
 		dax.addFile(rupListFile);
 	
 		directSynthJob.addArgument("rup_list_file=" + rup_list_file);
