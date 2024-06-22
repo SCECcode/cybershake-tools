@@ -789,7 +789,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 //		awpJob.uses(in3DFile, LINK.INPUT);
 //		awpJob.uses(awpStrainFile, LINK.OUTPUT);
 		
-		awpJob.addProfile("globus", "hostcount", "" + hosts);
+		//awpJob.addProfile("globus", "hostcount", "" + hosts);
 		//awpJob.addProfile("globus", "count", "" + cores);
 		//awpJob.addProfile("pegasus", "cores", "" + cores);
 		
