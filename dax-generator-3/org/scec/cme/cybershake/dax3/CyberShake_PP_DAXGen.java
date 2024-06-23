@@ -1028,11 +1028,13 @@ public class CyberShake_PP_DAXGen {
 					seisFile.setRegister(true);
 					seisFile.setTransfer(TRANSFER.TRUE);
 					directSynthJob.uses(seisFile, LINK.OUTPUT);
-					File psaFile = new File(directory + PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
+					if (params.isCalculatePSA()) {
+						File psaFile = new File(directory + PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
 							riq.getRunID() + "_" + source_id + "_" + rupture_id + PEAKVALS_FILENAME_EXTENSION);
-					psaFile.setRegister(true);
-					psaFile.setTransfer(TRANSFER.TRUE);
-					directSynthJob.uses(psaFile, LINK.OUTPUT);
+						psaFile.setRegister(true);
+						psaFile.setTransfer(TRANSFER.TRUE);
+						directSynthJob.uses(psaFile, LINK.OUTPUT);
+					}
 					if (params.isCalculateRotD()) {
 						File rotdFile = new File(directory + ROTD_FILENAME_PREFIX + riq.getSiteName() + "_" +
 							riq.getRunID() + "_" + source_id + "_" + rupture_id + ROTD_FILENAME_EXTENSION);
