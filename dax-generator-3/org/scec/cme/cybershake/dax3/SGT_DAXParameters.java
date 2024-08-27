@@ -32,6 +32,7 @@ public class SGT_DAXParameters {
 	private String taperModels = "all";
 	
 	private boolean zComp = false;
+	private boolean localVelParamInsert = false;
 	
 	public SGT_DAXParameters(String filename) {
 		this.daxFilename = filename;
@@ -192,6 +193,14 @@ public class SGT_DAXParameters {
 
 	public void setZComp(boolean zComp) {
 		this.zComp = zComp;
+	}
+
+	public boolean isLocalVelParamInsert() {
+		return localVelParamInsert;
+	}
+
+	public void setLocalVelParamInsert(boolean localVelParamInsert) {
+		this.localVelParamInsert = localVelParamInsert;
 	}
 	
 	
