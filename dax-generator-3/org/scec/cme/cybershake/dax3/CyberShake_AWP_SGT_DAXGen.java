@@ -47,6 +47,7 @@ public class CyberShake_AWP_SGT_DAXGen {
         Option taperDepthOpt = OptionBuilder.withArgName("taper-depth").hasArg().withDescription("Depth in meters to use with Ely taper for 'all' or 'ifless' modes.  Default is 700.").withLongOpt("taper-depth").create("td");
         Option taperModels = OptionBuilder.withArgName("taper-models").hasArg().withDescription("List of models to apply the taper to, 'all', or 'none'.  Default is 'all'.").withLongOpt("taper-models").create("tm");
         Option z_comp = new Option("z", "z_comp", false, "Calculate SGTs for the vertical Z component.");
+        Option localVelParamInsert = new Option("lv", "local_vparam_insert", false, "Insert the velocity parameters into the database in a separate job on shock, not on the remote compute nodes.");
         
         cmd_opts.addOption(runIDopt);
         cmd_opts.addOption(gridoutFile);
@@ -64,6 +65,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		cmd_opts.addOption(taperDepthOpt);
 		cmd_opts.addOption(taperModels);
 		cmd_opts.addOption(z_comp);
+		cmd_opts.addOption(localVelParamInsert);
         
         String usageString = "CyberShake_AWP_SGT_DAXGen [options]";
         CommandLineParser parser = new GnuParser();
@@ -177,6 +179,11 @@ public class CyberShake_AWP_SGT_DAXGen {
 			runZComp = true;
 		}
 		
+		boolean lVelParmInsert = false;
+		if (line.hasOption(localVelParamInsert.getOpt())) {
+			lVelParmInsert = true;
+		}
+		
 		ADAG sgtDAX = new ADAG("AWP_SGT_" + riq.getSiteName() + ".dax");
 		
 		Job velocityJob = null;
@@ -207,7 +214,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		Job preSGT = addPreSGT(spacing);
 		sgtDAX.addJob(preSGT);
 		
-		Job velocityParams = addVelocityParams(db_server, smoothing);
+		Job velocityParams = addVelocityParams(db_server, smoothing, lVelParmInsert);
 		sgtDAX.addJob(velocityParams);
 		if (smoothing) {
 			sgtDAX.addDependency(smoothingJob, velocityParams);
@@ -278,6 +285,13 @@ public class CyberShake_AWP_SGT_DAXGen {
 		Job updateEnd = addUpdate("SGT_START", "SGT_END");
 		sgtDAX.addJob(updateEnd);
 		
+		if (lVelParmInsert==true) {
+			Job paramInsertJob = addInsertVelocityParams();
+			sgtDAX.addJob(paramInsertJob);
+			sgtDAX.addDependency(velocityParams, paramInsertJob);
+			sgtDAX.addDependency(paramInsertJob, updateEnd);
+		}
+		
 		Job md5X, md5Y, md5Z;
 		md5X = md5Y = md5Z = null;
 		
@@ -336,7 +350,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 	}
 
 
-	private static Job addVelocityParams(String server, boolean smoothing) {
+	private static Job addVelocityParams(String server, boolean smoothing, boolean localVelParamInsert) {
 		String id = "Velocity_Params_" + riq.getSiteName();
 		Job velocityParamsJob = new Job(id, "scec", "Velocity_Params", "1.0");
 		
@@ -363,6 +377,15 @@ public class CyberShake_AWP_SGT_DAXGen {
 		velocityParamsJob.addArgument("-go " + gridoutFile.getName());
 		velocityParamsJob.addArgument("-s " + server);
 		velocityParamsJob.addArgument("-r " + riq.getRunID());
+		
+		if (localVelParamInsert==true) {
+			//Insert values into a file, not the DB
+			File velParamFile = new File(riq.getSiteName() + "_" + riq.getRunID() + "_velocity_params.txt");
+			velParamFile.setTransfer(TRANSFER.TRUE);
+			velocityParamsJob.addArgument("-o " + velParamFile.getName());
+			velocityParamsJob.uses(velParamFile, LINK.OUTPUT);
+			
+		}
 		
 		velocityParamsJob.uses(velocityMesh, LINK.INPUT);
 		velocityParamsJob.uses(gridoutFile, LINK.INPUT);
@@ -1086,6 +1109,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		Job handoffJob = new Job(id, "scec", "Handoff", "1.0");
 		
 		handoffJob.addArgument("-r " + riq.getRunID());
+		handoffJob.addArgument("-s LF");
 		
 		return handoffJob;
 	}
@@ -1103,4 +1127,20 @@ public class CyberShake_AWP_SGT_DAXGen {
 		
 			return updateJob;
 		}
+	 
+	 private static Job addInsertVelocityParams() {
+		 String id = "InsertVelocityParams_" + riq.getSiteName();
+		 Job insertJob = new Job(id, "scec", "InsertVelocityarams", "1.0");
+		 
+		 File velParamFile = new File(riq.getSiteName() + "_" + riq.getRunID() + "_velocity_params.txt");
+		 velParamFile.setTransfer(TRANSFER.TRUE);
+		 
+		 insertJob.addArgument("-i " + velParamFile.getName());
+		 insertJob.addArgument("-d " + "/home/shock/scottcal/runs/config/db_pass.txt");
+		 insertJob.addArgument("-r " + riq.getRunID());
+		 
+		 insertJob.uses(velParamFile, LINK.INPUT);
+		 
+		 return insertJob;
+	 }
 }

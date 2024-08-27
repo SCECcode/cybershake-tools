@@ -109,6 +109,7 @@ public class CyberShake_SGT_DAXGen {
         Option taperDepthOpt = OptionBuilder.withArgName("taper-depth").hasArg().withDescription("Depth in meters to use with Ely taper for 'all' or 'ifless' modes.  Default is 700.").withLongOpt("taper-depth").create("td");
         Option taperModels = OptionBuilder.withArgName("taper-models").hasArg().withDescription("List of models to apply the taper to, 'all', or 'none'.  Default is 'all'.").withLongOpt("taper-models").create("tm");
         Option z_comp = new Option("z", "z_comp", false, "Calculate SGTs for the vertical Z component.");
+        Option localVelParamInsert = new Option("lv", "local_vparam_insert", false, "Insert the velocity parameters into the database in a separate job on shock, not on the remote compute nodes.");
         
         cmd_opts.addOption(help);
         cmd_opts.addOptionGroup(runIDGroup);
@@ -129,6 +130,7 @@ public class CyberShake_SGT_DAXGen {
         cmd_opts.addOption(taperDepthOpt);
         cmd_opts.addOption(taperModels);
         cmd_opts.addOption(z_comp);
+        cmd_opts.addOption(localVelParamInsert);
         
         String usageString = "CyberShake_SGT_DAXGen <output filename> <destination directory> [options] [-f <runID file, one per line> | -r <runID1> <runID2> ... ]";
         CommandLineParser parser = new GnuParser();
@@ -251,6 +253,10 @@ public class CyberShake_SGT_DAXGen {
 			sgt_params.setZComp(true);
 		}
 		
+		if (line.hasOption(localVelParamInsert.getOpt())) {
+			sgt_params.setLocalVelParamInsert(true);
+		}
+		
 		sgt_params.setRunIDQueries(runIDQueries);
 				
 		return 0;
@@ -349,7 +355,7 @@ public class CyberShake_SGT_DAXGen {
 			//sgtDAX.addArgument("--cleanup inplace");
 			args.append(" --basename AWP_SGT_" + riq.getSiteName());
 			args.append(" --cleanup inplace");
-			args.append(" --output-sites frontier");
+			args.append(" --output-sites frontera");
 			sgtDAX.addArgument(args.toString());
 
 			//With Pegasus 5, also need to explicitly add uses for gridout, model_coords, and modelbox files, otherwise AWP subworkflow jobs can't pick up these files for their jobs
@@ -492,6 +498,10 @@ public class CyberShake_SGT_DAXGen {
 		
 		if (sgt_params.isZComp()) {
 			genSGTDAXJob.addArgument("--z_comp");
+		}
+		
+		if (sgt_params.isLocalVelParamInsert()) {
+			genSGTDAXJob.addArgument("-lv");
 		}
 		
 		genSGTDAXJob.uses(gridoutFile, LINK.INPUT);
