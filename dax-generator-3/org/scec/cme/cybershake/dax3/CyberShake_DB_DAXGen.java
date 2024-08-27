@@ -52,7 +52,7 @@ public class CyberShake_DB_DAXGen {
 	public static final String ROTD_OUTPUT_TYPES = "pdf,png";
 	
 	//DB info
-	public static String DB_SERVER = "moment";
+	public static String DB_SERVER_STRING = "moment_carc";
 	
 	//Job names
 	public static final String DB_INSERT_NAME = "Load_Amps";
@@ -111,7 +111,11 @@ public class CyberShake_DB_DAXGen {
 	
 	public CyberShake_DB_DAXGen(RunIDQuery r, PP_DAXParameters params, int numDAXes, boolean transferZip, String db_server) {
 		this(r, params, numDAXes, transferZip);
-		DB_SERVER = db_server.split("\\.")[0];
+		if (db_server.equals("moment") || db_server.equals("moment-carc.usc.edu")) {
+			DB_SERVER_STRING = "moment_carc";
+		} else {
+			DB_SERVER_STRING = db_server.split("\\.")[0];
+		}
 	}
 	
 	
@@ -139,7 +143,11 @@ public class CyberShake_DB_DAXGen {
 	public CyberShake_DB_DAXGen(RunIDQuery r, int numDAXes, boolean highFreq, double highFreqCutoff, boolean transferZip, String db_server, boolean rotD, boolean duration) {
 		this(r, numDAXes, highFreq, highFreqCutoff, transferZip, rotD);
 		insertDurations = duration;
-		DB_SERVER = db_server.split("\\.")[0];
+		if (db_server.equals("moment") || db_server.equals("moment-carc.usc.edu")) {
+			DB_SERVER_STRING = "moment_carc";
+		} else {
+			DB_SERVER_STRING = db_server.split("\\.")[0];
+		}
 	}
 	
 	public CyberShake_DB_DAXGen(RunIDQuery r, int numDAXes, boolean highFreq, double highFreqCutoff, boolean transferZip, boolean rotD, boolean duration, String velocityFile) {
@@ -297,7 +305,7 @@ public class CyberShake_DB_DAXGen {
 			}
 		}
 		
-		job.addArgument("-server " + DB_SERVER);
+		job.addArgument("-server " + DB_SERVER_STRING);
 		if (transferZipFiles) {
 			job.addArgument("-z");
 		}
@@ -334,7 +342,7 @@ public class CyberShake_DB_DAXGen {
 			job.uses(zipFile, File.LINK.INPUT);
 		}*/
 		
-		job.addArgument("-server " + DB_SERVER);
+		job.addArgument("-server " + DB_SERVER_STRING);
 		if (transferZipFiles) {
 			job.addArgument("-z");
 		}
@@ -761,7 +769,7 @@ public class CyberShake_DB_DAXGen {
 			job.uses(zipFile, File.LINK.INPUT);
 		}*/
 		
-		job.addArgument("-server " + DB_SERVER);
+		job.addArgument("-server " + DB_SERVER_STRING);
 		if (transferZipFiles) {
 			job.addArgument("-z");
 		} else if (params.isFileForward() || params.isPipeForward()) {
