@@ -48,6 +48,7 @@ public class PP_DAXParameters {
 	
 	private boolean calculatePSA = false;
 	private boolean calculateRotD = false;
+	private boolean calculateRotD50_Only = true;
 	private boolean calculateDurations = false;
 	
 	private boolean skipMD5 = false;
@@ -56,6 +57,8 @@ public class PP_DAXParameters {
 	private boolean useDirectSynth = false;
 	
 	private String ppSite = null;
+	
+	private boolean handoffJob = false;
 	
 	private double spacing = -1.0;
 	//BW has 56 GB permitted per node
@@ -345,6 +348,14 @@ public class PP_DAXParameters {
 		this.calculateRotD = calculateRotD;
 	}
 
+	public boolean isCalculateRotD50_Only() {
+		return calculateRotD50_Only;
+	}
+
+	public void setCalculateRotD50_Only(boolean calculateRotD50_Only) {
+		this.calculateRotD50_Only = calculateRotD50_Only;
+	}
+
 	public boolean isSkipMD5() {
 		return skipMD5;
 	}
@@ -415,5 +426,13 @@ public class PP_DAXParameters {
 
 	public void setZComp(boolean zComp) {
 		this.zComp = zComp;
+	}
+
+	public boolean isHandoffJob() {
+		return handoffJob;
+	}
+
+	public void setHandoffJob(boolean handoffJob) {
+		this.handoffJob = handoffJob;
 	}
 }

@@ -215,7 +215,7 @@ public class CyberShake_DB_DAXGen {
 		}
 		Job curveCalcJob = null;
 		if (params.isCalculateRotD()) {
-			rotDJob = createRotDInsertionJob();
+			rotDJob = createRotDInsertionJob(params.isCalculateRotD50_Only());
 			dax.addJob(rotDJob);
 			if (prevInsertJob!=null) {
 				//Make this a child of insertJob to avoid having both insertion jobs hit the DB at the same time
@@ -225,9 +225,11 @@ public class CyberShake_DB_DAXGen {
 			Job rotdCheckJob = createDBCheckRotDJob();
 			dax.addJob(rotdCheckJob);
 			dax.addDependency(rotDJob, rotdCheckJob);
-			Job rotd100CalcJob = createRotD100CurveCalcJob();
-			dax.addJob(rotd100CalcJob);
-			dax.addDependency(rotdCheckJob, rotd100CalcJob);
+			if (!params.isCalculateRotD50_Only()) {
+				Job rotd100CalcJob = createRotD100CurveCalcJob();
+				dax.addJob(rotd100CalcJob);
+				dax.addDependency(rotdCheckJob, rotd100CalcJob);
+			}
 			Job rotd50CalcJob = createRotD50CurveCalcJob();
 			curveCalcJob = rotd50CalcJob;
 			dax.addJob(rotd50CalcJob);
@@ -314,7 +316,7 @@ public class CyberShake_DB_DAXGen {
 	}
 		
 	
-	private Job createRotDInsertionJob() {
+	private Job createRotDInsertionJob(boolean calcRotD50_only) {
 		String id = DB_PREFIX + "Load_Amps_RotD" + "_" + riq.getSiteName();
 		Job job = new Job(id, CyberShake_PP_DAXGen.NAMESPACE, DB_INSERT_NAME, CyberShake_PP_DAXGen.VERSION);
 		
@@ -337,7 +339,11 @@ public class CyberShake_DB_DAXGen {
 			job.addArgument("-z");
 		}
 		//For RotD files
-		job.addArgument("-r");
+		if (calcRotD50_only==true) {
+			job.addArgument("-rdf");
+		} else {
+			job.addArgument("-r");
+		}
 		//Convert to cm/s^2
 		job.addArgument("-c");
 		job.addArgument("-p " + filesDir);
@@ -568,7 +574,7 @@ public class CyberShake_DB_DAXGen {
 		job.addArgument("--type " + ROTD_OUTPUT_TYPES);
 		// this makes it calculate and the add the curve without prompting if needed
 		job.addArgument("--force-add");
-		job.addArgument("--cmp RotD100");
+		job.addArgument("-cmp RotD100");
 		
 		// db password file
 		job.addArgument("--password-file " + DB_PASS_FILE);
@@ -641,7 +647,7 @@ public class CyberShake_DB_DAXGen {
 		job.addArgument("--type " + ROTD_OUTPUT_TYPES);
 		// this makes it calculate and the add the curve without prompting if needed
 		job.addArgument("--force-add");
-		job.addArgument("--cmp RotD50");
+		job.addArgument("-cmp RotD50");
 		
 		// db password file
 		job.addArgument("--password-file " + DB_PASS_FILE);

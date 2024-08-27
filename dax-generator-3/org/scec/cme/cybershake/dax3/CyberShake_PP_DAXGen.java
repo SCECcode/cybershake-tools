@@ -301,6 +301,7 @@ public class CyberShake_PP_DAXGen {
         Option seis_length = OptionBuilder.withArgName("seis_length").hasArg().withDescription("Length of output seismograms in seconds. Default is 500.").create("sl");
         Option db_rvfrac_seed = new Option("dbrs", "db-rv-seed", false, "Use rvfrac value and seed from the database, if provided.");
         Option z_comp = new Option("z", "z_comp", false, "Calculate seismograms and IMs for the vertical Z component.");
+        Option handoffJobOpt = new Option("d", "handoff", false, "Run handoff job, which puts BB job into pending file on shock when PP completes.");
         Option debug = new Option("d", "debug", false, "Debug flag.");
 
         
@@ -337,6 +338,7 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(seis_length);
         cmd_opts.addOption(db_rvfrac_seed);
         cmd_opts.addOption(z_comp);
+        cmd_opts.addOption(handoffJobOpt);
 
         CommandLineParser parser = new GnuParser();
         if (args.length<=1) {
@@ -1726,7 +1728,10 @@ public class CyberShake_PP_DAXGen {
     	    
     	    // Create update run state job
     	    Job updateJob = addUpdate(postDax, riq.getRunID(), "PP_START", "PP_END");
-
+    	    if (params.isHandoffJob()==true) {
+    	    	Job handoffJob = addHandoff();
+    	    	postDax.addJob(handoffJob);
+    	    }
     	    
           	return postDax;
     	} catch (Exception ex) {
@@ -3182,5 +3187,15 @@ public class CyberShake_PP_DAXGen {
         job.addProfile("pegasus", "pmc_request_memory", "" + memUsage);
         
 		return job;
+	}
+	
+	private Job addHandoff() {
+		String id = "Handoff";
+		Job handoffJob = new Job(id, "scec", "Handoff", "1.0");
+		
+		handoffJob.addArgument("-r " + riq.getRunID());
+		handoffJob.addArgument("-s BB");
+		
+		return handoffJob;
 	}
 }
