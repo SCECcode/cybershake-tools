@@ -474,7 +474,7 @@ public class CyberShake_SGT_DAXGen {
 			genSGTDAXJob.addArgument("-sm");
 		}
 		if (sgt_params.isHandoffJob()) {
-			genSGTDAXJob.addArgument("-d");
+			genSGTDAXJob.addArgument("-hd");
 		}
 		genSGTDAXJob.addArgument("-sr " + sgt_params.getServer());
 		
