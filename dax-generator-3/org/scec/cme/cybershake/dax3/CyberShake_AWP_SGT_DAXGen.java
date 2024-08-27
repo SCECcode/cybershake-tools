@@ -1134,7 +1134,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 		 Job insertJob = new Job(id, "scec", "InsertVelocityParams", "1.0");
 		 
 		 File velParamFile = new File(riq.getSiteName() + "_" + riq.getRunID() + "_velocity_params.txt");
-		 velParamFile.setTransfer(TRANSFER.TRUE);
+		 //velParamFile.setTransfer(TRANSFER.TRUE);
 		 
 		 insertJob.addArgument("-i " + velParamFile.getName());
 		 insertJob.addArgument("-d " + "/home/shock/scottcal/runs/config/db_pass.txt");

@@ -241,7 +241,7 @@ public class CyberShake_Stochastic_DAXGen {
     	sParams.setVelocityInfoFile(velocityInfoFile.getName());
     	velocityInfoFile.setRegister(false);
     	//Set transfer to false, otherwise Pegasus thinks we want to archive it and looks in the RC regex for it
-    	velocityInfoFile.setTransfer(TRANSFER.TRUE);
+    	//velocityInfoFile.setTransfer(TRANSFER.TRUE);
 
     	velocityJob.addArgument(velocityInfoFile.getName());
     	velocityJob.uses(velocityInfoFile, LINK.OUTPUT);
