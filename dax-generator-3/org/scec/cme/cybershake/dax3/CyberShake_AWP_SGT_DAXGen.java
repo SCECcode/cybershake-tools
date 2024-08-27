@@ -1131,7 +1131,7 @@ public class CyberShake_AWP_SGT_DAXGen {
 	 
 	 private static Job addInsertVelocityParams() {
 		 String id = "InsertVelocityParams_" + riq.getSiteName();
-		 Job insertJob = new Job(id, "scec", "InsertVelocityarams", "1.0");
+		 Job insertJob = new Job(id, "scec", "InsertVelocityParams", "1.0");
 		 
 		 File velParamFile = new File(riq.getSiteName() + "_" + riq.getRunID() + "_velocity_params.txt");
 		 velParamFile.setTransfer(TRANSFER.TRUE);
