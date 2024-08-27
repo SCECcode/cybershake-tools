@@ -37,7 +37,7 @@ public class CyberShake_AWP_SGT_DAXGen {
         Option separateVelJobsOpt = new Option("sv", "split-velocity", false, "Use separate velocity generation and merge jobs (default is to use combined job)");
         Option maxSGTCores = OptionBuilder.withArgName("maxCores").hasArg().withDescription("maximum number of cores for SGT jobs").create("mc");
         Option separateMD5Jobs = new Option("sm", "separate-md5", false, "Run md5 jobs separately from PostAWP jobs (default is to combine).");
-        Option handoffJobOpt = new Option("d", "handoff", false, "Run handoff job, which puts SGT into pending file on shock when completed.");
+        Option handoffJobOpt = new Option("hd", "handoff", false, "Run handoff job, which puts SGT into pending file on shock when completed.");
         Option spacingOpt = OptionBuilder.withArgName("spacing").hasArg().withDescription("Override the default grid spacing, in km.").create("sp");
         Option minvs = OptionBuilder.withArgName("minvs").hasArg().withDescription("Override the minimum Vs value").create("mv");
         Option server = OptionBuilder.withArgName("server").hasArg().withDescription("Server to use for site parameters and to insert PSA values into").create("sr");

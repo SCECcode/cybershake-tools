@@ -301,7 +301,7 @@ public class CyberShake_PP_DAXGen {
         Option seis_length = OptionBuilder.withArgName("seis_length").hasArg().withDescription("Length of output seismograms in seconds. Default is 500.").create("sl");
         Option db_rvfrac_seed = new Option("dbrs", "db-rv-seed", false, "Use rvfrac value and seed from the database, if provided.");
         Option z_comp = new Option("z", "z_comp", false, "Calculate seismograms and IMs for the vertical Z component.");
-        Option handoffJobOpt = new Option("d", "handoff", false, "Run handoff job, which puts BB job into pending file on shock when PP completes.");
+        Option handoffJobOpt = new Option("hd", "handoff", false, "Run handoff job, which puts BB job into pending file on shock when PP completes.");
         Option debug = new Option("d", "debug", false, "Debug flag.");
 
         
