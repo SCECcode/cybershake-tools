@@ -381,7 +381,6 @@ public class CyberShake_AWP_SGT_DAXGen {
 		if (localVelParamInsert==true) {
 			//Insert values into a file, not the DB
 			File velParamFile = new File(riq.getSiteName() + "_" + riq.getRunID() + "_velocity_params.txt");
-			velParamFile.setTransfer(TRANSFER.TRUE);
 			velocityParamsJob.addArgument("-o " + velParamFile.getName());
 			velocityParamsJob.uses(velParamFile, LINK.OUTPUT);
 			
