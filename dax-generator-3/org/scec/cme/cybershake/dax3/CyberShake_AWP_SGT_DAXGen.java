@@ -563,18 +563,19 @@ public class CyberShake_AWP_SGT_DAXGen {
 					procDims[1] = 10;
 					procDims[2] = 1;
 				} else {
+					//Study 24.8: 20x40x1
 					//Study 18.8: change to 40x30x1
 					//Go back to 20x20x1 for Summit testing
 					if (dims[0] % 40 != 0) {
 						System.err.println("One of the volume dimensions is " + dims[0] + " which is not divisible by 40.  Aborting.");
 						System.exit(3);
 					}
-					if (dims[1] % 40 != 0) {
-						System.err.println("One of the volume dimensions is " + dims[1] + " which is not divisible by 40.  Aborting.");
+					if (dims[1] % 80 != 0) {
+						System.err.println("One of the volume dimensions is " + dims[1] + " which is not divisible by 80.  Aborting.");
 						System.exit(3);
 					}
 					procDims[0] = 20;
-					procDims[1] = 20;
+					procDims[1] = 40;
 					procDims[2] = 1;
 				}
 				
