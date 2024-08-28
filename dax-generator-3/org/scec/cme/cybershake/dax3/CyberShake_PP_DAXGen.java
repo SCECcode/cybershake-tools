@@ -45,6 +45,8 @@ public class CyberShake_PP_DAXGen {
     private final static String PEAKVALS_FILENAME_EXTENSION = ".bsa";
     private final static String ROTD_FILENAME_PREFIX = "RotD_";
     private final static String ROTD_FILENAME_EXTENSION = ".rotd";
+    private final static String VERT_RSP_FILENAME_PREFIX = "VerticalRSP_";
+    private final static String VERT_RSP_FILENAME_EXTENSION = ".rsp";
     private final static String DURATION_FILENAME_PREFIX = "Duration_";
     private final static String DURATION_FILENAME_EXTENSION = ".dur";
     private final static String PERIOD_DURATION_FILENAME_PREFIX = "PeriodDuration_";
@@ -1052,6 +1054,14 @@ public class CyberShake_PP_DAXGen {
 						rotdFile.setRegister(true);
 						rotdFile.setTransfer(TRANSFER.TRUE);
 						directSynthJob.uses(rotdFile, LINK.OUTPUT);
+						if (params.isZComp()) {
+							//Vertical response will also be calculated
+							File vertRspFile = new File(directory + VERT_RSP_FILENAME_PREFIX + riq.getSiteName() + "_" +
+									riq.getRunID() + "_" + source_id + "_" + rupture_id + VERT_RSP_FILENAME_EXTENSION);
+							vertRspFile.setRegister(true);
+							vertRspFile.setTransfer(TRANSFER.TRUE);
+							directSynthJob.uses(vertRspFile, LINK.OUTPUT);
+						}
 					}
 					if (params.isCalculateDurations()) {
 						File durationFile = new File(directory + DURATION_FILENAME_PREFIX + riq.getSiteName() + "_" + 
@@ -1142,6 +1152,14 @@ public class CyberShake_PP_DAXGen {
 						rotdFile.setRegister(true);
 						rotdFile.setTransfer(TRANSFER.TRUE);
 						directSynthJob.uses(rotdFile, LINK.OUTPUT);
+						if (params.isZComp()) {
+							//Vertical response will also be calculated
+							File vertRspFile = new File(directory + VERT_RSP_FILENAME_PREFIX + riq.getSiteName() + "_" +
+									riq.getRunID() + "_" + source_id + "_" + rupture_id + VERT_RSP_FILENAME_EXTENSION);
+							vertRspFile.setRegister(true);
+							vertRspFile.setTransfer(TRANSFER.TRUE);
+							directSynthJob.uses(vertRspFile, LINK.OUTPUT);
+						}
 					}
 					if (params.isCalculateDurations()) {
 						File durationFile = new File(directory + DURATION_FILENAME_PREFIX + riq.getSiteName() + "_" + 

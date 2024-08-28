@@ -44,6 +44,8 @@ public class CyberShake_Sub_Stoch_DAXGen {
     private final static String PSA_FILENAME_EXTENSION = ".bsa";
 	private final static String ROTD_FILENAME_PREFIX = "RotD_";
     private final static String ROTD_FILENAME_EXTENSION = ".rotd";
+    private final static String VERT_RSP_FILENAME_PREFIX = "VerticalRSP_";
+    private final static String VERT_RSP_FILENAME_EXTENSION = ".rsp";
     private final static String DURATION_FILENAME_PREFIX = "Duration_";
     private final static String DURATION_FILENAME_EXTENSION = ".dur";
     private final static String PERIOD_DURATION_FILENAME_PREFIX = "PeriodDuration_";
@@ -751,6 +753,18 @@ public class CyberShake_Sub_Stoch_DAXGen {
 			rotDFile.setTransfer(TRANSFER.TRUE);
 			job.uses(rotDFile, LINK.OUTPUT);
 			job.addArgument("rotd_out=" + rotDFile.getName());
+			if (sParams.isZComp()) {
+				job.addArgument("run_vert_rsp=1");
+				String vertRspFilename = dirPrefix + java.io.File.separator + VERT_RSP_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() + 
+		    			"_" + sourceID + "_" + ruptureID + "_bb" + VERT_RSP_FILENAME_EXTENSION;
+				File vertRspFile = new File(vertRspFilename);
+				vertRspFile.setRegister(true);
+				vertRspFile.setTransfer(TRANSFER.TRUE);
+				job.uses(vertRspFile, LINK.OUTPUT);
+				job.addArgument("vert_rsp_out=" + vertRspFile.getName());
+			} else {
+				job.addArgument("run_vert_rsp=0");
+			}
 		} else {
 			job.addArgument("run_rotd=0");
 		}
