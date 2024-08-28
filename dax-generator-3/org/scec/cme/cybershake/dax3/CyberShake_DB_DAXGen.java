@@ -711,7 +711,11 @@ public class CyberShake_DB_DAXGen {
 		String outFile = DB_CHECK_OUTFILE_DIR + DB_CHECK_OUTFILE_PREFIX + "RotD_" +  riq.getSiteName();
 		
 		job.addArgument("-o " + outFile);
-		job.addArgument("-c rotd");
+		if (params.isCalculateRotD50_Only()) {
+			job.addArgument("-c RotD50");
+		} else {
+			job.addArgument("-c rotd");
+		}
 		String periods = "10,7.5,5,4,3";
 		if (params.isStochastic()) {
 			periods = periods + ",2,1,0.5,0.2,0.1";
@@ -724,6 +728,11 @@ public class CyberShake_DB_DAXGen {
 			}
 		}
 		job.addArgument("-p " + periods);
+		if (DB_SERVER_STRING.equals("moment_carc")) {
+			job.addArgument("-s moment");
+		} else {
+			job.addArgument("-s " + DB_SERVER_STRING + ".usc.edu");
+		}
 		
 		job.addProfile("globus", "maxWallTime", "15");
 		job.addProfile("hints","executionPool", "local");
