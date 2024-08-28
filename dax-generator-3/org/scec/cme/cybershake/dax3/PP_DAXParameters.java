@@ -50,6 +50,7 @@ public class PP_DAXParameters {
 	private boolean calculateRotD = false;
 	private boolean calculateRotD50_Only = true;
 	private boolean calculateDurations = false;
+	private boolean calculatePeriodDurations = false; 
 	
 	private boolean skipMD5 = false;
 	private boolean nonblockingMD5 = false;
@@ -354,6 +355,14 @@ public class PP_DAXParameters {
 
 	public void setCalculateRotD50_Only(boolean calculateRotD50_Only) {
 		this.calculateRotD50_Only = calculateRotD50_Only;
+	}
+
+	public boolean isCalculatePeriodDurations() {
+		return calculatePeriodDurations;
+	}
+
+	public void setCalculatePeriodDurations(boolean calculatePeriodDurations) {
+		this.calculatePeriodDurations = calculatePeriodDurations;
 	}
 
 	public boolean isSkipMD5() {

@@ -46,6 +46,9 @@ public class CyberShake_Sub_Stoch_DAXGen {
     private final static String ROTD_FILENAME_EXTENSION = ".rotd";
     private final static String DURATION_FILENAME_PREFIX = "Duration_";
     private final static String DURATION_FILENAME_EXTENSION = ".dur";
+    private final static String PERIOD_DURATION_FILENAME_PREFIX = "PeriodDuration_";
+    private final static String PERIOD_DURATION_FILENAME_EXTENSION = ".dur";
+
 	
 	//Transformation names
     private final static String GET_VELOCITY_INFO = "Velocity_Info";
@@ -117,6 +120,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
         Option db_rvfrac_seed = new Option("dbrs", "db-rv-seed", false, "Use rvfrac value and seed from the database, if provided.");
         Option hf_velocity_model = OptionBuilder.withArgName("hf_vel_model").withLongOpt("hf_vel_model").hasArg().withDescription("1D velocity model to use for high-frequency synth. Options are 'labasin' (default) or 'mojave').").create("hfv");
         Option z_comp = new Option("z", "z_comp", false, "Calculate seismograms and IMs for the vertical Z component.");
+        Option periodDepDuration = new Option("pd", "period-duration", false, "Include calculation of period-dependent durations.");        
         Option debug = new Option("d", "debug", false, "Debug flag.");
 		
 		cmd_opts.addOption(help);
@@ -133,6 +137,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		cmd_opts.addOption(db_rvfrac_seed);
 		cmd_opts.addOption(hf_velocity_model);
 		cmd_opts.addOption(debug);
+        cmd_opts.addOption(periodDepDuration);
 		cmd_opts.addOption(z_comp);
 		
 		CommandLineParser parser = new GnuParser();
@@ -224,6 +229,10 @@ public class CyberShake_Sub_Stoch_DAXGen {
         
         if (line.hasOption(z_comp.getOpt())) {
         	sParams.setZComp(true);
+        }
+        
+        if (line.hasOption(periodDepDuration.getOpt())) {
+        	sParams.setRunPeriodDurations(true);
         }
         
         sParams.setDirectory(".");
@@ -698,11 +707,11 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		job.addArgument("seis_out=" + mergedSeisFile.getName());
 		
 		job.addArgument("freq=" + sParams.getMergeFrequencyString());
+		int num_comps = 2;
 		if (sParams.isZComp()) {
-			job.addArgument("comps=3");
-		} else {
-			job.addArgument("comps=2");
+			num_comps = 3;
 		}
+		job.addArgument("comps=" + num_comps);
 		job.addArgument("num_rup_vars=" + numRupVars);
 		
 		//PSA args
@@ -713,7 +722,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		
 		int nt = (int)((sParams.getTlen()/DT + 0.5));
 		
-       	job.addArgument("simulation_out_pointsX=2"); //2 b/c 2 components
+       	job.addArgument("simulation_out_pointsX=" + num_comps);
     	job.addArgument("simulation_out_pointsY=1"); //# of variations per seismogram
     	job.addArgument("simulation_out_timesamples="+nt);// numTimeSteps
     	job.addArgument("simulation_out_timeskip="+ DT); //dt
@@ -758,6 +767,19 @@ public class CyberShake_Sub_Stoch_DAXGen {
 			job.addArgument("duration_out=" + durFile.getName());
 		} else {
 			job.addArgument("run_duration=0");
+		}
+		
+		if (sParams.isRunPeriodDurations()) {
+			job.addArgument("run_period_durations=1");
+			String periodDurationFilename = dirPrefix + java.io.File.separator + PERIOD_DURATION_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() + 
+	    			"_" + sourceID + "_" + ruptureID + "_bb" + PERIOD_DURATION_FILENAME_EXTENSION;
+			File perDurFile = new File(periodDurationFilename);
+			perDurFile.setRegister(true);
+			perDurFile.setTransfer(TRANSFER.TRUE);
+			job.uses(perDurFile, LINK.OUTPUT);
+			job.addArgument("period_duration_out=" + perDurFile.getName());
+		} else {
+			job.addArgument("run_period_durations=0");
 		}
 		
 		job.addProfile("pegasus", "label", "pmc");

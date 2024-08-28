@@ -9,6 +9,7 @@ public class Stochastic_DAXParameters {
 	private boolean runSiteResponse = true;
 	private boolean runLFSiteResponse = true;
 	private boolean runDuration = true;
+	private boolean runPeriodDurations = false; 
 	private boolean debug = false;
 	private RunIDQuery lowFreqRIQ;
 	private double tlen = 300.0;
@@ -88,6 +89,12 @@ public class Stochastic_DAXParameters {
 	}
 	public void setRunDuration(boolean runDuration) {
 		this.runDuration = runDuration;
+	}
+	public boolean isRunPeriodDurations() {
+		return runPeriodDurations;
+	}
+	public void setRunPeriodDurations(boolean runPeriodDurations) {
+		this.runPeriodDurations = runPeriodDurations;
 	}
 	public boolean isRunLFSiteResponse() {
 		return runLFSiteResponse;
