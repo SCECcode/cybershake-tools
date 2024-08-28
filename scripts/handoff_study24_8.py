@@ -1,8 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import sys
 import os
 import optparse
+
+sys.path.append("/home1/scottcal/.local/lib/python3.9/site-packages")
+
 import pymysql
 import fcntl
 
@@ -16,8 +19,9 @@ parser.add_option("-s", "--stage", dest="stage", action="store", type="str", def
 (options, args) = parser.parse_args()
         
 run_id = options.run_id
+stage = options.stage
 
-conn = pymysql.connect(user="cybershk", passwd="phy$ic@1St3ady", host="moment", db="CyberShake")
+conn = pymysql.connect(user="cybershk_ro", passwd="CyberShake2007", host="moment", db="CyberShake")
 cur = conn.cursor()
 
 query = "select S.CS_Short_Name, R.ERF_ID, R.Rup_Var_Scenario_ID, R.SGT_Variation_ID, R.Velocity_Model_ID, R.Low_Frequency_Cutoff, R.Max_Frequency, R.SGT_Source_Filter_Frequency from CyberShake_Sites S, CyberShake_Runs R where R.Run_ID=%d and S.CS_Site_ID=R.Site_ID" % (run_id)
@@ -26,7 +30,7 @@ cur.execute(query)
 
 r = cur.fetchall()
 if len(r)>1:
-	print "Error: more than 1 run matched the query '%s', aborting." % (query)
+	print("Error: more than 1 run matched the query '%s', aborting." % (query))
 	sys.exit(2)
 
 res = r[0]
@@ -53,7 +57,7 @@ try:
 	fcntl.lockf(fp_out, fcntl.LOCK_EX)
 except IOError:
 	#Shouldn't get here, since we're blocking on lock
-	print >> sys.stderr, "Error acquiring lock on file %s, aborting." % PENDING_PATH
+	print("Error acquiring lock on file %s, aborting." % PENDING_PATH, file=sys.stderr)
 	sys.exit(1)
 
 #Read current contents
