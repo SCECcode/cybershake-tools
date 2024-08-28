@@ -47,6 +47,8 @@ public class CyberShake_PP_DAXGen {
     private final static String ROTD_FILENAME_EXTENSION = ".rotd";
     private final static String DURATION_FILENAME_PREFIX = "Duration_";
     private final static String DURATION_FILENAME_EXTENSION = ".dur";
+    private final static String PERIOD_DURATION_FILENAME_PREFIX = "PeriodDuration_";
+    private final static String PERIOD_DURATION_FILENAME_EXTENSION = ".dur";
 	private final static String COMBINED_SEISMOGRAM_FILENAME_PREFIX = "Seismogram_";
     private final static String COMBINED_SEISMOGRAM_FILENAME_EXTENSION = ".grm";
     private final static String COMBINED_PEAKVALS_FILENAME_PREFIX = "PeakVals_";
@@ -55,6 +57,7 @@ public class CyberShake_PP_DAXGen {
     private final static String COMBINED_ROTD_FILENAME_EXTENSION = ".rotd";
     private final static String COMBINED_DURATION_FILENAME_PREFIX = "Duration_";
     private final static String COMBINED_DURATION_FILENAME_EXTENSION = ".dur";
+    
     
 //    private final static String TMP_FS = "/lustre/scratch/tera3d/tmp";
     private final static String TMP_FS = "/dev/shm";
@@ -302,6 +305,7 @@ public class CyberShake_PP_DAXGen {
         Option db_rvfrac_seed = new Option("dbrs", "db-rv-seed", false, "Use rvfrac value and seed from the database, if provided.");
         Option z_comp = new Option("z", "z_comp", false, "Calculate seismograms and IMs for the vertical Z component.");
         Option handoffJobOpt = new Option("hd", "handoff", false, "Run handoff job, which puts BB job into pending file on shock when PP completes.");
+        Option periodDepDuration = new Option("pd", "period-duration", false, "Include calculation of period-dependent durations.");
         Option debug = new Option("d", "debug", false, "Debug flag.");
 
         
@@ -339,6 +343,7 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(db_rvfrac_seed);
         cmd_opts.addOption(z_comp);
         cmd_opts.addOption(handoffJobOpt);
+        cmd_opts.addOption(periodDepDuration);
 
         CommandLineParser parser = new GnuParser();
         if (args.length<=1) {
@@ -508,6 +513,10 @@ public class CyberShake_PP_DAXGen {
         
         if (line.hasOption(z_comp.getOpt())) {
         	pp_params.setZComp(true);
+        }
+        
+        if (line.hasOption(periodDepDuration.getOpt())) {
+        	pp_params.setCalculatePeriodDurations(true);
         }
         //Removing notifications
         pp_params.setNotifyGroupSize(pp_params.getNumOfDAXes()+1);
@@ -1051,6 +1060,13 @@ public class CyberShake_PP_DAXGen {
 						durationFile.setTransfer(TRANSFER.TRUE);
 						directSynthJob.uses(durationFile, LINK.OUTPUT);
 					}
+					if (params.isCalculatePeriodDurations()) {
+						File periodDurationFile = new File(directory + PERIOD_DURATION_FILENAME_PREFIX + riq.getSiteName() + "_" + 
+								riq.getRunID() + "_" + source_id + "_" + rupture_id + PERIOD_DURATION_FILENAME_EXTENSION);
+						periodDurationFile.setRegister(true);
+						periodDurationFile.setTransfer(TRANSFER.TRUE);
+						directSynthJob.uses(periodDurationFile, LINK.OUTPUT);
+					}
 					ruptures.next();
 				}
 				bw.flush();
@@ -1133,6 +1149,13 @@ public class CyberShake_PP_DAXGen {
 						durationFile.setRegister(true);
 						durationFile.setTransfer(TRANSFER.TRUE);
 						directSynthJob.uses(durationFile, LINK.OUTPUT);
+					}
+					if (params.isCalculatePeriodDurations()) {
+						File periodDurationFile = new File(directory + PERIOD_DURATION_FILENAME_PREFIX + riq.getSiteName() + "_" + 
+								riq.getRunID() + "_" + source_id + "_" + rupture_id + PERIOD_DURATION_FILENAME_EXTENSION);
+						periodDurationFile.setRegister(true);
+						periodDurationFile.setTransfer(TRANSFER.TRUE);
+						directSynthJob.uses(periodDurationFile, LINK.OUTPUT);
 					}
 					ruptureVariations.next();
 				}
@@ -1220,6 +1243,12 @@ public class CyberShake_PP_DAXGen {
 			directSynthJob.addArgument("run_durations=1");
 		} else {
 			directSynthJob.addArgument("run_durations=0");
+		}
+		
+		if (params.isCalculatePeriodDurations()) {
+			directSynthJob.addArgument("run_period_durations=1");
+		} else {
+			directSynthJob.addArgument("run_period_durations=0");
 		}
 		
 		if (params.isDirHierarchy()) {
