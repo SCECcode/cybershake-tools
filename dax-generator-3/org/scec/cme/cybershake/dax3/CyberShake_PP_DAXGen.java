@@ -520,6 +520,10 @@ public class CyberShake_PP_DAXGen {
         if (line.hasOption(periodDepDuration.getOpt())) {
         	pp_params.setCalculatePeriodDurations(true);
         }
+        
+        if (line.hasOption(handoffJobOpt.getOpt())) {
+        	pp_params.setHandoffJob(true);
+        }
         //Removing notifications
         pp_params.setNotifyGroupSize(pp_params.getNumOfDAXes()+1);
         
