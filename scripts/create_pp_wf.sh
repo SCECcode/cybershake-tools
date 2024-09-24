@@ -143,6 +143,12 @@ elif [ $VEL_STR == "vtaper" ]; then
     #Study 22.12 model
     #CVM-S4.26.M01 merged with Ely taper
     VEL_ID="13"
+elif [ $VEL_STR == "vsfcvm" ]; then
+        VEL_ID="14"
+elif [ $VEL_STR == "v246" ]; then
+        #Study 24.6 model
+        #SFCVM with gabbro mods, CCA-06+taper, NC1D+taper
+        VEL_ID="15"
 else
 	echo "Velocity option $VEL_STR needs to be one of v4, vh, vhs, vsi, vs1, vhng, or vbbp."
 	exit 1
@@ -269,6 +275,15 @@ $full_cmd
 if [ $? -ne 0 ]; then
 	exit 1
 fi
+
+#Register rupture file
+#pegasus-rc-client insert rupture_file_list_${SITE}_${RUN_ID} file://`pwd`/${SITE}_PP_dax/run_${RUN_ID}/rupture_file_list_${SITE}_${RUN_ID} pool="shock"
+
+#Register rvrfac file, if it exists
+#if [ -f ${SITE}_PP_dax/run_${RUN_ID}/rvfrac_seed_values_${SITE}_${RUN_ID} ]; then
+#	echo "Registering rvfrac file."
+#	pegasus-rc-client insert rvfrac_seed_values_${SITE}_${RUN_ID} file://`pwd`/${SITE}_PP_dax/run_${RUN_ID}/rupture_file_list_${SITE}_${RUN_ID} pool="shock"
+#fi
 
 mv CyberShake_${SITE}*.dax ${SITE}_PP_dax/run_${RUN_ID}
 mv ${SITE}.db ${SITE}_PP_dax/run_${RUN_ID}
