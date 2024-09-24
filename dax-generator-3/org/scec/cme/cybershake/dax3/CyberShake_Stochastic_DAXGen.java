@@ -65,7 +65,7 @@ public class CyberShake_Stochastic_DAXGen {
     private final static String UPDATERUN_NAME = "UpdateRun";
 	
 	//DB constants
-    private static String DB_SERVER = "moment.usc.edu";
+    private static String DB_SERVER = "moment";
     private final static String DB = "CyberShake";
     private final static String USER = "cybershk_ro";
     private final static String PASS = "CyberShake2007";
