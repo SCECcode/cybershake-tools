@@ -3,7 +3,8 @@
 
 # DB Constants
 #DB_HOST = "focal.usc.edu"
-DB_HOST = "moment.usc.edu"
+#DB_HOST = "moment.usc.edu"
+DB_HOST = "moment"
 DB_PORT = 3306
 DB_USER = "cybershk_ro"
 DB_PASS = "CyberShake2007"
@@ -18,7 +19,7 @@ with open(DB_WR_FILE, "r") as fp_in:
 # Valid computing resources
 HOST_LIST = ["unknown", "hpc", "mercury", "abe", "ranger", "kraken", \
                  "sdsc", "hpc-local", "stampede", "bluewaters", "titan", \
-		"cori", "summit"]
+		"cori", "summit", "frontera", "frontier"]
 
 # Valid users
 USER_LIST = ["cybershk", "tera3d", "scottcal", "kmilner", "maechlin", \

@@ -165,6 +165,12 @@ elif [ $VEL_STR == "vtaper" ]; then
     #Study 22.12 model
     #CVM-S4.26.M01 merged with Ely taper
     VEL_ID="13"
+elif [ $VEL_STR == "vsfcvm" ]; then
+	VEL_ID="14"
+elif [ $VEL_STR == "v246" ]; then
+	#Study 24.6 model
+	#SFCVM with gabbro mods, CCA-06+taper, NC1D+taper
+	VEL_ID="15"
 else
 	echo "$VEL_STR is not a recognized velocity model (-v4, -vh, -vsi, -vs1, -vhng, or -vbbp)"
 	exit 2
@@ -328,7 +334,7 @@ else
 	if [[ "${FOUND}" != 1 ]]; then
 	        #We didn't find a run match.  Create a new run.
 		echo "Creating new run for site ${SITE}"
-	        echo "create_run.py ${SITE} ${ERF} ${SGT_VAR} ${VEL_ID} ${RUP_VAR} ${FREQ}"
+	        echo "create_run.py ${SITE} ${ERF} ${SGT_VAR} ${VEL_ID} ${RUP_VAR} ${FREQ} ${SRC_FREQ}"
 		RUN_ID=`${ROOT_RUN_DIR}/cybershake-tools/runmanager/create_run.py ${SITE} ${ERF} ${SGT_VAR} ${VEL_ID} ${RUP_VAR} ${FREQ} ${SRC_FREQ}`
 	        if [ $? -ne 0 ]; then
 	            echo "Failed to create run."

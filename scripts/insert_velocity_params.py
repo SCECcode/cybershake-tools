@@ -4,6 +4,9 @@
 
 import sys
 import os
+
+sys.path.append("/home1/scottcal/.local/lib/python3.9/site-packages")
+
 import pymysql
 import argparse
 
