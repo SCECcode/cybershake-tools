@@ -754,6 +754,12 @@ public class CyberShake_DB_DAXGen {
 		//List of IM_Type_IDs for duration
 		job.addArgument("-t 176,177,180,181");
 		
+		if (DB_SERVER_STRING.equals("moment_carc")) {
+			job.addArgument("-s moment");
+		} else {
+			job.addArgument("-s " + DB_SERVER_STRING + ".usc.edu");
+		}
+		
 		job.addProfile("globus", "maxWallTime", "15");
 		job.addProfile("hints","executionPool", "local");
 		
