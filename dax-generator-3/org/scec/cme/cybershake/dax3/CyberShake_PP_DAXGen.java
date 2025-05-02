@@ -857,6 +857,8 @@ public class CyberShake_PP_DAXGen {
 			directSynthJob = new Job("DirectSynth", NAMESPACE, DIRECT_SYNTH_NAME, "2.0");
 		} else if (riq.getRuptVarScenID()==8) {
 			directSynthJob = new Job("DirectSynth_RSQSim", NAMESPACE, DIRECT_SYNTH_RSQSIM_NAME, "1.0");
+			//Force calculation of PSA; this code requires PSA to be turned on to calculate RotD and Durations
+			params.setCalculatePSA(true);
 		} else if (riq.getRuptVarScenID()==9) {
 			//Use version linked with rupture generator v5.4.2
 			directSynthJob = new Job("DirectSynth", NAMESPACE, DIRECT_SYNTH_NAME, "3.0");
