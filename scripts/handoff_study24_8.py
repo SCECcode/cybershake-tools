@@ -11,6 +11,8 @@ import fcntl
 
 PENDING_PATH = "/home/shock/scottcal/runs/Study_24.8_management/pending.txt"
 
+BB_FREQ = 50.0
+
 usage = "Usage: %prog -r <run_id> -s <next stage, LF or BB>"
 parser = optparse.OptionParser(usage = usage)
 parser.add_option("-r", "--run-id", dest="run_id", action="store", type="int", default=None, help="Run ID")
@@ -80,10 +82,11 @@ if stage=="LF":
     fp_out.write("\n")
 elif stage=="BB":
     #Write out the other Stoch entries first
-    while index<len(data) and data[index].split()[0]=="Stoch":
+    while index<len(data) and data[index].split()[0]=="stoch":
         fp_out.write(data[index])
         index += 1
-    fp_out.write("Stoch %s %d %d %d %d %f %f" % (name, erf_id, rup_var_scenario_id, sgt_var_id, vel_id, max_freq, src_freq))
+    #Since the HF ID hasn't been created yet, we can't figure out the max freq from the database.  Use a hard-coded value for Study 24.8.
+    fp_out.write("stoch %s %d %d %d %d %f %f %f\n" % (name, erf_id, rup_var_scenario_id, sgt_var_id, vel_id, lf_cutoff, src_freq, BB_FREQ))
 #Write rest of data
 for i in range(index, len(data)):
 	fp_out.write(data[i])
