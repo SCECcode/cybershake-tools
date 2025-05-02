@@ -50,7 +50,8 @@ public class PP_DAXParameters {
 	private boolean calculateRotD = false;
 	private boolean calculateRotD50_Only = true;
 	private boolean calculateDurations = false;
-	private boolean calculatePeriodDurations = false; 
+	private boolean calculatePeriodDurations = false;
+	private boolean calculateVerticalResp = false;
 	
 	private boolean skipMD5 = false;
 	private boolean nonblockingMD5 = false;
@@ -443,5 +444,13 @@ public class PP_DAXParameters {
 
 	public void setHandoffJob(boolean handoffJob) {
 		this.handoffJob = handoffJob;
+	}
+
+	public boolean isCalculateVerticalResp() {
+		return calculateVerticalResp;
+	}
+
+	public void setCalculateVerticalResp(boolean calculateVerticalResp) {
+		this.calculateVerticalResp = calculateVerticalResp;
 	}
 }

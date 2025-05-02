@@ -308,6 +308,7 @@ public class CyberShake_PP_DAXGen {
         Option z_comp = new Option("z", "z_comp", false, "Calculate seismograms and IMs for the vertical Z component.");
         Option handoffJobOpt = new Option("hd", "handoff", false, "Run handoff job, which puts BB job into pending file on shock when PP completes.");
         Option periodDepDuration = new Option("pd", "period-duration", false, "Include calculation of period-dependent durations.");
+        Option noVertRsp = new Option("nvs", "no-vertical-response", false, "Skip calculation of vertical response spectra, even if the Z component is present.");
         Option debug = new Option("d", "debug", false, "Debug flag.");
 
         
@@ -346,6 +347,7 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(z_comp);
         cmd_opts.addOption(handoffJobOpt);
         cmd_opts.addOption(periodDepDuration);
+        cmd_opts.addOption(noVertRsp);
 
         CommandLineParser parser = new GnuParser();
         if (args.length<=1) {
@@ -515,6 +517,8 @@ public class CyberShake_PP_DAXGen {
         
         if (line.hasOption(z_comp.getOpt())) {
         	pp_params.setZComp(true);
+        	//By default, calculate vertical response, unless it is overridden by the no-vert-rsp option
+        	pp_params.setCalculateVerticalResp(true);
         }
         
         if (line.hasOption(periodDepDuration.getOpt())) {
@@ -524,6 +528,11 @@ public class CyberShake_PP_DAXGen {
         if (line.hasOption(handoffJobOpt.getOpt())) {
         	pp_params.setHandoffJob(true);
         }
+        
+        if (line.hasOption(noVertRsp.getOpt())) {
+        	pp_params.setCalculateVerticalResp(false);
+        }
+        
         //Removing notifications
         pp_params.setNotifyGroupSize(pp_params.getNumOfDAXes()+1);
         
@@ -1058,7 +1067,7 @@ public class CyberShake_PP_DAXGen {
 						rotdFile.setRegister(true);
 						rotdFile.setTransfer(TRANSFER.TRUE);
 						directSynthJob.uses(rotdFile, LINK.OUTPUT);
-						if (params.isZComp()) {
+						if (params.isCalculateVerticalResp()) {
 							//Vertical response will also be calculated
 							File vertRspFile = new File(directory + VERT_RSP_FILENAME_PREFIX + riq.getSiteName() + "_" +
 									riq.getRunID() + "_" + source_id + "_" + rupture_id + VERT_RSP_FILENAME_EXTENSION);
