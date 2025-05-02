@@ -23,6 +23,7 @@ public class Stochastic_DAXParameters {
 	private boolean useDBrvfracSeed = false;
 	private String hfVelocityModel = "labasin";
 	private boolean zComp = false;
+	private boolean calculateVerticalResp = false;
 	
 	public double getStochFrequency() {
 		return stochFrequency;
@@ -144,5 +145,11 @@ public class Stochastic_DAXParameters {
 	}
 	public void setZComp(boolean zComp) {
 		this.zComp = zComp;
+	}
+	public boolean isCalculateVerticalResp() {
+		return calculateVerticalResp;
+	}
+	public void setCalculateVerticalResp(boolean calculateVerticalResp) {
+		this.calculateVerticalResp = calculateVerticalResp;
 	}
 }

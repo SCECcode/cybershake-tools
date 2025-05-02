@@ -96,7 +96,8 @@ public class CyberShake_Stochastic_DAXGen {
         Option db_rvfrac_seed = new Option("dbrs", "db-rv-seed", false, "Use rvfrac value and seed from the database, if provided.");
         Option hf_velocity_model = OptionBuilder.withArgName("hf_vel_model").withLongOpt("hf_vel_model").hasArg().withDescription("1D velocity model to use for high-frequency synth. Options are 'labasin' (default) or 'mojave').").create("hfv");
         Option periodDepDuration = new Option("pd", "period-duration", false, "Include calculation of period-dependent durations.");
-        Option z_comp = new Option("z", "z_comp", false, "Calculate seismograms and IMs for the vertical Z component.");        
+        Option z_comp = new Option("z", "z_comp", false, "Calculate seismograms and IMs for the vertical Z component.");
+        Option noVertRsp = new Option("nvs", "no-vertical-response", false, "Skip calculation of vertical response spectra, even if the Z component is present.");
         
 		cmd_opts.addOption(help);
 		cmd_opts.addOption(mergeFrequency);
@@ -114,6 +115,7 @@ public class CyberShake_Stochastic_DAXGen {
 		cmd_opts.addOption(hf_velocity_model);
 		cmd_opts.addOption(periodDepDuration);
 		cmd_opts.addOption(z_comp);
+		cmd_opts.addOption(noVertRsp);
 		
 		CommandLineParser parser = new GnuParser();
         if (args.length<=1) {
@@ -206,10 +208,16 @@ public class CyberShake_Stochastic_DAXGen {
         
         if (line.hasOption(z_comp.getOpt())) {
         	sParams.setZComp(true);
+        	//Turn on vertical response calculations; can be overrode by no-vert-rsp option
+        	sParams.setCalculateVerticalResp(true);
         }
         
         if (line.hasOption(periodDepDuration.getOpt())) {
         	sParams.setRunPeriodDurations(true);
+        }
+        
+        if (line.hasOption(noVertRsp.getOpt())) {
+        	sParams.setCalculateVerticalResp(false);
         }
         
     	//Put this at the end so we can pick up a different server, if needed
@@ -303,6 +311,9 @@ public class CyberShake_Stochastic_DAXGen {
 		}
 		if (sParams.isRunPeriodDurations()) {
 			genStochDAXJob.addArgument("-pd");
+		}
+		if (!sParams.isCalculateVerticalResp()) {
+			genStochDAXJob.addArgument("-nvr");
 		}
 
 		genStochDAXJob.addArgument("-o " + daxFile.getName());

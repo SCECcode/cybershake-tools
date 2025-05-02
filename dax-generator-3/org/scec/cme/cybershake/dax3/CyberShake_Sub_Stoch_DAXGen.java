@@ -123,6 +123,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
         Option hf_velocity_model = OptionBuilder.withArgName("hf_vel_model").withLongOpt("hf_vel_model").hasArg().withDescription("1D velocity model to use for high-frequency synth. Options are 'labasin' (default) or 'mojave').").create("hfv");
         Option z_comp = new Option("z", "z_comp", false, "Calculate seismograms and IMs for the vertical Z component.");
         Option periodDepDuration = new Option("pd", "period-duration", false, "Include calculation of period-dependent durations.");        
+        Option noVertRsp = new Option("nvs", "no-vertical-response", false, "Skip calculation of vertical response spectra, even if the Z component is present.");        
         Option debug = new Option("d", "debug", false, "Debug flag.");
 		
 		cmd_opts.addOption(help);
@@ -141,6 +142,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 		cmd_opts.addOption(debug);
         cmd_opts.addOption(periodDepDuration);
 		cmd_opts.addOption(z_comp);
+		cmd_opts.addOption(noVertRsp);
 		
 		CommandLineParser parser = new GnuParser();
         if (args.length<=1) {
@@ -231,10 +233,16 @@ public class CyberShake_Sub_Stoch_DAXGen {
         
         if (line.hasOption(z_comp.getOpt())) {
         	sParams.setZComp(true);
+        	//Turn on calculation of vertical response spectra, but can be overrode by no-vert-rsp option
+        	sParams.setCalculateVerticalResp(true);
         }
         
         if (line.hasOption(periodDepDuration.getOpt())) {
         	sParams.setRunPeriodDurations(true);
+        }
+        
+        if (line.hasOption(noVertRsp.getOpt())) {
+        	sParams.setCalculateVerticalResp(false);
         }
         
         sParams.setDirectory(".");
@@ -753,7 +761,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 			rotDFile.setTransfer(TRANSFER.TRUE);
 			job.uses(rotDFile, LINK.OUTPUT);
 			job.addArgument("rotd_out=" + rotDFile.getName());
-			if (sParams.isZComp()) {
+			if (sParams.isCalculateVerticalResp()) {
 				job.addArgument("run_vert_rsp=1");
 				String vertRspFilename = dirPrefix + java.io.File.separator + VERT_RSP_FILENAME_PREFIX + riq.getSiteName() + "_" + riq.getRunID() + 
 		    			"_" + sourceID + "_" + ruptureID + "_bb" + VERT_RSP_FILENAME_EXTENSION;
