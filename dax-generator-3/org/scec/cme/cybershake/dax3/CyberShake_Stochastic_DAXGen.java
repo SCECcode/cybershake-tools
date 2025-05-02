@@ -97,7 +97,7 @@ public class CyberShake_Stochastic_DAXGen {
         Option hf_velocity_model = OptionBuilder.withArgName("hf_vel_model").withLongOpt("hf_vel_model").hasArg().withDescription("1D velocity model to use for high-frequency synth. Options are 'labasin' (default) or 'mojave').").create("hfv");
         Option periodDepDuration = new Option("pd", "period-duration", false, "Include calculation of period-dependent durations.");
         Option z_comp = new Option("z", "z_comp", false, "Calculate seismograms and IMs for the vertical Z component.");
-        Option noVertRsp = new Option("nvs", "no-vertical-response", false, "Skip calculation of vertical response spectra, even if the Z component is present.");
+        Option noVertRsp = new Option("nvr", "no-vertical-response", false, "Skip calculation of vertical response spectra, even if the Z component is present.");
         
 		cmd_opts.addOption(help);
 		cmd_opts.addOption(mergeFrequency);

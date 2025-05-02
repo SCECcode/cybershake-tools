@@ -308,7 +308,7 @@ public class CyberShake_PP_DAXGen {
         Option z_comp = new Option("z", "z_comp", false, "Calculate seismograms and IMs for the vertical Z component.");
         Option handoffJobOpt = new Option("hd", "handoff", false, "Run handoff job, which puts BB job into pending file on shock when PP completes.");
         Option periodDepDuration = new Option("pd", "period-duration", false, "Include calculation of period-dependent durations.");
-        Option noVertRsp = new Option("nvs", "no-vertical-response", false, "Skip calculation of vertical response spectra, even if the Z component is present.");
+        Option noVertRsp = new Option("nvr", "no-vertical-response", false, "Skip calculation of vertical response spectra, even if the Z component is present.");
         Option debug = new Option("d", "debug", false, "Debug flag.");
 
         
