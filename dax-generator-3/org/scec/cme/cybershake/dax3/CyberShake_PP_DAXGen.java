@@ -1165,7 +1165,7 @@ public class CyberShake_PP_DAXGen {
 						rotdFile.setRegister(true);
 						rotdFile.setTransfer(TRANSFER.TRUE);
 						directSynthJob.uses(rotdFile, LINK.OUTPUT);
-						if (params.isZComp()) {
+						if (params.isCalculateVerticalResp()) {
 							//Vertical response will also be calculated
 							File vertRspFile = new File(directory + VERT_RSP_FILENAME_PREFIX + riq.getSiteName() + "_" +
 									riq.getRunID() + "_" + source_id + "_" + rupture_id + VERT_RSP_FILENAME_EXTENSION);
