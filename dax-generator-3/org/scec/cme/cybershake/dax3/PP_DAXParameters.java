@@ -74,6 +74,8 @@ public class PP_DAXParameters {
 	
 	private boolean zComp = false;
 	
+	private String ruptureList = null;
+	
 	public PP_DAXParameters() {
 		numOfDAXes = 1;
 		notifyGroupSize = 1;
@@ -452,5 +454,13 @@ public class PP_DAXParameters {
 
 	public void setCalculateVerticalResp(boolean calculateVerticalResp) {
 		this.calculateVerticalResp = calculateVerticalResp;
+	}
+
+	public String getRuptureList() {
+		return ruptureList;
+	}
+
+	public void setRuptureList(String ruptureList) {
+		this.ruptureList = ruptureList;
 	}
 }

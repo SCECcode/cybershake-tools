@@ -309,6 +309,7 @@ public class CyberShake_PP_DAXGen {
         Option handoffJobOpt = new Option("hd", "handoff", false, "Run handoff job, which puts BB job into pending file on shock when PP completes.");
         Option periodDepDuration = new Option("pd", "period-duration", false, "Include calculation of period-dependent durations.");
         Option noVertRsp = new Option("nvr", "no-vertical-response", false, "Skip calculation of vertical response spectra, even if the Z component is present.");
+        Option ruptureList = OptionBuilder.withArgName("rupture_list").hasArg().withDescription("CSV file with one line per rupture to include, in the format source_id,rupture_id").create("rl");
         Option debug = new Option("d", "debug", false, "Debug flag.");
 
         
@@ -348,6 +349,7 @@ public class CyberShake_PP_DAXGen {
         cmd_opts.addOption(handoffJobOpt);
         cmd_opts.addOption(periodDepDuration);
         cmd_opts.addOption(noVertRsp);
+        cmd_opts.addOption(ruptureList);
 
         CommandLineParser parser = new GnuParser();
         if (args.length<=1) {
@@ -531,6 +533,10 @@ public class CyberShake_PP_DAXGen {
         
         if (line.hasOption(noVertRsp.getOpt())) {
         	pp_params.setCalculateVerticalResp(false);
+        }
+        
+        if (line.hasOption(ruptureList.getOpt())) {
+        	pp_params.setRuptureList(line.getOptionValue(ruptureList.getOpt()));
         }
         
         //Removing notifications
@@ -900,6 +906,9 @@ public class CyberShake_PP_DAXGen {
 		
 		directSynthJob.addArgument("ntout=" + NUMTIMESTEPS);
 		
+		//If we're using a rupture list, we'll use this
+		int numRupVarsInRuptureList = 0;
+		
 		if (params.isUseDBrvfracSeed()) {
 			/*
 			 * Need to create file in format
@@ -914,7 +923,9 @@ public class CyberShake_PP_DAXGen {
 				if (riq.getSiteName().equals("TEST")) {
 					cutoffDist = 20.0;
 				}
-				String query = "select V.Source_ID, V.Rupture_ID, V.Rup_Var_ID, V.rvfrac, D.Rup_Var_Seed " + 
+				//If we're not using a rupture list, we want all the events
+				if (params.getRuptureList()==null) {
+					String query = "select V.Source_ID, V.Rupture_ID, V.Rup_Var_ID, V.rvfrac, D.Rup_Var_Seed " + 
 						"from Rupture_Variations V, Rup_Var_Seeds D, CyberShake_Site_Ruptures SR, CyberShake_Sites S " + 
 						"where S.CS_Short_Name='" + riq.getSiteName() + "' " +
 						"and S.CS_Site_ID=SR.CS_Site_ID " + 
@@ -930,34 +941,93 @@ public class CyberShake_PP_DAXGen {
 						"and D.Rupture_ID=V.Rupture_ID " + 
 						"and D.Rup_Var_ID=V.Rup_Var_ID " + 
 						"order by D.Source_ID asc, D.Rupture_ID asc, D.Rup_Var_ID asc";
-				System.out.println(query);
-				ResultSet ruptures = dbc.selectData(query);
-				ruptures.first();
-			 	if (ruptures.getRow()==0) {
-			   	    System.err.println("No ruptures found for site " + riq.getSiteName() + ", aborting.");
-			   	    System.exit(1);
-			   	}
+					System.out.println(query);
+					ResultSet ruptures = dbc.selectData(query);
+					ruptures.first();
+					if (ruptures.getRow()==0) {
+						System.err.println("No ruptures found for site " + riq.getSiteName() + ", aborting.");
+						System.exit(1);
+					}
 				
-				ruptures.last();
-				int rupture_count = ruptures.getRow();
-				ruptures.first();
+					ruptures.last();
+					int rupture_count = ruptures.getRow();
+					ruptures.first();
 				
-				String fullPath = rsJavaFile.getCanonicalPath();
-				BufferedWriter bw = new BufferedWriter(new FileWriter(fullPath));
-				bw.write(rupture_count + "\n");
-				// <src id> <rup id> <rv_id> <rvfrac> <seed>
-				while (!ruptures.isAfterLast()) {
-					int source_id = ruptures.getInt("V.Source_ID");
-					int rupture_id = ruptures.getInt("V.Rupture_ID");
-					int rup_var_id = ruptures.getInt("V.Rup_Var_ID");
-					double rvfrac = ruptures.getDouble("V.rvfrac");
-					int seed = ruptures.getInt("D.Rup_Var_Seed");
-					bw.write(source_id + " " + rupture_id + " " + rup_var_id + " " + rvfrac + " " + seed + "\n");
-					ruptures.next();
+					String fullPath = rsJavaFile.getCanonicalPath();
+					BufferedWriter bw = new BufferedWriter(new FileWriter(fullPath));
+					bw.write(rupture_count + "\n");
+					// <src id> <rup id> <rv_id> <rvfrac> <seed>
+					while (!ruptures.isAfterLast()) {
+						int source_id = ruptures.getInt("V.Source_ID");
+						int rupture_id = ruptures.getInt("V.Rupture_ID");
+						int rup_var_id = ruptures.getInt("V.Rup_Var_ID");
+						double rvfrac = ruptures.getDouble("V.rvfrac");
+						int seed = ruptures.getInt("D.Rup_Var_Seed");
+						bw.write(source_id + " " + rupture_id + " " + rup_var_id + " " + rvfrac + " " + seed + "\n");
+						ruptures.next();
+					}
+					bw.flush();
+					bw.close();
+				} else {
+					//We do have a rupture list
+					BufferedReader br = new BufferedReader(new FileReader(params.getRuptureList()));
+					String line = br.readLine();
+					ArrayList<int[]> rupturesToInclude = new ArrayList<int[]>();
+					while (line!=null) {
+						String[] pieces = line.split(",");
+						int sourceID = Integer.parseInt(pieces[0]);
+						int ruptureID = Integer.parseInt(pieces[1]);
+						rupturesToInclude.add(new int[]{sourceID, ruptureID});
+						line = br.readLine();
+					}
+					//Iterate over ruptures
+					ArrayList<String> ruptureVariationLineList = new ArrayList<String>();
+					for (int[] rup : rupturesToInclude) {
+						String query = "select V.Source_ID, V.Rupture_ID, V.Rup_Var_ID, V.rvfrac, D.Rup_Var_Seed " + 
+								"from Rupture_Variations V, Rup_Var_Seeds D, CyberShake_Site_Ruptures SR, CyberShake_Sites S " + 
+								"where S.CS_Short_Name='" + riq.getSiteName() + "' " +
+								"and S.CS_Site_ID=SR.CS_Site_ID " + 
+								"and SR.ERF_ID=" + riq.getErfID() + " " +
+								"and SR.ERF_ID=V.ERF_ID " + 
+								"and SR.Source_ID=V.Source_ID " + 
+								"and SR.Rupture_ID=V.Rupture_ID " + 
+								"and SR.Cutoff_Dist= " + cutoffDist + " " +
+								"and V.Rup_Var_Scenario_ID=" + riq.getRuptVarScenID() + " " +
+								"and D.Rup_Var_Scenario_ID=V.Rup_Var_Scenario_ID " + 
+								"and D.ERF_ID=SR.ERF_ID " + 
+								"and D.Source_ID=V.Source_ID " + 
+								"and D.Rupture_ID=V.Rupture_ID " + 
+								"and D.Rup_Var_ID=V.Rup_Var_ID " + 
+								"and V.Source_ID=" + rup[0] + " and V.Rupture_ID=" + rup[1] + " " + 
+								"order by D.Source_ID asc, D.Rupture_ID asc, D.Rup_Var_ID asc";
+						
+						ResultSet ruptures = dbc.selectData(query);
+						ruptures.first();
+						if (ruptures.getRow()==0) {
+							System.err.println("Source " + rup[0] + ", rupture " + rup[1] + " was not found for site "+ riq.getSiteName() + ", aborting.");
+							System.exit(1);
+						}
+							
+						// <src id> <rup id> <rv_id> <rvfrac> <seed>
+						int source_id = ruptures.getInt("V.Source_ID");
+						int rupture_id = ruptures.getInt("V.Rupture_ID");
+						int rup_var_id = ruptures.getInt("V.Rup_Var_ID");
+						double rvfrac = ruptures.getDouble("V.rvfrac");
+						int seed = ruptures.getInt("D.Rup_Var_Seed");
+						//Accumulate strings, since we don't know how many total rupture variations we'll have.
+						String rv_line = source_id + " " + rupture_id + " " + rup_var_id + " " + rvfrac + " " + seed + "\n";
+						ruptureVariationLineList.add(rv_line);
+					}
+					String fullPath = rsJavaFile.getCanonicalPath();
+					BufferedWriter bw = new BufferedWriter(new FileWriter(fullPath));
+					numRupVarsInRuptureList = ruptureVariationLineList.size();
+					bw.write(numRupVarsInRuptureList + "\n");
+					for (String s: ruptureVariationLineList) {
+						bw.write(s);
+					}
+					bw.flush();
+					bw.close();
 				}
-				bw.flush();
-				bw.close();
-
 				//Copy file to CARC filesystem
 				java.io.File dstFile = new java.io.File(CARC_STAGING_DIR + java.io.File.separator + rvfrac_seed_filename); 
 				Files.copy(rsJavaFile, dstFile);
@@ -998,8 +1068,9 @@ public class CyberShake_PP_DAXGen {
 				if (riq.getSiteName().equals("TEST")) {
 					cutoffDist = 20.0;
 				}
-				
-				String query = "select SR.Source_ID, SR.Rupture_ID, R.Num_Rows, R.Num_Columns, R.Mag, count(*) " +
+			
+				if (params.getRuptureList()==null) {				
+					String query = "select SR.Source_ID, SR.Rupture_ID, R.Num_Rows, R.Num_Columns, R.Mag, count(*) " +
 						"from CyberShake_Site_Ruptures SR, CyberShake_Sites S, Ruptures R, Rupture_Variations V " +
 						"where S.CS_Short_Name='" + riq.getSiteName() + "' and S.CS_Site_ID=SR.CS_Site_ID " +
 						"and SR.ERF_ID=" + riq.getErfID() + " and R.ERF_ID=" + riq.getErfID() + " and SR.Cutoff_Dist=" + cutoffDist + " " +
@@ -1007,96 +1078,214 @@ public class CyberShake_PP_DAXGen {
 						"and SR.Source_ID=R.Source_ID and R.Source_ID=V.Source_ID and SR.Rupture_ID=R.Rupture_ID " +
 						"and R.Rupture_ID=V.Rupture_ID group by V.Source_ID, V.Rupture_ID " + 
 						"order by R.Num_Points desc";
-				ResultSet ruptures = dbc.selectData(query);
-				try {
+					ResultSet ruptures = dbc.selectData(query);
+					try {
+						ruptures.first();
+						if (ruptures.getRow()==0) {
+							System.err.println("No ruptures found for site " + riq.getSiteName() + ", aborting.");
+							System.exit(1);
+						}	
+					} catch (SQLException e) {
+						e.printStackTrace();
+						System.exit(2);
+					}
+					ruptures.last();
+					int rupture_count = ruptures.getRow();
 					ruptures.first();
-				 	if (ruptures.getRow()==0) {
-				   	    System.err.println("No ruptures found for site " + riq.getSiteName() + ", aborting.");
-				   	    System.exit(1);
-				   	}
-				} catch (SQLException e) {
-					e.printStackTrace();
-					System.exit(2);
-				}
-				ruptures.last();
-				int rupture_count = ruptures.getRow();
-				ruptures.first();
-				fullPath = javaFile.getCanonicalPath();
-				BufferedWriter bw = new BufferedWriter(new FileWriter(javaFile));
-				bw.write(rupture_count + "\n");
-				// <path to rupture geometry file> <#slips> <#hypos> <#points> <mag>
-				while (!ruptures.isAfterLast()) {
-					int source_id = ruptures.getInt("SR.Source_ID");
-					int rupture_id = ruptures.getInt("SR.Rupture_ID");
-					String directory = "";
-					String rupture_path = "e" + riq.getErfID() + "_rv" + riq.getRuptVarScenID() + "_" + source_id + "_" + rupture_id + ".txt";
-					File rupture_file = new File(rupture_path);
-					//If we're using dir hierarchy, we can't have Pegasus transfer in the input files
-					//because Pegasus can only transfer them into the current working directory
-					//Instead, we pass the list of input files to the directory creation job, which does
-					//the symlinks itself.
-					if (params.isDirHierarchy()) {
-						directory = source_id + "/";
-						if (dirFileWriter==null) {
-							dirFileWriter = new BufferedWriter(new FileWriter(dirJavaFile));
+					fullPath = javaFile.getCanonicalPath();
+					BufferedWriter bw = new BufferedWriter(new FileWriter(javaFile));
+					bw.write(rupture_count + "\n");
+					// <path to rupture geometry file> <#slips> <#hypos> <#points> <mag>
+					while (!ruptures.isAfterLast()) {
+						int source_id = ruptures.getInt("SR.Source_ID");
+						int rupture_id = ruptures.getInt("SR.Rupture_ID");
+						String directory = "";
+						String rupture_path = "e" + riq.getErfID() + "_rv" + riq.getRuptVarScenID() + "_" + source_id + "_" + rupture_id + ".txt";
+						File rupture_file = new File(rupture_path);
+						//If we're using dir hierarchy, we can't have Pegasus transfer in the input files
+						//because Pegasus can only transfer them into the current working directory
+						//Instead, we pass the list of input files to the directory creation job, which does
+						//the symlinks itself.
+						if (params.isDirHierarchy()) {
+							directory = source_id + "/";
+							if (dirFileWriter==null) {
+								dirFileWriter = new BufferedWriter(new FileWriter(dirJavaFile));
+							}
+							dirFileWriter.write(directory + rupture_path + "\n");
+						} else {
+							rupture_file.setTransfer(TRANSFER.TRUE);
+							directSynthJob.uses(rupture_file, LINK.INPUT);
 						}
-						dirFileWriter.write(directory + rupture_path + "\n");
-					} else {
-						rupture_file.setTransfer(TRANSFER.TRUE);
-						directSynthJob.uses(rupture_file, LINK.INPUT);
-					}
-					int slips = ruptures.getInt("count(*)");
-					int num_rows = ruptures.getInt("R.Num_Rows");
-					int num_columns = ruptures.getInt("R.Num_Columns");
-					double mag = ruptures.getDouble("R.Mag");
-					bw.write(rupture_path + " " + slips + " 1 " + num_rows + " " + num_columns + " " + String.format("%.2f", mag) + "\n");
-					//Also add this to Pegasus file management
-					File seisFile = new File(directory + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
+						int slips = ruptures.getInt("count(*)");
+						int num_rows = ruptures.getInt("R.Num_Rows");
+						int num_columns = ruptures.getInt("R.Num_Columns");
+						double mag = ruptures.getDouble("R.Mag");
+						bw.write(rupture_path + " " + slips + " 1 " + num_rows + " " + num_columns + " " + String.format("%.2f", mag) + "\n");
+
+						//Also add this to Pegasus file management
+						File seisFile = new File(directory + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
 							riq.getRunID() + "_" + source_id + "_" + rupture_id + SEISMOGRAM_FILENAME_EXTENSION);
-					seisFile.setRegister(true);
-					seisFile.setTransfer(TRANSFER.TRUE);
-					directSynthJob.uses(seisFile, LINK.OUTPUT);
-					if (params.isCalculatePSA()) {
-						File psaFile = new File(directory + PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
-							riq.getRunID() + "_" + source_id + "_" + rupture_id + PEAKVALS_FILENAME_EXTENSION);
-						psaFile.setRegister(true);
-						psaFile.setTransfer(TRANSFER.TRUE);
-						directSynthJob.uses(psaFile, LINK.OUTPUT);
-					}
-					if (params.isCalculateRotD()) {
-						File rotdFile = new File(directory + ROTD_FILENAME_PREFIX + riq.getSiteName() + "_" +
-							riq.getRunID() + "_" + source_id + "_" + rupture_id + ROTD_FILENAME_EXTENSION);
-						rotdFile.setRegister(true);
-						rotdFile.setTransfer(TRANSFER.TRUE);
-						directSynthJob.uses(rotdFile, LINK.OUTPUT);
-						if (params.isCalculateVerticalResp()) {
-							//Vertical response will also be calculated
-							File vertRspFile = new File(directory + VERT_RSP_FILENAME_PREFIX + riq.getSiteName() + "_" +
+						seisFile.setRegister(true);
+						seisFile.setTransfer(TRANSFER.TRUE);
+						directSynthJob.uses(seisFile, LINK.OUTPUT);
+						if (params.isCalculatePSA()) {
+							File psaFile = new File(directory + PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
+									riq.getRunID() + "_" + source_id + "_" + rupture_id + PEAKVALS_FILENAME_EXTENSION);
+							psaFile.setRegister(true);
+							psaFile.setTransfer(TRANSFER.TRUE);
+							directSynthJob.uses(psaFile, LINK.OUTPUT);
+						}
+						if (params.isCalculateRotD()) {
+							File rotdFile = new File(directory + ROTD_FILENAME_PREFIX + riq.getSiteName() + "_" +
+									riq.getRunID() + "_" + source_id + "_" + rupture_id + ROTD_FILENAME_EXTENSION);
+							rotdFile.setRegister(true);
+							rotdFile.setTransfer(TRANSFER.TRUE);
+							directSynthJob.uses(rotdFile, LINK.OUTPUT);
+							if (params.isCalculateVerticalResp()) {
+								//Vertical response will also be calculated
+								File vertRspFile = new File(directory + VERT_RSP_FILENAME_PREFIX + riq.getSiteName() + "_" +
 									riq.getRunID() + "_" + source_id + "_" + rupture_id + VERT_RSP_FILENAME_EXTENSION);
-							vertRspFile.setRegister(true);
-							vertRspFile.setTransfer(TRANSFER.TRUE);
-							directSynthJob.uses(vertRspFile, LINK.OUTPUT);
+								vertRspFile.setRegister(true);
+								vertRspFile.setTransfer(TRANSFER.TRUE);
+								directSynthJob.uses(vertRspFile, LINK.OUTPUT);
+							}
+						}	
+						if (params.isCalculateDurations()) {
+							File durationFile = new File(directory + DURATION_FILENAME_PREFIX + riq.getSiteName() + "_" + 
+								riq.getRunID() + "_" + source_id + "_" + rupture_id + DURATION_FILENAME_EXTENSION);
+							durationFile.setRegister(true);
+							durationFile.setTransfer(TRANSFER.TRUE);
+							directSynthJob.uses(durationFile, LINK.OUTPUT);
+						}
+						if (params.isCalculatePeriodDurations()) {
+							File periodDurationFile = new File(directory + PERIOD_DURATION_FILENAME_PREFIX + riq.getSiteName() + "_" + 
+								riq.getRunID() + "_" + source_id + "_" + rupture_id + PERIOD_DURATION_FILENAME_EXTENSION);
+							periodDurationFile.setRegister(true);
+							periodDurationFile.setTransfer(TRANSFER.TRUE);
+							directSynthJob.uses(periodDurationFile, LINK.OUTPUT);
+						}
+						ruptures.next();
+					}
+					bw.flush();
+					bw.close();
+				} else {
+					//We're using a rupture list
+					BufferedReader br = new BufferedReader(new FileReader(params.getRuptureList()));
+					String line = br.readLine();
+					ArrayList<int[]> rupturesToInclude = new ArrayList();
+					while (line!=null) {
+						String[] pieces = line.split(",");
+						int sourceID = Integer.parseInt(pieces[0]);
+						int ruptureID = Integer.parseInt(pieces[1]);
+						rupturesToInclude.add(new int[]{sourceID, ruptureID});
+						line = br.readLine();
+					}
+					fullPath = javaFile.getCanonicalPath();
+					BufferedWriter bw = new BufferedWriter(new FileWriter(javaFile));
+					bw.write(numRupVarsInRuptureList + "\n");					
+					for (int[] rup: rupturesToInclude) {
+						String query = "select SR.Source_ID, SR.Rupture_ID, R.Num_Rows, R.Num_Columns, R.Mag, count(*) " +
+								"from CyberShake_Site_Ruptures SR, CyberShake_Sites S, Ruptures R, Rupture_Variations V " +
+								"where S.CS_Short_Name='" + riq.getSiteName() + "' and S.CS_Site_ID=SR.CS_Site_ID " +
+								"and SR.ERF_ID=" + riq.getErfID() + " and R.ERF_ID=" + riq.getErfID() + " and SR.Cutoff_Dist=" + cutoffDist + " " +
+								"and V.ERF_ID=" + riq.getErfID() + " and V.Rup_Var_Scenario_ID=" + riq.getRuptVarScenID() + " " +
+								"and SR.Source_ID=R.Source_ID and R.Source_ID=V.Source_ID and SR.Rupture_ID=R.Rupture_ID " +
+								"and R.Rupture_ID=V.Rupture_ID " +
+								"and R.Source_ID=" + rup[0] + " and R.Rupture_ID=" + rup[1] + " " + 
+								"group by V.Source_ID, V.Rupture_ID " + 
+								"order by R.Num_Points desc";
+						ResultSet rupVars = dbc.selectData(query);
+						try {
+							rupVars.first();
+							if (rupVars.getRow()==0) {
+								System.err.println("No ruptures found for site " + riq.getSiteName() + ", source " + rup[0] + ", rupture " + rup[1] + ", aborting.");
+								System.exit(1);
+							}	
+						} catch (SQLException e) {
+							e.printStackTrace();
+							System.exit(2);
+						}
+						// <path to rupture geometry file> <#slips> <#hypos> <#points> <mag>
+						while (!rupVars.isAfterLast()) {
+							int source_id = rupVars.getInt("SR.Source_ID");
+							int rupture_id = rupVars.getInt("SR.Rupture_ID");
+							String directory = "";
+							String rupture_path = "e" + riq.getErfID() + "_rv" + riq.getRuptVarScenID() + "_" + source_id + "_" + rupture_id + ".txt";
+							File rupture_file = new File(rupture_path);
+							//If we're using dir hierarchy, we can't have Pegasus transfer in the input files
+							//because Pegasus can only transfer them into the current working directory
+							//Instead, we pass the list of input files to the directory creation job, which does
+							//the symlinks itself.
+							if (params.isDirHierarchy()) {
+								directory = source_id + "/";
+								if (dirFileWriter==null) {
+									dirFileWriter = new BufferedWriter(new FileWriter(dirJavaFile));
+								}
+								dirFileWriter.write(directory + rupture_path + "\n");
+							} else {
+								rupture_file.setTransfer(TRANSFER.TRUE);
+								directSynthJob.uses(rupture_file, LINK.INPUT);
+							}
+							int slips = rupVars.getInt("count(*)");
+							int num_rows = rupVars.getInt("R.Num_Rows");
+							int num_columns = rupVars.getInt("R.Num_Columns");
+							double mag = rupVars.getDouble("R.Mag");
+							bw.write(rupture_path + " " + slips + " 1 " + num_rows + " " + num_columns + " " + String.format("%.2f", mag) + "\n");
+
+							//Also add this to Pegasus file management
+							File seisFile = new File(directory + SEISMOGRAM_FILENAME_PREFIX + riq.getSiteName() + "_" +
+								riq.getRunID() + "_" + source_id + "_" + rupture_id + SEISMOGRAM_FILENAME_EXTENSION);
+							seisFile.setRegister(true);
+							seisFile.setTransfer(TRANSFER.TRUE);
+							directSynthJob.uses(seisFile, LINK.OUTPUT);
+							if (params.isCalculatePSA()) {
+								File psaFile = new File(directory + PEAKVALS_FILENAME_PREFIX + riq.getSiteName() + "_" +
+										riq.getRunID() + "_" + source_id + "_" + rupture_id + PEAKVALS_FILENAME_EXTENSION);
+								psaFile.setRegister(true);
+								psaFile.setTransfer(TRANSFER.TRUE);
+								directSynthJob.uses(psaFile, LINK.OUTPUT);
+							}
+							if (params.isCalculateRotD()) {
+								File rotdFile = new File(directory + ROTD_FILENAME_PREFIX + riq.getSiteName() + "_" +
+										riq.getRunID() + "_" + source_id + "_" + rupture_id + ROTD_FILENAME_EXTENSION);
+								rotdFile.setRegister(true);
+								rotdFile.setTransfer(TRANSFER.TRUE);
+								directSynthJob.uses(rotdFile, LINK.OUTPUT);
+								if (params.isCalculateVerticalResp()) {
+									//Vertical response will also be calculated
+									File vertRspFile = new File(directory + VERT_RSP_FILENAME_PREFIX + riq.getSiteName() + "_" +
+										riq.getRunID() + "_" + source_id + "_" + rupture_id + VERT_RSP_FILENAME_EXTENSION);
+									vertRspFile.setRegister(true);
+									vertRspFile.setTransfer(TRANSFER.TRUE);
+									directSynthJob.uses(vertRspFile, LINK.OUTPUT);
+								}
+							}	
+							if (params.isCalculateDurations()) {
+								File durationFile = new File(directory + DURATION_FILENAME_PREFIX + riq.getSiteName() + "_" + 
+									riq.getRunID() + "_" + source_id + "_" + rupture_id + DURATION_FILENAME_EXTENSION);
+								durationFile.setRegister(true);
+								durationFile.setTransfer(TRANSFER.TRUE);
+								directSynthJob.uses(durationFile, LINK.OUTPUT);
+							}
+							if (params.isCalculatePeriodDurations()) {
+								File periodDurationFile = new File(directory + PERIOD_DURATION_FILENAME_PREFIX + riq.getSiteName() + "_" + 
+									riq.getRunID() + "_" + source_id + "_" + rupture_id + PERIOD_DURATION_FILENAME_EXTENSION);
+								periodDurationFile.setRegister(true);
+								periodDurationFile.setTransfer(TRANSFER.TRUE);
+								directSynthJob.uses(periodDurationFile, LINK.OUTPUT);
+							}
+							rupVars.next();
 						}
 					}
-					if (params.isCalculateDurations()) {
-						File durationFile = new File(directory + DURATION_FILENAME_PREFIX + riq.getSiteName() + "_" + 
-								riq.getRunID() + "_" + source_id + "_" + rupture_id + DURATION_FILENAME_EXTENSION);
-						durationFile.setRegister(true);
-						durationFile.setTransfer(TRANSFER.TRUE);
-						directSynthJob.uses(durationFile, LINK.OUTPUT);
-					}
-					if (params.isCalculatePeriodDurations()) {
-						File periodDurationFile = new File(directory + PERIOD_DURATION_FILENAME_PREFIX + riq.getSiteName() + "_" + 
-								riq.getRunID() + "_" + source_id + "_" + rupture_id + PERIOD_DURATION_FILENAME_EXTENSION);
-						periodDurationFile.setRegister(true);
-						periodDurationFile.setTransfer(TRANSFER.TRUE);
-						directSynthJob.uses(periodDurationFile, LINK.OUTPUT);
-					}
-					ruptures.next();
+					bw.flush();
+					bw.close();
+					
 				}
-				bw.flush();
-				bw.close();
 			} else {
+				if (params.getRuptureList()!=null) {
+					System.err.println("Rupture lists with SRFs is not supported, aborting.");
+					System.exit(-2);
+				}
 				//We're running with already-generated SRFs, so use those instead
 				//One line per rupture variation
 				String query = "select V.Rup_Var_LFN " + 
@@ -1804,7 +1993,7 @@ public class CyberShake_PP_DAXGen {
 
 	private ADAG genDBProductsDAX(int numSubDAXes) {
 //		CyberShake_DB_DAXGen gen = new CyberShake_DB_DAXGen(riq, params, numSubDAXes, params.isZip(), DB_SERVER);
-		CyberShake_DB_DAXGen gen = new CyberShake_DB_DAXGen(riq, numSubDAXes, false, params.getStochasticFrequency(), params.isZip(), DB_SERVER, params.isCalculateRotD(), params.isCalculateDurations());
+		CyberShake_DB_DAXGen gen = new CyberShake_DB_DAXGen(riq, numSubDAXes, false, params.getStochasticFrequency(), params.isZip(), DB_SERVER, params.isCalculateRotD(), params.isCalculateDurations(), params.getRuptureList());
 			
 		ADAG dax = gen.makeDAX();
 			

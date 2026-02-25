@@ -77,6 +77,8 @@ public class CyberShake_DB_DAXGen {
 	private boolean insertPSA = false;
 	// File with Vs30 value, for use when calculating comparison curves with stochastic results
 	private String velocityFile = null;
+	// File containing subset of ruptures
+	private String ruptureList = null;
 	
 	//Job selection
 	// boolean to enable/disable scatter map plotting
@@ -153,6 +155,12 @@ public class CyberShake_DB_DAXGen {
 	public CyberShake_DB_DAXGen(RunIDQuery r, int numDAXes, boolean highFreq, double highFreqCutoff, boolean transferZip, boolean rotD, boolean duration, String velocityFile) {
 		this(r, numDAXes, highFreq, highFreqCutoff, transferZip, rotD, duration);
 		this.velocityFile = velocityFile;
+	}
+
+	//new CyberShake_DB_DAXGen(riq, numSubDAXes, false, params.getStochasticFrequency(), params.isZip(), DB_SERVER, params.isCalculateRotD(), params.isCalculateDurations(), (String)null, params.getRuptureList());
+	public CyberShake_DB_DAXGen(RunIDQuery r, int numDAXes, boolean highFreq, double highFreqCutoff, boolean transferZip, String server, boolean rotD, boolean duration, String ruptureList) {
+		this(r, numDAXes, highFreq, highFreqCutoff, transferZip, server, rotD, duration);
+		this.ruptureList = ruptureList;
 	}
 	
 	public ADAG makeDAX() {
@@ -695,6 +703,9 @@ public class CyberShake_DB_DAXGen {
 			}
 		}
 		job.addArgument("-p " + periods);
+		if (ruptureList!=null) {
+			job.addArgument("-rl " + ruptureList);
+		}
 		
 		job.addProfile("globus", "maxWallTime", "15");
 		job.addProfile("hints","executionPool", "local");
@@ -728,6 +739,9 @@ public class CyberShake_DB_DAXGen {
 			}
 		}
 		job.addArgument("-p " + periods);
+		if (ruptureList!=null) {
+			job.addArgument("-rl " + ruptureList);
+		}
 		if (DB_SERVER_STRING.equals("moment_carc")) {
 			job.addArgument("-s moment");
 		} else {
