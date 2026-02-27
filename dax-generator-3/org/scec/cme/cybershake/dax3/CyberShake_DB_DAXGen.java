@@ -30,7 +30,7 @@ public class CyberShake_DB_DAXGen {
 	public static final String DB_REPORT_OUTPUT_DIR = "/home/shock/scottcal/db_products/db_reports/";
 //	public static final String STORAGE_DIR = "/home/scec-02/tera3d/CyberShake2007/data/PPFiles/";
 	//scec-04 storage dir
-	public static final String STORAGE_DIR = "/project/scec_608/cybershake/results/PPFiles/";
+	public static final String STORAGE_DIR = "/project2/scec_608/cybershake/results/PPFiles/";
 
 	//Constants
 	public static final String DAX_FILENAME_POST = "_db_products";
