@@ -773,6 +773,9 @@ public class CyberShake_DB_DAXGen {
 		} else {
 			job.addArgument("-s " + DB_SERVER_STRING + ".usc.edu");
 		}
+		if (ruptureList!=null) {
+			job.addArgument("-rl " + ruptureList);
+		}
 		
 		job.addProfile("globus", "maxWallTime", "15");
 		job.addProfile("hints","executionPool", "local");
