@@ -84,7 +84,7 @@ public class CyberShake_DB_DAXGen {
 	// boolean to enable/disable scatter map plotting
 	private static final boolean DO_SCATTER_MAP = false;
 	// boolean to enable/disable curve generation
-	private static final boolean DO_CURVE_GEN = true;
+	private static boolean DO_CURVE_GEN = true;
 	// boolean to enable/disable curve plotting. if DO_CURVE_GEN is false, then this is ignored.
 	private static final boolean DO_CURVE_PLOT = true;
 
@@ -161,6 +161,8 @@ public class CyberShake_DB_DAXGen {
 	public CyberShake_DB_DAXGen(RunIDQuery r, int numDAXes, boolean highFreq, double highFreqCutoff, boolean transferZip, String server, boolean rotD, boolean duration, String ruptureList) {
 		this(r, numDAXes, highFreq, highFreqCutoff, transferZip, server, rotD, duration);
 		this.ruptureList = ruptureList;
+		//Turn off curve calculation, since with a rupture list we don't have all the RVs in the ERF
+		DO_CURVE_GEN = false;
 	}
 	
 	public ADAG makeDAX() {
@@ -212,6 +214,7 @@ public class CyberShake_DB_DAXGen {
 		// Add workflow jobs
 		Job rotDJob = null;
 		Job prevInsertJob = null;
+		//We skip curve calculation if we're using a rupture list, since we don't have all the RVs in the ERF
 		if (insertPSA==true) {
 			Job insertJob = createDBInsertionJob();
 			dax.addJob(insertJob);
@@ -241,18 +244,20 @@ public class CyberShake_DB_DAXGen {
 			Job rotdCheckJob = createDBCheckRotDJob();
 			dax.addJob(rotdCheckJob);
 			dax.addDependency(rotDJob, rotdCheckJob);
-			if (!params.isCalculateRotD50_Only()) {
+			if (!params.isCalculateRotD50_Only() && DO_CURVE_GEN) {
 				Job rotd100CalcJob = createRotD100CurveCalcJob();
 				dax.addJob(rotd100CalcJob);
 				dax.addDependency(rotdCheckJob, rotd100CalcJob);
 			}
-			Job rotd50CalcJob = createRotD50CurveCalcJob();
-			curveCalcJob = rotd50CalcJob;
-			dax.addJob(rotd50CalcJob);
-			dax.addDependency(rotdCheckJob, rotd50CalcJob);
-			Job disaggJob = createDisaggJob();
-			dax.addJob(disaggJob);
-			dax.addDependency(rotd50CalcJob, disaggJob);
+			if (DO_CURVE_GEN) {
+				Job rotd50CalcJob = createRotD50CurveCalcJob();
+				curveCalcJob = rotd50CalcJob;
+				dax.addJob(rotd50CalcJob);
+				dax.addDependency(rotdCheckJob, rotd50CalcJob);
+				Job disaggJob = createDisaggJob();
+				dax.addJob(disaggJob);
+				dax.addDependency(rotd50CalcJob, disaggJob);
+			}
 		}
 		
 		Job durationJob = null;
