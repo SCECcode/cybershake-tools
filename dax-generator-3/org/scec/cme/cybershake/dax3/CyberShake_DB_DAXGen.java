@@ -53,7 +53,7 @@ public class CyberShake_DB_DAXGen {
 	public static final String ROTD_CALC_PERIODS = "3,4,5,7.5,10";
 	public static final String ROTD_OUTPUT_TYPES = "pdf,png";
 	
-	private final static String CARC_STAGING_DIR = "/scratch1/scottcal/cybershake/staging";
+	private final static String CARC_STAGING_DIR = "/scratch2/scottcal/cybershake/staging";
 	private final static String CARC_GO_PREFIX = "56569ec1-af41-4745-a8d1-8514231c7a6d";
 	
 	//DB info

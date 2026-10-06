@@ -319,6 +319,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
 					rupturesToInclude.add(new int[]{sourceID, ruptureID});
 					line = br.readLine();
 				}
+				br.close();
 				for (int[] rup : rupturesToInclude) {
 					String query = "select R.Source_ID, R.Rupture_ID, R.Num_Points, R.Mag, count(*), R.Num_Rows, R.Num_Columns " +
 							"from CyberShake_Site_Ruptures SR, CyberShake_Sites S, Ruptures R, Rupture_Variations V " +
