@@ -3,6 +3,8 @@ package org.scec.cme.cybershake.dax3;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import org.apache.commons.io.FilenameUtils;
+
 import com.google.common.io.Files;
 
 import edu.isi.pegasus.planner.dax.ADAG;
@@ -733,7 +735,8 @@ public class CyberShake_DB_DAXGen {
 			java.io.File rupListJavaFile = new java.io.File(ruptureList);
 					
 			//Copy file to CARC filesystem
-			java.io.File dstFile = new java.io.File(CARC_STAGING_DIR + java.io.File.separator + ruptureList); 
+			String ruptureListBasename = FilenameUtils.getBaseName(ruptureList);
+			java.io.File dstFile = new java.io.File(CARC_STAGING_DIR + java.io.File.separator + ruptureListBasename); 
 			try {
 				Files.copy(rupListJavaFile, dstFile);
 			}catch (Exception e) {
@@ -798,7 +801,8 @@ public class CyberShake_DB_DAXGen {
 			java.io.File rupListJavaFile = new java.io.File(ruptureList);
 					
 			//Copy file to CARC filesystem
-			java.io.File dstFile = new java.io.File(CARC_STAGING_DIR + java.io.File.separator + ruptureList); 
+			String ruptureListBasename = FilenameUtils.getBaseName(ruptureList);
+			java.io.File dstFile = new java.io.File(CARC_STAGING_DIR + java.io.File.separator + ruptureListBasename); 
 			try {
 				Files.copy(rupListJavaFile, dstFile);
 			}catch (Exception e) {
