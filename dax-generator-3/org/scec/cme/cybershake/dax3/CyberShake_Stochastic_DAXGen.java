@@ -98,6 +98,7 @@ public class CyberShake_Stochastic_DAXGen {
         Option periodDepDuration = new Option("pd", "period-duration", false, "Include calculation of period-dependent durations.");
         Option z_comp = new Option("z", "z_comp", false, "Calculate seismograms and IMs for the vertical Z component.");
         Option noVertRsp = new Option("nvr", "no-vertical-response", false, "Skip calculation of vertical response spectra, even if the Z component is present.");
+        Option ruptureList = OptionBuilder.withArgName("rupture_list").hasArg().withDescription("CSV file with one line per rupture to include, in the format source_id,rupture_id").create("rl");
         
 		cmd_opts.addOption(help);
 		cmd_opts.addOption(mergeFrequency);
@@ -116,6 +117,7 @@ public class CyberShake_Stochastic_DAXGen {
 		cmd_opts.addOption(periodDepDuration);
 		cmd_opts.addOption(z_comp);
 		cmd_opts.addOption(noVertRsp);
+		cmd_opts.addOption(ruptureList);
 		
 		CommandLineParser parser = new GnuParser();
         if (args.length<=1) {
@@ -220,6 +222,10 @@ public class CyberShake_Stochastic_DAXGen {
         	sParams.setCalculateVerticalResp(false);
         }
         
+        if (line.hasOption(ruptureList.getOpt())) {
+        	sParams.setRuptureList(line.getOptionValue(ruptureList.getOpt()));
+        }
+        
     	//Put this at the end so we can pick up a different server, if needed
     	
     	sParams.setLfRunID(lfRunID, DB_SERVER);
@@ -315,7 +321,10 @@ public class CyberShake_Stochastic_DAXGen {
 		if (!sParams.isCalculateVerticalResp()) {
 			genStochDAXJob.addArgument("-nvr");
 		}
-
+		if (sParams.getRuptureList()!=null) {
+			genStochDAXJob.addArgument("-rl " + sParams.getRuptureList());
+		}
+		
 		genStochDAXJob.addArgument("-o " + daxFile.getName());
 		genStochDAXJob.addArgument("-v " + velocityFile.getName());
 		genStochDAXJob.addArgument("-hfv " + sParams.getHfVelocityModel());
@@ -391,7 +400,7 @@ public class CyberShake_Stochastic_DAXGen {
 		topDAX.addDAX(stochDAX);
 		topDAX.addDependency(genStochDAX, stochDAX);
 		
-		CyberShake_DB_DAXGen dbDaxGen = new CyberShake_DB_DAXGen(riq, 1, true, riq.getLowFrequencyCutoff(), false, sParams.isRunRotd(), sParams.isRunDuration(), sParams.getVelocityInfoFile());
+		CyberShake_DB_DAXGen dbDaxGen = new CyberShake_DB_DAXGen(riq, 1, true, riq.getLowFrequencyCutoff(), false, DB_SERVER, sParams.isRunRotd(), sParams.isRunDuration(), sParams.getVelocityInfoFile(), sParams.getRuptureList());
 		ADAG dbADAG = dbDaxGen.makeDAX();
 		String dbDAXFilename = DAX_FILENAME_PREFIX + riq.getSiteName() + "_Stoch_DB_Products" + DAX_FILENAME_EXTENSION;
 		dbADAG.writeToFile(dbDAXFilename);

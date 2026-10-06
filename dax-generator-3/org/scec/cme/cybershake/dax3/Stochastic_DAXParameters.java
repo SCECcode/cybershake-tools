@@ -25,6 +25,8 @@ public class Stochastic_DAXParameters {
 	private boolean zComp = false;
 	private boolean calculateVerticalResp = false;
 	
+	private String ruptureList = null;
+	
 	public double getStochFrequency() {
 		return stochFrequency;
 	}
@@ -151,5 +153,11 @@ public class Stochastic_DAXParameters {
 	}
 	public void setCalculateVerticalResp(boolean calculateVerticalResp) {
 		this.calculateVerticalResp = calculateVerticalResp;
+	}
+	public String getRuptureList() {
+		return ruptureList;
+	}
+	public void setRuptureList(String ruptureList) {
+		this.ruptureList = ruptureList;
 	}
 }

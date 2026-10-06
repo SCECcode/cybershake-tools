@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -124,6 +125,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
         Option z_comp = new Option("z", "z_comp", false, "Calculate seismograms and IMs for the vertical Z component.");
         Option periodDepDuration = new Option("pd", "period-duration", false, "Include calculation of period-dependent durations.");        
         Option noVertRsp = new Option("nvr", "no-vertical-response", false, "Skip calculation of vertical response spectra, even if the Z component is present.");        
+        Option ruptureList = OptionBuilder.withArgName("rupture_list").hasArg().withDescription("CSV file with one line per rupture to include, in the format source_id,rupture_id").create("rl");
         Option debug = new Option("d", "debug", false, "Debug flag.");
 		
 		cmd_opts.addOption(help);
@@ -143,6 +145,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
         cmd_opts.addOption(periodDepDuration);
 		cmd_opts.addOption(z_comp);
 		cmd_opts.addOption(noVertRsp);
+		cmd_opts.addOption(ruptureList);
 		
 		CommandLineParser parser = new GnuParser();
         if (args.length<=1) {
@@ -245,18 +248,24 @@ public class CyberShake_Sub_Stoch_DAXGen {
         	sParams.setCalculateVerticalResp(false);
         }
         
+        if (line.hasOption(ruptureList.getOpt())) {
+        	sParams.setRuptureList(line.getOptionValue(ruptureList.getOpt()));
+        }
+        
         sParams.setDirectory(".");
         CyberShake_Sub_Stoch_DAXGen ssd = new CyberShake_Sub_Stoch_DAXGen(run_id, sParams);
         ADAG stochADAG = new ADAG(daxFilename);
-        ResultSet ruptureSet = ssd.getRuptures();
-        ssd.createJobs(stochADAG, ruptureSet, velocityFilename);
+        ArrayList<int[]> ruptureArrayList = ssd.getRuptures();
+        ssd.createJobs(stochADAG, ruptureArrayList, velocityFilename);
         
         stochADAG.writeToFile(daxFilename);
 	}
 	
-	private ResultSet getRuptures() {
+	private ArrayList<int[]> getRuptures() {
 		DBConnect dbc = new DBConnect(DB_SERVER, DB, USER, PASS);
-		String query = "select R.Source_ID, R.Rupture_ID, R.Num_Points, R.Mag, count(*), R.Num_Rows, R.Num_Columns " +
+		ArrayList<int[]> ruptureList = new ArrayList<int[]>();
+		if (sParams.getRuptureList()==null) {
+			String query = "select R.Source_ID, R.Rupture_ID, R.Num_Points, R.Mag, count(*), R.Num_Rows, R.Num_Columns " +
 				"from CyberShake_Site_Ruptures SR, CyberShake_Sites S, Ruptures R, Rupture_Variations V " +
 				"where S.CS_Short_Name=\"" + riq.getSiteName() + "\" " +
 				"and SR.CS_Site_ID=S.CS_Site_ID " +
@@ -270,20 +279,92 @@ public class CyberShake_Sub_Stoch_DAXGen {
 				"and V.Rup_Var_Scenario_ID=" + riq.getRuptVarScenID() + " " +
 				"group by V.Source_ID, V.Rupture_ID " +
 				"order by R.Num_Points desc";
-		System.out.println("Query: " + query);
-
-		ResultSet rs = dbc.selectData(query);
-		try {
-			rs.first();
-		 	if (rs.getRow()==0) {
-	      	    System.err.println("No ruptures found for site " + riq.getSiteName() + ".");
-	      	    System.exit(1);
-	      	}
-		} catch (SQLException e) {
-			e.printStackTrace();
-			System.exit(2);
+			System.out.println("Query: " + query);
+			ResultSet rs = dbc.selectData(query);
+			try {
+				rs.first();
+			 	if (rs.getRow()==0) {
+		      	    System.err.println("No ruptures found for site " + riq.getSiteName() + ".");
+		      	    System.exit(1);
+		      	}
+				int index = 0;
+				while (!rs.isAfterLast()) {
+					if ((index+1)%1000==0) {
+						System.out.println((index+1) + " ruptures processed.");
+					}
+					int sourceID = rs.getInt("R.Source_ID");
+					int ruptureID = rs.getInt("R.Rupture_ID");
+					int numPoints = rs.getInt("R.Num_Points");
+					int numRupVars = rs.getInt("count(*)");
+					int numRows = rs.getInt("R.Num_Rows");
+					int numCols = rs.getInt("R.Num_Columns");
+					ruptureList.add(new int[] {sourceID, ruptureID, numPoints, numRupVars, numRows, numCols});
+					rs.next();
+					index += 1;
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+				System.exit(2);
+			}
+		} else {
+			//We have a rupture list, read it to get a list of the ruptures
+			try {
+				BufferedReader br = new BufferedReader(new FileReader(sParams.getRuptureList()));
+				String line = br.readLine();
+				ArrayList<int[]> rupturesToInclude = new ArrayList<int[]>();
+				while (line!=null) {
+					String[] pieces = line.split(",");
+					int sourceID = Integer.parseInt(pieces[0]);
+					int ruptureID = Integer.parseInt(pieces[1]);
+					rupturesToInclude.add(new int[]{sourceID, ruptureID});
+					line = br.readLine();
+				}
+				for (int[] rup : rupturesToInclude) {
+					String query = "select R.Source_ID, R.Rupture_ID, R.Num_Points, R.Mag, count(*), R.Num_Rows, R.Num_Columns " +
+							"from CyberShake_Site_Ruptures SR, CyberShake_Sites S, Ruptures R, Rupture_Variations V " +
+							"where S.CS_Short_Name=\"" + riq.getSiteName() + "\" " +
+							"and SR.CS_Site_ID=S.CS_Site_ID " +
+							"and SR.ERF_ID=" + riq.getErfID() + " " +
+							"and SR.ERF_ID=R.ERF_ID " + 
+							"and V.ERF_ID=R.ERF_ID " + 
+							"and SR.Source_ID=R.Source_ID " +
+							"and V.Source_ID=R.Source_ID " +
+							"and SR.Rupture_ID=R.Rupture_ID " +
+							"and V.Rupture_ID=R.Rupture_ID " +
+							"and V.Rup_Var_Scenario_ID=" + riq.getRuptVarScenID() + " " +
+							"and SR.Source_ID=" + rup[0] + " " +
+							"and SR.Rupture_ID=" + rup[1] + " " + 
+							"group by V.Source_ID, V.Rupture_ID " +
+							"order by R.Num_Points desc";
+					
+					ResultSet rs = dbc.selectData(query);
+					rs.first();
+					if (rs.getRow()==0) {
+						System.err.println("Source " + rup[0] + ", rupture " + rup[1] + " was not found for site "+ riq.getSiteName() + ", aborting.");
+						System.exit(1);
+					}
+					int index = 0;
+					while (!rs.isAfterLast()) {
+						if ((index+1)%1000==0) {
+							System.out.println((index+1) + " ruptures processed.");
+						}				
+						int source_id = rs.getInt("R.Source_ID");
+						int rupture_id = rs.getInt("R.Rupture_ID");
+						int num_points = rs.getInt("R.Num_Points");
+						int count = rs.getInt("count(*)");
+						int num_rows = rs.getInt("R.Num_Rows");
+						int num_cols = rs.getInt("R.Num_Columns");
+						ruptureList.add(new int[] {source_id, rupture_id, num_points, count, num_rows, num_cols});
+						index += 1;
+						rs.next();
+					}
+				}
+			} catch (IOException | SQLException ex) {
+				ex.printStackTrace();
+				System.exit(3);
+			}
 		}
-      	return rs;
+      	return ruptureList;
 	}
 	
 	
@@ -854,7 +935,7 @@ public class CyberShake_Sub_Stoch_DAXGen {
     	return null;
     }
     
-	private void createJobs(ADAG dax, ResultSet ruptureSet, String velocityFilename) {
+	private void createJobs(ADAG dax, ArrayList<int[]> ruptureList, String velocityFilename) {
 		double[] vsArray = processVelocityFile(velocityFilename);
 		try {
       		// Create update run state job
@@ -873,28 +954,23 @@ public class CyberShake_Sub_Stoch_DAXGen {
 			dax.addJob(dirsJob);
 			dax.addDependency(updateJob, dirsJob);
 			
-			int index = 0;
-			
 			//Create this out here so we only do it once
 			HashMap<String, String> rvSeedMap = null;
 			if (sParams.isUseDBrvfracSeed()) {
 				rvSeedMap = populateRvfracSeedInfo();
 			}
 			
-			while (!ruptureSet.isAfterLast()) {
-				if ((index+1)%1000==0) {
-					System.out.println((index+1) + " ruptures processed.");
-				}
-				int sourceID = ruptureSet.getInt("R.Source_ID");
-				int ruptureID = ruptureSet.getInt("R.Rupture_ID");
-				int numPoints = ruptureSet.getInt("R.Num_Points");
-				int numRupVars = ruptureSet.getInt("count(*)");
-				int numRows = ruptureSet.getInt("R.Num_Rows");
-				int numCols = ruptureSet.getInt("R.Num_Columns");
+			for (int[] rupture: ruptureList) {
+				int sourceID = rupture[0];
+				int ruptureID = rupture[1];
+				int numPoints = rupture[2];
+				int numRupVars = rupture[3];
+				int numRows = rupture[4];
+				int numCols = rupture[5];
 			
 				dirNames.add("" + sourceID);
 				
-				//Handle dependences in the method, because we might be using multiple tasks per rupture
+				//Handle dependencies in the method, because we might be using multiple tasks per rupture
 				Job[] hfSynthJobs = createHFSynthJob(sourceID, ruptureID, numRupVars, numPoints, numRows, numCols, localVMFilename, localVMJob, dirsJob, dax, vsArray, rvSeedMap);
 				
 				Job mergeIMJob = createMergeIMJob(sourceID, ruptureID, numRupVars, numPoints);
@@ -912,8 +988,6 @@ public class CyberShake_Sub_Stoch_DAXGen {
 					dax.addDependency(lfSiteResponseJob, mergeIMJob);
 				}
 				
-				ruptureSet.next();
-				index++;
 			}
 			
 			java.io.File dirsInputFile = new java.io.File(sParams.getDirectory() + java.io.File.separator + dirsInputFilename);
@@ -930,9 +1004,6 @@ public class CyberShake_Sub_Stoch_DAXGen {
 			dirsPegasusFile.addPhysicalFile("go://" + CARC_GO_ENDPOINT + fullPath, "local");
 			//dirsPegasusFile.addPhysicalFile("file://" + fullPath, "local");
 			dax.addFile(dirsPegasusFile);
-		} catch (SQLException se) {
-			se.printStackTrace();
-			System.exit(3);
 		} catch (IOException ex) {
 			ex.printStackTrace();
 			System.exit(4);
