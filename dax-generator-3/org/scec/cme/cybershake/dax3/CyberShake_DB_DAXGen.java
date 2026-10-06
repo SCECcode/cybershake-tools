@@ -3,6 +3,8 @@ package org.scec.cme.cybershake.dax3;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import com.google.common.io.Files;
+
 import edu.isi.pegasus.planner.dax.ADAG;
 import edu.isi.pegasus.planner.dax.File;
 import edu.isi.pegasus.planner.dax.File.LINK;
@@ -50,6 +52,9 @@ public class CyberShake_DB_DAXGen {
 	
 	public static final String ROTD_CALC_PERIODS = "3,4,5,7.5,10";
 	public static final String ROTD_OUTPUT_TYPES = "pdf,png";
+	
+	private final static String CARC_STAGING_DIR = "/scratch1/scottcal/cybershake/staging";
+	private final static String CARC_GO_PREFIX = "56569ec1-af41-4745-a8d1-8514231c7a6d";
 	
 	//DB info
 	public static String DB_SERVER_STRING = "moment_carc";
@@ -166,6 +171,12 @@ public class CyberShake_DB_DAXGen {
 			DO_CURVE_GEN = false;
 		}
 	}
+
+	public CyberShake_DB_DAXGen(RunIDQuery r, int numDAXes, boolean highFreq, double highFreqCutoff, boolean transferZip, String server, boolean rotD, boolean duration, String velocityFile, String ruptureList) {
+		this(r, numDAXes, highFreq, highFreqCutoff, transferZip, server, rotD, duration, ruptureList);
+		this.velocityFile = velocityFile;
+	}
+
 	
 	public ADAG makeDAX() {
 		String daxName = CyberShake_PP_DAXGen.DAX_FILENAME_PREFIX + riq.getSiteName() + DAX_FILENAME_POST;
@@ -216,6 +227,12 @@ public class CyberShake_DB_DAXGen {
 		// Add workflow jobs
 		Job rotDJob = null;
 		Job prevInsertJob = null;
+		
+		//Create an entry in the dax for the rupture list, if we have one
+		if (ruptureList!=null) {
+			
+		}
+		
 		//We skip curve calculation if we're using a rupture list, since we don't have all the RVs in the ERF
 		if (insertPSA==true) {
 			Job insertJob = createDBInsertionJob();
@@ -225,7 +242,7 @@ public class CyberShake_DB_DAXGen {
 				dax.addDependency(zipPSAJob, insertJob);
 			}
 			prevInsertJob = insertJob;
-			Job dbCheckJob = createDBCheckJob();
+			Job dbCheckJob = createDBCheckJob(dax);
 			dax.addJob(dbCheckJob);
 			dax.addDependency(insertJob, dbCheckJob);
 			if (DO_CURVE_GEN) {
@@ -243,7 +260,7 @@ public class CyberShake_DB_DAXGen {
 				dax.addDependency(prevInsertJob, rotDJob);
 			}
 			prevInsertJob = rotDJob;
-			Job rotdCheckJob = createDBCheckRotDJob();
+			Job rotdCheckJob = createDBCheckRotDJob(dax);
 			dax.addJob(rotdCheckJob);
 			dax.addDependency(rotDJob, rotdCheckJob);
 			if (!params.isCalculateRotD50_Only() && DO_CURVE_GEN) {
@@ -688,7 +705,7 @@ public class CyberShake_DB_DAXGen {
 		return job;
 	}
 	
-	private Job createDBCheckJob() {
+	private Job createDBCheckJob(ADAG dax) {
 		String id = DB_PREFIX + "DB_Check" + "_" + riq.getSiteName();
 		Job job = new Job(id, CyberShake_PP_DAXGen.NAMESPACE, DB_CHECK_NAME, CyberShake_PP_DAXGen.VERSION);
 		
@@ -712,6 +729,26 @@ public class CyberShake_DB_DAXGen {
 		job.addArgument("-p " + periods);
 		if (ruptureList!=null) {
 			job.addArgument("-rl " + ruptureList);
+			//We also need to track this in Pegasus
+			java.io.File rupListJavaFile = new java.io.File(ruptureList);
+					
+			//Copy file to CARC filesystem
+			java.io.File dstFile = new java.io.File(CARC_STAGING_DIR + java.io.File.separator + ruptureList); 
+			try {
+				Files.copy(rupListJavaFile, dstFile);
+			}catch (Exception e) {
+				e.printStackTrace();
+				System.exit(3);
+			}
+	
+			edu.isi.pegasus.planner.dax.File rlFile = new File(ruptureList);
+			rlFile.addPhysicalFile("go://" + CARC_GO_PREFIX + "/" + dstFile.getAbsolutePath(), "shock");
+			dax.addFile(rlFile);
+
+			rlFile.setTransfer(TRANSFER.TRUE);
+			job.uses(rlFile, LINK.INPUT);
+
+			
 		}
 		
 		job.addProfile("globus", "maxWallTime", "15");
@@ -720,7 +757,7 @@ public class CyberShake_DB_DAXGen {
 		return job;
 	}
 	
-	private Job createDBCheckRotDJob() {
+	private Job createDBCheckRotDJob(ADAG dax) {
 		String id = DB_PREFIX + "DB_Check_RotD" + "_" + riq.getSiteName();
 		Job job = new Job(id, CyberShake_PP_DAXGen.NAMESPACE, DB_CHECK_NAME, CyberShake_PP_DAXGen.VERSION);
 		
@@ -753,6 +790,29 @@ public class CyberShake_DB_DAXGen {
 			job.addArgument("-s moment");
 		} else {
 			job.addArgument("-s " + DB_SERVER_STRING + ".usc.edu");
+		}
+		
+		if (ruptureList!=null) {
+			job.addArgument("-rl " + ruptureList);
+			//We also need to track this in Pegasus
+			java.io.File rupListJavaFile = new java.io.File(ruptureList);
+					
+			//Copy file to CARC filesystem
+			java.io.File dstFile = new java.io.File(CARC_STAGING_DIR + java.io.File.separator + ruptureList); 
+			try {
+				Files.copy(rupListJavaFile, dstFile);
+			}catch (Exception e) {
+				e.printStackTrace();
+				System.exit(3);
+			}
+	
+			edu.isi.pegasus.planner.dax.File rlFile = new File(ruptureList);
+			rlFile.addPhysicalFile("go://" + CARC_GO_PREFIX + "/" + dstFile.getAbsolutePath(), "shock");
+			dax.addFile(rlFile);
+
+			rlFile.setTransfer(TRANSFER.TRUE);
+			job.uses(rlFile, LINK.INPUT);
+	
 		}
 		
 		job.addProfile("globus", "maxWallTime", "15");
