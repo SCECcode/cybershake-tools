@@ -166,8 +166,10 @@ public class CyberShake_DB_DAXGen {
 	public CyberShake_DB_DAXGen(RunIDQuery r, int numDAXes, boolean highFreq, double highFreqCutoff, boolean transferZip, String server, boolean rotD, boolean duration, String ruptureList) {
 		this(r, numDAXes, highFreq, highFreqCutoff, transferZip, server, rotD, duration);
 		this.ruptureList = ruptureList;
-		//Turn off curve calculation, since with a rupture list we don't have all the RVs in the ERF
-		DO_CURVE_GEN = false;
+		//Turn off curve calculation if we have a rupture list, since with a rupture list we don't have all the RVs in the ERF
+		if (ruptureList!=null) {
+			DO_CURVE_GEN = false;
+		}
 	}
 
 	public CyberShake_DB_DAXGen(RunIDQuery r, int numDAXes, boolean highFreq, double highFreqCutoff, boolean transferZip, String server, boolean rotD, boolean duration, String velocityFile, String ruptureList) {
