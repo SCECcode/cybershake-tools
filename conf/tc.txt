@@ -1,0 +1,1016 @@
+# multiple line text-based transformation catalog: 2010-12-03T09:30:08.870-08:00
+tr pegasus::mpiexec {
+	site frontera {
+		profile pegasus "nodes" "30"
+		profile pegasus "cores" "1680"
+		#profile pegasus "glite.arguments" "--reservation SCEC_2024"
+		profile pegasus "runtime" "5400"
+		profile globus "jobtype" "single"
+		profile pegasus "queue" "normal"
+        profile pegasus "project" "EAR20006"
+		pfn "/work2/00349/scottcal/frontera/CyberShake/utils/pegasus_wrappers/mpi-cluster-wrapper.sh"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr pegasus::transfer {
+	#Adding this to try to pick up correct account for frontier
+	site frontier {
+		profile pegasus "nodes" "1"
+		profile pegasus "cores" "1"
+		profile pegasus "runtime" "3600"
+		profile pegasus "project" "GEO156"
+		pfn "/lustre/orion/geo156/proj-shared/CyberShake/utils/pegasus/default/bin/pegasus-transfer"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+
+	#Adding this to get the node/core counts Frontera requires
+	site frontera {
+		profile pegasus "nodes" "1"
+		profile pegasus "cores" "1"
+		profile pegasus "runtime" "3600"
+		profile pegasus "queue" "small"
+		profile pegasus "project" "EAR20006"
+		pfn "/work2/00349/scottcal/frontera/CyberShake/utils/pegasus/default/bin/pegasus-transfer"
+		arch "x86_64"
+        os "LINUX"
+        type "INSTALLED"
+	}
+}
+
+# tr scec::GenSGTDax:1.0 {
+# 	site local {
+# 		pfn "/usr/bin/env"
+# 		arch "x86"
+# 		os "LINUX"
+# 		type "INSTALLED"
+# 	}
+# }
+
+# tr scec::GenStochDax:1.0 {
+# 	site local {
+# 		pfn "/usr/bin/env"
+# 		arch "x86"
+# 		os "LINUX"
+# 		type "INSTALLED"
+# 	}
+# }
+
+# tr scec::SetJobID:1.0 {
+#         site shock {
+# 			pfn "/home/shock/scottcal/runs/cybershake-tools/runmanager/get_condor_id.sh"
+# 			arch "x86"
+# 			os "LINUX"
+# 			type "INSTALLED"
+#         }
+#         site local {
+# 			pfn "/home/shock/scottcal/runs/cybershake-tools/runmanager/get_condor_id.sh"
+# 			arch "x86"
+# 			os "LINUX"
+# 			type "INSTALLED"
+#         }
+# }
+
+# tr scec::SetPPHost:1.0 {
+# 		site shock {
+# 			pfn "/home/shock/scottcal/runs/cybershake-tools/runmanager/set_pp_host.sh"
+# 			arch "x86"
+# 			os "LINUX"
+# 			type "INSTALLED"
+# 		}
+# 		site local {
+# 				pfn "/home/shock/scottcal/runs/cybershake-tools/runmanager/set_pp_host.sh"
+# 				arch "x86"
+# 				os "LINUX"
+# 				type "INSTALLED"
+# 		}
+# }
+
+tr scec::PreAWP:1.0 {
+	site frontier {
+		profile pegasus "nodes" "1"
+		profile pegasus "cores" "1"
+		profile pegasus "runtime" "300"
+		profile globus "jobtype" "single"
+		profile pegasus "project" "GEO156"
+		pfn "/lustre/orion/geo156/proj-shared/CyberShake/software/AWP-HIP-SGT/utils/build_awp_inputs.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::PreAWP_GPU:1.0 {
+	site frontier {
+		profile pegasus "nodes" "1"
+		profile pegasus "cores" "1"
+		profile pegasus "runtime" "300"
+		profile globus "jobtype" "single"
+		profile pegasus "project" "GEO156"
+		pfn "/lustre/orion/geo156/proj-shared/CyberShake/software/AWP-HIP-SGT/utils/build_awp_inputs.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::AWP_GPU:1.0 {
+	site frontier {
+		profile pegasus "nodes" "100"
+		profile pegasus "cores" "800"
+		profile pegasus "runtime" "3600"
+		profile globus "jobtype" "single"
+		profile pegasus "project" "GEO156"
+		pfn "/lustre/orion/geo156/proj-shared/CyberShake/software/AWP-HIP-SGT/gpu_wrapper.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::PostAWP:1.0 {
+	site frontier {
+		profile pegasus "nodes" "1"
+		profile pegasus "cores" "32"
+		profile pegasus "runtime" "4500"
+		profile globus "jobtype" "single"
+		profile pegasus "project" "GEO156"
+		pfn "/lustre/orion/geo156/proj-shared/CyberShake/software/AWP-HIP-SGT/utils/prepare_for_pp.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::CheckSgt:1.0 {
+	profile pegasus "clusters.size" "1"
+	profile pegasus "runtime" "1200"
+	site hpc {
+		pfn "/home/rcf-104/CyberShake2007/software/CheckSgt/CheckSgt.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site frontera {
+		profile pegasus "cores" "1"
+		profile pegasus "nodes" "1"
+		profile globus "jobtype" "single"
+		profile pegasus "runtime" "7200"
+		profile pegasus "queue" "small"
+        profile pegasus "project" "EAR20006"
+		pfn "/work2/00349/scottcal/frontera/CyberShake/software/CheckSgt/CheckSgt.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+# tr scec::Check_DB_Site:1.0 {
+# 	site local {
+# 		pfn "/home/shock-ssd/scottcal/db/check_db.sh"
+# 		arch "x86"
+# 		os "LINUX"
+# 		type "INSTALLED"
+# 	}
+# 	site shock {
+# 		pfn "/home/shock-ssd/scottcal/db/check_db.sh"
+# 		arch "x86"
+# 		os "LINUX"
+# 		type "INSTALLED"
+# 	}
+# }
+
+# tr scec::Curve_Calc:1.0 {
+# 	site local {
+# 		pfn "/home/shock-ssd/scottcal/opensha/curve_plot_wrapper.sh"
+# 		arch "x86"
+# 		os "LINUX"
+# 		type "INSTALLED"
+# 	}
+# 	site shock {
+# 		pfn "/home/shock-ssd/scottcal/opensha/curve_plot_wrapper.sh"
+# 		arch "x86"
+# 		os "LINUX"
+# 		type "INSTALLED"
+# 	}
+# }
+
+# tr scec::Curve_Calc_Wrapper:1.0 {
+# 	site local {
+# 			pfn "/home/shock-ssd/scottcal/opensha/curve_plot_velocity_file_wrapper.sh"
+# 			arch "x86"
+# 			os "LINUX"
+# 			type "INSTALLED"
+# 	}
+# 	site shock {
+# 			pfn "/home/shock-ssd/scottcal/opensha/curve_plot_velocity_file_wrapper.sh"
+# 			arch "x86"
+# 			os "LINUX"
+# 			type "INSTALLED"
+# 	}
+# }
+
+tr scec::CyberShakeNotify:1.0 {
+	profile pegasus "runtime" "300"
+	site hpc {
+		pfn "/home/rcf-104/CyberShake2007/software/RunManager/SendStatus.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site shock {
+		pfn "/home/shock/scottcal/runs/cybershake-tools/runmanager/RunManager/SendStatus.py"
+                arch "x86"
+                os "LINUX"
+                type "INSTALLED"
+	}
+}
+
+tr scec::DB_Report:1.0 {
+	site local {
+		pfn "/home/scec-00/cybershk/reports/db_report_gen.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site shock {
+		pfn "/home/scec-00/cybershk/reports/db_report_gen.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::Date:1.0 {
+	site local {
+		pfn "/bin/date"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+# tr scec::Disaggregate:1.0 {
+# 	site local {
+# 		pfn "/home/shock-ssd/scottcal/opensha/disagg_plot_wrapper.sh"
+# 		arch "x86"
+# 		os "LINUX"
+# 		type "INSTALLED"
+# 	}
+# 	site shock {
+# 			pfn "/home/shock-ssd/scottcal/opensha/disagg_plot_wrapper.sh"
+# 			arch "x86"
+# 			os "LINUX"
+# 			type "INSTALLED"
+# 	}
+# }
+
+tr scec::HazardCurve:1.0 {
+	site local {
+		pfn "/home/scec-00/cybershk/HazardCurveGeneration/curve_wrapper.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site shock {
+		pfn "/home/scec-00/cybershk/HazardCurveGeneration/curve_wrapper.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+# tr scec::Load_Amps:1.0 {
+# 	site local {
+# 		pfn "/home/shock-ssd/scottcal/CyberCommands/bin/insert_dir.sh"
+# 		arch "x86"
+# 		os "LINUX"
+# 		type "INSTALLED"
+# 	}
+# 	site shock {
+# 		pfn "/home/shock-ssd/scottcal/CyberCommands/bin/insert_dir.sh"
+# 		arch "x86"
+# 		os "LINUX"
+# 		type "INSTALLED"
+# 	}
+# }
+
+tr scec::MD5:1.0 {
+	site frontier {
+		profile pegasus "nodes" "1"
+		profile pegasus "cores" "1"
+		profile pegasus "runtime" "7200"
+		profile globus "jobtype" "single"
+		profile pegasus "project" "GEO156"
+		pfn "/lustre/orion/geo156/proj-shared/CyberShake/software/SgtHead/run_md5sum.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::NanTest:1.0 {
+	profile pegasus "runtime" "1200"
+	site hpc {
+		pfn "/home/rcf-104/CyberShake2007/software/SgtTest/dump_rawsgt_both.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::PeakValCalc_Okaya:1.0 {
+	#Changed from clusters.num=40 so we don't have issues with more subwfs
+	profile pegasus "clusters.size" "400"
+	profile pegasus "runtime" "120"
+	site hpc {
+		pfn "/home/rcf-104/CyberShake2007/software/SpectralAcceleration/p2utils/surfseis_rspectra"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::PreCVM:1.0 {
+	profile pegasus "runtime" "600"
+	site abe_noglidein {
+		pfn "/cfs/projects/scec/CyberShake2007/software/PreCVM/pre_cvm.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site hpc {
+		pfn "/home/rcf-104/CyberShake2007/software/PreCVM/pre_cvm.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site frontier {
+		profile pegasus "nodes" "1"
+		profile pegasus "cores" "1"
+		profile globus "jobtype" "single"
+		profile pegasus "project" "GEO156"
+		profile pegasus "runtime" "1800"
+		pfn "/lustre/orion/geo156/proj-shared/CyberShake/software/PreCVM/pre_cvm.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::PreSGT:1.0 {
+	profile pegasus "runtime" "600"
+	site abe_noglidein {
+		pfn "/cfs/projects/scec/CyberShake2007/software/PreSgt/presgt.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site hpc {
+		pfn "/home/rcf-104/CyberShake2007/software/PreSgt/presgt.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site frontier {
+		profile pegasus "nodes" "1"
+		profile pegasus "cores" "32"
+		profile pegasus "runtime" "1200"
+		profile globus "jobtype" "single"
+		profile pegasus "project" "GEO156"
+		pfn "/lustre/orion/geo156/proj-shared/CyberShake/software/PreSgt/presgt.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::RegisterSGT:1.0 {
+	site abe_noglidein {
+		pfn "/cfs/projects/scec/CyberShake2007/software/RegisterSgt/register_sgt.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::SGTGen:1.0 {
+	site abe_noglidein {
+		pfn "/cfs/projects/scec/CyberShake2007/software/SimSgt/sim_sgt_vmi.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site hpc {
+		pfn "/home/rcf-104/CyberShake2007/software/SimSgt_V1_16_3/sim_sgt.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::SGTMerge:1.0 {
+	site abe_noglidein {
+		pfn "/cfs/projects/scec/CyberShake2007/software/RecpGF/merge_sgt_serial.csh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site hpc {
+		pfn "/home/rcf-104/CyberShake2007/software/RecpGF/merge_sgt_both.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::Scatter_Map:1.0 {
+	site opensha {
+		pfn "/home/scec-00/cybershk/opensha/make_scatter_map.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::SendResults:1.0 {
+	site hpc {
+		pfn "/home/rcf-104/CyberShake2007/software/VerifyCR/SendResults.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::Smooth:1.0 {
+	site frontier {
+		profile pegasus "nodes" "30"
+		profile pegasus "cores" "1680"
+		profile pegasus "runtime" "3600"
+		profile globus "jobtype" "single"
+		profile pegasus "project" "GEO156"
+		pfn "/lustre/orion/geo156/proj-shared/CyberShake/software/UCVM/smoothing/run_smoothing.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::UCVMMesh:1.0 {
+	site frontier {
+		profile pegasus "nodes" "96"
+		profile pegasus "cores" "5376"
+		profile globus "jobtype" "single"
+		profile pegasus "project" "GEO156"
+		profile pegasus "runtime" "1800"
+		pfn "/lustre/orion/geo156/proj-shared/CyberShake/software/UCVM/single_exe.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+# tr scec::UpdateRun:1.0 {
+# 	profile pegasus "clusters.size" "1"
+# 	site hpc {
+# 		pfn "/home/rcf-104/CyberShake2007/software/RunManager/UpdateRunState.py"
+# 		arch "x86"
+# 		os "LINUX"
+# 		type "INSTALLED"
+# 	}
+# 	site shock {
+# 		pfn "/home/shock/scottcal/runs/cybershake-tools/runmanager/RunManager/UpdateRunState.py"
+# 		arch "x86"
+# 		os "LINUX"
+# 		type "INSTALLED"
+# 	}
+# 	site local {
+# 		pfn "/home/shock/scottcal/runs/cybershake-tools/runmanager/RunManager/UpdateRunState.py"
+# 		arch "x86"
+# 		os "LINUX"
+# 		type "INSTALLED"
+# 	}
+# }
+
+tr scec::V4MeshGen:1.0 {
+	profile pegasus "runtime" "7200"
+	profile pegasus "nodes" "20"
+	profile pegasus "cores" "160"
+	site abe_noglidein {
+		pfn "/cfs/projects/scec/CyberShake2007/software/V4-WrapC/genmod_vmi.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site hpc {
+		pfn "/home/rcf-104/CyberShake2007/software/V4-WrapC/genmod.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::VHMeshGen:1.0 {
+	profile pegasus "runtime" "7200"
+	profile pegasus "nodes" "20"
+	profile pegasus "cores" "160"
+	site hpc {
+			pfn "/home/rcf-104/CyberShake2007/software/VH-WrapC/genmod.py"
+			arch "x86"
+			os "LINUX"
+			type "INSTALLED"
+	}
+}
+
+tr scec::VHMeshMerge:1.0 {
+	profile pegasus "runtime" "3600"
+	profile pegasus "nodes" "4"
+	profile pegasus "cores" "8"
+	site hpc {
+			pfn "/home/rcf-104/CyberShake2007/software/VH-WrapC/merge_cvm.py"
+			arch "x86"
+			os "LINUX"
+			type "INSTALLED"
+	}
+}
+
+tr scec::V4MeshMerge:1.0 {
+	profile pegasus "runtime" "3600"
+	profile pegasus "nodes" "4"
+	profile pegasus "cores" "8"
+	site abe_noglidein {
+		pfn "/cfs/projects/scec/CyberShake2007/software/V4-WrapC/merge_vmi.csh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site hpc {
+		pfn "/home/rcf-104/CyberShake2007/software/V4-WrapC/merge_cvm.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::VerifyCR:1.0 {
+	site hpc {
+		pfn "/home/rcf-104/CyberShake2007/software/VerifyCR/VerifyCR.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::ZipSeis:1.0 {
+	profile pegasus "runtime" "1800"
+	site shock {
+		pfn "/home/rcf-104/CyberShake2007/software/Zip/zip_seis_local.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::ZipPSA:1.0 {
+	profile pegasus "runtime" "1800"
+	site shock {
+		pfn "/home/rcf-104/CyberShake2007/software/Zip/zip_psa_local.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::ZipPeakSA:1.0 {
+	profile pegasus "runtime" "900"
+	site abe_noglidein {
+		pfn "/cfs/projects/scec/CyberShake2007/software/Zip/zip_peakSA.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site hpc {
+		pfn "/home/rcf-104/CyberShake2007/software/Zip/zip_peakSA.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::ZipSeismograms:1.0 {
+	profile pegasus "runtime" "900"
+	site abe_noglidein {
+		pfn "/cfs/projects/scec/CyberShake2007/software/Zip/zip_seismograms.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site hpc {
+		pfn "/home/rcf-104/CyberShake2007/software/Zip/zip_seismograms.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::extract_sgt:1.0 {
+	#profile pegasus "clusters.num" "20"
+	profile pegasus "clusters.size" "6"
+	site hpc {
+		pfn "/home/rcf-104/CyberShake2007/software/JBSim3d/bin/jbsim3d"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::extract_sgt_memcached:1.0 {
+	#changed from clusters.num=20 so we don't run into issues when we run with
+	#more subworkflows
+	#Average runtime is 7 seconds
+	profile pegasus "clusters.size" "10"
+	site hpc {
+			pfn "/home/rcf-104/CyberShake2007/software/JBSim3d_mc/bin/jbsim3d"
+			arch "x86"
+			os "LINUX"
+			type "INSTALLED"
+	}
+}
+
+tr scec::seismogram_synthesis:1.0 {
+	#profile pegasus "clusters.num" "40"
+	profile pegasus "clusters.size" "200"
+	site hpc {
+		pfn "/home/rcf-104/CyberShake2007/software/JBSim3d/bin/jbsim3d"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::seismogram_synthesis_memcached:1.0 {
+	#changed from clusters.num=40 so we don't run into issues with more
+	#subworkflows
+	#Average runtime is 4 seconds
+        profile pegasus "clusters.size" "200"
+        site hpc {
+                pfn "/home/rcf-104/CyberShake2007/software/JBSim3d_mc/bin/jbsim3d"
+                arch "x86"
+                os "LINUX"
+                type "INSTALLED"
+        }
+}
+
+tr scec::Local_VM:1.0 {
+	site frontera {
+		profile pegasus "nodes" "1"
+		profile pegasus "cores" "1"
+		profile pegasus "runtime" "300"
+		profile pegasus "queue" "small"
+        profile pegasus "project" "EAR20006"
+		pfn "/work2/00349/scottcal/frontera/CyberShake/software/HFSim_mem/gen_local_vel.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::Create_Dirs:1.0 {
+	site frontera {
+		profile pegasus "nodes" "1"
+		profile pegasus "cores" "1"
+		profile pegasus "runtime" "300"
+		profile pegasus "queue" "small"
+        profile pegasus "project" "EAR20006"
+		pfn "/work2/00349/scottcal/frontera/CyberShake/software/HFSim_mem/create_dirs.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::MergeIM:2.0 {
+	site frontera {
+        profile globus "jobtype" "single"
+        profile pegasus "project" "EAR20006"
+        pfn "/work2/00349/scottcal/frontera/CyberShake/software/MergeIM/bin/merge_psa_bbp"
+        arch "x86_64"
+        os "LINUX"
+        type "INSTALLED"
+    }
+}
+
+tr scec::HF_Synth:3.0 {
+
+	site frontera {
+		profile globus "jobtype" "single"
+        profile pegasus "project" "EAR20006"
+		pfn "/work2/00349/scottcal/frontera/CyberShake/software/HFSim_mem/bin/hf_synth_bbp"
+        arch "x86_64"
+        os "LINUX"
+        type "INSTALLED"
+	}
+}
+
+tr scec::Combine_HF_Synth:1.0 {
+
+	site frontera {
+        profile globus "jobtype" "single"
+        profile pegasus "project" "EAR20006"
+        pfn "/work2/00349/scottcal/frontera/CyberShake/software/HFSim_mem/combine_seis.py"
+        arch "x86_64"
+        os "LINUX"
+        type "INSTALLED"
+	}
+}
+
+tr scec::LF_Site_Response:2.0 {
+	site frontera {
+       profile globus "jobtype" "single"
+       profile pegasus "project" "EAR20006"
+       pfn "/work2/00349/scottcal/frontera/CyberShake/software/LF_Site_Response/bin/lf_site_response_bbp"
+       arch "x86_64"
+       os "LINUX"
+       type "INSTALLED"
+    }
+}
+
+tr scec::AWP_NaN_Check:1.0 {
+	site frontier {
+		profile pegasus "nodes" "1"
+		profile pegasus "cores" "1"
+		profile pegasus "runtime" "3600"
+		profile globus "jobtype" "single"
+		profile pegasus "project" "GEO156"
+		pfn "/lustre/orion/geo156/proj-shared/CyberShake/software/SgtTest/perform_checks.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+
+}
+
+# tr scec::Handoff:1.0 {
+# 	site shock {
+# 		pfn "/usr/bin/env"
+# 		arch "x86"
+# 		os "LINUX"
+# 		type "INSTALLED"
+# 	}
+# }
+
+tr scec::CheckSgtNoSums:1.0 {
+	site frontera {
+		profile globus "jobtype" "single"
+		profile pegasus "runtime" "120"
+		profile pegasus "project" "EAR20006"
+		profile pegasus "queue" "small"
+		pfn "/bin/true"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::Extract_SGT_MPI:1.0 {
+	site frontera {
+		profile pegasus "nodes" "8"
+		profile pegasus "cores" "128"
+		profile globus "jobtype" "single"
+		profile pegasus "runtime" "1800"
+		profile pegasus "project" "EAR20006"
+		profile pegasus "queue" "normal"
+		pfn "/work2/00349/scottcal/frontera/CyberShake/software/ExtractSgt_geom/extract_sgt_mpi.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::Extract_SGT_MPI:3.3.1 {
+	site frontera {
+		profile pegasus "nodes" "8"
+		profile pegasus "cores" "128"
+		profile globus "jobtype" "single"
+		profile pegasus "runtime" "1800"
+		profile pegasus "project" "EAR20006"
+		profile pegasus "queue" "normal"
+		pfn "/work2/00349/scottcal/frontera/CyberShake/software/ExtractSgt_geom/extract_sgt_mpi_v3.3.1.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::Extract_SGT_MPI_AWP:1.0 {
+	site frontera {
+		profile pegasus "nodes" "8"
+		profile pegasus "cores" "128"
+		profile globus "jobtype" "single"
+		profile pegasus "runtime" "1800"
+		profile pegasus "project" "EAR20006"
+		profile pegasus "queue" "normal"
+		pfn "/work2/00349/scottcal/frontera/CyberShake/software/ExtractSgt_opt_header/extract_sgt_mpi.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::Extract_SGT_MPI_AWP:3.3.1 {
+	site frontera {
+		profile pegasus "nodes" "8"
+		profile pegasus "cores" "128"
+		profile globus "jobtype" "single"
+		profile pegasus "runtime" "1800"
+		profile pegasus "project" "EAR20006"
+		profile pegasus "queue" "normal"
+		pfn "/work2/00349/scottcal/frontera/CyberShake/software/ExtractSgt_geom/extract_sgt_mpi_v3.3.1.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::Seis_PSA_header:1.0 {
+	site frontera {
+		profile globus "jobtype" "mpi"
+		profile pegasus "project" "EAR20006"
+		profile pegasus "queue" "normal"
+		pfn "/work2/00349/scottcal/frontera/CyberShake/software/SeisPSA_header_buf/bin/seis_psa"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::Seis_PSA_header:3.3.1 {
+	site frontera {
+		profile globus "jobtype" "mpi"
+		profile pegasus "project" "EAR20006"
+		profile pegasus "queue" "normal"
+		pfn "/work2/00349/scottcal/frontera/CyberShake/software/SeisPSA_header_buf/bin/seis_psa_v3.3.1"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::DirCreate:1.0 {
+	site frontera {
+		profile globus "jobtype" "single"
+		profile pegasus "runtime" "3600"
+		profile pegasus "project" "EAR20006"
+		profile pegasus "queue" "small"
+		pfn "/work2/00349/scottcal/frontera/CyberShake/software/DirectSynth_RSQSim/create_dirs.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::DirectSynth:1.0 {
+	site frontera {
+		profile pegasus "nodes" "40"
+		profile pegasus "cores" "2240"
+		profile pegasus "runtime" "21600"
+		profile globus "jobtype" "single"
+		profile pegasus "queue" "normal"
+		profile pegasus "project" "EAR20006"
+		pfn "/work2/00349/scottcal/frontera/CyberShake/software/DirectSynth/direct_synth_v3.3.1.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::DirectSynth:2.0 {
+	site frontera {
+		profile pegasus "nodes" "40"
+		profile pegasus "cores" "2240"
+		profile pegasus "runtime" "21600"
+		profile globus "jobtype" "single"
+		profile pegasus "queue" "normal"
+		profile pegasus "project" "EAR20006"
+		pfn "/work2/00349/scottcal/frontera/CyberShake/software/DirectSynth/direct_synth.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::DirectSynth:3.0 {
+	site frontera {
+		profile pegasus "nodes" "40"
+		profile pegasus "cores" "2240"
+		profile pegasus "runtime" "21600"
+		profile globus "jobtype" "single"
+		profile pegasus "queue" "normal"
+		profile pegasus "project" "EAR20006"
+		pfn "/work2/00349/scottcal/frontera/CyberShake/software/DirectSynth/direct_synth_v5.4.2.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::DirectSynth:4.0 {
+	site frontera {
+		profile pegasus "nodes" "40"
+		profile pegasus "cores" "2240"
+		profile pegasus "runtime" "21600"
+		profile globus "jobtype" "single"
+		profile pegasus "queue" "normal"
+		profile pegasus "project" "EAR20006"
+		pfn "/work2/00349/scottcal/frontera/CyberShake/software/DirectSynth/direct_synth.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::DirectSynth_RSQSim:1.0 {
+	site frontera {
+		profile pegasus "nodes" "10"
+		profile pegasus "cores" "560"
+		profile pegasus "runtime" "1800"
+		profile globus "jobtype" "single"
+		profile pegasus "queue" "normal"
+		profile pegasus "project" "EAR20006"
+		pfn "/work2/00349/scottcal/frontera/CyberShake/software/DirectSynth_RSQSim/direct_synth.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::Velocity_Info:1.0 {
+	site frontera {
+		profile pegasus "nodes" "1"
+		profile pegasus "cores" "1"
+		profile globus "jobtype" "single"
+		profile pegasus "runtime" "600"
+		profile pegasus "queue" "small"
+        profile pegasus "project" "EAR20006"
+		pfn "/work2/00349/scottcal/frontera/CyberShake/software/HFSim_mem/bin/retrieve_vs"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::Velocity_Params:1.0 {
+	site frontier {
+		profile pegasus "nodes" "1"
+		profile pegasus "cores" "1"
+		profile pegasus "runtime" "600"
+		profile globus "jobtype" "single"
+		profile pegasus "project" "GEO156"
+		pfn "/lustre/orion/geo156/proj-shared/CyberShake/software/UCVM/utils/velocity_params.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+# tr scec::BB_Velocity_Insert:1.0 {
+# 	#site frontera {
+# 	#	profile pegasus "nodes" "1"
+# 	#	profile pegasus "cores" "1"
+# 	#	profile globus "jobtype" "single"
+# 	#	profile pegasus "runtime" "300"
+# 	#	profile pegasus "queue" "small"
+# 	#	pfn "/work2/00349/scottcal/frontera/CyberShake/software/UCVM/utils/insert_bb_velocity_params.py"
+# 	#	arch "x86_64"
+# 	#	os "LINUX"
+# 	#	type "INSTALLED"
+# 	#}
+# 	site shock {
+# 		pfn "/usr/bin/env"
+# 		arch "x86"
+# 		os "LINUX"
+# 		type "INSTALLED"
+# 	}
+# }
+
+tr scec::CopyToCARC:1.0 {
+	site shock {
+       pfn "/home/shock/scottcal/utils/copy.py"
+       arch "x86"
+       os "LINUX"
+       type "INSTALLED"
+	}
+}
+
+# tr scec::InsertVelocityParams:1.0 {
+# 	site shock {
+# 		pfn "/usr/bin/env"
+# 		arch "x86"
+# 		os "LINUX"
+# 		type "INSTALLED"
+# 	}
+# }

@@ -1,0 +1,16 @@
+SHELL=/bin/bash
+PATH=/sbin:/bin:/usr/sbin:/usr/bin:
+MAILTO=cybershk@gmail.com
+#HOME=/home/scottcal/
+#CONDOR_CONFIG=/etc/condor/condor_config
+JAVA_HOME=/home/shock-ssd/scottcal/java/default/bin/javac
+
+2,17,32,47 * * * * cybershake cron-run-check MASTER >> /home/shock/scottcal/runs/logs/cron_run_check_shock.log 2>> /home/shock/scottcal/runs/logs/cron_run_check_shock.err
+#0,10,20,30,40,50 * * * * /home/shock/scottcal/runs/cybershake-tools/conwatch/ConWatch.py >> /home/shock/scottcal/runs/logs/ConWatch.log
+#3,23,43 * * * * /home/scec-02/cybershk/runs/sites/Study_15_12/AutoStochSubmit.py 2>> /home/scec-02/cybershk/runs/sites/Study_15_12/auto_submit.err 1>> /home/scec-02/cybershk/runs/sites/Study_15_12/auto_submit.out
+#8,18,28,38,48,58 * * * * /home/shock/scottcal/runs/BB_CS_validation/AutoPPSubmit.py 2>>  /home/shock/scottcal/runs/BB_CS_validation/auto_submit.log 1>>  /home/shock/scottcal/runs/BB_CS_validation/auto_submit.debug
+#4,14,24,34,44,54 * * * * /home/shock/scottcal/runs/Study_22.12_management/AutoPPSubmit.py 2>> /home/shock/scottcal/runs/Study_22.12_management/auto_submit.log 1>> /home/shock/scottcal/runs/Study_22.12_management/auto_submit.debug
+#4,14,24,34,44,54 * * * * /home/shock/scottcal/runs/Study_24.8_management/AutoPPSubmit.py 2>> /home/shock/scottcal/runs/Study_24.8_management/auto_submit.log 1>> /home/shock/scottcal/runs/Study_24.8_management/auto_submit.debug
+#9 * * * * /home/shock/scottcal/runs/cybershake-tools/scripts/monitor_for_expiry.py 2>> /home/shock/scottcal/runs/logs/expiry.debug 1>> /home/shock/scottcal/runs/logs/expiry.log
+#7 * * * * /home/shock/scottcal/runs/cybershake-tools/scripts/clear_held_jobs.sh &>> /home/shock/scottcal/runs/logs/held_jobs.log
+#*/2 * * * * /home/shock/scottcal/runs/Study_22.12_management/kill_load_amps_wfs.py 2>> /home/shock/scottcal/runs/Study_22.12_management/kill_load_amps.err 1>> /home/shock/scottcal/runs/Study_22.12_management/kill_load_amps.out

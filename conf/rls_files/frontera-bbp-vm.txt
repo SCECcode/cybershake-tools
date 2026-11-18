@@ -1,0 +1,5 @@
+nr02-vs500.fk1d go://1be9abd5-a238-431b-b77f-9e069a87b0fa/work2/00349/scottcal/frontera/CyberShake/software/bbp/bbp_gf/LABasin500/gp/nr02-vs500.fk1d pool=frontera
+mj-vs500.fk1d go://1be9abd5-a238-431b-b77f-9e069a87b0fa/work2/00349/scottcal/frontera/CyberShake/software/bbp/bbp_gf/Mojave500/gp/mj-vs500.fk1d pool=frontera
+ssn2-vs500.fk1d go://1be9abd5-a238-431b-b77f-9e069a87b0fa/work2/00349/scottcal/frontera/CyberShake/software/bbp/bbp_gf/SouthernSierra500-2/gp/ssn2-vs500.fk1d pool=frontera
+pf01-vs500.fk1d go://1be9abd5-a238-431b-b77f-9e069a87b0fa/work2/00349/scottcal/frontera/CyberShake/software/bbp/bbp_gf/CentralCal500/gp/pf01-vs500.fk1d pool=frontera
+lp-vs500.fk1d go://1be9abd5-a238-431b-b77f-9e069a87b0fa/work2/00349/scottcal/frontera/CyberShake/software/bbp/bbp_gf/NoCal500/gp/lp-vs500.fk1d pool=frontera

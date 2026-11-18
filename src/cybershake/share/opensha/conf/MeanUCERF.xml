@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<OpenSHA>
+  <ERF className="org.opensha.sha.earthquake.rupForecastImpl.WGCEP_UCERF_2_Final.MeanUCERF2.MeanUCERF2">
+    <Parameters>
+      <Parameter name="Rupture Offset" type="ConstrainedDoubleParameter" units="km" value="5.0"/>
+      <Parameter name="Floater Type" type="ConstrainedStringParameter" units="" value="Along strike &amp; centered down dip"/>
+      <Parameter name="Background Seismicity" type="ConstrainedStringParameter" units="" value="Exclude"/>
+      <Parameter name="Apply CyberShake DDW Corr" type="BooleanParameter" units="" value="true"/>
+      <Parameter name="Probability Model" type="ConstrainedStringParameter" units="" value="Poisson"/>
+    </Parameters>
+    <TimeSpan startTimePrecision="None" duration="1.0" durationUnits="Years">
+      <startTimes/>
+    </TimeSpan>
+  </ERF>
+</OpenSHA>
