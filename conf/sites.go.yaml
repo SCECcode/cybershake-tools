@@ -1,0 +1,123 @@
+---
+pegasus: "5.0"
+sites:
+ -
+  name: "frontier"
+  arch: "x86_64"
+  os.type: "linux"
+  directories:
+   -
+    type: "sharedStorage"
+    path: "/lustre/orion/geo156/scratch/callag/data"
+    sharedFileSystem: false
+    fileServers:
+     -
+      operation: "all"
+      url: "go://36d521b3-c182-4071-b7d5-91db5d380d42/lustre/orion/geo156/scratch/callag/data"
+   -
+    type: "sharedScratch"
+    path: "/lustre/orion/geo156/scratch/callag/execdir"
+    sharedFileSystem: false
+    fileServers:
+     -
+      operation: "all"
+      url: "go://36d521b3-c182-4071-b7d5-91db5d380d42/lustre/orion/geo156/scratch/callag/execdir"
+  profiles:
+    env:
+      PEGASUS_HOME: "/lustre/orion/geo156/proj-shared/CyberShake/utils/pegasus/default"
+    condor:
+      batch_queue: "batch"
+      grid_resource: "batch slurm /tmp/cybershk.frontier.sock"
+    pegasus:
+      change.dir: "true"
+      queue: "batch"
+      style: "glite"
+ -
+  name: "shock"
+  arch: "x86"
+  os.type: "linux"
+  directories:
+   -
+    type: "sharedStorage"
+    path: "/scratch2/scottcal/cybershake/storage"
+    sharedFileSystem: false
+    fileServers:
+     -
+      operation: "all"
+      url: "go://56569ec1-af41-4745-a8d1-8514231c7a6d/scratch2/scottcal/cybershake/storage"
+   -
+    type: "sharedScratch"
+    path: "/scratch2/scottcal/cybershake/execdir"
+    sharedFileSystem: false
+    fileServers:
+     -
+      operation: "all"
+      url: "go://56569ec1-af41-4745-a8d1-8514231c7a6d/scratch2/scottcal/cybershake/execdir"
+  profiles:
+    env:
+      JAVA_HOME: "/home/shock-ssd/scottcal/java/default"
+      PEGASUS_HOME: "/home/shock-ssd/scottcal/pegasus/default"
+    condor:
+      universe: "scheduler"
+    pegasus:
+      style: "condor"
+ -
+  name: "frontera"
+  arch: "x86_64"
+  os.type: "linux"
+  directories:
+   -
+    type: "sharedStorage"
+    path: "/scratch2/00349/scottcal/data"
+    sharedFileSystem: false
+    fileServers:
+     -
+      operation: "all"
+      url: "go://bec0eec6-d29d-4447-9813-cd9751c199e9/scratch2/00349/scottcal/data"
+   -
+    type: "sharedScratch"
+    path: "/scratch2/00349/scottcal/execdir"
+    sharedFileSystem: true
+    fileServers:
+     -
+      operation: "all"
+      url: "go://bec0eec6-d29d-4447-9813-cd9751c199e9/scratch2/00349/scottcal/execdir"
+  profiles:
+    env:
+      PEGASUS_HOME: "/work2/00349/scottcal/frontera/CyberShake/utils/pegasus/default"
+    condor:
+      batch_queue: "batch"
+      grid_resource: "batch slurm /tmp/cybershk.frontera.sock"
+    pegasus:
+      change.dir: "true"
+      queue: "batch"
+      style: "glite"
+ -
+  name: "local"
+  arch: "x86"
+  os.type: "linux"
+  directories:
+   -
+    type: "sharedStorage"
+    path: "/scratch2/scottcal/cybershake/storage"
+    sharedFileSystem: false
+    fileServers:
+     -
+      operation: "all"
+      url: "go://56569ec1-af41-4745-a8d1-8514231c7a6d/scratch2/scottcal/cybershake/storage"
+   -
+    type: "sharedScratch"
+    path: "/scratch2/scottcal/cybershake/execdir"
+    sharedFileSystem: true
+    fileServers:
+     -
+      operation: "all"
+      url: "go://56569ec1-af41-4745-a8d1-8514231c7a6d/scratch2/scottcal/cybershake/execdir"
+  profiles:
+    env:
+      JAVA_HOME: "/home/shock-ssd/scottcal/java/default"
+      PEGASUS_HOME: "/home/shock-ssd/scottcal/pegasus/default"
+      JAVA_HEAPMIN: "512"
+      JAVA_HEAPMAX: "4096"
+    #pegasus:
+      #x509_user_proxy: "/home/shock-ssd/scottcal/condor/x509up_u7588"

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<OpenSHA>
+  <IMR className="org.opensha.sha.imr.attenRelImpl.ngaw2.NGAW2_Wrappers$CY_2014_Wrapper">
+    <Parameters>
+      <Parameter name="Gaussian Truncation" type="ConstrainedStringParameter" value="1 Sided"/>
+      <Parameter name="Truncation Level" type="ConstrainedDoubleParameter" units="Std Dev" value="3.0"/>
+      <Parameter name="Tectonic Region" type="ConstrainedStringParameter" value="Active Shallow Crust"/>
+    </Parameters>
+    <SiteParameters>
+      <Parameter name="Vs30" type="ConstrainedDoubleParameter" units="m/sec" value="760.0"/>
+      <Parameter name="Vs30 Type" type="ConstrainedStringParameter" value="Inferred"/>
+      <Parameter name="Depth 1.0 km/sec" type="ConstrainedDoubleParameter" units="m" value="(null)"/>
+      <Parameter name="Depth 2.5 km/sec" type="ConstrainedDoubleParameter" units="km" value="(null)"/>
+    </SiteParameters>
+    <IntensityMeasure name="SA" type="ConstrainedDoubleParameter" units="g" value="(null)">
+      <IndependentParameters>
+        <Parameter name="SA Period" type="ConstrainedDoubleDiscreteParameter" units="sec" value="3.0"/>
+        <Parameter name="SA Damping" type="ConstrainedDoubleDiscreteParameter" units=" % " value="5.0"/>
+      </IndependentParameters>
+    </IntensityMeasure>
+  </IMR>
+</OpenSHA>

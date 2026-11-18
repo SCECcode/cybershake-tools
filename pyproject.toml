@@ -1,0 +1,273 @@
+[build-system]
+
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+
+zip-safe = false
+
+script-files = [
+    "scripts/get_condor_id.sh",
+    "scripts/insert_dir.sh",
+    "scripts/pegasus-globus.sh",
+]
+
+[tool.setuptools.packages.find]
+
+where = ["src"]
+namespaces = true
+
+[tool.setuptools.package-data]
+
+cybershake = [
+    "py.typed",
+    "share/opensha/scripts/*",
+    "share/opensha/conf/*.xml",
+    "share/opensha/conf/cpt/*.cpt",
+    "share/opensha/jars/opensha-all.jar",
+    "share/opensha/jars/opensha-cybershake-all.jar",
+    "share/opensha/src/main/java/org/scec/cme/cybershake/vs30/Vs30Cli.java",
+    "share/db/src/main/java/CheckDBDataForSite.java",
+    "share/db/src/main/java/org/scec/cme/cybershake/dax3/DBConnect.java",
+    "share/db/jars/commons-cli-1.0.jar",
+    "share/db/jars/mysql-connector-java-8.0.18.jar",
+]
+
+[project]
+
+name = "cybershake-tools"
+version = "2026.10.0"
+authors = [{ name = "Scott Callaghan", email = "scottcal@usc.edu" }]
+maintainers = [
+    { name = "Scott Callaghan", email = "scottcal@usc.edu" },
+    { name = "Rajiv Mayani", email = "mayani@isi.edu" },
+]
+description = "SCEC CyberShake workflow generator"
+readme = { file = "README.md", content-type = "text/markdown" }
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
+requires-python = ">=3.11"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX",
+    "Operating System :: POSIX :: Linux",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = [
+    "rich-click",
+    "pymysql",
+    "sqlalchemy>=2",
+    "python-dotenv",
+    "pegasus-wms.api>=5.1.3",
+    "dacite>=1.9.2",
+    "PyYAML>=6",
+]
+
+[project.urls]
+
+Homepage = "https://strike.scec.org/scecpedia/CyberShake_Workflow_Framework"
+Repository = "https://github.com/SCECcode/cybershake-tools.git"
+Issues = "https://github.com/SCECcode/cybershake-tools/issues"
+Changelog = "https://github.com/SCECcode/cybershake-tools/blob/master/CHANGELOG.md"
+Documentation = "https://cybershake-tools.readthedocs.io/en/latest"
+
+[project.scripts]
+
+cybershake = "cybershake.__main__:cybershake"
+
+[dependency-groups]
+
+dev = ["ruff", "tox"]
+pre-commit = ["pre-commit"]
+typing = ["mypy", "types-PyYAML", "types-PyMySQL"]
+gha-update = ["gha-update ; python_full_version >= '3.12'"]
+tests = [
+    "pytest",
+    "pytest-mock",
+    "coverage",
+    "pytest-cov",
+    "pytest-resource-path",
+]
+docs = [
+    "sphinx<9",
+    "sphinx-book-theme",
+    "sphinx-click",
+    "myst-parser",
+    "sphinx_copybutton",
+]
+
+
+[tool.commitizen]
+
+name = "cz_conventional_commits"
+tag_format = "v$version"
+version_scheme = "pep440"
+version_provider = "pep621"
+version_files = [
+    "pyproject.toml:version",
+    "src/cybershake/version.py:__version__",
+    "docs/conf.py:release",
+]
+update_changelog_on_bump = true
+major_version_zero = true
+
+
+[tool.ruff]
+
+target-version = "py311"
+line-length = 88
+extend-exclude = ["docs/_includes", "src/cybershake/share/opensha/scripts"]
+
+[tool.ruff.lint]
+
+extend-select = [
+    "F",   # pyflakes
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "D",   # flake8-docstrings
+    "B",   # flake8-bugbear
+    "C90", # mccabe
+    "C4",  # flake8-comprehensions
+    "YTT", # flake8-2020
+    "ANN", # flake8-annotations
+    "S",   # flake8-bandit
+    "EXE", # flake8-executable
+    "FA",  # flake8-future-annotations
+    "ICN", # flake8-import-conventions
+    "ISC", # flake8-implicit-str-concat
+    "LOG", # flake8-logging
+    "G",   # flake8-logging-format
+    "PT",  # flake8-pytest-style
+    "Q",   # flake8-quotes
+    "RSE", # flake8-raise
+    "RET", # flake8-return
+    "SIM", # flake8-simplify
+    "TID", # flake8-tidy-imports
+    "TC",  # flake8-type-checking
+    "ARG", # flake8-unused-arguments
+    "PTH", # flake8-use-pathlib
+    "I",   # isort
+    "UP",  # pyupgrade
+]
+
+[tool.ruff.lint.per-file-ignores]
+
+"tests/**" = ["S101", "D101", "D103", "D104"]
+
+[tool.ruff.lint.pydocstyle]
+
+convention = "google"
+
+[tool.ruff.format]
+
+docstring-code-format = true
+
+[tool.ruff.lint.isort]
+
+known-first-party = ["cybershake"]
+known-third-party = ["click", "rich_click", "dotenv", "sqlalchemy", "Pegasus"]
+forced-separate = [
+    "rich_click",
+    "dotenv",
+    "sqlalchemy",
+    "Pegasus",
+    "cybershake",
+]
+
+
+[tool.mypy]
+
+mypy_path = "src,tests"
+explicit_package_bases = true
+exclude = ["^docs/_includes", "^src/cybershake/share/opensha/scripts"]
+
+[[tool.mypy.overrides]]
+
+module = "Pegasus.*"
+ignore_missing_imports = true
+
+
+[tool.pytest.ini_options]
+
+addopts = ["-m", "not integration"]
+markers = [
+    "incremental",
+    "integration: requires external services or production infrastructure",
+]
+
+"resource-path.directory-name-test-resources" = "resources"
+
+
+[tool.codespell]
+
+builtin = ["clear", "rare", "informal", "names"]
+ignore-words-list = ["auxillary", "nd", "thirdparty"]
+skip = "*.png,uv.lock,./docs/_build/*"
+
+[tool.tox]
+
+env_list = ["py311", "py312", "py313", "py314", "py315"]
+
+[tool.tox.env_run_base]
+
+dependency_groups = ["tests"]
+setenv = { PYTHONPATH = "{toxinidir}/src", PYTHONUNBUFFERED = "yes", PYTHONHASHSEED = "3104488430" }
+passenv = ["JAVA_HOME"]
+commands = [
+    [
+        "pytest",
+        "--cov",
+        "src",
+        "--no-cov-on-fail",
+        "--cov-fail-under",
+        "75",
+        "{posargs:tests}",
+    ],
+]
+
+[tool.tox.env.lint]
+
+skip_install = true
+dependency_groups = ["dev"]
+commands = [["ruff", "check"], ["ruff", "format", "--diff"]]
+
+[tool.tox.env.docs]
+
+allowlist_externals = ["make"]
+changedir = "docs"
+dependency_groups = ["docs"]
+commands = [
+    [
+        "make",
+        "clean",
+    ],
+    [
+        "make",
+        "html",
+        { replace = "posargs", default = [
+        ], extend = true },
+    ],
+]
+
+[tool.tox.env.update-actions]
+
+dependency_groups = ["gha-update"]
+skip_install = true
+commands = [["gha-update"]]
+
+[tool.tox.env.update-pre-commit]
+
+dependency_groups = ["pre-commit"]
+skip_install = true
+commands = [["pre-commit", "autoupdate", "--freeze", "-j4"]]

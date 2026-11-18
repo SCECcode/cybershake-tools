@@ -1,0 +1,86 @@
+cff-version: 1.2.0
+message: "If you use CyberShake Tools in your research, please cite the following publication."
+type: software
+
+title: "CyberShake Tools"
+abstract: >-
+  The Statewide (formerly Southern) California Earthquake Center (SCEC) conducts multidisciplinary
+  earthquake system science research that aims to develop predictive models of earthquake processes,
+   and to produce accurate seismic hazard information that can improve societal preparedness and
+   resiliency to earthquake hazards. As part of this program, SCEC has developed the CyberShake
+   platform, which calculates physics-based probabilistic seismic hazard analysis (PSHA) models
+   for regions with high-quality seismic velocity and fault models. The CyberShake platform implements
+   a sophisticated computational workflow that includes over 15 individual codes written by 6
+   developers. These codes are heterogeneous, ranging from short-running high-throughput serial
+   CPU codes to large, long-running, parallel GPU codes. Additionally, CyberShake simulation
+   campaigns are computationally extensive, typically producing tens of terabytes of meaningful
+   scientific data and metadata over several months of around-the-clock execution on leadership-class
+   supercomputers. To meet the needs of the CyberShake platform, we have developed an extreme-scale
+   workflow stack, including the Pegasus Workflow Management System, HTCondor, Globus, and custom tools.
+   We present this workflow software stack and identify how the CyberShake platform and supporting
+   tools enable us to meet a variety of challenges that come with large-scale simulations, such as
+   automated remote job submission, data management, and verification and validation. This platform
+   enabled us to perform our most recent simulation campaign, CyberShake Study 22.12, from December
+   2022 to April 2023. During this time, our workflow tools executed approximately 32,000 jobs, and
+   used up to 73% of the Summit system at Oak Ridge Leadership Computing Facility. Our workflow
+   tools managed about 2.5 PB of total temporary and output data, and automatically staged 19
+   million output files totaling 74 TB back to archival storage on the University of Southern
+   California's Center for Advanced Research Computing systems, including file-based relational
+   data and large binary files to efficiently store millions of simulated seismograms.
+   CyberShake extreme-scale workflows have generated simulation-based probabilistic seismic
+   hazard models that are being used by seismological, engineering, and governmental communities.
+
+authors:
+  - name: "Southern California Earthquake Center (SCEC)"
+
+repository-code: https://github.com/SCECcode/cybershake-tools
+url: https://github.com/SCECcode/cybershake-tools
+license: BSD-3-Clause
+
+keywords:
+  - CyberShake
+  - seismic hazard analysis
+  - earthquake simulation
+  - scientific workflows
+  - high-performance computing
+  - Pegasus WMS
+  - probabilistic seismic hazard analysis
+
+preferred-citation:
+  type: article
+  title: "Using open-science workflow tools to produce SCEC CyberShake physics-based probabilistic seismic hazard models"
+  authors:
+    - family-names: Callaghan
+      given-names: Scott
+    - family-names: Maechling
+      given-names: Philip J.
+    - family-names: Silva
+      given-names: Fabio
+    - family-names: Su
+      given-names: Mei-Hui
+    - family-names: Milner
+      given-names: Kevin R.
+    - family-names: Graves
+      given-names: Robert W.
+    - family-names: Olsen
+      given-names: Kim B.
+    - family-names: Cui
+      given-names: Yifeng
+    - family-names: Vahi
+      given-names: Karan
+    - family-names: Kottke
+      given-names: Albert
+    - family-names: Goulet
+      given-names: Christine A.
+    - family-names: Deelman
+      given-names: Ewa
+    - family-names: Jordan
+      given-names: Thomas H.
+    - family-names: Ben-Zion
+      given-names: Yehuda
+  journal: "Frontiers in High Performance Computing"
+  year: 2024
+  volume: 2
+  article-number: "1360720"
+  doi: 10.3389/fhpcp.2024.1360720
+  url: https://doi.org/10.3389/fhpcp.2024.1360720

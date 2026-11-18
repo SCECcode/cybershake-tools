@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<OpenSHA>
+  <ERF className="scratch.kevin.simulators.erf.RSQSimSectBundledERF">
+    <Parameters>
+      <Parameter name="Mapping File" type="Parameter" value="/project/scec_608/rsqsim/catalogs/kmilner/rundir4983_stitched/erf_mappings.bin"/>
+      <Parameter name="Geometry File" type="Parameter" value="/project/scec_608/rsqsim/catalogs/kmilner/rundir4983_stitched/zfault_Deepen.in"/>
+      <Parameter name="Fault Model" type="Parameter" value="Fault Model 3.1"/>
+      <Parameter name="Deformation Model" type="Parameter" value="Geologic"/>
+      <Parameter name="Rupture Surface Resolution" type="ConstrainedDoubleParameter" value="1.1620033339339548"/>
+      <Parameter name="SRF Time Step" type="ConstrainedDoubleParameter" units="Seconds" value="0.05"/>
+      <Parameter name="Spin-Up Time Skipped" type="ConstrainedDoubleParameter" units="Years" value="65000.0"/>
+    </Parameters>
+    <TimeSpan startTimePrecision="None" duration="1.0" durationUnits="Years">
+      <startTimes/>
+    </TimeSpan>
+  </ERF>
+</OpenSHA>
