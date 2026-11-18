@@ -64,6 +64,13 @@ def test_wheel_package_data_is_minimal_and_complete() -> None:
         if path.is_file()
     )
 
+    # Jars are gitignored build artifacts; only require them when present.
+    expected = {
+        name
+        for name in expected
+        if not name.endswith(".jar") or (ROOT / "src/cybershake" / name).exists()
+    }
+
     assert expected <= packaged_files
     assert not any("db_pass" in path.lower() for path in packaged_files)
     assert not any("__pycache__" in path for path in packaged_files)

@@ -566,7 +566,7 @@ def test_sub_sgt_wf_dispatches_directly_to_workflow_placeholder(
 
 
 def test_sgt_config_rejects_directory(tmp_path: Path) -> None:
-    result = CliRunner().invoke(
+    result = CliRunner(env={"COLUMNS": "500"}).invoke(
         cybershake,
         ["sgt", *SGT_REQUIRED_ARGS[1:], "--config", str(tmp_path)],
     )

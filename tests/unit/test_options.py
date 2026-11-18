@@ -156,7 +156,9 @@ def test_config_file_rejects_duplicate_keys(tmp_path: Path) -> None:
     config = tmp_path / "defaults.conf"
     config.write_text("site=FIRST\nsite=TEST\n", encoding="utf-8")
 
-    result = CliRunner().invoke(_config_command(), ["--config", str(config)])
+    result = CliRunner(env={"COLUMNS": "500"}).invoke(
+        _config_command(), ["--config", str(config)]
+    )
 
     assert result.exit_code == 1
     assert "option 'site' in section 'DEFAULT' already exists" in result.output
