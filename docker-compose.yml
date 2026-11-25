@@ -1,0 +1,27 @@
+services:
+  moment:
+    image: mysql:8.0
+    container_name: cybershake-mysql
+    # Legacy Java MySQL connector doesn't know MySQL 8's default auth plugin or
+    # utf8mb4_0900_ai_ci (charset index 255).
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=latin1
+      - --collation-server=latin1_swedish_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: CyberShake
+      MYSQL_USER: cybershk_ro
+      MYSQL_PASSWORD: CyberShake2007
+    ports:
+      - "3306:3306"
+    volumes:
+      - cybershake-db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  cybershake-db:

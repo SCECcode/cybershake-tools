@@ -1,0 +1,3467 @@
+# multiple line text-based transformation catalog: 2010-12-03T09:30:08.870-08:00
+tr pegasus::mpiexec {
+	site kraken {
+		profile globus "maxwalltime" "120"
+		profile globus "host_count" "20"
+		profile globus "count" "240"
+		profile globus "jobtype" "single"
+		#pfn "/lustre/scratch/proj/tera3d/pegasus/default/bin/pegasus-mpi-cluster"
+		pfn "/lustre/scratch/proj/tera3d/CyberShake/utils/pegasus_wrappers/mpi-cluster-wrapper.sh"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+
+	site stampede {
+                profile globus "maxwalltime" "60"
+                profile globus "host_count" "64"
+		profile globus "count" "1024"
+                profile globus "jobtype" "single"
+		profile globus "queue" "normal"
+                #pfn "/work/00940/tera3d/pegasus/pegasus_wrappers/mpi-cluster-wrapper.sh"
+                pfn "/work/00940/tera3d/pegasus/pegasus_wrappers/mpi-cluster-wrapper-impi.sh"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+	}
+
+	site bluewaters {
+		profile globus "maxwalltime" "120"
+		profile globus "hostcount" "96"
+		profile globus "count" "3072"
+		profile globus "jobtype" "single"
+		profile globus "nodetype" "xe"
+		profile pegasus "cores" "3072"
+		#profile globus "project" "baln"
+		profile globus "queue" "noalloc"
+		pfn "/projects/sciteam/baln/CyberShake/utils/pegasus_wrappers/mpi-cluster-wrapper.sh"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+
+	#site titan-pilot {
+	#	profile condor "requirements" "(IsPilot==True)"
+	#	profile condor "requirements" "(PilotTimeLeft>7200)"
+        #        pfn "/lustre/atlas/proj-shared/geo112/CyberShake/utils/pegasus_wrappers/mpi-cluster-wrapper.sh"
+        #        arch "x86_64"
+        #        os "LINUX"
+        #        type "INSTALLED"
+	#}
+
+	site titan {
+		profile globus "maxwalltime" "120"
+		profile globus "hostcount" "192"
+		profile globus "count" "3072"
+		profile globus "jobtype" "single"
+		profile globus "account" "GEO112"
+                profile pegasus "cores" "3072"
+		pfn "/lustre/atlas/proj-shared/geo112/CyberShake/utils/pegasus_wrappers/mpi-cluster-wrapper.sh"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+	}
+    site summit {
+			profile globus "maxwalltime" "60"
+            #profile globus "maxwalltime" "720"
+			profile globus "hostcount" "4"
+            #profile globus "hostcount" "92"
+            profile globus "jobtype" "single"
+            profile globus "project" "GEO112"
+            pfn "/gpfs/alpine/proj-shared/geo112/CyberShake/utils/pegasus_wrappers/mpi-cluster-wrapper.sh"
+            arch "x86_64"
+            os "LINUX"
+            type "INSTALLED"
+    }
+    #    site summit-pilot {
+    #            profile condor "requirements" "(IsPilot==True)"
+    #            profile condor "requirements" "(TARGET.Arch==\"ppc64le\")"
+    #            pfn "/gpfs/alpine/proj-shared/geo112/CyberShake/utils/pegasus_wrappers/mpi-cluster-wrapper.sh"
+    #            arch "x86_64"
+    #            os "LINUX"
+    #            type "INSTALLED"
+    #    }
+
+}
+
+#tr pegasus::dirmanager {
+#	site kraken {
+#		pfn "/lustre/scratch/proj/tera3d/utils/create-dir-lustre.sh"
+#		arch "x86_64"
+#		os "LINUX"
+#		type "INSTALLED"
+#	}
+#}
+
+#tr pegasus::dirmanager {
+#	site local {
+#		pfn "/home/scec-02/cybershk/runs/dirmanager_wrapper.py"
+#		arch "x86_64"
+#		os "LINUX"
+#		type "INSTALLED"
+#	}
+#}
+
+#tr pegasus::transfer {
+#	site local {
+#		profile condor "universe" "vanilla"
+#		profile condor "requirements" "(Machine==\"shock.hpc.usc.edu\")"
+#		pfn "/home/shock-ssd/scottcal/pegasus/default/bin/pegasus-transfer"
+#		pfn "/home/scec-02/cybershk/runs/dirmanager_wrapper.py"
+#		arch "x86_64"
+#		os "LINUX"
+#		type "INSTALLED"
+#	}
+#}
+
+tr pegasus::transfer {
+	site local {
+		profile condor "universe" "vanilla"
+		profile condor "requirements" "(Machine==\"shock.hpc.usc.edu\")"
+		pfn "/home/shock-ssd/scottcal/pegasus/default/bin/pegasus-transfer"
+		#pfn "/home/shock-ssd/scottcal/pegasus/pegasus-wrappers/go_transfer_wrapper.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	#Move staging for summit-pilot out of glideins
+	site summit-pilot {
+		profile pegasus "style" "glite"
+		profile condor "universe" "grid"
+        profile globus "maxwalltime" "30"
+        profile globus "hostcount" "1"
+        profile globus "jobtype" "single"
+        profile globus "project" "GEO112"
+        profile pegasus "change.dir" "true"
+        profile condor "grid_resource" "batch lsf /tmp/cybershk.summit.sock"
+        profile pegasus "queue" "batch"
+        profile condor "batch_queue" "batch"
+        profile env "PEGASUS_HOME" "/gpfs/alpine/proj-shared/geo112/CyberShake/utils/pegasus/default"
+        profile pegasus "X509_USER_PROXY" "/home/shock-ssd/scottcal/condor/x509up_u7588"
+		pfn "/gpfs/alpine/proj-shared/geo112/CyberShake/utils/pegasus/default/bin/pegasus-transfer"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+
+	#Adding this to try to pick up correct account for frontier
+	site frontier {
+		profile pegasus "nodes" "1"
+		profile pegasus "cores" "1"
+		profile globus "maxwalltime" "60"
+		profile globus "project" "GEO156"
+		pfn "/lustre/orion/geo156/proj-shared/CyberShake/utils/pegasus/default/bin/pegasus-transfer"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+
+	#Adding this to get the node/core counts Frontera requires
+	site frontera {
+		profile pegasus "nodes" "1"
+		profile pegasus "cores" "1"
+		profile globus "maxwalltime" "60"
+		profile globus "queue" "small"
+		pfn "/work2/00349/scottcal/frontera/CyberShake/utils/pegasus/default/bin/pegasus-transfer"
+		arch "x86_64"
+        os "LINUX"
+        type "INSTALLED"
+	}
+}
+
+tr condor::dagman {
+	site local {
+		profile condor "universe" "scheduler"
+		profile dagman "POST" "none"
+		pfn "/usr/bin/condor_dagman"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::GenSGTDax:1.0 {
+	site local {
+		pfn "/home/shock/scottcal/runs/cybershake-tools/scripts/generate_sgt_dax.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::GenStochDax:1.0 {
+	site local {
+		pfn "/home/shock/scottcal/runs/cybershake-tools/scripts/generate_sub_stoch_dax.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::SetJobID:1.0 {
+        site shock {
+                pfn "/home/shock/scottcal/runs/cybershake-tools/runmanager/get_condor_id.sh"
+                arch "x86"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site local {
+		pfn "/home/shock/scottcal/runs/cybershake-tools/runmanager/get_condor_id.sh"
+                arch "x86"
+                os "LINUX"
+                type "INSTALLED"
+        }
+}
+
+tr scec::SetPPHost:1.0 {
+	site shock {
+		pfn "/home/shock/scottcal/runs/cybershake-tools/runmanager/set_pp_host.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+        site local {
+                pfn "/home/shock/scottcal/runs/cybershake-tools/runmanager/set_pp_host.sh"
+                arch "x86"
+                os "LINUX"
+                type "INSTALLED"
+        }
+}
+
+tr scec::PreAWP:1.0 {
+	site stampede {
+		profile globus "maxwalltime" "30"
+		profile globus "host_count" "1"
+		profile globus "count" "1"
+		pfn "/work/00940/tera3d/CyberShake/software/AWP-ODC-SGT/utils/build_awp_inputs.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site bluewaters {
+		profile globus "maxwalltime" "10"
+                profile globus "hostcount" "1"
+                profile globus "count" "1"
+		profile globus "jobtype" "single"
+		profile globus "nodetype" "xe"
+		#profile globus "project" "baln"
+                profile globus "queue" "noalloc"
+                pfn "/projects/sciteam/baln/CyberShake/software/AWP-ODC-SGT/utils/build_awp_inputs.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+	}
+	#site titan-pilot {
+	#	profile condor "requirements" "(IsPilot==True)"
+	#	profile condor "requirements" "(PilotJobType==\"PreSGTPilot\")"
+	#	pfn "/lustre/atlas/proj-shared/geo112/CyberShake/software/AWP-ODC-SGT/utils/build_awp_inputs.py"
+	#	arch "x86_64"
+	#	os "LINUX"
+	#	type "INSTALLED"
+	#}
+	site titan {
+                profile globus "maxwalltime" "10"
+                profile globus "hostcount" "1"
+                profile globus "count" "1"
+                profile globus "jobtype" "single"
+		profile globus "account" "GEO112"
+                pfn "/lustre/atlas/proj-shared/geo112/CyberShake/software/AWP-ODC-SGT/utils/build_awp_inputs.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+	}
+        site summit {
+                profile globus "maxwalltime" "5"
+                profile globus "hostcount" "1"
+                #profile globus "count" "1"
+                profile globus "jobtype" "single"
+                profile globus "project" "GEO112"
+		#Hard-coding this because of issues picking up the correct
+		#versions of pyproj with python2.7, which is still the default
+		profile env "PYTHONPATH" "/gpfs/alpine/proj-shared/geo112/CyberShake/utils/python_packages/lib64/python2.7/site-packages:/gpfs/alpine/proj-shared/geo112/CyberShake/utils/python_packages/lib/python3.4/site-packages:/gpfs/alpine/geo112/proj-shared/CyberShake/utils/condor_8.8.2_summit/lib/python:/sw/summit/xalt/1.2.0/site:/sw/summit/xalt/1.2.0/libexec"
+                pfn "/gpfs/alpine/proj-shared/geo112/CyberShake/software/AWP-ODC-SGT/utils/build_awp_inputs.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+	site cori {
+		profile globus "host_count" "1"
+		profile globus "jobtype" "single"
+                profile globus "maxtime" "10"
+                profile globus "queue" "regular"
+                pfn "/project/projectdirs/m2187/scottcal/CyberShake/software/AWP-ODC-SGT/utils/build_awp_inputs.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site edison {
+                profile globus "host_count" "1"
+                profile globus "jobtype" "single"
+                profile globus "maxtime" "10"
+                profile globus "queue" "regular"
+                pfn "/project/projectdirs/m2187/scottcal/CyberShake/software-edison/AWP-ODC-SGT/utils/build_awp_inputs.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site frontier {
+            profile pegasus "nodes" "1"
+			profile pegasus "cores" "1"
+            profile globus "maxwalltime" "5"
+            profile globus "jobtype" "single"
+            profile globus "project" "GEO156"
+            pfn "/lustre/orion/geo156/proj-shared/CyberShake/software/AWP-HIP-SGT/utils/build_awp_inputs.py"
+            arch "x86_64"
+            os "LINUX"
+            type "INSTALLED"
+        }
+
+}
+
+tr scec::PreAWP_GPU:1.0 {
+	site bluewaters {
+                profile globus "maxwalltime" "20"
+                profile globus "hostcount" "1"
+                profile globus "count" "1"
+                profile globus "jobtype" "single"
+                profile globus "nodetype" "xe"
+                #profile globus "project" "baln"
+                profile globus "queue" "noalloc"
+		pfn "/projects/sciteam/baln/CyberShake/software/AWP-GPU-SGT/utils/build_awp_inputs.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+	#site titan-pilot {
+	#	profile condor "requirements" "(IsPilot==True)"
+	#	profile condor "requirements" "(PilotJobType==\"PreSGTPilot\")"
+	#	pfn "/lustre/atlas/proj-shared/geo112/CyberShake/software/AWP-GPU-SGT/utils/build_awp_inputs.py"
+	#	arch "x86_64"
+	#	os "LINUX"
+	#	type "INSTALLED"
+	#}
+	site titan {
+                profile globus "maxwalltime" "45"
+                profile globus "hostcount" "1"
+                profile globus "count" "1"
+                profile globus "jobtype" "single"
+		profile globus "account" "GEO112"
+                pfn "/lustre/atlas/proj-shared/geo112/CyberShake/software/AWP-GPU-SGT/utils/build_awp_inputs.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+	}
+        site summit {
+                profile globus "maxwalltime" "5"
+                profile globus "hostcount" "1"
+                #profile globus "count" "1"
+                profile globus "jobtype" "single"
+                profile globus "project" "GEO112"
+                pfn "/gpfs/alpine/proj-shared/geo112/CyberShake/software/AWP-GPU-SGT/utils/build_awp_inputs.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site frontier {
+            profile pegasus "nodes" "1"
+			profile pegasus "cores" "1"
+            profile globus "maxwalltime" "5"
+            profile globus "jobtype" "single"
+            profile globus "project" "GEO156"
+            pfn "/lustre/orion/geo156/proj-shared/CyberShake/software/AWP-HIP-SGT/utils/build_awp_inputs.py"
+            arch "x86_64"
+            os "LINUX"
+            type "INSTALLED"
+        }
+
+}
+
+tr scec::AWP_GPU:1.0 {
+	site bluewaters {
+		profile globus "maxwalltime" "120"
+		#profile globus "hostcount" "400"
+		#profile globus "count" "400"
+		profile globus "jobtype" "single"
+		profile globus "nodetype" "xk"
+                profile globus "queue" "noalloc"
+		#profile globus "project" "baln"
+		profile globus "queue" "high"
+		pfn "/projects/sciteam/baln/CyberShake/software/AWP-GPU-SGT/gpu_wrapper.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site titan-pilot {
+		profile condor "requirements" "(IsPilot==True)"
+		profile condor "requirements" "(PilotTimeLeft > 7200)"
+		profile condor "requirements" "(PilotJobType==\"SGTPilot\")"
+		profile condor "request_cpus" "1"
+		pfn "/lustre/atlas/proj-shared/geo112/CyberShake/software/AWP-GPU-SGT/gpu_wrapper.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+        site summit {
+                profile globus "maxwalltime" "30"
+                profile globus "hostcount" "67"
+        #        #profile globus "count" "400"
+                profile globus "jobtype" "single"
+                profile globus "project" "GEO112"
+                pfn "/gpfs/alpine/proj-shared/geo112/CyberShake/software/AWP-GPU-SGT/gpu_wrapper.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        #site summit-pilot {
+        #        profile condor "requirements" "(IsPilot==True)"
+        #        profile condor "requirements" "(PilotTimeLeft > 2400)"
+        #        profile condor "requirements" "(PilotJobType==\"SGTPilot\")"
+		#		profile condor "requirements" "(TARGET.Arch==\"ppc64le\")"
+        #        profile condor "request_cpus" "1"
+        #        pfn "/gpfs/alpine/proj-shared/geo112/CyberShake/software/AWP-GPU-SGT/gpu_wrapper.py"
+        #        arch "x86_64"
+        #        os "LINUX"
+        #        type "INSTALLED"
+        #}
+        site frontier {
+            profile pegasus "nodes" "50"
+			profile pegasus "cores" "400"
+            profile globus "maxwalltime" "30"
+            profile globus "jobtype" "single"
+            profile globus "project" "GEO156"
+            pfn "/lustre/orion/geo156/proj-shared/CyberShake/software/AWP-HIP-SGT/gpu_wrapper.py"
+            arch "x86_64"
+            os "LINUX"
+            type "INSTALLED"
+        }
+
+	#site titan {
+	#	profile globus "maxwalltime" "180"
+	#	profile globus "hostcount" "1200"
+	#	profile globus "count" "1200"
+	#	profile globus "jobtype" "single"
+	#	profile globus "account" "GEO112"
+        #        pfn "/lustre/atlas/proj-shared/geo112/CyberShake/software/AWP-GPU-SGT/gpu_wrapper.py"
+        #        arch "x86_64"
+        #        os "LINUX"
+        #        type "INSTALLED"
+	#}
+}
+
+tr scec::AWP:1.0 {
+        site stampede {
+                profile globus "maxwalltime" "120"
+                #profile globus "host_count" "250"
+                #profile globus "count" "4000"
+                #profile globus "host_count" "124"
+		#profile globus "count" "1984"
+		profile globus "jobtype" "single"
+                pfn "/work/00940/tera3d/CyberShake/software/AWP-ODC-SGT/awp_odc_wrapper.sh"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site bluewaters {
+                profile globus "maxwalltime" "120"
+                #profile globus "hostcount" "125"
+                #profile globus "count" "4000"
+                profile globus "jobtype" "single"
+                profile globus "nodetype" "xe"
+                profile globus "queue" "noalloc"
+                #profile globus "project" "baln"
+		#pfn "/projects/sciteam/baln/CyberShake/software/AWP-ODC-SGT/bin/pmcl3d"
+                pfn "/projects/sciteam/baln/CyberShake/software/AWP-ODC-SGT/awp_odc_wrapper.sh"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+	#site titan-pilot {
+	#	profile condor "requirements" "(IsPilot==True)"
+	#	profile condor "requirements" "(PilotJobType==\"SGTPilot\")"
+	#	pfn "/lustre/atlas/proj-shared/geo112/CyberShake/software/AWP-ODC-SGT/awp_odc_wrapper.sh"
+	#	arch "x86_64"
+	#	os "LINUX"
+	#	type "INSTALLED"
+	#}
+	site titan {
+		profile globus "maxwalltime" "120"
+		profile globus "jobtype" "single"
+		profile globus "account" "GEO112"
+                pfn "/lustre/atlas/proj-shared/geo112/CyberShake/software/AWP-ODC-SGT/awp_odc_wrapper.sh"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+	}
+	site cori {
+                profile globus "host_count" "1"
+                profile globus "jobtype" "single"
+                profile globus "maxtime" "120"
+                profile globus "queue" "regular"
+                pfn "/project/projectdirs/m2187/scottcal/CyberShake/software/AWP-ODC-SGT/awp_odc_wrapper.sh"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site edison {
+                profile globus "host_count" "1"
+                profile globus "jobtype" "single"
+                profile globus "maxtime" "120"
+                profile globus "queue" "regular"
+                pfn "/project/projectdirs/m2187/scottcal/CyberShake/software-edison/AWP-ODC-SGT/awp_odc_wrapper.sh"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+}
+
+tr scec::PostAWP:1.0 {
+	site stampede {
+                profile globus "maxwalltime" "30"
+                profile globus "host_count" "1"
+                profile globus "count" "1"
+                profile globus "jobtype" "single"
+                pfn "/work/00940/tera3d/CyberShake/software/AWP-ODC-SGT/utils/prepare_for_pp.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site bluewaters {
+                profile globus "maxwalltime" "180"
+                profile globus "hostcount" "2"
+                profile globus "count" "4"
+                profile globus "jobtype" "single"
+                profile globus "nodetype" "xe"
+                profile globus "queue" "noalloc"
+		#profile globus "project" "baln"
+		profile pegasus "cores" "8"
+                pfn "/projects/sciteam/baln/CyberShake/software/AWP-GPU-SGT/utils/prepare_for_pp.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+	#site titan-pilot {
+	#	profile condor "requirements" "(IsPilot==True)"
+	#	profile condor "requirements" "(PilotTimeLeft > 3000)"
+	#	profile condor "requirements" "(PilotJobType==\"PostSGTPilot\")"
+	#	pfn "/lustre/atlas/proj-shared/geo112/CyberShake/software/AWP-GPU-SGT/utils/prepare_for_pp.py"
+	#	arch "x86_64"
+	#	os "LINUX"
+	#	type "INSTALLED"
+	#}
+	site titan {
+                profile globus "maxwalltime" "120"
+                profile globus "hostcount" "2"
+                profile globus "count" "4"
+                profile globus "jobtype" "single"
+                profile globus "account" "GEO112"
+		profile pegasus "cores" "8"
+                pfn "/lustre/atlas/proj-shared/geo112/CyberShake/software/AWP-GPU-SGT/utils/prepare_for_pp.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+	}
+        site summit {
+                profile globus "maxwalltime" "120"
+                profile globus "hostcount" "1"
+                #profile globus "count" "4"
+                profile globus "jobtype" "single"
+                profile globus "project" "GEO112"
+                #profile pegasus "cores" "4"
+                pfn "/gpfs/alpine/proj-shared/geo112/CyberShake/software/AWP-GPU-SGT/utils/prepare_for_pp.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site cori {
+                profile globus "host_count" "1"
+		profile globus "count" "4"
+                profile globus "jobtype" "single"
+                profile globus "maxtime" "120"
+                profile globus "queue" "regular"
+                pfn "/project/projectdirs/m2187/scottcal/CyberShake/software/AWP-GPU-SGT/utils/prepare_for_pp.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site edison {
+                profile globus "host_count" "1"
+                profile globus "count" "4"
+                profile globus "jobtype" "single"
+                profile globus "maxtime" "120"
+                profile globus "queue" "regular"
+                pfn "/project/projectdirs/m2187/scottcal/CyberShake/software-edison/AWP-GPU-SGT/utils/prepare_for_pp.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site frontier {
+            profile pegasus "nodes" "1"
+			profile pegasus "cores" "32"
+            profile globus "maxwalltime" "45"
+            profile globus "jobtype" "single"
+            profile globus "project" "GEO156"
+            pfn "/lustre/orion/geo156/proj-shared/CyberShake/software/AWP-HIP-SGT/utils/prepare_for_pp.py"
+            arch "x86_64"
+            os "LINUX"
+            type "INSTALLED"
+        }
+
+}
+
+tr scec::Extract_SGT_MPI:1.0 {
+	site kraken {
+		profile globus "maxwalltime" "60"
+		profile globus "host_count" "10"
+		profile globus "count" "120"
+		profile globus "jobtype" "single"
+		pfn "/lustre/scratch/proj/tera3d/CyberShake/software/ExtractSgt_opt/extract_sgt_mpi.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+        site stampede {
+                profile globus "maxwalltime" "30"
+                profile globus "host_count" "8"
+                profile globus "count" "128"
+                profile globus "jobtype" "single"
+		profile globus "queue" "normal"
+                pfn "/work/00940/tera3d/CyberShake/software/ExtractSgt_geom/extract_sgt_mpi.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+
+	site bluewaters {
+		profile globus "maxwalltime" "60"
+		profile globus "hostcount" "4"
+		profile globus "count" "128"
+		profile globus "jobtype" "single"
+		profile globus "nodetype" "xe"
+                profile globus "queue" "noalloc"
+		#profile globus "project" "baln"
+		profile pegasus "cores" "128"
+		pfn "/projects/sciteam/baln/CyberShake/software/ExtractSgt_geom/extract_sgt_mpi.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::Extract_SGT_MPI:3.3.1 {
+        site stampede {
+                profile globus "maxwalltime" "30"
+                profile globus "host_count" "8"
+                profile globus "count" "128"
+                profile globus "jobtype" "single"
+                profile globus "queue" "normal"
+                pfn "/work/00940/tera3d/CyberShake/software/ExtractSgt_geom/extract_sgt_mpi_v3.3.1.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+
+}
+
+
+tr scec::Extract_SGT_MPI_AWP:1.0 {
+        site kraken {
+                profile globus "maxwalltime" "60"
+                profile globus "host_count" "10"
+                profile globus "count" "120"
+                profile globus "jobtype" "single"
+                pfn "/lustre/scratch/proj/tera3d/CyberShake/software/ExtractSgt_opt_header/extract_sgt_mpi.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site stampede {
+                profile globus "maxwalltime" "20"
+                profile globus "host_count" "6"
+                profile globus "count" "96"
+                profile globus "jobtype" "single"
+		profile globus "queue" "normal"
+                pfn "/work/00940/tera3d/CyberShake/software/ExtractSgt_opt_header/extract_sgt_mpi.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+
+        site bluewaters {
+                profile globus "maxwalltime" "60"
+                profile globus "hostcount" "4"
+                profile globus "count" "128"
+                profile globus "jobtype" "single"
+                profile globus "nodetype" "xe"
+                profile globus "queue" "noalloc"
+		#profile globus "project" "baln"
+		profile pegasus "cores" "128"
+                pfn "/projects/sciteam/baln/CyberShake/software/ExtractSgt_geom/extract_sgt_mpi.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+}
+
+tr scec::Extract_SGT_MPI_AWP:3.3.1 {
+        site stampede {
+                profile globus "maxwalltime" "30"
+                profile globus "host_count" "8"
+                profile globus "count" "128"
+                profile globus "jobtype" "single"
+                profile globus "queue" "normal"
+                pfn "/work/00940/tera3d/CyberShake/software/ExtractSgt_geom/extract_sgt_mpi_v3.3.1.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site bluewaters {
+                profile globus "maxwalltime" "1080"
+                profile globus "hostcount" "48"
+                profile globus "count" "1536"
+                profile globus "jobtype" "single"
+                profile globus "nodetype" "xe"
+                profile globus "queue" "noalloc"
+		#profile globus "project" "baln"
+                profile pegasus "cores" "1536"
+		profile pegasus "clusterer.job.aggregator" "seqexec"
+                pfn "/projects/sciteam/baln/CyberShake/software/ExtractSgt_geom/extract_sgt_mpi_v3.3.1.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+	#site titan-pilot {
+	#	profile condor "requirements" "(IsPilot==True)"
+	#	pfn "/lustre/atlas/proj-shared/geo112/CyberShake/software/ExtractSgt_geom/extract_sgt_mpi_v3.3.1.py"
+	#	arch "x86_64"
+	#	os "LINUX"
+	#	type "INSTALLED"
+	#}
+	site titan {
+                profile globus "maxwalltime" "1080"
+                profile globus "hostcount" "96"
+                profile globus "count" "1536"
+                profile globus "jobtype" "single"
+                profile globus "account" "GEO112"
+                profile pegasus "cores" "1536"
+                profile pegasus "clusterer.job.aggregator" "seqexec"
+                pfn "/lustre/atlas/proj-shared/geo112/CyberShake/software/ExtractSgt_geom/extract_sgt_mpi_v3.3.1.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+	}
+}
+
+tr scec::CheckSgtNoSums:1.0 {
+	site bluewaters {
+                profile globus "hostcount" "1"
+                profile globus "count" "1"
+                profile globus "jobtype" "single"
+	        profile globus "maxwalltime" "2"
+                profile globus "nodetype" "xe"
+                profile globus "queue" "noalloc"
+		#profile globus "project" "baln"
+                pfn "/bin/true"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+	}
+	site titan {
+                profile globus "hostcount" "1"
+                profile globus "count" "1"
+                profile globus "jobtype" "single"
+                profile globus "maxwalltime" "2"
+                profile globus "account" "GEO112"
+                pfn "/bin/true"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site summit {
+                profile globus "hostcount" "1"
+                #profile globus "count" "1"
+                profile globus "jobtype" "single"
+                profile globus "maxwalltime" "2"
+                profile globus "project" "GEO112"
+                pfn "/bin/true"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+}
+
+tr scec::CheckSgt:1.0 {
+	profile pegasus "clusters.size" "1"
+	profile globus "maxwalltime" "20"
+	site ranger-scottcal {
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007-scottcal/software/CheckSgt/CheckSgt.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger_noglidein {
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/CheckSgt/CheckSgt.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger {
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/CheckSgt/CheckSgt.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site hpc {
+		pfn "/home/rcf-104/CyberShake2007/software/CheckSgt/CheckSgt.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site kraken {
+		profile globus "host_count" "1"
+		profile globus "count" "12"
+		pfn "/lustre/scratch/proj/tera3d/CyberShake/software/CheckSgt/CheckSgt.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+        site stampede {
+                profile globus "host_count" "1"
+                profile globus "count" "1"
+		profile globus "jobtype" "single"
+		profile globus "queue" "normal"
+                pfn "/work/00940/tera3d/CyberShake/software/CheckSgt/CheckSgt.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+	site bluewaters {
+		profile globus "hostcount" "1"
+		profile globus "count" "1"
+		profile globus "jobtype" "single"
+		profile globus "maxwalltime" "120"
+		profile globus "nodetype" "xe"
+                profile globus "queue" "noalloc"
+		#profile globus "project" "baln"
+		pfn "/projects/sciteam/baln/CyberShake/software/CheckSgt/CheckSgt.py"
+		arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+	}
+        #site titan-pilot {
+        #        profile condor "requirements" "(IsPilot==True)"
+        #        pfn "/lustre/atlas/proj-shared/geo112/CyberShake/software/CheckSgt/CheckSgt.py"
+        #        arch "x86_64"
+        #        os "LINUX"
+        #        type "INSTALLED"
+        #}
+	site titan {
+                profile globus "hostcount" "1"
+                profile globus "count" "1"
+                profile globus "jobtype" "single"
+                profile globus "maxwalltime" "120"
+		profile globus "account" "GEO112"
+                pfn "/lustre/atlas/proj-shared/geo112/CyberShake/software/CheckSgt/CheckSgt.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+	}
+        site summit {
+                profile globus "hostcount" "1"
+                #profile globus "count" "1"
+                profile globus "jobtype" "single"
+                profile globus "maxwalltime" "120"
+                profile globus "project" "GEO112"
+                pfn "/gpfs/alpine/proj-shared/geo112/CyberShake/software/CheckSgt/CheckSgt.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+	site cori {
+		profile globus "host_count" "1"
+		profile globus "count" "1"
+		profile globus "jobtype" "single"
+		profile globus "maxtime" "120"
+		profile globus "queue" "regular"
+		pfn "/project/projectdirs/m2187/scottcal/CyberShake/software/CheckSgt/CheckSgt.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+	}
+        site edison {
+                profile globus "host_count" "1"
+                profile globus "count" "1"
+                profile globus "jobtype" "single"
+                profile globus "maxtime" "120"
+                profile globus "queue" "regular"
+                pfn "/project/projectdirs/m2187/scottcal/CyberShake/software-edison/CheckSgt/CheckSgt.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+	site frontera {
+		profile globus "count" "1"
+		profile globus "hostcount" "1"
+		profile globus "jobtype" "single"
+		profile globus "maxtime" "120"
+		profile globus "queue" "small"
+		pfn "/work2/00349/scottcal/frontera/CyberShake/software/CheckSgt/CheckSgt.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::Check_DB_Site:1.0 {
+	site local {
+		pfn "/home/shock-ssd/scottcal/db/check_db.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site shock {
+		pfn "/home/shock-ssd/scottcal/db/check_db.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::Curve_Calc:1.0 {
+	site local {
+		pfn "/home/shock-ssd/scottcal/opensha/curve_plot_wrapper.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site shock {
+		pfn "/home/shock-ssd/scottcal/opensha/curve_plot_wrapper.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::Curve_Calc_Wrapper:1.0 {
+        site local {
+                pfn "/home/shock-ssd/scottcal/opensha/curve_plot_velocity_file_wrapper.sh"
+                arch "x86"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site shock {
+                pfn "/home/shock-ssd/scottcal/opensha/curve_plot_velocity_file_wrapper.sh"
+                arch "x86"
+                os "LINUX"
+                type "INSTALLED"
+        }
+}
+
+tr scec::CyberShakeNotify:1.0 {
+	profile globus "maxwalltime" "5"
+	site ranger-scottcal {
+		profile globus "queue" "serial"
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007-scottcal/software/RunManager/SendStatus.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger_noglidein {
+		profile globus "queue" "serial"
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/RunManager/SendStatus.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger {
+		profile globus "queue" "serial"
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/RunManager/SendStatus.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site hpc {
+		pfn "/home/rcf-104/CyberShake2007/software/RunManager/SendStatus.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site kraken {
+		profile globus "host_count" "1"
+		profile globus "count" "12"
+		pfn "/lustre/scratch/proj/tera3d/CyberShake/software/RunManager/SendStatus.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site shock {
+		pfn "/home/shock/scottcal/runs/cybershake-tools/runmanager/RunManager/SendStatus.py"
+                arch "x86"
+                os "LINUX"
+                type "INSTALLED"
+	}
+}
+
+tr scec::DB_Report:1.0 {
+	site local {
+		pfn "/home/scec-00/cybershk/reports/db_report_gen.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site shock {
+		pfn "/home/scec-00/cybershk/reports/db_report_gen.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::Date:1.0 {
+	site local {
+		pfn "/bin/date"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::Disaggregate:1.0 {
+	site local {
+		pfn "/home/shock-ssd/scottcal/opensha/disagg_plot_wrapper.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+        site shock {
+                pfn "/home/shock-ssd/scottcal/opensha/disagg_plot_wrapper.sh"
+                arch "x86"
+                os "LINUX"
+                type "INSTALLED"
+        }
+}
+
+tr scec::HazardCurve:1.0 {
+	site local {
+		pfn "/home/scec-00/cybershk/HazardCurveGeneration/curve_wrapper.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site shock {
+		pfn "/home/scec-00/cybershk/HazardCurveGeneration/curve_wrapper.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::Load_Amps:1.0 {
+	site local {
+		pfn "/home/shock-ssd/scottcal/CyberCommands/bin/insert_dir.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site shock {
+		pfn "/home/shock-ssd/scottcal/CyberCommands/bin/insert_dir.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::MD5:1.0 {
+	#site titan-pilot {
+        #        profile condor "requirements" "(IsPilot==True)"
+	#	profile condor "requirements" "(PilotTimeLeft > 5000)"
+        #        profile condor "requirements" "(PilotJobType==\"MD5Pilot\")"
+        #        pfn "/lustre/atlas/proj-shared/geo112/CyberShake/software/SgtHead/run_md5sum.sh"
+        #        arch "x86_64"
+        #        os "LINUX"
+        #        type "INSTALLED"
+	#}
+	site summit {
+                profile globus "maxwalltime" "120"
+                profile globus "hostcount" "1"
+                #profile globus "count" "1"
+                profile globus "jobtype" "single"
+                profile globus "project" "GEO112"
+                pfn "/gpfs/alpine/proj-shared/geo112/CyberShake/software/SgtHead/run_md5sum.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site frontier {
+            profile pegasus "nodes" "1"
+			profile pegasus "cores" "1"
+            profile globus "maxwalltime" "120"
+            profile globus "jobtype" "single"
+            profile globus "project" "GEO156"
+            pfn "/lustre/orion/geo156/proj-shared/CyberShake/software/SgtHead/run_md5sum.py"
+            arch "x86_64"
+            os "LINUX"
+            type "INSTALLED"
+        }
+	site titan {
+		profile globus "maxwalltime" "120"
+		profile globus "hostcount" "1"
+		profile globus "count" "1"
+		profile globus "jobtype" "single"
+		profile globus "account" "GEO112"
+                pfn "/lustre/atlas/proj-shared/geo112/CyberShake/software/SgtHead/run_md5sum.sh"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+	}
+	site bluewaters {
+		profile globus "maxwalltime" "120"
+                profile globus "hostcount" "1"
+                profile globus "count" "1"
+                profile globus "jobtype" "single"
+                profile globus "nodetype" "xe"
+                profile globus "queue" "noalloc"
+                #profile globus "project" "baln"
+                pfn "/projects/sciteam/baln/CyberShake/software/SgtHead/run_md5sum.sh"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+	}
+        site cori {
+                profile globus "host_count" "1"
+		profile globus "count" "1"
+                profile globus "jobtype" "single"
+                profile globus "maxtime" "120"
+                profile globus "queue" "regular"
+                pfn "/project/projectdirs/m2187/scottcal/CyberShake/software/SgtHead/run_md5sum.sh"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site edison {
+                profile globus "host_count" "1"
+                profile globus "count" "1"
+                profile globus "jobtype" "single"
+                profile globus "maxtime" "120"
+                profile globus "queue" "regular"
+                pfn "/project/projectdirs/m2187/scottcal/CyberShake/software-edison/SgtHead/run_md5sum.sh"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+}
+
+tr scec::NanTest:1.0 {
+	profile globus "maxwalltime" "20"
+	site ranger-scottcal {
+		profile globus "queue" "normal"
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007-scottcal/software/SgtTest/dump_rawsgt_both.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger_noglidein {
+		profile globus "queue" "normal"
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/SgtTest/dump_rawsgt.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger {
+		profile globus "queue" "serial"
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/SgtTest/dump_rawsgt_both.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site hpc {
+		pfn "/home/rcf-104/CyberShake2007/software/SgtTest/dump_rawsgt_both.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site kraken {
+		profile globus "host_count" "1"
+		profile globus "count" "12"
+		pfn "/lustre/scratch/proj/tera3d/CyberShake/software/SgtTest/dump_rawsgt_both.sh"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+        site stampede {
+                profile globus "host_count" "1"
+                profile globus "count" "16"
+		profile globus "queue" "normal"
+		profile globus "jobtype" "single"
+                pfn "/work/00940/tera3d/CyberShake/software/SgtTest/dump_rawsgt_both.sh"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+	site bluewaters {
+		profile globus "host_count" "1"
+                profile globus "count" "16"
+                profile globus "jobtype" "single"
+		profile globus "maxwalltime" "30"
+		profile globus "nodetype" "xe"
+		profile pegasus "cores" "16"
+                profile globus "queue" "noalloc"
+		#profile globus "project" "baln"
+                pfn "/projects/sciteam/baln/CyberShake/software/SgtTest/dump_rawsgt_both.sh"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+	#site titan-pilot {
+	#	profile condor "requirements" "(IsPilot==True)"
+	#	profile condor "requirements" "(PilotTimeLeft > 4000)"
+        #        profile condor "requirements" "(PilotJobType==\"PostSGTPilot\")"
+	#	pfn "/lustre/atlas/proj-shared/geo112/CyberShake/software/SgtTest/dump_rawsgt_both.sh"
+	#	arch "x86_64"
+	#	os "LINUX"
+	#	type "INSTALLED"
+	#}
+	site titan {
+                profile globus "hostcount" "1"
+                profile globus "count" "16"
+                profile globus "jobtype" "single"
+                profile globus "maxwalltime" "30"
+                profile globus "account" "GEO112"
+                profile pegasus "cores" "16"
+		pfn "/lustre/atlas/proj-shared/geo112/CyberShake/software/SgtTest/dump_rawsgt_both.sh"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+	}
+        site summit {
+                profile globus "hostcount" "1"
+                #profile globus "count" "42"
+                profile globus "jobtype" "single"
+                profile globus "maxwalltime" "10"
+                profile globus "project" "GEO112"
+                #profile pegasus "cores" "42"
+                pfn "/gpfs/alpine/proj-shared/geo112/CyberShake/software/SgtTest/dump_rawsgt_both.sh"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site cori {
+                profile globus "host_count" "1"
+		profile globus "count" "16"
+                profile globus "jobtype" "single"
+                profile globus "maxtime" "30"
+                profile globus "queue" "regular"
+                pfn "/project/projectdirs/m2187/scottcal/CyberShake/software/SgtTest/dump_rawsgt_both.sh"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site edison {
+                profile globus "host_count" "1"
+                profile globus "count" "16"
+                profile globus "jobtype" "single"
+                profile globus "maxtime" "30"
+                profile globus "queue" "regular"
+                pfn "/project/projectdirs/m2187/scottcal/CyberShake/software-edison/SgtTest/dump_rawsgt_both.sh"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+}
+
+tr scec::PeakValCalc_Okaya:1.0 {
+	#Changed from clusters.num=40 so we don't have issues with more subwfs
+	profile pegasus "clusters.size" "400"
+	profile globus "maxwalltime" "2"
+	site ranger-scottcal {
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007-scottcal/software/SpectralAcceleration/p2utils/surfseis_rspectra.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger_noglidein {
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/SpectralAcceleration/p2utils/surfseis_rspectra"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site abe {
+		profile env "LD_ASSUME_KERNEL" "2.4.19"
+		pfn "/cfs/projects/scec/CyberShake2007/software/SpectralAcceleration/p2utils/surfseis_rspectra"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger {
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/SpectralAcceleration/p2utils/surfseis_rspectra.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site hpc {
+		pfn "/home/rcf-104/CyberShake2007/software/SpectralAcceleration/p2utils/surfseis_rspectra"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site kraken {
+		profile globus "jobtype" "mpi"
+		pfn "/lustre/scratch/proj/tera3d/CyberShake/software/SpectralAcceleration/p2utils/surfseis_rspectra"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::PreCVM:1.0 {
+	profile globus "maxwalltime" "10"
+	site abe_noglidein {
+		pfn "/cfs/projects/scec/CyberShake2007/software/PreCVM/pre_cvm.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger-scottcal {
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007-scottcal/software/PreCVM/pre_cvm.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger_noglidein {
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/PreCVM/pre_cvm.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger {
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/PreCVM/pre_cvm.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+		profile globus "queue" "serial"
+	}
+	site hpc {
+		pfn "/home/rcf-104/CyberShake2007/software/PreCVM/pre_cvm.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site kraken {
+		profile globus "host_count" "1"
+		profile globus "count" "12"
+		pfn "/lustre/scratch/proj/tera3d/CyberShake/software/PreCVM/pre_cvm.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+        site stampede {
+                profile globus "host_count" "1"
+                profile globus "count" "1"
+		profile globus "jobtype" "single"
+		profile globus "queue" "normal"
+                pfn "/work/00940/tera3d/CyberShake/software/PreCVM/pre_cvm.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site bluewaters {
+                profile globus "hostcount" "1"
+                profile globus "count" "1"
+                profile globus "jobtype" "single"
+                profile globus "nodetype" "xe"
+		profile globus "maxwalltime" "20"
+                profile globus "queue" "noalloc"
+		#profile globus "project" "baln"
+                pfn "/projects/sciteam/baln/CyberShake/software/PreCVM/pre_cvm.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+	#site titan-pilot {
+	#	profile condor "requirements" "(IsPilot==True)"
+	#	profile condor "requirements" "(PilotJobType==\"PreSGTPilot\")"
+	#	pfn "/lustre/atlas/proj-shared/geo112/CyberShake/software/PreCVM/pre_cvm.py"
+	#	arch "x86_64"
+	#	os "LINUX"
+	#	type "INSTALLED"
+	#}
+	site titan {
+                profile globus "hostcount" "1"
+                profile globus "count" "1"
+                profile globus "jobtype" "single"
+                profile globus "account" "GEO112"
+                profile globus "maxwalltime" "20"
+                pfn "/lustre/atlas/proj-shared/geo112/CyberShake/software/PreCVM/pre_cvm.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+	}
+        site summit {
+                profile globus "hostcount" "1"
+                #profile globus "count" "1"
+                profile globus "jobtype" "single"
+                profile globus "project" "GEO112"
+                profile globus "maxwalltime" "30"
+                #profile pegasus "runtime" "10"
+                pfn "/gpfs/alpine/proj-shared/geo112/CyberShake/software/PreCVM/pre_cvm.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site cori {
+                profile globus "host_count" "1"
+		profile globus "count" "1"
+                profile globus "jobtype" "single"
+                profile globus "maxtime" "20"
+                profile globus "queue" "regular"
+                pfn "/project/projectdirs/m2187/scottcal/CyberShake/software/PreCVM/pre_cvm.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site edison {
+                profile globus "host_count" "1"
+                profile globus "count" "1"
+                profile globus "jobtype" "single"
+                profile globus "maxtime" "20"
+                profile globus "queue" "regular"
+                pfn "/project/projectdirs/m2187/scottcal/CyberShake/software-edison/PreCVM/pre_cvm.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+		site frontier {
+			profile pegasus "nodes" "1"
+			profile pegasus "cores" "1"
+			profile globus "jobtype" "single"
+			profile globus "project" "GEO156"
+			profile globus "maxwalltime" "30"
+			pfn "/lustre/orion/geo156/proj-shared/CyberShake/software/PreCVM/pre_cvm.py"
+			arch "x86_64"
+			os "LINUX"
+			type "INSTALLED"
+		}
+}
+
+tr scec::PreSGT:1.0 {
+	profile globus "maxwalltime" "10"
+	site abe_noglidein {
+		pfn "/cfs/projects/scec/CyberShake2007/software/PreSgt/presgt.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger-scottcal {
+		profile globus "queue" "normal"
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007-scottcal/software/PreSgt/presgt.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger_noglidein {
+		profile globus "queue" "normal"
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/PreSgt/presgt.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger {
+		profile globus "queue" "normal"
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/PreSgt/presgt.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site hpc {
+		pfn "/home/rcf-104/CyberShake2007/software/PreSgt/presgt.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site kraken {
+		profile globus "host_count" "1"
+		profile globus "count" "12"
+		pfn "/lustre/scratch/proj/tera3d/CyberShake/software/PreSgt/presgt.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+        site stampede {
+                profile globus "host_count" "1"
+                profile globus "count" "16"
+		profile globus "jobtype" "single"
+		profile globus "queue" "normal"
+                pfn "/work/00940/tera3d/CyberShake/software/PreSgt/presgt.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site bluewaters {
+                profile globus "hostcount" "8"
+                profile globus "count" "32"
+                profile globus "jobtype" "single"
+                profile globus "maxwalltime" "10"
+		profile globus "nodetype" "xe"
+                profile globus "queue" "noalloc"
+		#profile globus "project" "baln"
+		profile pegasus "cores" "32"
+                pfn "/projects/sciteam/baln/CyberShake/software/PreSgt/presgt.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+	#site titan-pilot {
+        #        profile condor "requirements" "(IsPilot==True)"
+	#	profile condor "requirements" "(PilotJobType==\"PreSGTPilot\")"
+	#	pfn "/lustre/atlas/proj-shared/geo112/CyberShake/software/PreSgt/presgt.py"
+	#	arch "x86_64"
+	#	os "LINUX"
+	#	type "INSTALLED"
+	#}
+	site titan {
+                profile globus "hostcount" "8"
+                profile globus "count" "32"
+                profile globus "jobtype" "single"
+                profile globus "maxwalltime" "10"
+                profile globus "account" "GEO112"
+                profile pegasus "cores" "32"
+                pfn "/lustre/atlas/proj-shared/geo112/CyberShake/software/PreSgt/presgt.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+	}
+        site summit {
+                profile globus "hostcount" "1"
+                profile globus "jobtype" "single"
+                profile globus "maxwalltime" "10"
+                profile globus "project" "GEO112"
+                #profile pegasus "cores" "42"
+                pfn "/gpfs/alpine/proj-shared/geo112/CyberShake/software/PreSgt/presgt.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site cori {
+                profile globus "host_count" "2"
+		profile globus "count" "32"
+                profile globus "jobtype" "single"
+                profile globus "maxtime" "10"
+                profile globus "queue" "regular"
+                pfn "/project/projectdirs/m2187/scottcal/CyberShake/software/PreSgt/presgt.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site edison {
+                profile globus "host_count" "4"
+                profile globus "count" "32"
+                profile globus "jobtype" "single"
+                profile globus "maxtime" "10"
+                profile globus "queue" "regular"
+                pfn "/project/projectdirs/m2187/scottcal/CyberShake/software-edison/PreSgt/presgt.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site frontier {
+            profile pegasus "nodes" "1"
+			profile pegasus "cores" "32"
+            profile globus "maxwalltime" "10"
+            profile globus "jobtype" "single"
+            profile globus "project" "GEO156"
+            pfn "/lustre/orion/geo156/proj-shared/CyberShake/software/PreSgt/presgt.py"
+            arch "x86_64"
+            os "LINUX"
+            type "INSTALLED"
+        }
+}
+
+tr scec::RegisterSGT:1.0 {
+	site abe_noglidein {
+		pfn "/cfs/projects/scec/CyberShake2007/software/RegisterSgt/register_sgt.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+
+
+tr scec::SGTGen:1.0 {
+	site abe_noglidein {
+		pfn "/cfs/projects/scec/CyberShake2007/software/SimSgt/sim_sgt_vmi.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger-scottcal {
+		profile globus "queue" "normal"
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007-scottcal/software/SimSgt/sim_sgt.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger_noglidein {
+		profile globus "queue" "normal"
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/SimSgt/sim_sgt.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger {
+		profile globus "queue" "normal"
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/SimSgt/sim_sgt.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site hpc {
+		pfn "/home/rcf-104/CyberShake2007/software/SimSgt_V1_16_3/sim_sgt.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site kraken {
+		profile globus "host_count" "310"
+		profile globus "count" "3720"
+		#profile globus "host_count" "60"
+		#profile globus "count" "720"
+		profile globus "maxwalltime" "120"
+		pfn "/lustre/scratch/proj/tera3d/CyberShake/software/SimSgt_V3/sim_sgt.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site stampede {
+		#profile globus "host_count" "50"
+		#profile globus "count" "800"
+		profile globus "host_count" "250"
+		profile globus "count" "4000"
+		profile globus "queue" "normal"
+		profile globus "maxwalltime" "60"
+		profile globus "jobtype" "single"
+		pfn "/work/00940/tera3d/CyberShake/software/SimSgt_V3/sim_sgt.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site bluewaters {
+		profile globus "hostcount" "25"
+		profile globus "count" "800"
+		profile globus "maxwalltime" "90"
+		profile globus "nodetype" "xe"
+                profile globus "queue" "noalloc"
+		#profile globus "project" "baln"
+		profile pegasus "cores" "800"
+                pfn "/projects/sciteam/baln/CyberShake/software/SimSgt_V3/sim_sgt.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+	}
+
+}
+
+tr scec::SGTGen:3.0.3 {
+       site kraken {
+                profile globus "host_count" "310"
+                profile globus "count" "3720"
+                #profile globus "host_count" "60"
+                #profile globus "count" "720"
+                profile globus "maxwalltime" "120"
+                pfn "/lustre/scratch/proj/tera3d/CyberShake/software/SimSgt_V3.0.3/sim_sgt.py"
+                arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site stampede {
+                profile globus "host_count" "250"
+                profile globus "count" "4000"
+                profile globus "maxwalltime" "60"
+		profile globus "jobtype" "single"
+		profile globus "queue" "normal"
+                pfn "/work/00940/tera3d/CyberShake/software/SimSgt_V3.0.3/sim_sgt.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+	site bluewaters {
+		profile globus "hostcount" "125"
+		profile globus "count" "4000"
+		profile globus "maxwalltime" "120"
+		profile globus "nodetype" "xe"
+                profile globus "queue" "noalloc"
+		#profile globus "project" "baln"
+		profile pegasus "cores" "4000"
+		pfn "/projects/sciteam/baln/CyberShake/software/SimSgt_V3.0.3/sim_sgt.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::SGTMerge:1.0 {
+	site abe_noglidein {
+		pfn "/cfs/projects/scec/CyberShake2007/software/RecpGF/merge_sgt_serial.csh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger-scottcal {
+		profile globus "queue" "normal"
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007-scottcal/software/RecpGF/merge_sgt_both.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger_noglidein {
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/RecpGF/merge_sgt_serial.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger {
+		profile globus "queue" "normal"
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/RecpGF/merge_sgt_both.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site hpc {
+		pfn "/home/rcf-104/CyberShake2007/software/RecpGF/merge_sgt_both.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site kraken {
+		profile globus "host_count" "15"
+		profile globus "count" "180"
+		profile globus "maxwalltime" "60"
+		pfn "/lustre/scratch/proj/tera3d/CyberShake/software/RecpGF_mpi/merge_sgt_both.sh"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site stampede {
+                profile globus "host_count" "16"
+                profile globus "count" "16"
+                profile globus "maxwalltime" "60"
+		profile globus "queue" "normal"
+		profile globus "jobtype" "single"
+                pfn "/work/00940/tera3d/CyberShake/software/RecpGF_mpi/merge_sgt_both.sh"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site bluewaters {
+                profile globus "hostcount" "4"
+                profile globus "count" "32"
+                profile globus "maxwalltime" "180"
+                profile globus "jobtype" "single"
+		profile globus "nodetype" "xe"
+                profile globus "queue" "noalloc"
+		#profile globus "project" "baln"
+		profile pegasus "cores" "32"
+                pfn "/projects/sciteam/baln/CyberShake/software/RecpGF_mpi/merge_sgt_both.sh"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+}
+
+
+tr scec::Scatter_Map:1.0 {
+	site opensha {
+		pfn "/home/scec-00/cybershk/opensha/make_scatter_map.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::SendResults:1.0 {
+	site ranger-scottcal {
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007-scottcal/software/VerifyCR/SendResults.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger_noglidein {
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/VerifyCR/SendResults.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger {
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/VerifyCR/SendResults.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site hpc {
+		pfn "/home/rcf-104/CyberShake2007/software/VerifyCR/SendResults.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+
+tr scec::Seis_PSA:1.0 {
+	profile pegasus "clusters.num" "60"
+	site ranger {
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/SeisPSA/bin/seis_psa"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::Seis_PSA_memcached:1.0 {
+        profile pegasus "clusters.num" "60"
+        site ranger {
+                pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/SeisPSA_mc/bin/seis_psa_mc"
+                arch "x86"
+                os "LINUX"
+                type "INSTALLED"
+        }
+	site kraken {
+                profile globus "jobtype" "mpi"
+                pfn "/lustre/scratch/proj/tera3d/CyberShake/software/JBSim3d_combined/bin/seis_psa"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+	}
+        site stampede {
+                profile globus "jobtype" "mpi"
+                pfn "/work/00940/tera3d/CyberShake/software/JBSim3d_combined/bin/seis_psa"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+}
+
+tr scec::Seis_PSA_header:1.0 {
+	site kraken {
+		profile globus "jobtype" "mpi"
+		pfn "/lustre/scratch/proj/tera3d/CyberShake/software/SeisPSA_header_buf/bin/seis_psa"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+        site stampede {
+                profile globus "jobtype" "mpi"
+                pfn "/work/00940/tera3d/CyberShake/software/SeisPSA_header_buf/bin/seis_psa"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site bluewaters {
+                profile globus "jobtype" "mpi"
+                pfn "/projects/sciteam/baln/CyberShake/software/SeisPSA_header_buf/bin/seis_psa"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+
+}
+
+tr scec::Seis_PSA_header:3.3.1 {
+        site stampede {
+                profile globus "jobtype" "mpi"
+                pfn "/work/00940/tera3d/CyberShake/software/SeisPSA_header_buf/bin/seis_psa_v3.3.1"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site bluewaters {
+                profile globus "jobtype" "mpi"
+                pfn "/projects/sciteam/baln/CyberShake/software/SeisPSA_header_buf/bin/seis_psa_v3.3.1"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        #site titan-pilot {
+        #        profile condor "requirements" "(IsPilot==True)"
+        #        pfn "/lustre/atlas/proj-shared/geo112/CyberShake/software/SeisPSA_header_buf/bin/seis_psa_v3.3.1"
+        #        arch "x86_64"
+        #        os "LINUX"
+        #        type "INSTALLED"
+        #}
+	site titan {
+		profile globus "jobtype" "mpi"
+		profile globus "account" "GEO112"
+                pfn "/lustre/atlas/proj-shared/geo112/CyberShake/software/SeisPSA_header_buf/bin/seis_psa_v3.3.1"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+	}
+}
+
+tr scec::Seis_PSA_multi:1.0 {
+	site bluewaters {
+		profile globus "jobtype" "mpi"
+		pfn "/projects/sciteam/baln/CyberShake/software/SeisPSA_multi/bin/seis_psa"
+	        arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+}
+
+tr scec::Seis_PSA_large_mem:1.0 {
+	site stampede {
+		profile globus "jobtype" "mpi"
+                pfn "/work/00940/tera3d/CyberShake/software/SeisPSA_large_mem/bin/seis_psa"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+	site bluewaters {
+		profile globus "jobtype" "mpi"
+                pfn "/projects/sciteam/baln/CyberShake/software/SeisPSA_lm_multi/bin/seis_psa"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+
+	}
+}
+
+tr scec::Seis_PSA_large_mem:3.3.1 {
+        site bluewaters {
+                profile globus "jobtype" "mpi"
+                pfn "/projects/sciteam/baln/CyberShake/software/SeisPSA_lm_multi/bin/seis_psa_v3.3.1"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+	#site titan-pilot {
+	#	profile condor "requirements" "(IsPilot==True)"
+	#	pfn "/lustre/atlas/proj-shared/geo112/CyberShake/software/SeisPSA_large_mem/bin/seis_psa_v3.3.1"
+        #        arch "x86_64"
+        #        os "LINUX"
+        #        type "INSTALLED"
+	#}
+	site titan {
+		profile globus "jobtype" "mpi"
+		profile globus "account" "GEO112"
+                pfn "/lustre/atlas/proj-shared/geo112/CyberShake/software/SeisPSA_large_mem/bin/seis_psa_v3.3.1"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+	}
+}
+
+tr scec::Smooth:1.0 {
+	site bluewaters {
+		profile globus "hostcount" "32"
+		profile globus "count" "1024"
+                profile globus "maxwalltime" "180"
+                profile globus "jobtype" "single"
+                profile globus "nodetype" "xe"
+                profile globus "queue" "noalloc"
+                #profile globus "project" "baln"
+                profile pegasus "cores" "1024"
+		#profile globus "queue" "high"
+                pfn "/projects/sciteam/baln/CyberShake/software/UCVM/smoothing/run_smoothing.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+	}
+	site titan {
+		profile globus "hostcount" "63"
+		profile globus "count" "63"
+		profile globus "maxwalltime" "60"
+		profile globus "jobtype" "single"
+		profile globus "account" "GEO112"
+		profile pegasus "cores" "1008"
+		pfn "/lustre/atlas/proj-shared/geo112/CyberShake/software/UCVM/smoothing/run_smoothing.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+        site summit {
+                profile globus "hostcount" "15"
+                #profile globus "count" "24"
+                profile globus "maxwalltime" "60"
+                profile globus "jobtype" "single"
+                profile globus "project" "GEO112"
+                #profile pegasus "cores" "1008"
+                pfn "/gpfs/alpine/proj-shared/geo112/CyberShake/software/UCVM/smoothing/run_smoothing.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+		site frontier {
+			profile pegasus "nodes" "30"
+			profile pegasus "cores" "1680"
+			profile globus "maxwalltime" "60"
+			profile globus "jobtype" "single"
+			profile globus "project" "GEO156"
+			pfn "/lustre/orion/geo156/proj-shared/CyberShake/software/UCVM/smoothing/run_smoothing.py"
+			arch "x86_64"
+            os "LINUX"
+            type "INSTALLED"
+		}
+}
+
+tr scec::UCVMMesh:1.0 {
+	site stampede {
+		#Only use half the cores to give 4 GB/core
+		profile globus "host_count" "20"
+		profile globus "count" "160"
+		profile globus "maxwalltime" "30"
+		profile globus "queue" "normal"
+		profile globus "jobtype" "single"
+		pfn "/work/00940/tera3d/CyberShake/software/UCVM/single_exe.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site bluewaters {
+		profile globus "host_count" "216"
+		profile globus "count" "6912"
+		profile globus "maxwalltime" "120"
+		profile globus "jobtype" "single"
+		profile globus "nodetype" "xe"
+		#profile globus "project" "baln"
+		profile pegasus "cores" "6912"
+		profile globus "queue" "noalloc"
+		pfn "/projects/sciteam/baln/CyberShake/software/UCVM/single_exe.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	#site titan-pilot {
+        #        profile condor "requirements" "(IsPilot==True)"
+	#	profile condor "requirements" "(PilotJobType==\"PreSGTPilot\")"
+	#	pfn "/lustre/atlas/proj-shared/geo112/CyberShake/software/UCVM/single_exe.py"
+	#	arch "x86_64"
+	#	os "LINUX"
+	#	type "INSTALLED"
+	#}
+	site titan {
+                profile globus "hostcount" "432"
+                profile globus "count" "6912"
+                profile globus "maxwalltime" "120"
+                profile globus "jobtype" "single"
+                profile globus "account" "GEO112"
+                profile pegasus "cores" "6912"
+                pfn "/lustre/atlas/proj-shared/geo112/CyberShake/software/UCVM/single_exe.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+	}
+        site summit {
+				#Increase to 50 to get into bin 4
+                profile globus "hostcount" "50"
+                profile globus "maxwalltime" "20"
+		#profile globus "count" "6888"
+                profile globus "jobtype" "single"
+                profile globus "project" "GEO112"
+                #profile pegasus "cores" "6888"
+                pfn "/gpfs/alpine/proj-shared/geo112/CyberShake/software/UCVM/single_exe.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site cori {
+                profile globus "host_count" "108"
+		profile globus "count" "6912"
+                profile globus "jobtype" "single"
+                profile globus "maxtime" "120"
+                profile globus "queue" "regular"
+                pfn "/project/projectdirs/m2187/scottcal/CyberShake/software/UCVM/single_exe.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site edison {
+                profile globus "host_count" "288"
+                profile globus "count" "6912"
+                profile globus "jobtype" "single"
+                profile globus "maxtime" "120"
+                profile globus "queue" "regular"
+                pfn "/project/projectdirs/m2187/scottcal/CyberShake/software-edison/UCVM/single_exe.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site frontier {
+            profile pegasus "nodes" "96"
+			profile pegasus "cores" "5376"
+            profile globus "jobtype" "single"
+            profile globus "project" "GEO156"
+            profile globus "maxwalltime" "30"
+            pfn "/lustre/orion/geo156/proj-shared/CyberShake/software/UCVM/single_exe.py"
+            arch "x86_64"
+            os "LINUX"
+            type "INSTALLED"
+        }
+
+}
+
+tr scec::UCVMMeshGen:1.0 {
+        profile globus "maxwalltime" "120"
+	site ranger {
+	        profile globus "host_count" "20"
+	        profile globus "count" "160"
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/UCVM/genmod.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site kraken {
+		profile globus "host_count" "13"
+		profile globus "count" "156"
+		pfn "/lustre/scratch/proj/tera3d/CyberShake/software/UCVM/genmod.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+        site stampede {
+                profile globus "host_count" "10"
+                profile globus "count" "160"
+		profile globus "queue" "normal"
+		profile globus "jobtype" "single"
+                pfn "/work/00940/tera3d/CyberShake/software/UCVM/genmod.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site bluewaters {
+                profile globus "host_count" "5"
+                profile globus "count" "32"
+                profile globus "jobtype" "single"
+		profile globus "maxwalltime" "45"
+                profile globus "queue" "noalloc"
+		#profile globus "project" "baln"
+		profile pegasus "cores" "32"
+                pfn "/projects/sciteam/baln/CyberShake/software/UCVM/genmod.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+
+}
+
+tr scec::UCVMMeshMerge:1.0 {
+        profile globus "maxwalltime" "60"
+        site ranger {
+	        profile globus "host_count" "4"
+	        profile globus "count" "8"
+                profile globus "queue" "normal"
+                pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/UCVM/merge_cvm.py"
+                arch "x86"
+                os "LINUX"
+                type "INSTALLED"
+        }
+	site kraken {
+		profile globus "host_count" "1"
+		profile globus "count" "12"
+		pfn "/lustre/scratch/proj/tera3d/CyberShake/software/UCVM/merge_cvm.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+        site stampede {
+                profile globus "host_count" "4"
+                profile globus "count" "16"
+		profile globus "queue" "normal"
+		profile globus "jobtype" "single"
+                pfn "/work/00940/tera3d/CyberShake/software/UCVM/merge_cvm.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site bluewaters {
+                profile globus "host_count" "1"
+                profile globus "count" "32"
+                profile globus "jobtype" "single"
+                profile globus "maxwalltime" "30"
+		profile pegasus "cores" "32"
+                pfn "/projects/sciteam/baln/CyberShake/software/UCVM/merge_cvm.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+
+
+}
+
+tr scec::UpdateRun:1.0 {
+	profile pegasus "clusters.size" "1"
+	site ranger-scottcal {
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007-scottcal/software/RunManager/UpdateRunState.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger_noglidein {
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/RunManager/UpdateRunState.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger {
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/RunManager/UpdateRunState.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site hpc {
+		pfn "/home/rcf-104/CyberShake2007/software/RunManager/UpdateRunState.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site shock {
+		pfn "/home/shock/scottcal/runs/cybershake-tools/runmanager/RunManager/UpdateRunState.py"
+                arch "x86"
+                os "LINUX"
+                type "INSTALLED"
+        }
+	site local {
+                pfn "/home/shock/scottcal/runs/cybershake-tools/runmanager/RunManager/UpdateRunState.py"
+                arch "x86"
+                os "LINUX"
+                type "INSTALLED"
+        }
+}
+
+tr scec::V4MeshGen:1.0 {
+	profile globus "maxwalltime" "120"
+	profile globus "host_count" "20"
+	profile globus "count" "160"
+	site abe_noglidein {
+		pfn "/cfs/projects/scec/CyberShake2007/software/V4-WrapC/genmod_vmi.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger-scottcal {
+		profile globus "queue" "normal"
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007-scottcal/software/V4-WrapC/genmod.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger_noglidein {
+		profile globus "queue" "normal"
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/V4-WrapC/genmod.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger {
+		profile globus "queue" "normal"
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/V4-WrapC/genmod.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site hpc {
+		pfn "/home/rcf-104/CyberShake2007/software/V4-WrapC/genmod.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::VHMeshGen:1.0 {
+        profile globus "maxwalltime" "120"
+        profile globus "host_count" "20"
+        profile globus "count" "160"
+        site ranger_noglidein {
+                profile globus "queue" "normal"
+                pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/VH-WrapC/genmod.py"
+                arch "x86"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site ranger {
+                profile globus "queue" "normal"
+                pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/VH-WrapC/genmod.py"
+                arch "x86"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site hpc {
+                pfn "/home/rcf-104/CyberShake2007/software/VH-WrapC/genmod.py"
+                arch "x86"
+                os "LINUX"
+                type "INSTALLED"
+        }
+}
+
+tr scec::VHMeshMerge:1.0 {
+        profile globus "maxwalltime" "60"
+        profile globus "host_count" "4"
+        profile globus "count" "8"
+        site ranger_noglidein {
+                profile globus "queue" "normal"
+                pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/VH-WrapC/merge_cvm.py"
+                arch "x86"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site ranger {
+                profile globus "queue" "normal"
+                pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/VH-WrapC/merge_cvm.py"
+                arch "x86"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site hpc {
+                pfn "/home/rcf-104/CyberShake2007/software/VH-WrapC/merge_cvm.py"
+                arch "x86"
+                os "LINUX"
+                type "INSTALLED"
+        }
+}
+
+
+
+tr scec::V4MeshMerge:1.0 {
+	profile globus "maxwalltime" "60"
+	profile globus "host_count" "4"
+	profile globus "count" "8"
+	site abe_noglidein {
+		pfn "/cfs/projects/scec/CyberShake2007/software/V4-WrapC/merge_vmi.csh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger-scottcal {
+		profile globus "queue" "normal"
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007-scottcal/software/V4-WrapC/merge_cvm.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger_noglidein {
+		profile globus "queue" "normal"
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/V4-WrapC/merge_cvm.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger {
+		profile globus "queue" "normal"
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/V4-WrapC/merge_cvm.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site hpc {
+		pfn "/home/rcf-104/CyberShake2007/software/V4-WrapC/merge_cvm.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::VerifyCR:1.0 {
+	site ranger-scottcal {
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007-scottcal/software/VerifyCR/VerifyCR.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger_noglidein {
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/VerifyCR/VerifyCR.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger {
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/VerifyCR/VerifyCR.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site hpc {
+		pfn "/home/rcf-104/CyberShake2007/software/VerifyCR/VerifyCR.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::ZipSeis:1.0 {
+	profile globus "maxwalltime" "30"
+	site shock {
+		pfn "/home/rcf-104/CyberShake2007/software/Zip/zip_seis_local.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::ZipPSA:1.0 {
+	profile globus "maxwalltime" "30"
+        site shock {
+                pfn "/home/rcf-104/CyberShake2007/software/Zip/zip_psa_local.sh"
+                arch "x86"
+                os "LINUX"
+                type "INSTALLED"
+        }
+}
+
+tr scec::ZipCombined:1.0 {
+	profile globus "maxwalltime" "150"
+	site kraken {
+                profile globus "count" "12"
+                profile globus "host_count" "1"
+		pfn "/lustre/scratch/proj/tera3d/CyberShake/software/Zip/zip_combined.sh"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+
+tr scec::ZipPeakSA:1.0 {
+	profile globus "maxwalltime" "15"
+	site abe_noglidein {
+		pfn "/cfs/projects/scec/CyberShake2007/software/Zip/zip_peakSA.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger-scottcal {
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007-scottcal/software/Zip/zip_peakSA.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger_noglidein {
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/Zip/zip_peakSA.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site abe {
+		pfn "/cfs/projects/scec/CyberShake2007/software/Zip/zip_peakSA.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger {
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/Zip/zip_peakSA.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site hpc {
+		pfn "/home/rcf-104/CyberShake2007/software/Zip/zip_peakSA.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site kraken {
+		profile globus "count" "12"
+		profile globus "host_count" "1"
+		pfn "/lustre/scratch/proj/tera3d/CyberShake/software/Zip/zip_peakSA.sh"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::ZipSeismograms:1.0 {
+	profile globus "maxwalltime" "15"
+	site abe_noglidein {
+		pfn "/cfs/projects/scec/CyberShake2007/software/Zip/zip_seismograms.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger-scottcal {
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007-scottcal/software/Zip/zip_seismograms.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger_noglidein {
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/Zip/zip_seismograms.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site abe {
+		pfn "/cfs/projects/scec/CyberShake2007/software/Zip/zip_seismograms.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger {
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/Zip/zip_seismograms.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site hpc {
+		pfn "/home/rcf-104/CyberShake2007/software/Zip/zip_seismograms.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+        site kraken {
+		profile globus "host_count" "1"
+		profile globus "count" "12"
+                pfn "/lustre/scratch/proj/tera3d/CyberShake/software/Zip/zip_seismograms.sh"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+}
+
+tr scec::extract_sgt:1.0 {
+	#profile pegasus "clusters.num" "20"
+	profile pegasus "clusters.size" "6"
+	site ranger-scottcal {
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007-scottcal/software/JBSim3d/bin/jbsim3d"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger_noglidein {
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/JBSim3d/bin/jbsim3d"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site abe {
+		profile env "LD_ASSUME_KERNEL" "2.4.19"
+		pfn "/cfs/projects/scec/CyberShake2007/software/JBSim3d/bin/jbsim3d"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site ranger {
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/JBSim3d_header/bin/jbsim3d"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site hpc {
+		pfn "/home/rcf-104/CyberShake2007/software/JBSim3d/bin/jbsim3d"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site kraken {
+		profile globus "jobtype" "mpi"
+		pfn "/lustre/scratch/proj/tera3d/CyberShake/software/JBSim3d/bin/jbsim3d"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+        site stampede {
+                profile globus "jobtype" "mpi"
+                pfn "/work/00940/tera3d/CyberShake/software/JBSim3d/bin/jbsim3d"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+}
+
+tr scec::extract_sgt_memcached:1.0 {
+	#changed from clusters.num=20 so we don't run into issues when we run with
+	#more subworkflows
+	#Average runtime is 7 seconds
+        profile pegasus "clusters.size" "10"
+	site ranger_noglidein {
+                pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/JBSim3d_mc/bin/jbsim3d"
+                arch "x86"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site ranger {
+                pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/JBSim3d_mc/bin/jbsim3d"
+                arch "x86"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site hpc {
+                pfn "/home/rcf-104/CyberShake2007/software/JBSim3d_mc/bin/jbsim3d"
+                arch "x86"
+                os "LINUX"
+                type "INSTALLED"
+        }
+}
+
+tr scec::extract_sgt_rv_in_mem:1.0 {
+        profile pegasus "clusters.size" "10"
+        site ranger {
+                pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/JBSim3d_header_mem/bin/jbsim3d"
+                arch "x86"
+                os "LINUX"
+                type "INSTALLED"
+        }
+	site kraken {
+		profile globus "jobtype" "mpi"
+		#pfn "/lustre/scratch/proj/tera3d/CyberShake/software/JBSim3d_combined/bin/jbsim3d"
+		pfn "/lustre/scratch/proj/tera3d/CyberShake/software/SeisPSA_header_buf/bin/jbsim3d"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+		site stampede {
+			profile globus "jobtype" "mpi"
+			pfn "/work/00940/tera3d/CyberShake/software/SeisPSA_header_buf/bin/jbsim3d"
+			arch "x86_64"
+			os "LINUX"
+			type "INSTALLED"
+		}
+	}
+
+	tr scec::extract_sgt_header:1.0 {
+		profile pegasus "clusters.size" "10"
+		site ranger {
+			pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/JBSim3d_header/bin/jbsim3d"
+			arch "x86"
+			os "LINUX"
+			type "INSTALLED"
+		}
+	}
+
+
+	tr scec::seismogram_synthesis:1.0 {
+		#profile pegasus "clusters.num" "40"
+		profile pegasus "clusters.size" "200"
+		site ranger-scottcal {
+			pfn "/scratch/projects/tg/tera3d/CyberShake2007-scottcal/software/JBSim3d/bin/jbsim3d"
+			arch "x86"
+			os "LINUX"
+			type "INSTALLED"
+		}
+		site ranger_noglidein {
+			pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/JBSim3d/bin/jbsim3d"
+			arch "x86"
+			os "LINUX"
+			type "INSTALLED"
+		}
+		site abe {
+			profile env "LD_ASSUME_KERNEL" "2.4.19"
+			pfn "/cfs/projects/scec/CyberShake2007/software/JBSim3d/bin/jbsim3d"
+			arch "x86"
+			os "LINUX"
+			type "INSTALLED"
+		}
+		site ranger {
+			pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/JBSim3d/bin/jbsim3d"
+			arch "x86"
+			os "LINUX"
+			type "INSTALLED"
+		}
+		site hpc {
+			pfn "/home/rcf-104/CyberShake2007/software/JBSim3d/bin/jbsim3d"
+			arch "x86"
+			os "LINUX"
+			type "INSTALLED"
+		}
+		site kraken {
+			profile globus "jobtype" "mpi"
+			pfn "/lustre/scratch/proj/tera3d/CyberShake/software/JBSim3d/bin/jbsim3d"
+			arch "x86_64"
+			os "LINUX"
+		type "INSTALLED"
+	}
+        site stampede {
+                profile globus "jobtype" "mpi"
+                pfn "/work/00940/tera3d/CyberShake/software/JBSim3d/bin/jbsim3d"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+
+}
+
+tr scec::seismogram_synthesis_memcached:1.0 {
+	#changed from clusters.num=40 so we don't run into issues with more
+	#subworkflows
+	#Average runtime is 4 seconds
+        profile pegasus "clusters.size" "200"
+        site ranger_noglidein {
+                pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/JBSim3d_mc/bin/jbsim3d"
+                arch "x86"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site ranger {
+                pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/JBSim3d_mc/bin/jbsim3d"
+                arch "x86"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site hpc {
+                pfn "/home/rcf-104/CyberShake2007/software/JBSim3d_mc/bin/jbsim3d"
+                arch "x86"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site kraken {
+		profile globus "jobtype" "mpi"
+                pfn "/lustre/scratch/proj/tera3d/CyberShake/software/JBSim3d_combined/bin/jbsim3d"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+	site stampede {
+                profile globus "jobtype" "mpi"
+                pfn "/work/00940/tera3d/CyberShake/software/JBSim3d_combined/bin/jbsim3d"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+}
+
+
+tr scec::seismogram_synthesis_compare:1.0 {
+	site abe {
+		profile env "LD_ASSUME_KERNEL" "2.4.19"
+		profile pegasus "collapse" "40"
+		pfn "/cfs/projects/scec/CyberShake2007/software/JBSim3d/bin/jbsim3d-compare.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::seismogram_synthesis_wrapper:1.0 {
+	site abe {
+		profile env "LD_ASSUME_KERNEL" "2.4.19"
+		profile pegasus "collapse" "40"
+		pfn "/cfs/projects/scec/CyberShake2007/software/JBSim3d/bin/jbsim3d-wrapper.sh"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::seismogram_synthesis_rv_in_mem:1.0 {
+        profile pegasus "clusters.size" "200"
+        site ranger {
+                pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/JBSim3d_header_mem/bin/jbsim3d"
+                arch "x86"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site kraken {
+		profile globus "jobtype" "mpi"
+                pfn "/lustre/scratch/proj/tera3d/CyberShake/software/JBSim3d_combined/bin/jbsim3d"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site stampede {
+                profile globus "jobtype" "mpi"
+                pfn "/work/00940/tera3d/CyberShake/software/JBSim3d_combined/bin/jbsim3d"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+}
+
+
+tr scec::Local_VM:1.0 {
+	site ranger {
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/HFSim/bin/gen_local_vel.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site bluewaters {
+                profile globus "host_count" "1"
+                profile globus "count" "1"
+                profile globus "jobtype" "single"
+                profile globus "maxwalltime" "5"
+                profile globus "queue" "noalloc"
+		#profile globus "project" "baln"
+                pfn "/projects/sciteam/baln/CyberShake/software/HFSim_mem/gen_local_vel.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+	}
+	site summit {
+		profile globus "hostcount" "1"
+                profile globus "jobtype" "single"
+                profile globus "maxwalltime" "10"
+                profile globus "project" "GEO112"
+                pfn "/gpfs/alpine/proj-shared/geo112/CyberShake/software/HFSim_mem/gen_local_vel.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+	}
+	site frontera {
+		profile pegasus "nodes" "1"
+		profile pegasus "cores" "1"
+		profile globus "maxwalltime" "5"
+		profile globus "queue" "small"
+		pfn "/work2/00349/scottcal/frontera/CyberShake/software/HFSim_mem/gen_local_vel.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::Create_Dirs:1.0 {
+	site bluewaters {
+                profile globus "host_count" "1"
+                profile globus "count" "1"
+                profile globus "jobtype" "single"
+                profile globus "maxwalltime" "5"
+                profile globus "queue" "noalloc"
+		#profile globus "project" "baln"
+                pfn "/projects/sciteam/baln/CyberShake/software/HFSim_mem/create_dirs.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+	#site summit-pilot {
+	#	profile globus "hostcount" "1"
+	#	profile globus "jobtype" "single"
+    #            profile globus "maxwalltime" "60"
+    #            profile globus "project" "GEO112"
+	#	profile condor "requirements" "(TARGET.Arch==\"ppc64le\")"
+    #            pfn "/gpfs/alpine/proj-shared/geo112/CyberShake/software/HFSim_mem/create_dirs.py"
+    #            arch "x86_64"
+    #            os "LINUX"
+    #            type "INSTALLED"
+	#}
+	site summit {
+		profile globus "hostcount" "1"
+        profile globus "jobtype" "single"
+        profile globus "maxwalltime" "10"
+        profile globus "project" "GEO112"
+		pfn "/gpfs/alpine/proj-shared/geo112/CyberShake/software/HFSim_mem/create_dirs.py"
+        arch "x86_64"
+        os "LINUX"
+        type "INSTALLED"
+	}
+
+	site frontera {
+		profile pegasus "nodes" "1"
+		profile pegasus "cores" "1"
+		profile globus "maxwalltime" "5"
+		profile globus "queue" "small"
+		pfn "/work2/00349/scottcal/frontera/CyberShake/software/HFSim_mem/create_dirs.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::srf2stoch:1.0 {
+	profile pegasus "clusters.size" "200"
+	site ranger {
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/HFSim/bin/srf2stoch"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::MergeFrequency:1.0 {
+	profile pegasus "clusters.size" "200"
+	site ranger {
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/HFSim/bin/merge"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::MergeIM:1.0 {
+	site bluewaters {
+               profile globus "jobtype" "mpi"
+		profile globus "project" "baln"
+                pfn "/projects/sciteam/baln/CyberShake/software/MergeIM/bin/merge_psa"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+}
+
+tr scec::MergeIM:2.0 {
+	#site summit-pilot {
+	#	profile globus "jobtype" "mpi"
+	#	pfn "/gpfs/alpine/proj-shared/geo112/CyberShake/software/MergeIM/bin/merge_psa_bbp"
+	#	arch "x86_64"
+	#	os "LINUX"
+	#	type "INSTALLED"
+	#}
+	site summit {
+        profile globus "jobtype" "single"
+        pfn "/gpfs/alpine/proj-shared/geo112/CyberShake/software/MergeIM/bin/merge_psa_bbp"
+        arch "x86_64"
+        os "LINUX"
+        type "INSTALLED"
+    }
+	site frontera {
+        profile globus "jobtype" "single"
+        pfn "/work2/00349/scottcal/frontera/CyberShake/software/MergeIM/bin/merge_psa_bbp"
+        arch "x86_64"
+        os "LINUX"
+        type "INSTALLED"
+    }
+}
+
+tr scec::HighFrequency:1.0 {
+	profile pegasus "clusters.size" "200"
+	site ranger {
+		pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/HFSim/bin/hfsim"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::HF_Synth:1.0 {
+        profile pegasus "clusters.size" "200"
+        site ranger {
+                pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/HFSim_merged/bin/hf_synth"
+                arch "x86"
+                os "LINUX"
+                type "INSTALLED"
+        }
+}
+
+tr scec::HF_Synth:2.0 {
+        site bluewaters {
+                profile globus "jobtype" "mpi"
+		profile globus "project" "baln"
+                pfn "/projects/sciteam/baln/CyberShake/software/HFSim_mem/bin/hf_synth_lite"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+}
+
+tr scec::HF_Synth:3.0 {
+	site summit {
+        profile globus "jobtype" "single"
+		pfn "/gpfs/alpine/proj-shared/geo112/CyberShake/software/HFSim_mem/bin/hf_synth_bbp"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+
+	site frontera {
+		profile globus "jobtype" "single"
+		pfn "/work2/00349/scottcal/frontera/CyberShake/software/HFSim_mem/bin/hf_synth_bbp"
+        arch "x86_64"
+        os "LINUX"
+        type "INSTALLED"
+	}
+}
+
+tr scec::Combine_HF_Synth:1.0 {
+	site bluewaters {
+                profile globus "jobtype" "mpi"
+		profile globus "project" "baln"
+                pfn "/projects/sciteam/baln/CyberShake/software/HFSim_mem/combine_seis.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+	#site summit-pilot {
+	#	profile globus "jobtype" "mpi"
+	#	pfn "/gpfs/alpine/proj-shared/geo112/CyberShake/software/HFSim_mem/combine_seis.py"
+	#	arch "x86_64"
+    #            os "LINUX"
+    #            type "INSTALLED"
+    #    }
+	site summit {
+        profile globus "jobtype" "single"
+        pfn "/gpfs/alpine/proj-shared/geo112/CyberShake/software/HFSim_mem/combine_seis.py"
+        arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+
+	site frontera {
+        profile globus "jobtype" "single"
+        pfn "/work2/00349/scottcal/frontera/CyberShake/software/HFSim_mem/combine_seis.py"
+        arch "x86_64"
+        os "LINUX"
+        type "INSTALLED"
+	}
+}
+
+tr scec::LF_Site_Response:1.0 {
+	site bluewaters {
+		profile globus "jobtype" "mpi"
+		profile globus "project" "baln"
+		pfn "/projects/sciteam/baln/CyberShake/software/LF_Site_Response/bin/lf_site_response"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::LF_Site_Response:2.0 {
+	#site summit-pilot {
+	#	profile globus "jobtype" "mpi"
+	#	pfn "/gpfs/alpine/proj-shared/geo112/CyberShake/software/LF_Site_Response/bin/lf_site_response_bbp"
+	#	arch "x86_64"
+	#	os "LINUX"
+	#	type "INSTALLED"
+	#}
+	site summit {
+       profile globus "jobtype" "single"
+       pfn "/gpfs/alpine/proj-shared/geo112/CyberShake/software/LF_Site_Response/bin/lf_site_response_bbp"
+       arch "x86_64"
+       os "LINUX"
+       type "INSTALLED"
+    }
+    site frontera {
+       profile globus "jobtype" "single"
+       pfn "/work2/00349/scottcal/frontera/CyberShake/software/LF_Site_Response/bin/lf_site_response_bbp"
+       arch "x86_64"
+       os "LINUX"
+       type "INSTALLED"
+    }
+
+}
+
+tr scec::MergePSA:1.0 {
+        profile pegasus "clusters.size" "200"
+        site ranger {
+                pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/MergePSA/bin/merge_psa"
+                arch "x86"
+                os "LINUX"
+                type "INSTALLED"
+        }
+}
+
+tr scec::HF_Synth_rv_in_mem:1.0 {
+        profile pegasus "clusters.num" "40"
+        site ranger {
+                pfn "/scratch/projects/tg/tera3d/CyberShake2007/software/HFSim_mem/bin/hf_synth"
+                arch "x86"
+                os "LINUX"
+                type "INSTALLED"
+        }
+}
+
+tr scec::AWP_NaN_Check:1.0 {
+	site bluewaters {
+                profile globus "host_count" "1"
+                profile globus "count" "1"
+                profile globus "jobtype" "single"
+                profile globus "maxwalltime" "90"
+                profile globus "queue" "noalloc"
+		#profile globus "project" "baln"
+                pfn "/projects/sciteam/baln/CyberShake/software/SgtTest/perform_checks.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+	}
+
+	site stampede {
+                profile globus "host_count" "1"
+                profile globus "count" "1"
+                profile globus "queue" "normal"
+                profile globus "jobtype" "single"
+                pfn "/work/00940/tera3d/CyberShake/software/SgtTest/bin/check_for_nans"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+
+	}
+        #site titan-pilot {
+        #        profile condor "requirements" "(IsPilot==True)"
+	#	profile condor "requirements" "(PilotJobType==\"PostSGTPilot\")"
+        #        pfn "/lustre/atlas/proj-shared/geo112/CyberShake/software/SgtTest/nan_test.sh"
+        #        arch "x86_64"
+        #        os "LINUX"
+        #        type "INSTALLED"
+        #}
+	site titan {
+                profile globus "hostcount" "1"
+                profile globus "count" "1"
+                profile globus "jobtype" "single"
+		profile globus "maxwalltime" "90"
+		profile globus "account" "GEO112"
+                pfn "/lustre/atlas/proj-shared/geo112/CyberShake/software/SgtTest/perform_checks.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+	}
+        site summit {
+                profile globus "hostcount" "1"
+                #profile globus "count" "1"
+                profile globus "jobtype" "single"
+                profile globus "maxwalltime" "60"
+                profile globus "project" "GEO112"
+                pfn "/gpfs/alpine/proj-shared/geo112/CyberShake/software/SgtTest/perform_checks.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site frontier {
+            profile pegasus "nodes" "1"
+			profile pegasus "cores" "1"
+            profile globus "maxwalltime" "60"
+            profile globus "jobtype" "single"
+            profile globus "project" "GEO156"
+            pfn "/lustre/orion/geo156/proj-shared/CyberShake/software/SgtTest/perform_checks.py"
+            arch "x86_64"
+            os "LINUX"
+            type "INSTALLED"
+        }
+
+	site cori {
+                profile globus "host_count" "1"
+		profile globus "count" "1"
+                profile globus "jobtype" "single"
+                profile globus "maxtime" "90"
+                profile globus "queue" "regular"
+                pfn "/project/projectdirs/m2187/scottcal/CyberShake/software/SgtTest/perform_checks.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site edison {
+                profile globus "host_count" "1"
+                profile globus "count" "1"
+                profile globus "jobtype" "single"
+                profile globus "maxtime" "90"
+                profile globus "queue" "regular"
+                pfn "/project/projectdirs/m2187/scottcal/CyberShake/software-edison/SgtTest/perform_checks.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+}
+
+tr scec::Handoff:1.0 {
+	site shock {
+		pfn "/home/scec-02/cybershk/runs/handoff_titan.py"
+		arch "x86"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::DirCreate:1.0 {
+        site bluewaters {
+                profile globus "maxwalltime" "60"
+                profile globus "hostcount" "1"
+                profile globus "count" "1"
+                profile globus "jobtype" "single"
+                profile globus "nodetype" "xe"
+                profile globus "queue" "noalloc"
+                #profile globus "project" "baln"
+                pfn "/projects/sciteam/baln/CyberShake/software/DirectSynth_RSQSim/create_dirs.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site summit {
+                profile globus "hostcount" "1"
+                profile globus "maxwalltime" "60"
+                profile globus "jobtype" "single"
+                profile globus "project" "GEO112"
+                pfn "/gpfs/alpine/proj-shared/geo112/CyberShake/software/DirectSynth_RSQSim/create_dirs.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+
+}
+
+
+tr scec::DirectSynth:1.0 {
+	site bluewaters {
+		profile globus "host_count" "160"
+		profile globus "count" "5120"
+		profile globus "jobtype" "single"
+		profile globus "maxwalltime" "900"
+		#profile globus "project" "baln"
+		profile globus "queue" "noalloc"
+		#profile globus "reservation_id" "baln1"
+		pfn "/projects/sciteam/baln/CyberShake/software/DirectSynth/direct_synth_v3.3.1.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+	site cori {
+		profile globus "host_count" "80"
+		profile globus "jobtype" "single"
+		profile globus "maxtime" "900"
+		profile globus "queue" "regular"
+		pfn "/project/projectdirs/m2187/scottcal/CyberShake/software/DirectSynth/direct_synth_v3.3.1.py"
+		arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+	}
+        site edison {
+                profile globus "host_count" "214"
+                profile globus "jobtype" "single"
+                profile globus "maxtime" "900"
+		profile globus "maxwalltime" "900"
+                profile globus "queue" "regular"
+                pfn "/project/projectdirs/m2187/scottcal/CyberShake/software-edison/DirectSynth/direct_synth_v3.3.1.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+	#site titan {
+	#	profile globus "hostcount" "320"
+	#	profile globus "count" "5120"
+	#	profile globus "maxwalltime" "720"
+	#	profile globus "jobtype" "single"
+	#	profile globus "account" "GEO112"
+	#	pfn "/lustre/atlas/proj-shared/geo112/CyberShake/software/DirectSynth/direct_synth_v3.3.1.py"
+	#	arch "x86_64"
+	#	os "LINUX"
+	#	type "INSTALLED"
+	#}
+	site titan-pilot {
+		profile condor "requirements" "(IsPilot==True)"
+                profile condor "requirements" "(PilotTimeLeft > 21600)"
+                profile condor "requirements" "(PilotJobType==\"PPPilot\")"
+                profile condor "request_cpus" "1"
+                pfn "/lustre/atlas/proj-shared/geo112/CyberShake/software/DirectSynth/direct_synth_v3.3.1.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site summit {
+                profile globus "hostcount" "92"
+                #profile globus "count" "2688"
+                profile globus "maxwalltime" "600"
+                profile globus "jobtype" "single"
+                profile globus "project" "GEO112"
+                pfn "/gpfs/alpine/proj-shared/geo112/CyberShake/software/DirectSynth/direct_synth_v3.3.1.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        #site summit-pilot {
+        #        profile condor "requirements" "(IsPilot==True)"
+        #        profile condor "requirements" "(PilotTimeLeft > 43200)"
+        #        profile condor "requirements" "(PilotJobType==\"PPPilot\")"
+        #        profile condor "request_cpus" "1"
+        #        pfn "/gpfs/alpine/proj-shared/geo112/CyberShake/software/DirectSynth/direct_synth_v3.3.1.py"
+        #        arch "x86_64"
+        #        os "LINUX"
+        #        type "INSTALLED"
+	#
+        #}
+}
+
+tr scec::DirectSynth:2.0 {
+        site bluewaters {
+                profile globus "host_count" "120"
+                profile globus "count" "3840"
+                profile globus "jobtype" "single"
+                profile globus "maxwalltime" "600"
+		profile globus "project" "baln"
+		profile globus "queue" "high"
+                pfn "/projects/sciteam/baln/CyberShake/software/DirectSynth/direct_synth.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site titan {
+                profile globus "hostcount" "240"
+                profile globus "count" "3840"
+                profile globus "maxwalltime" "360"
+                profile globus "jobtype" "single"
+                profile globus "account" "GEO112"
+                pfn "/lustre/atlas/proj-shared/geo112/CyberShake/software/DirectSynth/direct_synth.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+}
+
+tr scec::DirectSynth:3.0 {
+        site summit {
+	        profile globus "hostcount" "100"
+	        profile globus "maxwalltime" "600"
+	        profile globus "jobtype" "single"
+	        profile globus "project" "GEO112"
+	        pfn "/gpfs/alpine/proj-shared/geo112/CyberShake/software/DirectSynth/direct_synth_v5.4.2.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::DirectSynth:4.0 {
+        site summit {
+            profile globus "hostcount" "92"
+            profile globus "maxwalltime" "600"
+            profile globus "jobtype" "single"
+            profile globus "project" "GEO112"
+            pfn "/gpfs/alpine/proj-shared/geo112/CyberShake/software/DirectSynth/direct_synth_omp.py"
+        arch "x86_64"
+        os "LINUX"
+        type "INSTALLED"
+    }
+
+        #site summit-pilot {
+		#		profile condor "universe" "vanilla"
+        #        profile condor "requirements" "(IsPilot==True) && (TARGET.Arch==\"ppc64le\") && (PilotJobType==\"PPPilot\")"
+        #        #profile condor "requirements" "(PilotTimeLeft > 36000)"
+        #        #profile condor "requirements" "(TARGET.Arch==\"ppc64le\")"
+        #        #profile condor "requirements" "(PilotJobType==\"PPPilot\")"
+        #        profile condor "request_cpus" "1"
+        #        pfn "/gpfs/alpine/proj-shared/geo112/CyberShake/software/DirectSynth/direct_synth_omp.py"
+        #        arch "x86_64"
+        #        os "LINUX"
+        #        type "INSTALLED"
+    #}
+
+	site frontera {
+            profile globus "hostcount" "70"
+            profile globus "maxwalltime" "600"
+            profile globus "jobtype" "single"
+			profile globus "queue" "normal"
+            pfn "/work2/00349/scottcal/frontera/CyberShake/software/DirectSynth/direct_synth.py"
+        arch "x86_64"
+        os "LINUX"
+        type "INSTALLED"
+
+	}
+}
+
+
+tr scec::DirectSynth_RSQSim:1.0 {
+        site bluewaters {
+                profile globus "host_count" "120"
+                profile globus "count" "3840"
+                profile globus "jobtype" "single"
+                profile globus "maxwalltime" "600"
+                #profile globus "project" "baln"
+		profile globus "queue" "noalloc"
+                pfn "/projects/sciteam/baln/CyberShake/software/DirectSynth_RSQSim/direct_synth.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+
+		site summit {
+			profile globus "host_count" "36"
+			profile globus "count" "1512"
+			profile globus "jobtype" "single"
+			profile globus "maxwalltime" "45"
+			pfn "/gpfs/alpine/proj-shared/geo112/CyberShake/software/DirectSynth_RSQSim/direct_synth.py"
+			arch "x86_64"
+			os "LINUX"
+			type "INSTALLED"
+		}
+}
+
+
+tr scec::Velocity_Info:1.0 {
+	site summit {
+		profile globus "hostcount" "1"
+		profile globus "maxwalltime" "10"
+                profile globus "jobtype" "single"
+                profile globus "project" "GEO112"
+		profile env "PROJ_LIB" "/gpfs/alpine/proj-shared/geo112/CyberShake/software/UCVM/ucvm-22.7.0/lib/proj-5/share/proj"
+                pfn "/gpfs/alpine/proj-shared/geo112/CyberShake/software/HFSim_mem/bin/retrieve_vs"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+	}
+
+	site frontera {
+		profile pegasus "nodes" "1"
+		profile pegasus "cores" "1"
+		profile globus "jobtype" "single"
+		profile globus "maxwalltime" "10"
+		pfn "/work2/00349/scottcal/frontera/CyberShake/software/HFSim_mem/bin/retrieve_vs"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}
+
+tr scec::Velocity_Params:1.0 {
+	 site bluewaters {
+                profile globus "host_count" "1"
+                profile globus "count" "1"
+                profile globus "jobtype" "single"
+                profile globus "maxwalltime" "10"
+                profile globus "queue" "noalloc"
+                #profile globus "project" "baln"
+                pfn "/projects/sciteam/baln/CyberShake/software/UCVM/utils/velocity_params.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+	site titan {
+		profile globus "host_count" "1"
+                profile globus "count" "1"
+                profile globus "jobtype" "single"
+                profile globus "maxwalltime" "10"
+                profile globus "account" "GEO112"
+                pfn "/lustre/atlas/proj-shared/geo112/CyberShake/software/UCVM/utils/velocity_params.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+	}
+        site summit {
+                profile globus "host_count" "1"
+                #profile globus "count" "1"
+                profile globus "jobtype" "single"
+                profile globus "maxwalltime" "10"
+                profile globus "project" "GEO112"
+                pfn "/gpfs/alpine/proj-shared/geo112/CyberShake/software/UCVM/utils/velocity_params.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+		site frontier {
+			profile pegasus "nodes" "1"
+            profile pegasus "cores" "1"
+            profile globus "maxwalltime" "10"
+            profile globus "jobtype" "single"
+            profile globus "project" "GEO156"
+            pfn "/lustre/orion/geo156/proj-shared/CyberShake/software/UCVM/utils/velocity_params.py"
+            arch "x86_64"
+            os "LINUX"
+            type "INSTALLED"
+
+		}
+	site cori {
+                profile globus "host_count" "1"
+		profile globus "count" "1"
+                profile globus "jobtype" "single"
+                profile globus "maxtime" "10"
+                profile globus "queue" "regular"
+                pfn "/project/projectdirs/m2187/scottcal/CyberShake/software/AWP-ODC-SGT/utils/build_awp_inputs.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+        site edison {
+                profile globus "host_count" "1"
+                profile globus "count" "1"
+                profile globus "jobtype" "single"
+                profile globus "maxtime" "10"
+                profile globus "queue" "regular"
+                pfn "/project/projectdirs/m2187/scottcal/CyberShake/software-edison/AWP-ODC-SGT/utils/build_awp_inputs.py"
+                arch "x86_64"
+                os "LINUX"
+                type "INSTALLED"
+        }
+}
+
+tr scec::BB_Velocity_Insert:1.0 {
+	site frontera {
+		profile pegasus "nodes" "1"
+		profile pegasus "cores" "1"
+		profile globus "jobtype" "single"
+		profile globus "maxwalltime" "5"
+		pfn "/work2/00349/scottcal/frontera/CyberShake/software/UCVM/utils/insert_bb_velocity_params.py"
+		arch "x86_64"
+		os "LINUX"
+		type "INSTALLED"
+	}
+}

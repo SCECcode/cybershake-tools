@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<OpenSHA>
+  <HazardCurvePlotCharacteristics xMin="0.01" xMax="3.0" yMin="1.0E-5" yMax="0.2" xLog="true" yLog="true" title="%n" xAxisLabel="%ps SA (g)" yAxisLabel="Probability Rate (1/yr)" csLineWidth="2.0" attenRelLineWidth="2.0" customAxis="true" cyberShakeLineType="Solid" attenRelLineType="Dashed">
+    <AttenRelColors>
+      <Color r="255" g="150" b="150" a="255"/>
+      <Color r="150" g="150" b="255" a="255"/>
+      <Color r="150" g="255" b="150" a="255"/>
+      <Color r="255" g="180" b="35" a="255"/>
+      <Color r="160" g="255" b="255" a="255"/>
+    </AttenRelColors>
+    <PeriodDependentXMaxes>
+      <PeriodDependentXMax period="3.0" xMax="3.0"/>
+      <PeriodDependentXMax period="5.0" xMax="1.5"/>
+      <PeriodDependentXMax period="10.0" xMax="1.0"/>
+    </PeriodDependentXMaxes>
+    <discretizedFunction info="" name="" tolerance="0.0" num="51">
+      <Points>
+        <Point x="1.0E-4" y="1.0"/>
+        <Point x="1.3E-4" y="1.0"/>
+        <Point x="1.6E-4" y="1.0"/>
+        <Point x="2.0E-4" y="1.0"/>
+        <Point x="2.5E-4" y="1.0"/>
+        <Point x="3.2E-4" y="1.0"/>
+        <Point x="4.0E-4" y="1.0"/>
+        <Point x="5.0E-4" y="1.0"/>
+        <Point x="6.3E-4" y="1.0"/>
+        <Point x="7.9E-4" y="1.0"/>
+        <Point x="0.0010" y="1.0"/>
+        <Point x="0.00126" y="1.0"/>
+        <Point x="0.00158" y="1.0"/>
+        <Point x="0.0020" y="1.0"/>
+        <Point x="0.00251" y="1.0"/>
+        <Point x="0.00316" y="1.0"/>
+        <Point x="0.00398" y="1.0"/>
+        <Point x="0.00501" y="1.0"/>
+        <Point x="0.00631" y="1.0"/>
+        <Point x="0.00794" y="1.0"/>
+        <Point x="0.01" y="1.0"/>
+        <Point x="0.01259" y="1.0"/>
+        <Point x="0.01585" y="1.0"/>
+        <Point x="0.01995" y="1.0"/>
+        <Point x="0.02512" y="1.0"/>
+        <Point x="0.03162" y="1.0"/>
+        <Point x="0.03981" y="1.0"/>
+        <Point x="0.05012" y="1.0"/>
+        <Point x="0.0631" y="1.0"/>
+        <Point x="0.07943" y="1.0"/>
+        <Point x="0.1" y="1.0"/>
+        <Point x="0.12589" y="1.0"/>
+        <Point x="0.15849" y="1.0"/>
+        <Point x="0.19953" y="1.0"/>
+        <Point x="0.25119" y="1.0"/>
+        <Point x="0.31623" y="1.0"/>
+        <Point x="0.39811" y="1.0"/>
+        <Point x="0.50119" y="1.0"/>
+        <Point x="0.63096" y="1.0"/>
+        <Point x="0.79433" y="1.0"/>
+        <Point x="1.0" y="1.0"/>
+        <Point x="1.25893" y="1.0"/>
+        <Point x="1.58489" y="1.0"/>
+        <Point x="1.99526" y="1.0"/>
+        <Point x="2.51189" y="1.0"/>
+        <Point x="3.16228" y="1.0"/>
+        <Point x="3.98107" y="1.0"/>
+        <Point x="5.01187" y="1.0"/>
+        <Point x="6.30957" y="1.0"/>
+        <Point x="7.94328" y="1.0"/>
+        <Point x="10.0" y="1.0"/>
+      </Points>
+    </discretizedFunction>
+  </HazardCurvePlotCharacteristics>
+</OpenSHA>

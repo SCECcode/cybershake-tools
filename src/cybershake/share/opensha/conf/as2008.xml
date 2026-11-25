@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<OpenSHA>
+  <IMR className="org.opensha.sha.imr.attenRelImpl.AS_2008_AttenRel">
+    <Parameters>
+      <Parameter name="Gaussian Truncation" type="ConstrainedStringParameter" units="" value="1 Sided"/>
+      <Parameter name="Truncation Level" type="ConstrainedDoubleParameter" units="Std Dev" value="3.0"/>
+      <Parameter name="Component" type="ConstrainedStringParameter" units="" value="Average Horizontal (GMRotI50)"/>
+      <Parameter name="Std Dev Type" type="ConstrainedStringParameter" units="" value="Total"/>
+    </Parameters>
+    <SiteParameters>
+      <Parameter name="Vs30" type="ConstrainedDoubleParameter" units="m/sec" value="760.0"/>
+      <Parameter name="Flag for Vs30 value." type="ConstrainedStringParameter" units="" value="Inferred"/>
+      <Parameter name="Depth to Vs = 1.0 km/sec" type="DoubleParameter" units="" value="1000.0"/>
+    </SiteParameters>
+    <IntensityMeasure name="SA" type="ConstrainedDoubleParameter" units="g" value="0.5">
+      <IndependentParameters>
+        <Parameter name="SA Period" type="ConstrainedDoubleDiscreteParameter" units="sec" value="3.0"/>
+        <Parameter name="SA Damping" type="ConstrainedDoubleDiscreteParameter" units=" % " value="5.0"/>
+      </IndependentParameters>
+    </IntensityMeasure>
+  </IMR>
+</OpenSHA>

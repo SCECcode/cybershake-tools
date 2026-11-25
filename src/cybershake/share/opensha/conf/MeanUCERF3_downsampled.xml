@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<OpenSHA>
+  <ERF className="scratch.UCERF3.erf.mean.MeanUCERF3">
+    <Parameters>
+      <Parameter name="Apply Aftershock Filter" type="BooleanParameter" value="false"/>
+      <Parameter name="Aleatory Mag-Area StdDev" type="ConstrainedDoubleParameter" value="0.0"/>
+      <Parameter name="Background Seismicity" type="Parameter" value="Exclude"/>
+      <Parameter name="Treat Background Seismicity As" type="Parameter" value="Point Sources"/>
+      <Parameter name="Use Quad Surfaces (otherwise gridded)" type="BooleanParameter" value="false"/>
+      <Parameter name="Fault Grid Spacing" type="ConstrainedDoubleParameter" units="km" value="1.0"/>
+      <Parameter name="Probability Model" type="Parameter" value="Poisson"/>
+      <Parameter name="Sect Upper Depth Averaging Tolerance" type="ConstrainedDoubleParameter" units="km" value="1.0"/>
+      <Parameter name="Use Mean Upper Depth" type="BooleanParameter" value="true"/>
+      <Parameter name="Rup Mag Averaging Tolerance" type="ConstrainedDoubleParameter" value="0.1"/>
+      <Parameter name="Rupture Rake To Use" type="ConstrainedStringParameter" value="Def. Model Mean"/>
+      <Parameter name="Fault Model(s)" type="ConstrainedStringParameter" value="Both"/>
+      <Parameter name="Ignore Cache" type="BooleanParameter" value="false"/>
+    </Parameters>
+    <TimeSpan startTimePrecision="None" duration="1.0" durationUnits="Years">
+      <startTimes/>
+    </TimeSpan>
+  </ERF>
+</OpenSHA>

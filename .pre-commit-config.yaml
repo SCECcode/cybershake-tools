@@ -1,0 +1,73 @@
+repos:
+  - hooks:
+      - id: commitizen
+      - id: commitizen-branch
+        stages:
+          - pre-push
+    repo: https://github.com/commitizen-tools/commitizen
+    rev: v4.19.3
+
+  - hooks:
+      - id: pretty-format-java
+        args: [--aosp, "--autofix"]
+    repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
+    rev: v2.16.0
+
+  - hooks:
+      - id: uv-lock
+    repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.13.6
+
+  - hooks:
+      - id: mypy
+        exclude: "^(docs/_includes|src/cybershake/share/opensha/scripts)"
+        additional_dependencies:
+          - types-PyYAML
+          - types-PyMySQL
+    repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v2.4.0
+
+  - hooks:
+      - id: ruff
+        args: [--fix, --target-version, py311]
+        exclude: "^(docs/_includes)"
+      - id: ruff-format
+        args: [--target-version, py311]
+    repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.3
+
+  - hooks:
+      - id: mdformat
+        exclude: "^(.github/|CHANGELOG.md)"
+        additional_dependencies:
+          - mdformat-gfm
+          - mdformat-ruff
+          - ruff
+    repo: https://github.com/executablebooks/mdformat
+    rev: 1.0.0
+
+  - hooks:
+      - id: codespell
+        additional_dependencies:
+          - tomli
+    repo: https://github.com/codespell-project/codespell
+    rev: v2.4.3
+
+  - hooks:
+      - id: shellcheck
+        exclude: "^src/cybershake/share/opensha/scripts/"
+    repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1-1
+
+  - hooks:
+      - id: check-ast
+      - id: check-builtin-literals
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: check-toml
+      - id: check-yaml
+      - id: debug-statements
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+    repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
